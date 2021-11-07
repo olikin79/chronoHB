@@ -1,0 +1,164 @@
+Travaux du 02/10/21 :
+- décalage d'une heure sur le temps final
+- affichage des VMA sur le pdf final et sur la TV.
+- calcul incorrect de la médiane si effectif pair (indice des listes commençant à 0 et non à 1).
+- affichage correctement formaté des temps.
+- Réparation des en-têtes des dossards et du listing des dossards (mal générés avec xcolor dans texlive.) Changement des couleurs.
+
+Travail du 04/10/21 :
+- heure affichée dans l'interface décalée de 2H.
+- taille des caractères dans l'affichage.
+- taille du QR-code sur le dossard.
+
+Travail du 06/10/21 :
+- l'effacement des données de courses n'effacait pas les résultats contenus dans les données de chaque coureur et les départs de courses. 
+- quand on réinitialise les données de courses, le tableauGUI est vidé : une fonction était déjà écrite pour cela.
+- pas de dossard pour les dispensés
+
+Travail du 07/10/21 :
+- la suppression d'un temps ou d'un dossard n'existant pas ne doit plus provoquer d'erreur.
+- les fonctions d'import depuis smartphone (et interface) : ajout de listes de lignes ignorées mémorisées dans la sauvegarde.
+ Ainsi, si on ignore une ligne dans l'interface en certifiant avoir corrigé l'erreur sur le smartphone, on suppose que c'est vrai.
+ Cette ligne sera de toute façon ignorée à l'avenir lors des imports.
+- le bouton dans l'interface en cas d'erreur permet d'ignorer la ligne problématique.
+
+Travail du 08/10/21 : version 1.2
+- permettre un export tableur xlsx des résultats.
+- générer un dossard individuellement : menu ajouté pour imprimer des dossards de dernière minute.
+- le tableur généré s'ouvre automatiquement dans le lecteur de fichiers xlsx par défaut.
+- message à l'arrivée ne comporte pas le prénom et nom prévu
+ => l'import csv comportait une fin de ligne qui n'était pas considéré comme un message vide d'où l'absence de message. (CORRIGE)
+
+Travail du 09/10/21 :
+- les boutons permettant d'imprimer un dossard individuel n'avaient pas la même largeur. C'est corrigé.
+- nom de la fonction de documentation (menu)
+- modif dans DossardsFrame. et AbsDispFrame.actualiseAffichage() pour actualisation du menu lors des imports SIECLE ou lors de la suppression des données.
+- quand on cliquait sur tout effacer puis sur générer tous les dossards, le listing n'était pas vide. 
+Il restait des données non effacées car listeDesCoureursUpdate n'était pas relancé après l'effacement total.
+- les menus "imprimer un dossard individuel" et "absents et dispensés" n'étaient pas bien actualisés après un import SIECLE. 
+- correction d'une phrase dans le menu pour créer les dossards individuels.
+- début de travail pour améliorer la rapidité des créations de dossards. Une fonction doit générer tous les QRcodes en standalone. 
+ Cela ne semble pas fonctionner avec texlive... :-(
+
+Travail du 10/10/21 :
+- les QR-codes des dossards sont générés une fois pour toutes puis inclus dans les divers fichiers générés. 
+Temps de compilation pour tous les dossards divisé par 3.
+
+Travail du 11/10/21 :
+- protection de la fonction calculeTousLesTemps dans le cas où aucun temps ne serait saisi et qu'un dossard passerait la ligne. 
+Cela faisait planter le logiciel au démarrage suivant. 
+if i == len(ArriveeTemps)     est devenue       if i == len(ArriveeTemps) and len(ArriveeTemps) :
+
+Travail du 15/10/21 : 
+Suite au test en conditions réelles, le smartphone a scanné des QR-codes fantaisistes (dossard=3248596) et cela a planté chronoHB.
+- renforcement de la fonction ligneIndice() dans Arrivee.pyw pour qu'elle retourne quelque chose quoiqu'il arrive, même si la valeur numérique est trop grande.
+
+Travail du 16/10/21 : 
+Protection de Arrivee.pyw contre des QR-codes non numériques, des actions incorrectes (impossible avec mon appli mais possible vu que la communication est http si piratage du wifi.
+
+Travail du 17/10/21 :
+-Grossissement du bouton "PARTEZ", en gras, texte plus grand...
+-ajout dans l'export tableur de la vitesse, du % de vma
+-ajout d'une méthode pourcentageVMA() à la class Coureur.
+- dans les paramètres, les champs à droite n'étaient pas mémorisés dans la base de données. 
+	Il fallait tout mémoriser en temps réel, comme c'est le cas pour les distances : fonction setParam non implémentée (oubli).
+- dans les paramètres de la course, permettre la modification d'un fichier messageDefault.txt avec des champs <dossard>, <nom>, etc qui seront remplacés lors de l'annonce de l'arrivée d'un coureur.
+ => chacun pourra paramétrer le message de son choix depuis l'interface et non en dur dans Arrivee.pyw IMPLEMENTE
+
+
+Travail du 18/10/21 :
+- si un nom ou un prénom contenait un espace, alors la génération du dossard individuel échouait (compilation). Corrigé dans generateDossard(coureur).
+- taille du bouton de choix de la classe (menu déroulant) plus large qu'initialement et texte centré à l'occasion.
+
+Travail du 19/10/21 :
+- sauvegarde à intervalles réguliers sur un dossier (clé USB) branché à l'ordinateur. A régler dans le menu Paramètres courses.
+- vitesse de défilement et temps de pause sur les premiers réglable par une entryParam sur l'application. 
+- dans l'affichage HTML, largeurs mieux réglées pour chaque colonne. Tout nom trop long est caché, ce qui évite de déformer le tableau...
+
+Après le cross (oct 2021) :
+- une catégorie dans laquelle aucun résultat n'a lieu plantait la génération pdf. C'est blindé. Cette catégorie n'est pas générée en pdf.
+- on ignore les dossards multiples ajoutés dans donneesSmartphones.txt qui sont liés à des instabilités wifi.
+- quand on réinitialise les données de course, il fallait aussi supprimer les numéros des lignes en erreur ignorées. Ce n'était pas le cas.
+
+
+
+
+Bugs restants ou fonctionnalités manquantes actuelles :
+- créer un dépôt GIT. Y déposer tout le projet pour un développement plus maîtrisé.
+- permettre de tenir compte des catégories d'âge lors de l'import (à ajouter dans les paramètres qui devront avancer en premier dans le menu, AVANT l'import csv.
+  Dans ce cas, créer un drapeau dans les paramètres (déjà existant ?) pour ne pas créer de challenge par classe lors de l'export pdf.
+- sur le smartphone, dans la saisie des dossards, ne pas afficher "classe" pour la recherche mais plutôt catégorie (ou rien si trop compliqué)
+- faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
+	Qu'elles disparaissent de l'affichage quand elles ont été solutionnées... 
+	(difficile : nomenclature des erreurs à écrire / tests de bonne résolution à écrire)
+	Un bouton pourrait apparaître à côté : tester la bonne résolution et avertir que ce n'est pas le cas : 
+	proposer d'ignorer ou de conserver l'erreur à l'affichage. => le timer ne serait plus jamais en pause.
+- permettre l'export et l'import d'une base de données
+- sur l'interface GUI : 
+	afficher les chronos des courses en cours (avec le temps qui défile).
+	permettre une modification manuelle de l'heure de départ : fonction fixerDepart utilisable avec des sécurités à ajouter.
+- dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
+	(et Coureurs ? Normalement inutile car devrait être regénéré à la volée au démarrage du logiciel : ce serait mieux)
+- permettre une édition des caractéristiques d'un coureur (sauf nom-prénom fixes) quand il est en erreur (ou en préparation de course dans le menu): 
+	"Voulez-vous corriger les caractéristiques du coureur en erreur ?" amènerait sur sa fiche et permettrait de modifier son sexe, sa classe, sa catégorie.
+	Mémoriser dans class Coureur la catégorie en dur : méthode pour Autoriser un changement de catégorie qui serait mémorisé, sauf réimport SIECLE qui écrase tout.
+- faire en sorte que l'on puisse affecter un dossard à un temps (que cela fonctionne toujours) et que l'Entry apparaisse au bon endroit. 
+	Faire des tests avec une très grande série de données pour recalculer la fonction affine qui va bien (trop arrondi actuellement).
+- mettre un bip pour chaque temps saisi sur la tablette.
+- documenter la mise en plain écran sur l'affichage secondaire (raccourcis claviers)
+- vérifier que le fichier coureurs.txt est bien regénéré lors de l'ajout manuel d'un coureur.
+- vitesse de défilement réglable par une entryParam sur l'application. Prévoir un intervalle de validité.
+	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
+	une vérificaiton optionnelle isnumeric dans la classe "EntryParam" sera suffisant 
+- photo finish à l'arrivée automatiques.
+- dans app inventor, empêcher la mise en veille du smartphone ou de la tablette voir astuce dans mes favoris.
+- si ajout multiple + affectation => dossard affecté au dernier et non au premier.
+- dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps), alors le script plante : à blinder !
+- quand une erreur s'affiche "un dossard déjà ajouté par un autre smartphone", etc... La boite de dialogue peut apparaître plusieurs fois.
+  le bug est dans l'action du timer...
+- si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
+	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
+- possibilité de compiler les résultats de chaque course séparément: utile finalement après massicot de ce jour ! 
+Tant pis si on perd une demi-page une fois sur deux.
+
+
+Bugs à corriger sur chronoHB.py:
+1. gérer le bug où un coureur passerait la ligne avec son dossard, avant d'être parti. 
+Pour l'instant, c'est plutôt mal géré mais on peut forcer le blocage (voir la documentation).
+L'idéal serait :
+	a) de ne pas ajouter la ligne add dossard dans le fichier txt des données du téléphone.
+	b) d'avoir un retour de l'erreur côté smartphone => supprimer le dossard de la liste d'arrivée sur le téléphone pour données cohérentes
+QUID si on annule un départ. On peut alors se retrouver dans ce cas là également. 
+Il faut donc signaler, alerter mais permettre depuis l'interface d'ignorer ce type d'erreur.
+
+2. (FAIT par "Patch rapide à corriger plus tard" dans FonctionsMetiers.py dans delArriveeTemps(...), 
+aux environs de la ligne 1836 dans chronoHB1.1 mais peut-être perdu lors des mic-mac 2021 : chronoHB 1.2 issu de chronoHB1 et non 1.1 trop buggué) 
+gérer le cas où le seul et unique temps du tableau GUI est effacé. Le tableau ne se vide pas et après la complétion par d'autres temps est incorrecte.
+
+3. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
+Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
+Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
+
+Fonctionnalités manquantes :   
+0. Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
+
+0. départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés).
+
+1. la possibilité d'éditer des listes d'élèves a posteriori (modifier un nom ou un prénom). 
+Pour l'instant, il faudrait refaire un import siecle pour modifier un de ces deux éléments. 
+Je précise que cela ne concerne pas la saisie des absents et dispensés, qui est prévue et rapide dans le logiciel.
+    
+2. Réimporter une sauvegarde directement dans l'interface. Quid de la sauvegarde et du réimport des donneesSmartphones.txt (cohérence finale?):
+le smartphone pourrait mémoriser les diverses sauvegardes successives avec un numéro de course (requête HTTP sur le serveur) : 
+- porpose une liste vide si nouvelle course.
+- réimporte les saisies initiales si ancienne course
+Tout en automatique 
+L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable. Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
+
+6. segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
+
+7. anonymer la documentation en faisant un import SIECLE avec des noms bidons et de nouvelles captures d'écrans.
+
+8. Créer un système évitant des incohérences entre les smartphones et la base locale : 
+un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées.
+A réfléchir...
