@@ -1,0 +1,252 @@
+#!/usr/local/bin/pythonw
+
+#/usr/bin/pythonw
+#!"C:\Program Files (x86)\Python38-32\pythonw.exe" -u
+# coding: utf-8
+import time
+tpsServeur = time.time()
+# on récupère l'heure locale le plus tôt possible après la requête afin de calculer un éventuel décalage entre le client et le serveur le plus précis possible.
+# peu importe si le traitement est un peu long ensuite côté serveur.
+# Il s'agit de calculer le décalage horaire entre le client (smartphone) et le serveur (cet ordi)
+# en supposant que la requête met un temps nul à circuler sur le réseau,
+# ce qui de toute façon moins que l'erreur commise par l'opérateur sur la ligne d'arrivée.
+
+
+## exemples de requêtes traitées :
+## http://127.0.0.1:8888/Arrivee.py?nature=tps&action=add&tpsCoureur=10/07/2020-14:12:32&tpsClient=10/07/2020-14:14:28&dossard=0
+
+## http://127.0.0.1:8888/Arrivee.py?nature=dossard&action=add&dossard=23&dossardPrecedent=-1
+from os import path
+
+## Les commentaires personnalisés par coureur sont possibles dans les données CSV à importer. Il restera à implémenter leur modification dans l'interface.
+##listeDossardsCommetairePersonnalise = [1]
+##listeCommentairesPersonnalises = ["Bravo, pour une fois, tu as franchi la ligne."]
+
+import cgi
+form = cgi.FieldStorage()
+
+##import sys
+##sys.stderr = sys.stdout
+
+def addInstruction(liste) :
+    global local
+    if local == "true" :
+        fichierDonneesSmartphone = "donneesModifLocale.txt"
+    else:
+        fichierDonneesSmartphone = "donneesSmartphone.txt"
+    with open(fichierDonneesSmartphone, 'a') as f :
+        result = ""
+        for el in liste :
+            result += str(el) + ","
+        result += "END\n"
+        f.write(result)
+    f.close()
+
+def ligneIndice(fichier, noLigne):
+    """ retourne la ligne noLigne du fichier contenant le dossard n° noLigne"""
+    retour = None
+    with open(fichier, 'r') as f:
+        for ind, line in enumerate(f):
+            if ind == noLigne-1:
+                #L.append(line)
+                retour = line
+                break
+        f.close()
+    return retour
+            
+def rechercheCoureur(fichier, nom, prenom, classe) :
+    """ recherche dans la liste des coureurs un élément unique dont une partie du nom est nom, une partie du prenom est prenom, etc...
+        retourne une ligne complète commençant par "TR,..." si référence unique trouvée.
+        retourne "PR,Préciser car n coureurs ont un nom prénom correspondant à cette recherche." si c'est le cas.
+        retourne "NT,La saisie ne correspond à aucun coureur. Saisir un morceau du nom ou du prénom sans accent par exemple."
+        """
+    with open(fichier, 'r') as f:
+        ReferenceTrouvee = 0
+        for ind, line in enumerate(f):
+            ligne = line.split(',')
+            nomL = ligne[1]
+            prenomL = ligne[2]
+            classeL = ligne[3]
+            #print(ligne)
+            if nom.lower() in nomL.lower() and prenom.lower() in prenomL.lower() and classe.lower() in classeL.lower() :
+                ReferenceTrouvee += 1
+                DossardTrouve = int(ligne[0])
+        if ReferenceTrouvee == 0 :
+            return "NT,La saisie ne correspond à aucun coureur. Pour une recherche plus efficace, saisir des morceaux du nom ou du prénom sans accent par exemple."
+        elif ReferenceTrouvee == 1 :
+            ligneBrute = ligneIndice(fichier, DossardTrouve)
+            ligne = ligneBrute.split(",")
+            doss = ligne[0]
+            nom = ligne[1]
+            prenom = ligne[2]
+            classe = ligne[3]
+            categorie = ligne[4]
+            categorieLisible = ligne[5]
+            return "TR," + nom + "," + prenom + "," + classe + ","+ categorie+","+categorieLisible+","+prenom+ " " +nom+ " de la classe " + classe + " a le dossard numéro " + str(DossardTrouve)+ "," + str(DossardTrouve)+","
+        else :
+            return "PR,Préciser car " + str(ReferenceTrouvee) +" coureurs ont un nom prénom classe correspondant à cette recherche."
+        f.close()
+    
+def estNumeroDossardCredible(dossard) :
+    if str(dossard).isnumeric() and dossard > 0 :
+        return True
+    else :
+        return False
+
+def lireMessageDefaut() :
+    with open("messageDefaut.txt", 'r') as f:
+        contenu = f.read()
+    f.close()
+    return contenu
+
+def formateClasse(classe) :
+    if classe == "AL3" : # cas particulier du cross ELA où les L3 ont donné un coup de main et ont pour classe AL3 pour Adulte L3
+        retour = "L3"
+    elif classe != "" :
+        if classe[0].isnumeric() :
+            retour = classe[0] + "ème " + classe[1:]
+    else :
+        retour = ""
+    return retour
+
+def generateMessage(dossard, nature, action):     
+    global local
+    donnees = "Coureurs.txt"
+    if nature == "tps" :
+        tpsCoureurSTR = form.getvalue("tpsCoureur")
+        tpsCoureur = time.mktime(time.strptime(tpsCoureurSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsCoureurSTR[-2:])/100)
+        if local == "true" :
+            tpsClient = tpsServeur
+        else :
+            tpsClientSTR = form.getvalue("tpsClient")
+            tpsClient = time.mktime(time.strptime(tpsClientSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsClientSTR[-2:])/100)
+        heure = tpsCoureurSTR[9:11]
+        minutes = tpsCoureurSTR[12:14]
+        secondes = tpsCoureurSTR[15:17]
+        if estNumeroDossardCredible(dossard) :
+            if path.exists(donnees) :
+                ligneBrute = ligneIndice(donnees, dossard)
+                if ligneBrute == None :
+                    print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
+                    chdossard = ""
+                    dossard = 0
+                else :
+                    chdossard =  "avec le dossard " + str(dossard)
+            else :
+                print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
+        else :
+            chdossard = ""
+        if action == "add" :
+            print( heure, "heures", minutes, "minutes", secondes, "secondes", chdossard, "est ajouté.")
+        elif action == "del" :
+            print( heure, "heures", minutes, "minutes", secondes, "secondes", chdossard, "est supprimé.")
+        elif action == "affecte" :
+            if estNumeroDossardCredible(dossard) :
+                if path.exists(donnees) :
+                    ligneBrute = ligneIndice(donnees, dossard)
+                    if ligneBrute == None :
+                        print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
+                        dossard = 0
+                    else :
+                        print( heure, "heures", minutes, "minutes", secondes, "secondes affecté au dossard", dossard, ".")
+                else :
+                    print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
+            else :
+                dossard = 0
+                print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
+        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur])
+    else :
+        if path.exists(donnees) :
+            if estNumeroDossardCredible(dossard) :
+                ligneBrute = ligneIndice(donnees, dossard)
+                if ligneBrute == None :
+                    print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
+                else :
+                    ligne = ligneBrute.split(",")
+                    doss = ligne[0]
+                    nom = ligne[1]
+                    prenom = ligne[2]
+                    classe = ligne[3]
+                    categorie = ligne[4]
+                    categorieLisible = ligne[5]
+                    try : # ajout sur des données pas encore compatibles
+                        commentaireArrivee = ligne[6]
+                    except :
+                        commentaireArrivee = ""
+                    # ici, ajouter un dispositif de vérification sur le dossard demandé : course bien commencée...
+                    # ce qui ne peut pas être effectué côté client.
+                    if nature == "dossard" :
+                        dossardPrecedent = form.getvalue("dossardPrecedent")
+                        if action == "add" :
+                            #f = open('output.txt','a')
+                            #f.write('x' + commentaireArrivee + 'x')
+                            if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
+                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee.replace(",",";"), "," + str(doss) + ",")
+                                #f.write("aDI," + nom + "," + prenom + "," +  classe + "," +  categorie + "," + categorieLisible + "," +  commentaireArrivee.replace(",",";") + "," + str(doss) + ",")
+                            else :
+                                #### version en dur qui fonctionne
+                                ####print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom + " de " + formateClasse(classe) + ". Pour éla ; merci !" , "," + str(doss) + ",")
+                                #### fin version en dur qui fonctionne
+                                ### version dynamique depuis l'interface 
+                                messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
+                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
+                                ### fin version dynamique depuis l'interface
+                                #f.write("bDI," + nom +  "," + prenom + "," + classe + "," +  categorie+","+categorieLisible+","+ prenom + " " + nom + ". Avancez" + "," + str(doss) + ",")
+                            #f.close()
+##                            try :
+##                                indexComment = listeDossardsCommentairePersonnalise.index(doss)
+##                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee, "," + str(doss) + ",")
+##                            except :
+##                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, ". Avancez" , "," + str(doss) + ",")
+##                                # le commentaire audio est le 7ème élément de la liste retournée. Il est potentiellement personnalisable pour faire une blague.
+##                                # version courte: print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, ". Avancez" , "," + str(doss) + ",")
+##                                # commentaire trop long : print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, "de", classe, "avec le dossard" , str(doss), "," + str(doss) + ",")
+                            addInstruction([nature,action,dossard, dossardPrecedent])
+                        elif action == "del" :
+                            print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
+                            addInstruction([nature,action,dossard, dossardPrecedent])
+                        else :
+                            print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
+                    elif nature == "identite" :
+                        if action == "info" :
+                            print("OK,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",",prenom, nom, "de la classe", classe, "," + str(doss) + ",")
+                        else :
+                            print("Action incorrecte provenant du smartphone : nature 'identité' et action", action)
+            elif action == "recherche" :
+                nom = tpsCoureurSTR = form.getvalue("nom")
+                if nom == "0" :
+                    nom = ""
+                prenom = tpsCoureurSTR = form.getvalue("prenom")
+                if prenom == "0" :
+                    prenom = ""
+                classe = tpsCoureurSTR = form.getvalue("classe")
+                if classe == "0" :
+                    classe = ""
+                print(rechercheCoureur(donnees, nom, prenom, classe))
+            else :
+                print("Le dossard", dossard, "n'existe pas.")
+        else :
+            print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
+
+local = form.getvalue("local")
+nature = form.getvalue("nature").lower()
+action = form.getvalue("action").lower()
+try :
+    dossard = int(form.getvalue("dossard"))
+except:
+    dossard = form.getvalue("dossard") # cas d'un QRcode scanné par erreur non numérique.
+
+
+# retour au client : erreurs à gérer.
+print("Content-type: text/html; charset=utf-8\n")
+
+generateMessage(dossard,nature,action)
+    
+        
+#print("coucou")
+    
+
+#print(form.getvalue("test"))
+#print(form.getvalue("tps"))
+#html = """ok"""
+#print(html)
