@@ -1,5 +1,7 @@
-Travail du 21/11/21 :
-- modification de l'application android : un son est généré lors de l'ajout d'un ou plusieurs temps (ou de leur suppression).
+Travail du 21/11/21 : modification de l'application android : 
+- un son est généré lors de l'ajout d'un ou plusieurs temps (ou de leur suppression).
+- possibilité d'empêcher la mise en veille du smartphone ou de la tablette pour le smartphone sur la ligne d'arrivée.
+	le temps de déverrouiller le smartphone peut empêcher une bonne mesure du temps réalisé.
 
 
 Après le cross (oct 2021) :

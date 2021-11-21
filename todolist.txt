@@ -1,9 +1,7 @@
 Bugs restants ou fonctionnalités manquantes actuelles : APK ANDROID :
 - sur le smartphone, dans la saisie des dossards, ne pas afficher "classe" pour la recherche mais plutôt catégorie (ou rien si trop compliqué)
  ajout d'une case à cocher dans les paramètres pour sélectionner le type de catégories.
-- mettre un bip pour chaque temps saisi sur la tablette.
-- dans app inventor, empêcher la mise en veille du smartphone ou de la tablette voir astuce dans mes favoris.
-	ceci doit être une option pour éviter la perte d'autonomie des smartphones sur des très longs trails.
+
 
 Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
 - lors de l'ajout manuel d'un coureur, possibilité d'imprimer les deux derniers dossards (ou mieux ? : les dossards n'ayant jamais été imprimés : à implémenter dans la classe Coureurs)
