@@ -1,0 +1,232 @@
+name 00texlive.config
+category Package
+depend minrelease/2016
+depend release/2020
+
+name 00texlive.installation
+category TLCore
+depend opt_autobackup:1
+depend opt_backupdir:tlpkg/backups
+depend opt_create_formats:1
+depend opt_desktop_integration:0
+depend opt_file_assocs:0
+depend opt_generate_updmap:0
+depend opt_install_docfiles:1
+depend opt_install_srcfiles:1
+depend opt_location:https://mirror.ibcp.fr/pub/CTAN/systems/texlive/tlnet
+depend opt_post_code:1
+depend opt_sys_bin:/usr/local/bin
+depend opt_sys_info:/usr/local/share/info
+depend opt_sys_man:/usr/local/share/man
+depend opt_w32_multi_user:0
+depend setting_available_architectures:win32
+
+name booktabs
+category Package
+revision 53402
+shortdesc Publication quality tables in LaTeX
+longdesc The package enhances the quality of tables in LaTeX, providing
+longdesc extra commands as well as behind-the-scenes optimisation.
+longdesc Guidelines are given as to what constitutes a good table in
+longdesc this context. From version 1.61, the package offers longtable
+longdesc compatibility.
+containersize 2196
+containerchecksum 8d7e46297d19f2e683f5c16a13577fc582cba391cdc8a15ad395a6b44072a5b50216ec9e9a8c727c1b2a36b9275ba9bed10baec3aba9d726505955af01d48c3e
+doccontainersize 295880
+doccontainerchecksum 952ff0f30cf7679c09020cf2bca542e11e3a64c88956e87db6289acfb03879609f66c8beb019a6639716462aa088bdff7df3330d60a5d864f25de164affa4c51
+docfiles size=74
+ texmf-dist/doc/latex/booktabs/README details="Readme"
+ texmf-dist/doc/latex/booktabs/booktabs.pdf details="Package documentation (English)" language="en"
+srccontainersize 14644
+srccontainerchecksum cdca8f3e7f7dd99b87da76f60b1279de6efa8af666fc99e11749c21e59b77148a40aa197c0682ac1085a4d971a26b8cb59a9d2794fef81063006a220caf91ba4
+srcfiles size=12
+ texmf-dist/source/latex/booktabs/booktabs.dtx
+ texmf-dist/source/latex/booktabs/booktabs.ins
+runfiles size=2
+ texmf-dist/tex/latex/booktabs/booktabs.sty
+catalogue-ctan /macros/latex/contrib/booktabs
+catalogue-license lppl1.3c
+catalogue-topics table table-rule
+catalogue-version 1.61803398
+
+name grffile
+category Package
+revision 52756
+shortdesc Extended file name support for graphics (legacy package)
+longdesc The original package extended the file name processing of
+longdesc package graphics to support a larger range of file names. The
+longdesc base LaTeX code now supports multiple dots and spaces, and this
+longdesc package by default is a stub that just loads graphicx. However,
+longdesc \usepackage{grffile}[=v1] may be used to access version 1(.18)
+longdesc of the package if that is needed.
+containersize 3868
+containerchecksum 3f1f5e4f258e4ab1f51fdb44fa0b49e80df21a6c35dccad16a6b70ad76489cb4fdfff7e6c4dd07821c54543fdaeecae32cfd8037d4920ce60db02be9a2f8fa07
+doccontainersize 350320
+doccontainerchecksum 2f2285ad44d0c585cd02b85359eb31f885f7c704f6da5f906240c1094ef8d347d33ba6beb31cf34e09a5e39e618a27a7ea263a63d6a887638d8f761e3cd4b61b
+docfiles size=88
+ texmf-dist/doc/latex/grffile/README.md details="Readme"
+ texmf-dist/doc/latex/grffile/grffile.pdf details="Package documentation"
+srccontainersize 11228
+srccontainerchecksum 6538e5cf13f8212b5b231637a4abb68bc97330e123432922e403ae7321439bef910a0d1839abf394518ad274ed232c4c2e19671c8e6aaa55e2525708f305c679
+srcfiles size=11
+ texmf-dist/source/latex/grffile/grffile.dtx
+runfiles size=5
+ texmf-dist/tex/latex/grffile/grffile-2017-06-30.sty
+ texmf-dist/tex/latex/grffile/grffile.sty
+catalogue-contact-bugs https://github.com/ho-tex/grffile/issues
+catalogue-contact-repository https://github.com/ho-tex/grffile
+catalogue-ctan /macros/latex/contrib/grffile
+catalogue-license lppl1.3c
+catalogue-topics file-mgmt
+catalogue-version 2.1
+
+name texlive.infra
+category TLCore
+revision 57705
+shortdesc basic TeX Live infrastructure
+longdesc This package contains the files needed to get tlmgr running:
+longdesc perl modules, xz binaries, plus (sometimes) tar, wget, lz4, and
+longdesc various other support files. This package also represents the
+longdesc tlcritical recovery scripts. The standalone installer is close,
+longdesc but not the same; it's defined in 00texlive.installer.
+depend texlive.infra.ARCH
+containersize 227904
+containerchecksum 11cbf324450407dfdcc932e6ffe6c9e31ada5ef151d76b76d16e73de1053236d5da145f58d56892ded8c5ecc5bc89b63bc2a7a9ddd55d3fcc87198c8d859bc05
+doccontainersize 205324
+doccontainerchecksum 0b2477f485c7615b131c7dd5f04eec8b454915832d2f9f0453b4a152520672d3691ce2ee11de2e38b8010d785353be022e8404b32f43b787c16b87182f7714b7
+docfiles size=138
+ README
+ README.usergroups
+ index.html
+ readme-html.dir/readme.cs.html
+ readme-html.dir/readme.de.html
+ readme-html.dir/readme.en.html
+ readme-html.dir/readme.es.html
+ readme-html.dir/readme.fr.html
+ readme-html.dir/readme.it.html
+ readme-html.dir/readme.ja.html
+ readme-html.dir/readme.pl.html
+ readme-html.dir/readme.pt-br.html
+ readme-html.dir/readme.ru.html
+ readme-html.dir/readme.sk.html
+ readme-html.dir/readme.sr.html
+ readme-html.dir/readme.vi.html
+ readme-html.dir/readme.zh-cn.html
+ readme-txt.dir/README.CS
+ readme-txt.dir/README.DE
+ readme-txt.dir/README.EN
+ readme-txt.dir/README.ES
+ readme-txt.dir/README.FR
+ readme-txt.dir/README.IT
+ readme-txt.dir/README.JA
+ readme-txt.dir/README.PL
+ readme-txt.dir/README.PT-BR
+ readme-txt.dir/README.RU
+ readme-txt.dir/README.RU-cp1251
+ readme-txt.dir/README.RU-koi8
+ readme-txt.dir/README.SK
+ readme-txt.dir/README.SR
+ readme-txt.dir/README.VI
+ readme-txt.dir/README.ZH-CN
+ texmf-dist/doc/man/man1/mktexlsr.1
+ texmf-dist/doc/man/man1/mktexlsr.man1.pdf
+ texmf-dist/doc/man/man1/tlmgr.1
+ texmf-dist/doc/man/man1/tlmgr.man1.pdf
+ texmf-dist/scripts/texlive/NEWS
+ tlpkg/README
+ tlpkg/installer/COPYING.MinGW-runtime.txt
+runfiles size=262
+ LICENSE.CTAN
+ LICENSE.TL
+ release-texlive.txt
+ texmf-dist/scripts/texlive/mktexlsr
+ texmf-dist/scripts/texlive/tl-errmess.vbs
+ texmf-dist/scripts/texlive/tlmgr.pl
+ texmf-dist/scripts/texlive/tlmgrgui.pl
+ texmf-dist/scripts/texlive/uninstall-win32.pl
+ texmf-dist/scripts/texlive/uninstq.vbs
+ texmf-dist/web2c/fmtutil-hdr.cnf
+ texmf-dist/web2c/updmap-hdr.cfg
+ tlpkg/TeXLive/TLConfFile.pm
+ tlpkg/TeXLive/TLConfig.pm
+ tlpkg/TeXLive/TLCrypto.pm
+ tlpkg/TeXLive/TLDownload.pm
+ tlpkg/TeXLive/TLPDB.pm
+ tlpkg/TeXLive/TLPOBJ.pm
+ tlpkg/TeXLive/TLPSRC.pm
+ tlpkg/TeXLive/TLPaper.pm
+ tlpkg/TeXLive/TLTREE.pm
+ tlpkg/TeXLive/TLUtils.pm
+ tlpkg/TeXLive/TLWinGoo.pm
+ tlpkg/TeXLive/TeXCatalogue.pm
+ tlpkg/TeXLive/trans.pl
+ tlpkg/gpg/pubring.gpg
+ tlpkg/gpg/random_seed
+ tlpkg/gpg/secring.gpg
+ tlpkg/gpg/tl-key-extension.txt
+ tlpkg/gpg/trustdb.gpg
+ tlpkg/installer/config.guess
+
+name texlive.infra.win32
+category TLCore
+revision 57614
+shortdesc win32 files of texlive.infra
+containersize 2748972
+containerchecksum b04cbad94d04e171cd1080c922d297ea56ecf1842e77ce53ba5e5aead141f2bc75d008f28952b6e01a28254ce5325b6da1a455c64437623c2aaf056d9c145351
+binfiles arch=win32 size=1580
+ bin/win32/mktexlsr.exe
+ bin/win32/runscript.dll
+ bin/win32/runscript.exe
+ bin/win32/runscript.tlu
+ bin/win32/tlmgr.bat
+ bin/win32/wrunscript.exe
+ tlpkg/installer/curl/curl-ca-bundle.crt
+ tlpkg/installer/curl/curl.exe
+ tlpkg/installer/lz4/lz4.exe
+ tlpkg/installer/tar.exe
+ tlpkg/installer/wget/wget.exe
+ tlpkg/installer/xz/xz.exe
+
+name xcolor
+category Package
+revision 41044
+shortdesc Driver-independent color extensions for LaTeX and pdfLaTeX
+longdesc The package starts from the basic facilities of the color
+longdesc package, and provides easy driver-independent access to several
+longdesc kinds of color tints, shades, tones, and mixes of arbitrary
+longdesc colors. It allows a user to select a document-wide target color
+longdesc model and offers complete tools for conversion between eight
+longdesc color models. Additionally, there is a command for alternating
+longdesc row colors plus repeated non-aligned material (like horizontal
+longdesc lines) in tables. Colors can be mixed like
+longdesc \color{red!30!green!40!blue}.
+containersize 17300
+containerchecksum 9fba18460e4488cf2836082952ffff6e5e481b964570ee515f503aed3c8790778e054919e4e24070ff6cf608e21c1356859341eae5704558b1293b01ba8c0925
+doccontainersize 669996
+doccontainerchecksum 65f15207df8a112a4bccbac1c5259053364b52da3f0d2fdf566e1e734f61e0649ae6cc674c96f775d8c668cc6238dad2993f06b81153d38713ebf96e747e0353
+docfiles size=211
+ texmf-dist/doc/latex/xcolor/ChangeLog
+ texmf-dist/doc/latex/xcolor/README details="Readme"
+ texmf-dist/doc/latex/xcolor/xcolor.lox
+ texmf-dist/doc/latex/xcolor/xcolor.pdf details="Package documentation"
+ texmf-dist/doc/latex/xcolor/xcolor1.tex
+ texmf-dist/doc/latex/xcolor/xcolor2.pdf details="Examples of usage with pstricks"
+ texmf-dist/doc/latex/xcolor/xcolor2.tex
+ texmf-dist/doc/latex/xcolor/xcolor3.tex
+ texmf-dist/doc/latex/xcolor/xcolor4.tex
+srccontainersize 76980
+srccontainerchecksum 236eb7d2f94c297e743c2b0508e55910b00495915b7910dba7e0bc107f2ee37b24e3975242bb11c2c64a99f2abc5a55bd799277b9fbcd98058ee8add005d2be7
+srcfiles size=85
+ texmf-dist/source/latex/xcolor/xcolor.dtx
+ texmf-dist/source/latex/xcolor/xcolor.ins
+runfiles size=20
+ texmf-dist/dvips/xcolor/xcolor.pro
+ texmf-dist/tex/latex/xcolor/svgnam.def
+ texmf-dist/tex/latex/xcolor/x11nam.def
+ texmf-dist/tex/latex/xcolor/xcolor.sty
+catalogue-contact-home http://www.ukern.de/tex/xcolor.html
+catalogue-ctan /macros/latex/contrib/xcolor
+catalogue-license lppl1.2
+catalogue-topics colour
+catalogue-version 2.12
+
