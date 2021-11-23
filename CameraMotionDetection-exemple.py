@@ -6,7 +6,7 @@ from CameraMotionDetection import *
 videosDir = "videos"
 if not os.path.exists(videosDir):
     os.makedirs(videosDir)
-MD = MotionDetection(videosDir, 0, '420p', 12.0, 100000, 3, 3, True, True, False)
+MD = MotionDetection(videosDir, 0, '420p', 12.0, 100000, 3, 3, False, False, False)
 
 # Starting detection
 MD.start()
