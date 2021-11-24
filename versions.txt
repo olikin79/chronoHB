@@ -8,11 +8,17 @@ modification de l'application android :
 - la recherche par catégorie est implémentée côté smartphone.
 - correction d'un bug pour la recherche d'un dossard. Depuis quand était-il présent ?
 
-modification de Arrivee.pyw pour prendre en compte les changements de l'apk : recherche par catégorie, requête pour connaître les paramètres du serveur,...
+modification de Arrivee.pyw :
+- prise en compte les changements de l'apk : recherche par catégorie, requête pour connaître les paramètres du serveur,...
 
-Reste à implémenter cela côté serveur : 
-	- que le fichier params.txt soit créé tout seul à chaque changement du paramètre, 
-	- que ce changement puisse s'opérer dans l'interface.
+modification de chronoHB.py
+- permettre de tenir compte des catégories d'âge lors de l'import (ajouté dans les paramètres qui sont séparés en deux (paramètres vs distances des courses)
+- paramètres des courses avancés AVANT l'import csv.
+
+modification de fonctionsMetiers.py :
+- le fichier params.txt soit créé tout seul à chaque changement du paramètre, 
+- pas de création de challenge par classe lors de l'export pdf si catégories d'âge utilisées.
+
 
 
 

@@ -1,14 +1,12 @@
-Bugs restants ou fonctionnalités manquantes actuelles : APK ANDROID :
-- sur le smartphone, dans la saisie des dossards, ne pas afficher "classe" pour la recherche mais plutôt catégorie (ou rien si trop compliqué)
- ajout d'une case à cocher dans les paramètres pour sélectionner le type de catégories.
-
-
 Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
+- gérer réellement les catégories par âge :
+	- lors de l'import : la date de naissance devra être fournie à la place de classe (l'une des deux obligatoires selon le cas).
+	- lors de la création des catégories (voir quelles sont les catégories à créer en fonction de l'âge)
+- différencier les courses (regroupements de catégories) et les catégories. Ce sont les courses qu'il faut lancer et non les catégories.
+
 - lors de l'ajout manuel d'un coureur, possibilité d'imprimer les deux derniers dossards (ou mieux ? : les dossards n'ayant jamais été imprimés : à implémenter dans la classe Coureurs)
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, un autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
-- permettre de tenir compte des catégories d'âge lors de l'import (à ajouter dans les paramètres qui devront avancer en premier dans le menu, AVANT l'import csv.
-  Dans ce cas, créer un drapeau dans les paramètres (déjà existant ?) pour ne pas créer de challenge par classe lors de l'export pdf.
 - faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
 	Qu'elles disparaissent de l'affichage quand elles ont été solutionnées... 
 	(difficile : nomenclature des erreurs à écrire / tests de bonne résolution à écrire)

@@ -4,3 +4,4 @@ Coureurs.txt
 *.db
 params.txt
 donneesSmartphone.txt
+*.pyc

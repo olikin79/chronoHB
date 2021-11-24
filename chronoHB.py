@@ -814,9 +814,11 @@ GaucheFrameDossards = Frame(root)
 
 #GaucheFrameDistanceCourses = Frame(root)
 
-GaucheFrameParametres = Frame(root)
-GaucheFrameDistanceCourses = Frame(GaucheFrameParametres)
-GaucheFrameParametresCourses = Frame(GaucheFrameParametres)
+#GaucheFrameParametres = Frame(root)
+GaucheFrameDistanceCourses = Frame(root)
+GaucheFrameParametresCourses = Frame(root)
+
+
 
 ## menu interactif déroulant en haut
 
@@ -1306,8 +1308,8 @@ ajouterDossardApres2.pack(side=TOP)
 ##ImprimerButton.pack()
 
 ### Paramètres Frame :
-GaucheFrameDistanceCourses.pack(side=TOP)
-GaucheFrameParametresCourses.pack(side=TOP)
+#GaucheFrameDistanceCourses.pack(side=TOP)
+#GaucheFrameParametresCourses.pack(side=TOP)
 
 
 
@@ -1688,7 +1690,8 @@ def saisieDossards() :
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
-    GaucheFrameParametres.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.forget()
     GaucheFrameAbsDisp.forget()
     dossardsZone.actualiseAffichage()
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
@@ -1697,7 +1700,8 @@ def saisieAbsDisp() :
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
-    GaucheFrameParametres.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.forget()
     GaucheFrameDossards.forget()
     absDispZone.actualiseAffichage()
     GaucheFrameAbsDisp.pack(fill=BOTH, expand=1)
@@ -1708,13 +1712,15 @@ def ajoutManuelCoureur():
     DroiteFrame.forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
-    GaucheFrameParametres.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.forget()
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
 def tempsDesCoureurs():
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
-    GaucheFrameParametres.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.forget()
     GaucheFrameDossards.forget()
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
@@ -1725,8 +1731,17 @@ def distanceDesCourses():
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
-    GaucheFrameParametres.pack(side = LEFT,fill=BOTH, expand=1)
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.pack(side = LEFT,fill=BOTH, expand=1)
 
+def parametresDesCourses():
+    GaucheFrame.forget()
+    DroiteFrame.forget()
+    GaucheFrameAbsDisp.forget()
+    GaucheFrameCoureur.forget()
+    GaucheFrameDossards.forget()
+    GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresCourses.pack(side = LEFT,fill=BOTH, expand=1)
 
 # zone saisie des distances des courses et paramètres
 
@@ -1735,24 +1750,73 @@ IntituleFrameL = Frame(GaucheFrameParametresCourses)
 IntituleFrame = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=IntituleFrameL)
 LieuFrameL = Frame(GaucheFrameParametresCourses)
 LieuFrame = EntryParam("lieu", "Lieu", largeur=15, parent=LieuFrameL)
+
+
+def choixCC():		# Fonction associée à Catégories par Classes
+    #print('Case à cocher : ',str(svRadio.get()))
+    Parametres["CategorieDAge"]=False
+    forgetAutresWidgets()
+    NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
+    NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
+    packAutresWidgets()
+    
+def choixCA():		# Fonction associée à catégories par Age
+    #print('Case à cocher : ',str(svRadio.get()))
+    Parametres["CategorieDAge"]=True
+    forgetAutresWidgets()
+    NbreCoureursChallengeFrameL.pack_forget()
+    NbreCoureursChallengeFrame.pack_forget()
+    packAutresWidgets()
+
+def packAutresWidgets():
+    MessageParDefautFrameL.pack(side=TOP,anchor="w")
+    MessageParDefautFrame.pack(side=LEFT,anchor="w")
+    SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
+    SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
+    lblCommentaire.pack(side=TOP)
+    setParametres()
+    
+def forgetAutresWidgets():
+    MessageParDefautFrameL.pack_forget()
+    MessageParDefautFrame.pack_forget()
+    SauvegardeUSBFrameL.pack_forget()
+    SauvegardeUSBFrame.pack_forget()
+    lblCommentaire.pack_forget()
+    
+svRadio  = StringVar()
+if Parametres["CategorieDAge"] :
+    svRadio.set('0')
+else :
+    svRadio.set('1')
+rbF = Frame(GaucheFrameParametresCourses)
+rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
+rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
+
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
+
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
 SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
 SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
+lblCommentaire = Label(GaucheFrameDistanceCourses)
+
 IntituleFrameL.pack(side=TOP,anchor="w")
 IntituleFrame.pack(side=LEFT,anchor="w")
 LieuFrameL.pack(side=TOP,anchor="w")
 LieuFrame.pack(side=LEFT,anchor="w")
-NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
-NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
-MessageParDefautFrameL.pack(side=TOP,anchor="w")
-MessageParDefautFrame.pack(side=LEFT,anchor="w")
-SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
-SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
-lblCommentaire = Label(GaucheFrameDistanceCourses)
-lblCommentaire.pack(side=TOP)
+
+rb1.pack(side=LEFT,anchor="w")
+rb2.pack(side=LEFT,anchor="w")
+rbF.pack(side=TOP,anchor="w")
+
+
+if Parametres["CategorieDAge"] :
+    choixCA()
+else :
+    choixCC()
+
+
 listeDesEntryCourses = []
 def actualiserDistanceDesCourses():
     # actualisation des champs Entry
@@ -1794,6 +1858,10 @@ def affecterDistances() :
     #print("Affectation des distances à chaque course")
     actualiserDistanceDesCourses()
 
+def affecterParametres() :
+    parametresDesCourses()
+    #print("Affectation des distances à chaque course")
+    #actualiserDistanceDesCourses()
 
 # zone saisie coureur
 def okButtonCoureurPuisSaisie() :
@@ -1824,13 +1892,13 @@ resetmenu.add_command(label="Quitter", command=root.quit)
 menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
-filemenu.add_command(label="Import SIECLE (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
+filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
+filemenu.add_command(label="Import CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_separator()
+filemenu.add_command(label="Distances des courses", command=affecterDistances)
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
 #filemenu.add_command(label="Modifier une donnée coureur après import (non implémenté)", command=hello)
-filemenu.add_separator()
-filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_separator()
 ### ancienne génération de dossards très lente :
 #filemenu.add_command(label="Générer les dossards", command=generateDossardsArrierePlan)

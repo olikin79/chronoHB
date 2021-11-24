@@ -1512,14 +1512,16 @@ def generateImpressions() :
     fstats.write("\\end{document}")
     fstats.close()
     ### générer les tex pour chaque challenge
-    listeChallenges = listChallenges()
-    #print("liste des challenges", listeChallenges)
-    for challenge  in listeChallenges :
-        print("Création du fichier du challenge", challenge)
-        with open(TEXDIR+challenge+ ".tex", 'w') as f :
-            f.write(creerFichierChallenge(challenge,enteteC))
-            f.write("\n\\end{longtable}\\end{center}\\end{document}")
-        f.close()
+    if not Parametres["CategorieDAge"] :
+        listeChallenges = listChallenges()
+        #print("liste des challenges", listeChallenges)
+        for challenge  in listeChallenges :
+            print("Création du fichier du challenge", challenge)
+            with open(TEXDIR+challenge+ ".tex", 'w') as f :
+                f.write(creerFichierChallenge(challenge,enteteC))
+                f.write("\n\\end{longtable}\\end{center}\\end{document}")
+            f.close()
+        
     ### générer les tex pour chaque catégorie.
     listeCategories = listCoursesCommencees()
     for categorie  in listeCategories :
@@ -3017,6 +3019,15 @@ def setParam(parametre, valeur) :
         with open("messageDefaut.txt", 'w') as f:
             f.write(valeur)
         f.close()
+
+def setParametres() :
+    if Parametres["CategorieDAge"] :
+        CA = "0"
+    else :
+        CA = "1"
+    with open("params.txt", 'w') as f:
+        f.write(CA)  # à compléter avec d'autres paramètres si besoin de les envoyer vers le smartphone.
+    f.close()
 
 def creerCoureur(listePerso, informations) :
 ##    if "Bastien" in listePerso :
