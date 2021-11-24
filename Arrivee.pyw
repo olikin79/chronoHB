@@ -54,38 +54,42 @@ def ligneIndice(fichier, noLigne):
         f.close()
     return retour
             
-def rechercheCoureur(fichier, nom, prenom, classe) :
+def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
     """ recherche dans la liste des coureurs un élément unique dont une partie du nom est nom, une partie du prenom est prenom, etc...
         retourne une ligne complète commençant par "TR,..." si référence unique trouvée.
         retourne "PR,Préciser car n coureurs ont un nom prénom correspondant à cette recherche." si c'est le cas.
         retourne "NT,La saisie ne correspond à aucun coureur. Saisir un morceau du nom ou du prénom sans accent par exemple."
         """
-    with open(fichier, 'r') as f:
-        ReferenceTrouvee = 0
-        for ind, line in enumerate(f):
-            ligne = line.split(',')
-            nomL = ligne[1]
-            prenomL = ligne[2]
-            classeL = ligne[3]
-            #print(ligne)
-            if nom.lower() in nomL.lower() and prenom.lower() in prenomL.lower() and classe.lower() in classeL.lower() :
-                ReferenceTrouvee += 1
-                DossardTrouve = int(ligne[0])
-        if ReferenceTrouvee == 0 :
-            return "NT,La saisie ne correspond à aucun coureur. Pour une recherche plus efficace, saisir des morceaux du nom ou du prénom sans accent par exemple."
-        elif ReferenceTrouvee == 1 :
-            ligneBrute = ligneIndice(fichier, DossardTrouve)
-            ligne = ligneBrute.split(",")
-            doss = ligne[0]
-            nom = ligne[1]
-            prenom = ligne[2]
-            classe = ligne[3]
-            categorie = ligne[4]
-            categorieLisible = ligne[5]
-            return "TR," + nom + "," + prenom + "," + classe + ","+ categorie+","+categorieLisible+","+prenom+ " " +nom+ " de la classe " + classe + " a le dossard numéro " + str(DossardTrouve)+ "," + str(DossardTrouve)+","
-        else :
-            return "PR,Préciser car " + str(ReferenceTrouvee) +" coureurs ont un nom prénom classe correspondant à cette recherche."
-        f.close()
+    if path.exists(fichier) :
+        with open(fichier, 'r') as f:
+            ReferenceTrouvee = 0
+            for ind, line in enumerate(f):
+                ligne = line.split(',')
+                nomL = ligne[1]
+                prenomL = ligne[2]
+                classeL = ligne[3]
+                categorieL = ligne[4]
+                #print(ligne)
+                if nom.lower() in nomL.lower() and prenom.lower() in prenomL.lower() and classe.lower() in classeL.lower()  and categorie.lower() in categorieL.lower():
+                    ReferenceTrouvee += 1
+                    DossardTrouve = int(ligne[0])
+            if ReferenceTrouvee == 0 :
+                return "NT,La saisie ne correspond à aucun coureur. Pour une recherche plus efficace, saisir des morceaux du nom ou du prénom sans accent par exemple."
+            elif ReferenceTrouvee == 1 :
+                ligneBrute = ligneIndice(fichier, DossardTrouve)
+                ligne = ligneBrute.split(",")
+                doss = ligne[0]
+                nom = ligne[1]
+                prenom = ligne[2]
+                classe = ligne[3]
+                categorie = ligne[4]
+                categorieLisible = ligne[5]
+                return "TR," + nom + "," + prenom + "," + classe + ","+ categorie+","+categorieLisible+","+prenom+ " " +nom+ " de la classe " + classe + " a le dossard numéro " + str(DossardTrouve)+ "," + str(DossardTrouve)+","
+            else :
+                return "PR,Préciser car " + str(ReferenceTrouvee) +" coureurs ont un nom prénom classe correspondant à cette recherche."
+            f.close()
+    else :
+        return "NT,Il n'y a aucun coureur sur le serveur."
     
 def estNumeroDossardCredible(dossard) :
     if str(dossard).isnumeric() and dossard > 0 :
@@ -97,6 +101,14 @@ def lireMessageDefaut() :
     with open("messageDefaut.txt", 'r') as f:
         contenu = f.read()
     f.close()
+    return contenu
+
+def lireParametres() :
+    with open("params.txt", 'r') as f:
+        contenu = f.read()
+    f.close()
+    if contenu  == "" :
+        contenu = "1" # paramètre par défaut si fichier inexistant (protection)
     return contenu
 
 def formateClasse(classe) :
@@ -155,7 +167,7 @@ def generateMessage(dossard, nature, action):
                 dossard = 0
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
         addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur])
-    else :
+    elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
                 ligneBrute = ligneIndice(donnees, dossard)
@@ -178,29 +190,11 @@ def generateMessage(dossard, nature, action):
                     if nature == "dossard" :
                         dossardPrecedent = form.getvalue("dossardPrecedent")
                         if action == "add" :
-                            #f = open('output.txt','a')
-                            #f.write('x' + commentaireArrivee + 'x')
                             if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
                                 print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee.replace(",",";"), "," + str(doss) + ",")
-                                #f.write("aDI," + nom + "," + prenom + "," +  classe + "," +  categorie + "," + categorieLisible + "," +  commentaireArrivee.replace(",",";") + "," + str(doss) + ",")
                             else :
-                                #### version en dur qui fonctionne
-                                ####print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom + " de " + formateClasse(classe) + ". Pour éla ; merci !" , "," + str(doss) + ",")
-                                #### fin version en dur qui fonctionne
-                                ### version dynamique depuis l'interface 
                                 messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
                                 print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                                ### fin version dynamique depuis l'interface
-                                #f.write("bDI," + nom +  "," + prenom + "," + classe + "," +  categorie+","+categorieLisible+","+ prenom + " " + nom + ". Avancez" + "," + str(doss) + ",")
-                            #f.close()
-##                            try :
-##                                indexComment = listeDossardsCommentairePersonnalise.index(doss)
-##                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee, "," + str(doss) + ",")
-##                            except :
-##                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, ". Avancez" , "," + str(doss) + ",")
-##                                # le commentaire audio est le 7ème élément de la liste retournée. Il est potentiellement personnalisable pour faire une blague.
-##                                # version courte: print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, ". Avancez" , "," + str(doss) + ",")
-##                                # commentaire trop long : print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", prenom, nom, "de", classe, "avec le dossard" , str(doss), "," + str(doss) + ",")
                             addInstruction([nature,action,dossard, dossardPrecedent])
                         elif action == "del" :
                             print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
@@ -222,15 +216,28 @@ def generateMessage(dossard, nature, action):
                 classe = tpsCoureurSTR = form.getvalue("classe")
                 if classe == "0" :
                     classe = ""
-                print(rechercheCoureur(donnees, nom, prenom, classe))
+                categorie = tpsCoureurSTR = form.getvalue("categorie")
+                if categorie == "0" :
+                    categorie = ""
+                print(rechercheCoureur(donnees, nom, prenom, classe, categorie))
             else :
                 print("Le dossard", dossard, "n'existe pas.")
         else :
             print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
+    elif nature == "connexion" :
+        print("IP trouvee")
+    elif nature == "crossparclasse" :
+        paramsLigne=lireParametres()
+        print("CC,"+paramsLigne.split(";")[0])  # CC = Catégories par Classe
+        # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
+        #                                              fixé à 0 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
 
 local = form.getvalue("local")
 nature = form.getvalue("nature").lower()
-action = form.getvalue("action").lower()
+try :
+    action = form.getvalue("action").lower()
+except:
+    action = ""
 try :
     dossard = int(form.getvalue("dossard"))
 except:

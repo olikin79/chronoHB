@@ -1,7 +1,26 @@
+Travail du 24/11/21 : Version 1.3
+modification de l'application android : 
+-  elle récupère depuis le serveur, à chaque lancement de la fenêtre "SaisieTemps" le nouveau paramètre 'crossParClasse' qui indique :
+	si les catégories sont créées avec l'initiale de la classe (comme pour le cross du collège)
+	ou en utilisant la date de naissance (catégories officielles de l'athlétisme).
+- dans la saisie des dossards, n'affiche pas "classe" pour la recherche mais plutôt "catégorie".
+- limitation du numéro de dossard à 40000 (il y en a 35 000 au marathon de Paris). Il arrive que des QR-codes soient détectés à tort dans une pelouse, ...
+- la recherche par catégorie est implémentée côté smartphone.
+- correction d'un bug pour la recherche d'un dossard. Depuis quand était-il présent ?
+
+modification de Arrivee.pyw pour prendre en compte les changements de l'apk : recherche par catégorie, requête pour connaître les paramètres du serveur,...
+
+Reste à implémenter cela côté serveur : 
+	- que le fichier params.txt soit créé tout seul à chaque changement du paramètre, 
+	- que ce changement puisse s'opérer dans l'interface.
+
+
+
 Travail du 21/11/21 : modification de l'application android : 
 - un son est généré lors de l'ajout d'un ou plusieurs temps (ou de leur suppression).
 - possibilité d'empêcher la mise en veille du smartphone ou de la tablette pour le smartphone sur la ligne d'arrivée.
 	le temps de déverrouiller le smartphone peut empêcher une bonne mesure du temps réalisé.
+	une case à cocher est ajoutée dans la page "paramètres".
 
 
 Après le cross (oct 2021) :
