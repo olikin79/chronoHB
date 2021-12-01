@@ -2,6 +2,7 @@ Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
 - gérer réellement les catégories par âge :
 	- lors de l'import : la date de naissance devra être fournie à la place de classe (l'une des deux obligatoires selon le cas).
 	- lors de la création des catégories (voir quelles sont les catégories à créer en fonction de l'âge)
+
 - différencier les courses (regroupements de catégories) et les catégories. Ce sont les courses qu'il faut lancer et non les catégories.
 
 - lors de l'ajout manuel d'un coureur, possibilité d'imprimer les deux derniers dossards (ou mieux ? : les dossards n'ayant jamais été imprimés : à implémenter dans la classe Coureurs)

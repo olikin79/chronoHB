@@ -16,7 +16,7 @@ modification de chronoHB.py
 - paramètres des courses avancés AVANT l'import csv.
 
 modification de fonctionsMetiers.py :
-- le fichier params.txt soit créé tout seul à chaque changement du paramètre, 
+- le fichier params.txt est créé tout seul à chaque changement du paramètre, 
 - pas de création de challenge par classe lors de l'export pdf si catégories d'âge utilisées.
 
 
