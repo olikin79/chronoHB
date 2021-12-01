@@ -3,7 +3,7 @@
 #from ZODB.PersistentMapping import PersistentMapping
 #import persistent
 #import transaction
-import time
+import time, datetime
 import os, glob, subprocess
 import shutil
 import random
@@ -12,7 +12,6 @@ import csv
 import http.server
 import threading
 from threading import Thread
-import time
 import requests
 
 import xlsxwriter # pour les exports excels des résultats
@@ -2947,7 +2946,39 @@ def genereLigneTableauHTML(dossard) :
     return ligne
 
 
+#### catégories d'athlétisme
 
+def categorieAthletisme(anneeNaissance) :
+    # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
+    # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
+    # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
+    correspondanceAnneeCategories = [ [1987, "VE" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
+    try :
+        anneeNaissance = int(anneeNaissance)
+        currentDateTime = datetime.datetime.now()
+        date = currentDateTime.date()
+        year = currentDateTime.year
+        if currentDateTime.month > 10 :
+            #changement d'année sportive au premier novembre.
+            year += 1
+        ecart2022 = year - 2022
+        anneeCherchee = anneeNaissance - ecart2022
+        i = 0
+        continuer = True
+        while i< len(correspondanceAnneeCategories) and continuer :
+            if anneeCherchee <= correspondanceAnneeCategories[i][0] :
+                continuer = False
+                categorie = correspondanceAnneeCategories[i][1]
+            i += 1    
+        return categorie
+    except :
+        print("argument fourni incorrect : pas au format nombre entier")
+        return ""
+
+#print(categorieAthletisme(2003))
+
+
+#### Import CSV 
 
 def recupCSVSIECLE(fichierSelectionne=""):
 ##    if Parametres["CourseCommencee"] :
