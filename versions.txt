@@ -1,3 +1,8 @@
+Travail du 20/12/21 :
+- Création d'une propriété Coureur.aImprimer (booléen) qui sera initialisé à True lorsque qu'un coureur sera créé manuellement (pas via l'import SIECLE).
+- Création d'un bouton "IMPRIMER TOUS LES DOSSARDS NON IMPRIMES" dans la création manuelle de coureurs qui lance l'impression automatiquement.
+NON FONCTIONNEL encore : impression ne se lance pas + VMA ne s'efface pas quand on valide la création d'un coureur.
+
 Travail du 02/12/21 : 
 ajout d'une fonction categorieAthletisme(anneeNaissance) qui retourne la catégorie d'athlétisme officielle en fonction de l'année de naissance fournie.
 

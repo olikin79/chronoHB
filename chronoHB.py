@@ -1569,7 +1569,7 @@ Les données précédentes ont été sauvegardées dans le fichier "+fichier+"."
             else :
                 reponse = showinfo("ERREUR","L'import SIECLE à partir du fichier "+nomFichier +" n'a pas été effectué.\n\
 Le fichier fourni doit impérativement être au format CSV, encodé en UTF8, avec des points virgules comme séparateur.\n\
-Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe'.\n \
+Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance'.\n \
 Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
 'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
 et 'VMA' (pour la VMA en km/h). \
@@ -1865,7 +1865,7 @@ def affecterParametres() :
 
 # zone saisie coureur
 def okButtonCoureurPuisSaisie() :
-    addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vmaE.get())
+    addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vmaE.get(), aImprimer = True)
     # ménage
     nomE.delete(0, END)
     prenomE.delete(0, END)
@@ -1880,6 +1880,25 @@ def okButtonCoureur() :
     okButtonCoureurPuisSaisie()
     tempsDesCoureurs()
 
+def imprimerNonImprimes() :
+    print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
+    listeDesDossardsGeneres = generateDossardsAImprimer()
+    nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
+    if os.path.exists(nomFichierGenere):
+        if windows() :
+            if imprimePDF(nomFichierGenere) :
+                reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
+            else :
+                reponse = False
+        else :
+            print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
+            subprocess.Popen([nomFichierGenere],shell=True)
+            reponse = True
+        if reponse :
+            for n in listeDesDossardsGeneres :
+                Coureurs[n-1].setAImprimer(False)
+    else :
+        print("Fichier non généré : probablement vide car tous les coureurs ont déjà été imprimés")
 
 # create a pulldown menu, and add it to the menu bar
 filemenu = Menu(menubar, tearoff=0)
@@ -1915,7 +1934,7 @@ menubar.add_cascade(label="Préparation course", menu=filemenu)
 
 
 lblCommentaireInfoAddCoureur = Label(GaucheFrameCoureur, text=\
-                                     "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.\nPrivilégier des IMPORT CSV SIECLE (qui complètent toujours l'import précédent).\nExplications complémentaires dans le menu Aide.")
+                                     "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
 lblCommentaireInfoAddCoureur.pack(side=TOP)
 
 Label(GaucheFrameCoureur, text="Nom :").pack()
@@ -1940,12 +1959,14 @@ commentaireArriveeE.pack()
 boutonsFrame = Frame(GaucheFrameCoureur)
 
 coureurBoksuivant = Button(boutonsFrame, text="OK puis nouvelle saisie", command=okButtonCoureurPuisSaisie)
-coureurBok = Button(boutonsFrame, text="OK", command=okButtonCoureur)
+#coureurBok = Button(boutonsFrame, text="OK", command=okButtonCoureur)
 coureurBannul = Button(boutonsFrame, text="Annuler", command=tempsDesCoureurs)
+coureurBimprimer = Button(boutonsFrame, text="Imprimer les dossards non imprimés", command=imprimerNonImprimes)
 
 coureurBannul.pack(side = LEFT)
 ### INUTILE ? coureurBok.pack(side = LEFT)
 coureurBoksuivant.pack(side = LEFT)
+coureurBimprimer.pack(side = LEFT)
 boutonsFrame.pack()
 
 #annulDepart = Menu(editmenu, tearoff=0)

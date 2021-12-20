@@ -1,0 +1,45 @@
+name l3backend
+category Package
+revision 57789
+shortdesc LaTeX3 backend drivers
+longdesc This package forms parts of expl3, and contains the code used
+longdesc to interface with backends (drivers) across the expl3 codebase.
+longdesc The functions here are defined differently depending on the
+longdesc engine in use. As such, these are distributed separately from
+longdesc l3kernel to allow this code to be updated on an independent
+longdesc schedule.
+containersize 14472
+containerchecksum 51f48d8ee50bf2774b35e5c76f5003f632ffbc36975a91b4c3ff5f57981b14b89ace951a662ca365ce1e78e31eb705fc29a44c7bea6d52de94a2f7266ccb81bf
+doccontainersize 788744
+doccontainerchecksum 141d0e2c1467ea25514becd87c20b8d04a018cdce33eddaed5ca60d581e0fac9a91238004887078ba0b8856bd3fac1cc4c4ab1a1de907978764ff39329a16921
+docfiles size=201
+ texmf-dist/doc/latex/l3backend/CHANGELOG.md
+ texmf-dist/doc/latex/l3backend/README.md details="Readme"
+ texmf-dist/doc/latex/l3backend/l3backend-code.pdf details="Package documentation"
+ texmf-dist/doc/latex/l3backend/l3backend-code.tex
+srccontainersize 31168
+srccontainerchecksum f1fbaf05e8b4c65790ca154d0c7a1ee69798c83416b001def06abe128cd44d9a27689b1a22f062d4671256f665c49ad6027beecbfb5de276d83f669f3d323b62
+srcfiles size=55
+ texmf-dist/source/latex/l3backend/l3backend-basics.dtx
+ texmf-dist/source/latex/l3backend/l3backend-box.dtx
+ texmf-dist/source/latex/l3backend/l3backend-color.dtx
+ texmf-dist/source/latex/l3backend/l3backend-draw.dtx
+ texmf-dist/source/latex/l3backend/l3backend-graphics.dtx
+ texmf-dist/source/latex/l3backend/l3backend-header.dtx
+ texmf-dist/source/latex/l3backend/l3backend-opacity.dtx
+ texmf-dist/source/latex/l3backend/l3backend-pdf.dtx
+ texmf-dist/source/latex/l3backend/l3backend.ins
+runfiles size=49
+ texmf-dist/dvips/l3backend/l3backend-dvips.pro
+ texmf-dist/tex/latex/l3backend/l3backend-dvipdfmx.def
+ texmf-dist/tex/latex/l3backend/l3backend-dvips.def
+ texmf-dist/tex/latex/l3backend/l3backend-dvisvgm.def
+ texmf-dist/tex/latex/l3backend/l3backend-luatex.def
+ texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+ texmf-dist/tex/latex/l3backend/l3backend-xetex.def
+catalogue-contact-bugs https://github.com/latex3/latex3/issues
+catalogue-contact-home http://www.latex-project.org/code.html
+catalogue-contact-repository https://github.com/latex3/latex3/
+catalogue-ctan /macros/latex/contrib/l3backend
+catalogue-license lppl1.3c
+catalogue-topics latex3 expl3 macro-supp pre-release

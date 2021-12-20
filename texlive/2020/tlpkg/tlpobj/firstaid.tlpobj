@@ -1,0 +1,40 @@
+name firstaid
+category Package
+revision 57997
+catalogue latex-firstaid
+shortdesc First aid for external LaTeX files and packages that need updating
+longdesc This package contains some first aid for LaTeX packages or
+longdesc classes that require updates because of internal changes to the
+longdesc LaTeX kernel that are not yet reflected in the package's or
+longdesc class's code. The file latex2e-first-aid-for-external-files.ltx
+longdesc provided by this package is meant to be loaded during format
+longdesc generation and not by the user.
+containersize 2548
+containerchecksum 83d6cbaaa81ee43dc835435dfe50a16c2535b2724d109492cafb0fd75917b4980f889a90f8ab2aac5a816c3cde5454d4a9ce4c577a5c9456e9a984da2526642c
+doccontainersize 344340
+doccontainerchecksum 23797c5204908b45e23e69261863a36bf9cda2b74e9228be1f60babd93af900cf14d8ab62f86fe5d77638eb826a76aa1508e5fb8e7fdfc9e3730c7e26e48193a
+docfiles size=109
+ texmf-dist/doc/latex-dev/firstaid/README.md details="Readme"
+ texmf-dist/doc/latex-dev/firstaid/changes.txt
+ texmf-dist/doc/latex-dev/firstaid/latex2e-first-aid-for-external-files.pdf details="Package documentation"
+ texmf-dist/doc/latex/firstaid/README.md details="Readme"
+ texmf-dist/doc/latex/firstaid/changes.txt
+ texmf-dist/doc/latex/firstaid/latex2e-first-aid-for-external-files.pdf details="Package documentation"
+srccontainersize 6216
+srccontainerchecksum 396b7d9bf84de26c8a76f746445c855b449f84f98c74686dbdbd32e11bd3c3c968a26e49b507826267d66ca67b18c6f84aa15144a642bfc2e9f5f3d31176461c
+srcfiles size=11
+ texmf-dist/source/latex-dev/firstaid/firstaid.ins
+ texmf-dist/source/latex-dev/firstaid/latex2e-first-aid-for-external-files.dtx
+ texmf-dist/source/latex/firstaid/firstaid.ins
+ texmf-dist/source/latex/firstaid/latex2e-first-aid-for-external-files.dtx
+runfiles size=5
+ texmf-dist/tex/latex-dev/firstaid/everysel-ltx.sty
+ texmf-dist/tex/latex-dev/firstaid/filehook-ltx.sty
+ texmf-dist/tex/latex-dev/firstaid/latex2e-first-aid-for-external-files.ltx
+ texmf-dist/tex/latex/firstaid/filehook-ltx.sty
+ texmf-dist/tex/latex/firstaid/latex2e-first-aid-for-external-files.ltx
+catalogue-contact-home https://www.latex-project.org
+catalogue-ctan /macros/latex/required/firstaid
+catalogue-license lppl1.3c
+catalogue-topics format bugfix
+catalogue-version 1.0i

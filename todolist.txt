@@ -40,6 +40,7 @@ Ainsi, un autre ordintateur relié à internet, plus lointain, pourrait afficher
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 
+- trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
 
 Bugs à corriger sur chronoHB.py:
 1. gérer le bug où un coureur passerait la ligne avec son dossard, avant d'être parti. 

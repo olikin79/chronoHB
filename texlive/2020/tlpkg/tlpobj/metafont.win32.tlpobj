@@ -1,0 +1,10 @@
+name metafont.win32
+category Package
+revision 53994
+shortdesc win32 files of metafont
+containersize 145132
+containerchecksum 429ed68c0d6d38193254b464070b492cceeba333d7863319b98279c93e07cae44d0aeb7a7190b6779d6dfab3c4174e40efac83c580d850057dc68e729569707d
+binfiles arch=win32 size=138
+ bin/win32/inimf.exe
+ bin/win32/mf-nowin.exe
+ bin/win32/mf.exe

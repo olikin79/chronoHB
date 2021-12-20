@@ -1,0 +1,31 @@
+name multirow
+category Package
+revision 57552
+shortdesc Create tabular cells spanning multiple rows
+longdesc The package has a lot of flexibility, including an option for
+longdesc specifying an entry at the "natural" width of its text. The
+longdesc package is distributed with the bigdelim and bigstrut packages,
+longdesc which can be used to advantage with \multirow cells.
+containersize 2760
+containerchecksum 4aa22255ac84680f5a2ae53c95d9fced56042aaa292d1cb4970770ba3d79e23c18582a3c47df08ecd7ae72444416a44ced251e00e287110edc43b88c1974cbbf
+doccontainersize 597148
+doccontainerchecksum 3a5d0862613f6b80702f83fd5a86076f709c021f0408bbb800797cb0fb5cdbccbbe8d0e8c0e2972e05fd079ec0586f224899dbeb8880783cda3adc4a11615799
+docfiles size=147
+ texmf-dist/doc/latex/multirow/README details="Readme"
+ texmf-dist/doc/latex/multirow/multirow.pdf details="Package documentation"
+srccontainersize 20112
+srccontainerchecksum 040cfab5daba01cadf3ea5d63a5f99c588861308651532eea6d94531a1fd34f577537956590e35dc079f6392384e720bd84a30f75980834d423819ac0b1b8182
+srcfiles size=23
+ texmf-dist/source/latex/multirow/multirow.dtx
+ texmf-dist/source/latex/multirow/multirow.ins
+runfiles size=4
+ texmf-dist/tex/latex/multirow/bigdelim.sty
+ texmf-dist/tex/latex/multirow/bigstrut.sty
+ texmf-dist/tex/latex/multirow/multirow.sty
+catalogue-also bigstrut bigdelim
+catalogue-contact-bugs https://github.com/pietvo/multirow/issues
+catalogue-contact-repository https://github.com/pietvo/multirow
+catalogue-ctan /macros/latex/contrib/multirow
+catalogue-license lppl1.3
+catalogue-topics table
+catalogue-version 2.7

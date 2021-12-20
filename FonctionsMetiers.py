@@ -18,8 +18,7 @@ import xlsxwriter # pour les exports excels des résultats
 
 from tkinter.messagebox import *
 
-#import win32print
-# impression pdf sous windows.
+
 
 
 # A tester :
@@ -38,6 +37,15 @@ from tkinter.messagebox import *
 # génération des stats (en dernier)
 # Idée abandonnée : génération des dossards latex : ajouter un fichier par classe et sexe... Cela permettrait une distribution aisée MAIS UNE IMPRESSION GALERE !
 
+def windows():
+    if os.sep == "\\" :
+        return True
+    else :
+        return False
+    
+
+if windows() :
+    import win32print,win32api # impression pdf sous windows.
 
 
 #--------------------
@@ -112,7 +120,7 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe, naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0):
+    def __init__(self, dossard, nom, prenom, sexe, classe, naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -129,6 +137,7 @@ class Coureur():#persistent.Persistent):
         self.vitesse = 0
         self.rang = 0
         self.commentaireArrivee = commentaireArrivee
+        self.aImprimer = aImprimer
         self.__private_categorie = None
     def categorie(self, CategorieDAge=False):
         if self.__private_categorie == None :
@@ -235,7 +244,9 @@ class Coureur():#persistent.Persistent):
     def vitesseFormateeAvecVMAtex(self) :
         return self.vitesseFormateeAvecVMA().replace("%","\%")
     def setRang(self, rang) :
-        self.rang = int(rang)    
+        self.rang = int(rang)
+    def setAImprimer(self, valeur) :
+        self.aImprimer = bool(valeur)
 
 class Course():#persistent.Persistent):
     """Une course"""
@@ -1112,6 +1123,7 @@ def generateQRcode(n) :
         f.close()
         contenu = contenu.replace("@dossard@",str(n))
         TEXDIR = "dossards"+os.sep+"QRcodes"+os.sep+"tex"+os.sep
+        creerDir(TEXDIR)
         with open(TEXDIR+str(n)+ ".tex", 'w') as f :
             f.write(contenu)
         f.close()
@@ -1200,6 +1212,7 @@ def generateDossardsNG() :
 def generateDossards() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    generateQRcodes()
     global CoureursParClasse
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
@@ -1208,6 +1221,7 @@ def generateDossards() :
         enteteL = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
+    creerDir(TEXDIR)
     ## effacer les tex existants
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
     liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
@@ -1264,6 +1278,39 @@ def generateDossards() :
         print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
     ### os.chdir(osCWD)
 
+def generateDossardsAImprimer() :
+    """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
+        Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
+    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    global CoureursParClasse
+    retour=[]
+    with open("./modeles/dossard-en-tete.tex", 'r') as f :
+        entete = f.read()
+    f.close()
+    TEXDIR = "dossards"+os.sep+"tex"+os.sep
+    creerDir(TEXDIR)
+    # utilisation du modèle de dossard.
+    with open("./modeles/dossard-modele.tex", 'r') as f :
+        modele = f.read()
+    f.close()
+    ## générer de nouveaux en-têtes.
+    osCWD = os.getcwd()
+    with open(TEXDIR+"aImprimer.tex", 'w') as f :
+        f.write(entete + "\n\n")
+        for coureur in Coureurs :
+            if not coureur.dispense and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+                cat = coureur.categorie(Parametres["CategorieDAge"])
+                retour.append(coureur.dossard)
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                f.write(chaineComplete)
+                generateQRcode(coureur.dossard)
+        f.write("\\end{document}")
+    f.close()
+    compilateurComplete = compilateur.replace("@dossier@","dossards")
+    print(compilerDossards(compilateurComplete, ".", "aImprimer.tex" , 1))
+    return retour
+
 def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
@@ -1272,6 +1319,7 @@ def generateDossard(coureur) :
         entete = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
+    creerDir(TEXDIR)
     # utilisation du modèle de dossard.
     with open("./modeles/dossard-modele.tex", 'r') as f :
         modele = f.read()
@@ -1288,6 +1336,7 @@ def generateDossard(coureur) :
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
+    generateQRcode(coureur.dossard)
     compilateurComplete = compilateur.replace("@dossier@","dossards")
     print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
     fichierAOuvrir = "dossards" + sep + file+".pdf"
@@ -2111,7 +2160,7 @@ def coureurExists(Coureurs, nom, prenom) :
         i += 1
     return retour
 
-def addCoureur(nom, prenom, sexe, classe, naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0"):
+def addCoureur(nom, prenom, sexe, classe, naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
@@ -2131,7 +2180,7 @@ def addCoureur(nom, prenom, sexe, classe, naissance=None,  absent=None, dispense
                 addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
             else :
                 dossard = len(Coureurs)+1
-                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, vma))
+                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
@@ -2210,7 +2259,12 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         #calculeTousLesTemps(True)
 
 def imprimePDF(pdf_file_name) :
-    win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+    if os.path.exists(pdf_file_name) :
+        win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+        return True
+    else :
+        print("Le fichier", pdf_file_name, "n'existe pas.")
+        return False
 
 def calculeTousLesTemps(reinitialise = False):
     """ associe un temps à chaque dossard ayant passé la ligne d'arrivée permet les décalages positifs et négatifs.

@@ -1,0 +1,72 @@
+\documentclass[a4paper,11pt,fleqn]{article}		
+\usepackage{xcolor}
+%\input{preambule}
+\usepackage{graphicx}
+\usepackage{qrcode}
+\usepackage{fix-cm}
+\pagestyle{empty} 
+
+\usepackage[a4paper]{geometry}
+\geometry{right=1cm,left=1cm,top=1cm,bottom=1cm}
+
+% Permet de ne pas séparer des blocs de lignes (énoncé de chaque élève sur une seule et même page)
+\def\block{\begingroup%
+\def\endblock{\egroup\endgroup}%
+\vbox\bgroup}%	
+
+\begin{document}
+
+
+
+\Huge
+
+\begin{block} % permet d'éviter de couper un sujet sur deux pages
+{}\hfill {}
+\fcolorbox{black}{gray!30}{\begin{minipage}{0.75\textwidth}
+{}\hfill {}
+\textbf{Cross du collège H. Bourrillon}
+{}\hfill {}
+
+{}\hfill {}
+Stade Mirandol
+{}\hfill {}
+\end{minipage}}
+{}\hfill {}
+\begin{minipage}{0.15\linewidth}
+\includegraphics[width=\textwidth]{logo-HB.png}
+\end{minipage}
+{}\hfill {}
+
+%\vspace{1cm}
+
+
+\begin{minipage}{0.48\linewidth}
+%\qrcode[height=8cm]{763}
+\includegraphics[width=8cm]{QRcodes/763.pdf}
+\end{minipage}
+\begin{minipage}{0.5\linewidth}
+{}\hfill {}
+\resizebox{!}{120pt}{763}
+{}\hfill {}
+\end{minipage}
+
+
+\vspace{0.5cm}
+\begin{minipage}{0.47\linewidth}
+%Catégorie : 3-F \\
+Classe : 30
+\end{minipage}
+\hfill {}
+\begin{minipage}{0.5\linewidth}
+TEST 2 Pre2
+\end{minipage}
+\hfill {}
+
+\end{block}
+
+\vfill
+
+%\vspace{1cm}
+
+\vfill
+\end{document}

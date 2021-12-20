@@ -1,0 +1,29 @@
+name tabulary
+category Package
+revision 34368
+shortdesc Tabular with variable width columns balanced
+longdesc The package defines a tabular*-like environment, tabulary,
+longdesc taking a 'total width' argument as well as the column
+longdesc specifications. The environment uses column types L, C, R and J
+longdesc for variable width columns (\raggedright', \centering,
+longdesc \raggedleft, and normally justified). In contrast to tabularx's
+longdesc X columns, the width of each column is weighted according to
+longdesc the natural width of the widest cell in the column.
+containersize 4032
+containerchecksum 2c873a3840d8bf06a095ff3106b317ae6acfb8498d47b0229a37e247e0e0a9df80300759d65d13ebc9defb15d1cde0aa1e956d2f88bebab3311af459be47df0a
+doccontainersize 255704
+doccontainerchecksum b619c6b3dce1421ad4f06ab5e6f0ecaa6dc4f55076b66303a4e5409b42a4a9e34d218251177234dc0f3dac13046638a75623db0094978badc4db93083660f5e9
+docfiles size=64
+ texmf-dist/doc/latex/tabulary/README
+ texmf-dist/doc/latex/tabulary/tabulary.pdf details="Package documentation"
+srccontainersize 8372
+srccontainerchecksum aa075526ddc2f793676ff45e9d37f02251660cec33b3f4a74da23e725181e48b2103fef16adcd6d622ea2c422a5fda1d46cd9fa1c35bbd72f06f77d05f3b4c58
+srcfiles size=9
+ texmf-dist/source/latex/tabulary/tabulary.dtx
+ texmf-dist/source/latex/tabulary/tabulary.ins
+runfiles size=4
+ texmf-dist/tex/latex/tabulary/tabulary.sty
+catalogue-ctan /macros/latex/contrib/tabulary
+catalogue-license lppl
+catalogue-topics table
+catalogue-version 0.10
