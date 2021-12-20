@@ -45,7 +45,7 @@ def windows():
     
 
 if windows() :
-    import win32print,win32api # impression pdf sous windows.
+    import win32ui,win32print,win32api,win32con # impression pdf sous windows.
 
 
 #--------------------
@@ -120,7 +120,7 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe, naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -129,7 +129,7 @@ class Coureur():#persistent.Persistent):
             self.prenom = str(prenom).upper()
         self.setSexe(sexe)
         self.classe = str(classe)
-        self.setNaissance(naissance)
+        self.setNaissance(str(naissance)[:10]) # garder uniquement les 10 premiers caractères de la chaine.
         self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
@@ -142,7 +142,9 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         if self.__private_categorie == None :
             if CategorieDAge :
-                print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissence : non codé. A CREER")
+                print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. A TESTER")
+                anneeNaissance = self.naissance[6:]
+                self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
             else :
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
@@ -159,11 +161,15 @@ class Coureur():#persistent.Persistent):
             self.VMA = 0
     def setNaissance(self, naissance) :
         if naissance != None :
-            chNaissance = str(naissance)
-            if len(chNaissance) > 8 :
-                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
+            chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
+            if naissanceValide(chNaissance) :
+                self.naissance = chNaissance
             else :
-                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
+                chNaissance = None
+##            if len(chNaissance) > 8 :
+##                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
+##            else :
+##                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
         else :
             self.naissance = None
     def setCommentaire(self, commentaire):
@@ -1301,6 +1307,7 @@ def generateDossardsAImprimer() :
             if not coureur.dispense and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 retour.append(coureur.dossard)
+                print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
                 f.write(chaineComplete)
@@ -2160,11 +2167,35 @@ def coureurExists(Coureurs, nom, prenom) :
         i += 1
     return retour
 
-def addCoureur(nom, prenom, sexe, classe, naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
+def naissanceValide(naissance) :
+    annee = naissance[6:]
+    mois = naissance[3:5]
+    jour = naissance[0:2]
+    correctDate = None
+    try:
+        newDate = datetime.datetime(annee,mois,jour)
+        correctDate = True
+        print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
+    except ValueError:
+        correctDate = False
+        print("La date de naissance fournie est INVALIDE :",jour,"/",mois,"/", annee)
+    return correctDate
+    
+
+def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
-        if nom != "" and prenom != "" and classe != "" :
+        testNaissance = naissanceValide(naissance)
+        if testNaissance :
+            naissanceValide = naissance
+        else :
+            naissanceValide = None
+        if Parametres['CategorieDAge'] :
+            complement = testNaissance
+        else :
+            complement = classe != ""
+        if nom != "" and prenom != "" and complement :
             dossard = coureurExists(Coureurs, nom, prenom)
             if dossard :
                 #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
@@ -2177,13 +2208,16 @@ def addCoureur(nom, prenom, sexe, classe, naissance=None,  absent=None, dispense
 ##                    print("mise à jour commentaire :",commentaireArrivee)
                 Coureurs[dossard-1].setClasse(classe)
                 Coureurs[dossard-1].setVMA(vma)
+                Coureurs[dossard-1].setNaissance(naissanceValide)
                 addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
             else :
                 dossard = len(Coureurs)+1
-                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissanceValide,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+        else :
+            print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
     except :
         print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 
@@ -2261,6 +2295,15 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
 def imprimePDF(pdf_file_name) :
     if os.path.exists(pdf_file_name) :
         win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+##        INCH = 1440
+##        hDC = win32ui.CreateDC ()
+##        hDC.CreatePrinterDC (win32print.GetDefaultPrinter ())
+##        hDC.StartDoc (pdf_file_name)
+##        hDC.StartPage ()
+##        hDC.SetMapMode (win32con.MM_TWIPS)
+##        hDC.DrawText ("TEST", (0, INCH * -1, INCH * 8, INCH * -2), win32con.DT_CENTER)
+##        hDC.EndPage ()
+##        hDC.EndDoc ()
         return True
     else :
         print("Le fichier", pdf_file_name, "n'existe pas.")

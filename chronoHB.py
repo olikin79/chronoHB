@@ -1743,78 +1743,7 @@ def parametresDesCourses():
     GaucheFrameDistanceCourses.forget()
     GaucheFrameParametresCourses.pack(side = LEFT,fill=BOTH, expand=1)
 
-# zone saisie des distances des courses et paramètres
 
-
-IntituleFrameL = Frame(GaucheFrameParametresCourses)
-IntituleFrame = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=IntituleFrameL)
-LieuFrameL = Frame(GaucheFrameParametresCourses)
-LieuFrame = EntryParam("lieu", "Lieu", largeur=15, parent=LieuFrameL)
-
-
-def choixCC():		# Fonction associée à Catégories par Classes
-    #print('Case à cocher : ',str(svRadio.get()))
-    Parametres["CategorieDAge"]=False
-    forgetAutresWidgets()
-    NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
-    NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
-    packAutresWidgets()
-    
-def choixCA():		# Fonction associée à catégories par Age
-    #print('Case à cocher : ',str(svRadio.get()))
-    Parametres["CategorieDAge"]=True
-    forgetAutresWidgets()
-    NbreCoureursChallengeFrameL.pack_forget()
-    NbreCoureursChallengeFrame.pack_forget()
-    packAutresWidgets()
-
-def packAutresWidgets():
-    MessageParDefautFrameL.pack(side=TOP,anchor="w")
-    MessageParDefautFrame.pack(side=LEFT,anchor="w")
-    SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
-    SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
-    lblCommentaire.pack(side=TOP)
-    setParametres()
-    
-def forgetAutresWidgets():
-    MessageParDefautFrameL.pack_forget()
-    MessageParDefautFrame.pack_forget()
-    SauvegardeUSBFrameL.pack_forget()
-    SauvegardeUSBFrame.pack_forget()
-    lblCommentaire.pack_forget()
-    
-svRadio  = StringVar()
-if Parametres["CategorieDAge"] :
-    svRadio.set('0')
-else :
-    svRadio.set('1')
-rbF = Frame(GaucheFrameParametresCourses)
-rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
-rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
-
-NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
-NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
-
-MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
-MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
-SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
-SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
-lblCommentaire = Label(GaucheFrameDistanceCourses)
-
-IntituleFrameL.pack(side=TOP,anchor="w")
-IntituleFrame.pack(side=LEFT,anchor="w")
-LieuFrameL.pack(side=TOP,anchor="w")
-LieuFrame.pack(side=LEFT,anchor="w")
-
-rb1.pack(side=LEFT,anchor="w")
-rb2.pack(side=LEFT,anchor="w")
-rbF.pack(side=TOP,anchor="w")
-
-
-if Parametres["CategorieDAge"] :
-    choixCA()
-else :
-    choixCC()
 
 
 listeDesEntryCourses = []
@@ -1865,12 +1794,21 @@ def affecterParametres() :
 
 # zone saisie coureur
 def okButtonCoureurPuisSaisie() :
-    addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vmaE.get(), aImprimer = True)
+    try :
+        vma = float(vmaE.get())
+    except :
+        vma = 0
+    if Parametres['CategorieDAge'] :
+        addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vma, aImprimer = True)
+    else :
+        addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vma, aImprimer = True)
     # ménage
     nomE.delete(0, END)
     prenomE.delete(0, END)
     classeE.delete(0, END)
     sexeE.delete(0, END)
+    vmaE.delete(0, END)
+    commentaireArriveeE.delete(0, END)
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     CoureursParClasseUpdate()                                      
@@ -1884,6 +1822,8 @@ def imprimerNonImprimes() :
     print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
     listeDesDossardsGeneres = generateDossardsAImprimer()
     nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
+    if os.path.exists(nomFichierGenere) :
+        os.remove(nomFichierGenere)
     if os.path.exists(nomFichierGenere):
         if windows() :
             if imprimePDF(nomFichierGenere) :
@@ -1895,7 +1835,9 @@ def imprimerNonImprimes() :
             subprocess.Popen([nomFichierGenere],shell=True)
             reponse = True
         if reponse :
+            print(listeDesDossardsGeneres)
             for n in listeDesDossardsGeneres :
+                print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
                 Coureurs[n-1].setAImprimer(False)
     else :
         print("Fichier non généré : probablement vide car tous les coureurs ont déjà été imprimés")
@@ -1946,7 +1888,10 @@ prenomE.pack()
 Label(GaucheFrameCoureur, text="Sexe (G ou F) :").pack()
 sexeE = Entry(GaucheFrameCoureur)
 sexeE.pack()
-Label(GaucheFrameCoureur, text="Classe :").pack()
+lblClasse = Label(GaucheFrameCoureur, text="Classe :")
+lblClasse.pack()
+if Parametres["CategorieDAge"] :
+    lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
 classeE = Entry(GaucheFrameCoureur)
 classeE.pack()
 Label(GaucheFrameCoureur, text="VMA en km/h (facultatif) :").pack()
@@ -1968,6 +1913,86 @@ coureurBannul.pack(side = LEFT)
 coureurBoksuivant.pack(side = LEFT)
 coureurBimprimer.pack(side = LEFT)
 boutonsFrame.pack()
+
+
+def choixCC():		# Fonction associée à Catégories par Classes
+    #print('Case à cocher : ',str(svRadio.get()))
+    lblClasse.configure(text="Classe :")
+    Parametres["CategorieDAge"]=False
+    forgetAutresWidgets()
+    NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
+    NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
+    packAutresWidgets()
+    
+def choixCA():		# Fonction associée à catégories par Age
+    #print('Case à cocher : ',str(svRadio.get()))
+    lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
+    Parametres["CategorieDAge"]=True
+    forgetAutresWidgets()
+    NbreCoureursChallengeFrameL.pack_forget()
+    NbreCoureursChallengeFrame.pack_forget()
+    packAutresWidgets()
+
+def packAutresWidgets():
+    MessageParDefautFrameL.pack(side=TOP,anchor="w")
+    MessageParDefautFrame.pack(side=LEFT,anchor="w")
+    SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
+    SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
+    lblCommentaire.pack(side=TOP)
+    setParametres()
+    
+def forgetAutresWidgets():
+    MessageParDefautFrameL.pack_forget()
+    MessageParDefautFrame.pack_forget()
+    SauvegardeUSBFrameL.pack_forget()
+    SauvegardeUSBFrame.pack_forget()
+    lblCommentaire.pack_forget()
+
+# zone saisie des distances des courses et paramètres
+
+
+IntituleFrameL = Frame(GaucheFrameParametresCourses)
+IntituleFrame = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=IntituleFrameL)
+LieuFrameL = Frame(GaucheFrameParametresCourses)
+LieuFrame = EntryParam("lieu", "Lieu", largeur=15, parent=LieuFrameL)
+
+  
+svRadio  = StringVar()
+if Parametres["CategorieDAge"] :
+    svRadio.set('0')
+else :
+    svRadio.set('1')
+rbF = Frame(GaucheFrameParametresCourses)
+rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
+rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
+
+NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
+NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
+
+MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
+MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
+SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
+SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
+lblCommentaire = Label(GaucheFrameDistanceCourses)
+
+IntituleFrameL.pack(side=TOP,anchor="w")
+IntituleFrame.pack(side=LEFT,anchor="w")
+LieuFrameL.pack(side=TOP,anchor="w")
+LieuFrame.pack(side=LEFT,anchor="w")
+
+rb1.pack(side=LEFT,anchor="w")
+rb2.pack(side=LEFT,anchor="w")
+rbF.pack(side=TOP,anchor="w")
+
+
+if Parametres["CategorieDAge"] :
+    choixCA()
+else :
+    choixCC()
+
+
+
+####################### MENUS ################################
 
 #annulDepart = Menu(editmenu, tearoff=0)
 annulDepart = Menu(editmenu, tearoff=0)
