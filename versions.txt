@@ -1,3 +1,8 @@
+Travail du 21/12/21 : Pleine prise en charge des catégories d'athlétisme et des courses associées.
+- débuggage addCoureur() bugs créés lors du devel d'hier. Import possible avec des catégories d'athlétisme automatiquement générées.
+- disable radio boutton (quand des coureurs sont déjà importés, on ne peut plus changer la configuration "type de catégories" utilisée).
+- dans le menu "imprimer un dossard particulier", le combobox indique les catégorie d'athlétisme et non systématiquement la classe.
+
 Travail du 20/12/21 :
 - Création d'une propriété Coureur.aImprimer (booléen) qui sera initialisé à True lorsque qu'un coureur sera créé manuellement (pas via l'import SIECLE).
 - Création d'un bouton "IMPRIMER TOUS LES DOSSARDS NON ENCORE IMPRIMES" dans la création manuelle de coureurs qui lance l'impression automatiquement vers l'imprimante par défaut.

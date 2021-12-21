@@ -117,6 +117,22 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
 
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
+def naissanceValide(naissance) :
+    try:
+        #print("annee")
+        annee = naissance[6:10]
+        #print("mois")
+        mois = naissance[3:5]
+        jour = naissance[0:2]
+        correctDate = None
+        newDate = datetime.datetime(int(annee),int(mois),int(jour))
+        correctDate = True
+        #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
+    except :
+        correctDate = False
+        #print("La date de naissance fournie est INVALIDE :",naissance)
+    return correctDate
+
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
@@ -142,7 +158,7 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         if self.__private_categorie == None :
             if CategorieDAge :
-                print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. A TESTER")
+                #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
                 anneeNaissance = self.naissance[6:]
                 self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
             else :
@@ -1036,6 +1052,15 @@ def listCoureursDUneClasse(classe):
             retour.append(coureur)
     return retour
 
+def listCoureursDUneCourse(course):
+    retour = []
+    if len(Coureurs)==0:
+        #print("There are no coureurs.")
+        return retour
+    for coureur in Coureurs :
+        if coureur.categorie() == course :
+            retour.append(coureur)
+    return retour
 
 def listChallenges():
     listeCourses = []
@@ -2167,30 +2192,17 @@ def coureurExists(Coureurs, nom, prenom) :
         i += 1
     return retour
 
-def naissanceValide(naissance) :
-    annee = naissance[6:]
-    mois = naissance[3:5]
-    jour = naissance[0:2]
-    correctDate = None
-    try:
-        newDate = datetime.datetime(annee,mois,jour)
-        correctDate = True
-        print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
-    except ValueError:
-        correctDate = False
-        print("La date de naissance fournie est INVALIDE :",jour,"/",mois,"/", annee)
-    return correctDate
-    
+ 
 
 def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
+    testNaissance = naissanceValide(naissance)
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
-        testNaissance = naissanceValide(naissance)
         if testNaissance :
-            naissanceValide = naissance
+            naissanceValid = naissance
         else :
-            naissanceValide = None
+            naissanceValid = None
         if Parametres['CategorieDAge'] :
             complement = testNaissance
         else :
@@ -2208,11 +2220,11 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
 ##                    print("mise à jour commentaire :",commentaireArrivee)
                 Coureurs[dossard-1].setClasse(classe)
                 Coureurs[dossard-1].setVMA(vma)
-                Coureurs[dossard-1].setNaissance(naissanceValide)
+                Coureurs[dossard-1].setNaissance(naissanceValid)
                 addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
             else :
                 dossard = len(Coureurs)+1
-                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissanceValide,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissanceValid,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
@@ -2332,7 +2344,6 @@ def calculeTousLesTemps(reinitialise = False):
     while j < len(ArriveeDossards) and i < len(ArriveeTemps): # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
         doss = ArriveeDossards[j]
         ### debug
-        #print("coucou", doss)
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i]
         if dossardAffecteAuTps != 0 and dossardAffecteAuTps <= len(Coureurs) : # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
@@ -3168,6 +3179,8 @@ def creerCoureur(listePerso, informations) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     #print(infos)
+    clas = ""
+    naiss = None
     disp=False
     abse=False
     vma = 0
@@ -3175,12 +3188,21 @@ def creerCoureur(listePerso, informations) :
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
-            abse=False
     if "absent" in informations and not disp :# on ne peut pas être dispensé et absent.
         if infos["absent"] == "" :
             abse = False
         else :
             abse = True
+    if "classe" in informations :
+        try : 
+            clas = supprLF(infos["classe"])
+        except :
+            clas = ""
+    if "naissance" in informations :
+        try : 
+            naiss = supprLF(infos["naissance"])
+        except :
+            naiss = None
     if "vma" in informations :
         try : 
             vma = float(infos["vma"])
@@ -3189,8 +3211,11 @@ def creerCoureur(listePerso, informations) :
     if "commentairearrivée" in informations :
         comment = infos["commentairearrivée"]
         #print("Commentaire personnalisé :" + comment+ ".")
+    #print("youpee")
     # on crée le coureur avec toutes les informations utiles.
-    addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , supprLF(infos["classe"]), absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+    #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
+    addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+
 
 def supprLF(ch) :
     # selon la dernière colonne du csv importée, choisie par l'utilisateur, on peut potentiellement avoir un LF dans n'importe quel champ.
@@ -3353,29 +3378,7 @@ if __name__=="__main__":
             sexe=input("sexe :")
             classe=input("classe :")     
             addCoureur(nom, prenom, sexe, classe)
-##        elif choice == "s" :
-##            addCoureur("Lax", "Olivier", "M" , "67")
-##            addCoureur("Lax", "Marielle", "F" , "65")
-##            #listCourses()
-##            addCoureur("Lax", "Mathieu", "M" , "65")
-##            addCoureur("Lax", "Truc", "F" , "62")
-##            addCoureur("Lax", "Bidule", "F" , "67")
-##            addCoureur("Lax", "Chouette", "M" , "61")
-##            nbreCoureursSimules = 10
-##            for i in range(1,nbreCoureursSimules) :
-##                if random.randint(1,2) == 1 :
-##                    sexe = "F"
-##                else :
-##                    sexe = "M"
-##                addCoureur("Nom" +str(i), "Prénom" + str(i), sexe , str(random.randint(3,6)) + str(random.randint(1,7)))
-##            listeDeCourses = listCourses()
-##        elif choice == "s2" :
-##            simulateArriveesAleatoires()
-            #topDepart(listeDeCourses[2:])
-##            for n in range(600) :
-##                time.sleep(random.randint(1,3)/10)
-##                addArriveeTemps(time.time(), time.time())
-##                addArriveeDossard(random.randint(1,800))
+
         elif choice=="q":
             break
         elif choice == "i" :

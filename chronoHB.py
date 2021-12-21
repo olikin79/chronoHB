@@ -917,7 +917,11 @@ class DossardsFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        self.tupleClasses = tuple(listClasses())
+        if CategorieDAge :
+            self.tupleClasses = tuple(listCourses())
+            print("Remplacer ici par liste des catégories.")
+        else :
+            self.tupleClasses = tuple(listClasses())
         self.choixClasseCombo['values']=self.tupleClasses
         self.actualiseAffichage()
         if self.tupleClasses :
@@ -931,7 +935,10 @@ class DossardsFrame(Frame) :
             self.comboBoxBarClasse.pack(side=TOP, expand=YES) # fill=X, 
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
+            if CategorieDAge :
+                self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection)
+            else :
+                self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
             self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données de SIECLE.")
@@ -1598,6 +1605,7 @@ def effaceDonneesCoursesGUI ():
         delDossardsEtTemps()
         tableau.reinit()
         actualiseToutLAffichage()
+        actualiseEtatBoutonsRadioConfig()
         reponse = showinfo("DONNEES EFFACEES","Les données de courses ont été effacées, il reste celles sur les coureurs.\nLes données précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
@@ -1610,6 +1618,7 @@ def effaceDonneesGUI ():
         delCoureurs()
         tableau.reinit()
         actualiseToutLAffichage()
+        actualiseEtatBoutonsRadioConfig()
         reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
@@ -1741,10 +1750,19 @@ def parametresDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
+    actualiseEtatBoutonsRadioConfig()
     GaucheFrameParametresCourses.pack(side = LEFT,fill=BOTH, expand=1)
 
 
-
+def actualiseEtatBoutonsRadioConfig():
+    if len(Coureurs) :
+        rb1.configure(state='disabled')
+        rb2.configure(state='disabled')
+        rbLbl.pack(side=TOP,anchor="w")
+    else :
+        rb1.configure(state='normal')
+        rb2.configure(state='normal')
+        rbLbl.forget()
 
 listeDesEntryCourses = []
 def actualiserDistanceDesCourses():
@@ -1855,16 +1873,19 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 # menu préparation course
 filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
 filemenu.add_command(label="Import CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
+filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
+filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
-filemenu.add_command(label="Distances des courses", command=affecterDistances)
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
+filemenu.add_command(label="Imprimer un dossard particulier", command=saisieDossards)
+filemenu.add_separator()
 filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
 #filemenu.add_command(label="Modifier une donnée coureur après import (non implémenté)", command=hello)
-filemenu.add_separator()
+##filemenu.add_separator()
 ### ancienne génération de dossards très lente :
 #filemenu.add_command(label="Générer les dossards", command=generateDossardsArrierePlan)
-filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
-filemenu.add_command(label="Imprimer un dossard particulier", command=saisieDossards)
+
+
 #filemenu.add_command(label="Liste Coureurs", command=hello)
 #filemenu.add_command(label="Affecter Distance aux courses", command=setDistances)
 #filemenu.add_command(label="Listing des Données dans le terminal (amené à disparaître)", command=listerDonneesTerminal)
@@ -1962,9 +1983,11 @@ if Parametres["CategorieDAge"] :
     svRadio.set('0')
 else :
     svRadio.set('1')
-rbF = Frame(GaucheFrameParametresCourses)
+rbGF = Frame(GaucheFrameParametresCourses)
+rbF = Frame(rbGF)
 rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
 rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
+rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
@@ -1983,6 +2006,8 @@ LieuFrame.pack(side=LEFT,anchor="w")
 rb1.pack(side=LEFT,anchor="w")
 rb2.pack(side=LEFT,anchor="w")
 rbF.pack(side=TOP,anchor="w")
+rbLbl.pack(side=TOP,anchor="w")
+rbGF.pack(side=TOP,anchor="w")
 
 
 if Parametres["CategorieDAge"] :

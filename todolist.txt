@@ -1,6 +1,5 @@
 Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
-- gérer réellement les catégories par âge :
-	- différencier les courses (regroupements de catégories) et les catégories. Ce sont les courses qu'il faut lancer et non les catégories.
+- différencier les courses (regroupements de catégories) et les catégories. Ce sont les courses qu'il faut lancer et non les catégories.
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, un autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
 - faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
@@ -34,6 +33,7 @@ Ainsi, un autre ordintateur relié à internet, plus lointain, pourrait afficher
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
+- quand on supprime le seul et unique temps avec le smartphone, il ne disparaît pas de l'interface GUI.
 Tant pis si on perd une demi-page une fois sur deux.
 
 - trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
@@ -58,7 +58,8 @@ Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface pu
 Fonctionnalités manquantes :   
 0. Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 
-0. départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés).
+0. départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés) : la règle en UNSS est de prendre les positions 
+(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo.
 
 1. la possibilité d'éditer des listes d'élèves a posteriori (modifier un nom ou un prénom). 
 Pour l'instant, il faudrait refaire un import siecle pour modifier un de ces deux éléments. 
@@ -76,5 +77,5 @@ L'accès à l'écran de saisie serait conditionné au fait que le serveur serait
 7. anonymer la documentation en faisant un import SIECLE avec des noms bidons et de nouvelles captures d'écrans.
 
 8. Créer un système évitant des incohérences entre les smartphones et la base locale : 
-un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées.
+un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées ou celles du smartphone effacées.
 A réfléchir...
