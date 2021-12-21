@@ -1209,13 +1209,15 @@ def generateDossardsNG() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
         for coureur in Coureurs :
             if not coureur.dispense :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                cat = coureur.categorie(Parametres["CategorieDAge"]) 
                 if CategorieDAge :
-                    chaineComplete = chaineComplete.replace("@typeCategorie@","Catégorie : ").replace("@categorie@",cat)
+                    chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@type@","Catégorie ").replace("@categorie@",cat)
                 else :
-                    chaineComplete = chaineComplete.replace("@typeCategorie@","Classe : ").replace("@categorie@",coureur.classe)
+                    chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@type@","Classe ").replace("@categorie@",coureur.classe)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
