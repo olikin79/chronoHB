@@ -1209,15 +1209,7 @@ def generateDossardsNG() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
         for coureur in Coureurs :
             if not coureur.dispense :
-                cat = coureur.categorie(Parametres["CategorieDAge"]) 
-                if CategorieDAge :
-                    chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@type@","Catégorie ").replace("@categorie@",cat)
-                else :
-                    chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@type@","Classe ").replace("@categorie@",coureur.classe)
+                chaineComplete = formateChaineDossard(modele, coureur)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1244,7 +1236,20 @@ def generateDossardsNG() :
         #print(file)
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
-        
+
+def formateChaineDossard(modele, coureur) :
+    """ argument : une chaine modele d'un dossard à formater, un coureur de la class Coureur
+        retour : la chaine où certains mots compris entre @...@ ont été remplacés"""
+    cat = coureur.categorie(Parametres["CategorieDAge"])
+    if Parametres["CategorieDAge"] :
+        retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@type@","Catégorie ").replace("@categorie@",cat)
+    else :
+        retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@type@","Classe ").replace("@categorie@",coureur.classe)
+    return retour
 
 def generateDossards() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
@@ -1284,9 +1289,7 @@ def generateDossards() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
         for coureur in Coureurs :
             if not coureur.dispense :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                chaineComplete = formateChaineDossard(modele, coureur)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1336,11 +1339,8 @@ def generateDossardsAImprimer() :
         f.write(entete + "\n\n")
         for coureur in Coureurs :
             if not coureur.dispense and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
-                cat = coureur.categorie(Parametres["CategorieDAge"])
                 retour.append(coureur.dossard)
-                print(retour)
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                chaineComplete = formateChaineDossard(modele, coureur)
                 f.write(chaineComplete)
                 generateQRcode(coureur.dossard)
         f.write("\\end{document}")
