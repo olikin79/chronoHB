@@ -1211,6 +1211,7 @@ def generateDossardsNG() :
             if not coureur.dispense :
                 chaineComplete = formateChaineDossard(modele, coureur)
                 f.write(chaineComplete)
+                cat = coureur.categorie(Parametres["CategorieDAge"])
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
@@ -1244,11 +1245,11 @@ def formateChaineDossard(modele, coureur) :
     if Parametres["CategorieDAge"] :
         retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@type@","Catégorie ").replace("@categorie@",cat)
+                                 .replace("@typeCategories@","Catégorie ").replace("@categorie@",cat)
     else :
         retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@type@","Classe ").replace("@categorie@",coureur.classe)
+                                 .replace("@typeCategories@","Classe ").replace("@categorie@",coureur.classe)
     return retour
 
 def generateDossards() :
@@ -1368,9 +1369,7 @@ def generateDossard(coureur) :
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
     with open(TEXDIR+file+ ".tex", 'w') as f :
         f.write(entete + "\n\n")
-        cat = coureur.categorie(Parametres["CategorieDAge"])
-        chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+        chaineComplete = formateChaineDossard(modele, coureur)
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -1382,12 +1381,16 @@ def generateDossard(coureur) :
     #open(fichierAOuvrir)
 
 def alimenteListingPourClasse(nomClasse, file):
+    if Parametres["CategorieDAge"] :
+        legende = "Catégorie"
+    else :
+        legende = "Classe"   
     debutTab = """{}\\hfill {}
 %\\fcolorbox{black}{gray!30}{
 \\begin{minipage}{0.9\\textwidth}
 \\Huge
 {}\\hfill {}
-\\textbf{Classe """ + nomClasse + """}
+\\textbf{""" + legende + " " + nomClasse + """}
 {}\\hfill {}
 \\end{minipage}
 %}
@@ -1455,9 +1458,13 @@ def CoureursParClasseUpdate():
     CoureursParClasse.clear()
     for c in Coureurs :
         if not c.dispense :
-            if not c.classe in CoureursParClasse.keys() :
-                CoureursParClasse[c.classe]=[]
-            CoureursParClasse[c.classe].append(c)
+            if Parametres["CategorieDAge"] :
+                index=c.categorie(True)
+            else :
+                index=c.classe
+            if not index in CoureursParClasse.keys() :
+                CoureursParClasse[index]=[]
+            CoureursParClasse[index].append(c)
 
 
 
