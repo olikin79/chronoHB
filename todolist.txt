@@ -1,7 +1,7 @@
 Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
 - différencier les courses (regroupements de catégories) et les catégories. Ce sont les courses qu'il faut lancer et non les catégories.
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
-Ainsi, un autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
+Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
 - faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
 	Qu'elles disparaissent de l'affichage quand elles ont été solutionnées... 
 	(difficile : nomenclature des erreurs à écrire / tests de bonne résolution à écrire)
