@@ -1021,45 +1021,54 @@ def listCourses():
     return retour
     ##transaction.commit()
 
+def listCategories():
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie(CategorieDAge) not in retour :
+                retour.append(coureur.categorie(CategorieDAge))
+        retour.sort()
+    return retour
+
 def listClasses():
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no classes.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.classe not in retour :
-            retour.append(coureur.classe)
-    retour.sort()
+    if len(Coureurs)!=0:
+        #print("There are classes.")
+        for coureur in Coureurs :
+            if coureur.classe not in retour :
+                retour.append(coureur.classe)
+        retour.sort()
     return retour
 
 def listDossardsDUneClasse(classe):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.classe == classe :
-            retour.append(coureur.dossard)
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.classe == classe :
+                retour.append(coureur.dossard)
     return retour
 
 def listCoureursDUneClasse(classe):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.classe == classe :
+                retour.append(coureur)
+    return retour
+
+def listCoureursDUneCategorie(categorie):
+    retour = []
     for coureur in Coureurs :
-        if coureur.classe == classe :
+        if coureur.categorie(CategorieDAge) == categorie :
             retour.append(coureur)
     return retour
 
 def listCoureursDUneCourse(course):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.categorie() == course :
-            retour.append(coureur)
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie() == course :
+                retour.append(coureur)
     return retour
 
 def listChallenges():
