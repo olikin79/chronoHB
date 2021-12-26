@@ -1065,33 +1065,31 @@ def listCoureursDUneCourse(course):
 def listChallenges():
     listeCourses = []
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return listeCourses
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        listeCourses.append(Courses[cat].categorie)
-    for cat in listeCourses :
-        NomDuChallenge = cat[0]
-        #print("nom de challenge potentiel", NomDuChallenge)
-        if NomDuChallenge not in retour and NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
-            retour.append(NomDuChallenge)
+    if len(Courses)!=0 and not Parametres["CategorieDAge"] :
+        #print("There are Courses.")
+        for cat in Courses :
+            #tests Courses[cat].top()
+            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+            listeCourses.append(Courses[cat].categorie)
+        for cat in listeCourses :
+            NomDuChallenge = cat[0]
+            #print("nom de challenge potentiel", NomDuChallenge)
+            if NomDuChallenge not in retour and NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
+                retour.append(NomDuChallenge)
     return retour
 
 def listCoursesEtChallenges():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        retour.append(Courses[cat].categorie)
-    for cat in retour :
-        NomDuChallenge = cat[0]
-        if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
-            retour.append(NomDuChallenge)
+    if len(Courses)!=0:
+        for cat in Courses :
+            #tests Courses[cat].top()
+            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+            retour.append(Courses[cat].categorie)
+        if not Parametres["CategorieDAge"] :
+            for cat in retour :
+                NomDuChallenge = cat[0]
+                if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
+                    retour.append(NomDuChallenge)
     return retour
     ##transaction.commit()
 
