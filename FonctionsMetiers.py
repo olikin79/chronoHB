@@ -1021,77 +1021,84 @@ def listCourses():
     return retour
     ##transaction.commit()
 
+def listCategories():
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie(CategorieDAge) not in retour :
+                retour.append(coureur.categorie(CategorieDAge))
+        retour.sort()
+    return retour
+
 def listClasses():
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no classes.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.classe not in retour :
-            retour.append(coureur.classe)
-    retour.sort()
+    if len(Coureurs)!=0:
+        #print("There are classes.")
+        for coureur in Coureurs :
+            if coureur.classe not in retour :
+                retour.append(coureur.classe)
+        retour.sort()
     return retour
 
 def listDossardsDUneClasse(classe):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.classe == classe :
-            retour.append(coureur.dossard)
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.classe == classe :
+                retour.append(coureur.dossard)
     return retour
 
 def listCoureursDUneClasse(classe):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.classe == classe :
+                retour.append(coureur)
+    return retour
+
+def listCoureursDUneCategorie(categorie):
+    retour = []
     for coureur in Coureurs :
-        if coureur.classe == classe :
+        if coureur.categorie(CategorieDAge) == categorie :
             retour.append(coureur)
     return retour
 
 def listCoureursDUneCourse(course):
     retour = []
-    if len(Coureurs)==0:
-        #print("There are no coureurs.")
-        return retour
-    for coureur in Coureurs :
-        if coureur.categorie() == course :
-            retour.append(coureur)
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie() == course :
+                retour.append(coureur)
     return retour
 
 def listChallenges():
     listeCourses = []
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return listeCourses
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        listeCourses.append(Courses[cat].categorie)
-    for cat in listeCourses :
-        NomDuChallenge = cat[0]
-        #print("nom de challenge potentiel", NomDuChallenge)
-        if NomDuChallenge not in retour and NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
-            retour.append(NomDuChallenge)
+    if len(Courses)!=0 and not Parametres["CategorieDAge"] :
+        #print("There are Courses.")
+        for cat in Courses :
+            #tests Courses[cat].top()
+            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+            listeCourses.append(Courses[cat].categorie)
+        for cat in listeCourses :
+            NomDuChallenge = cat[0]
+            #print("nom de challenge potentiel", NomDuChallenge)
+            if NomDuChallenge not in retour and NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
+                retour.append(NomDuChallenge)
     return retour
 
 def listCoursesEtChallenges():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        retour.append(Courses[cat].categorie)
-    for cat in retour :
-        NomDuChallenge = cat[0]
-        if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
-            retour.append(NomDuChallenge)
+    if len(Courses)!=0:
+        for cat in Courses :
+            #tests Courses[cat].top()
+            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+            retour.append(Courses[cat].categorie)
+        if not Parametres["CategorieDAge"] :
+            for cat in retour :
+                NomDuChallenge = cat[0]
+                if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
+                    retour.append(NomDuChallenge)
     return retour
     ##transaction.commit()
 

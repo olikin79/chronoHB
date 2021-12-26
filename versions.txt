@@ -1,3 +1,6 @@
+Travail du 26/12/21:
+- les cases à cocher ne doivent pas comporter les challenges quand les catégories officielles d'athlétisme sont choisies.
+
 Travail du 21/12/21 : Pleine prise en charge des catégories d'athlétisme et des courses associées.
 - débuggage addCoureur() bugs créés lors du devel d'hier. Import possible avec des catégories d'athlétisme automatiquement générées.
 - disable radio boutton (quand des coureurs sont déjà importés, on ne peut plus changer la configuration "type de catégories" utilisée).

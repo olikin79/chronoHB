@@ -918,8 +918,7 @@ class DossardsFrame(Frame) :
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
         if CategorieDAge :
-            self.tupleClasses = tuple(listCourses())
-            print("Remplacer ici par liste des catégories.")
+            self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
         self.choixClasseCombo['values']=self.tupleClasses
@@ -955,7 +954,10 @@ class DossardsFrame(Frame) :
 class AbsDispFrame(Frame) :
     def __init__(self, parent):
         self.parent = parent
-        self.tupleClasses = tuple(listClasses())
+        if CategorieDAge :
+            self.tupleClasses = tuple(listCategories())
+        else :
+            self.tupleClasses = tuple(listClasses())
         self.listeCoureursDeLaClasse = []
         self.choixClasseCombo = Combobox(self.parent, width=15, justify="center")
         self.choixClasseCombo['values']=self.tupleClasses
@@ -966,7 +968,10 @@ class AbsDispFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        self.tupleClasses = tuple(listClasses())
+        if CategorieDAge :
+            self.tupleClasses = tuple(listCategories())
+        else :
+            self.tupleClasses = tuple(listClasses())
         self.choixClasseCombo['values']=self.tupleClasses
         self.actualiseAffichage()
         if self.tupleClasses :
@@ -980,7 +985,10 @@ class AbsDispFrame(Frame) :
             self.comboBoxBarClasse.pack(side=TOP, expand=YES)#fill=X)
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
+            if CategorieDAge :
+                self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
+            else :
+                self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
             self.choixClasseCombo.forget()
