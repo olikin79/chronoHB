@@ -278,7 +278,7 @@ class Course():#persistent.Persistent):
         self.depart=depart
         self.temps=float(temps)
         self.description = categorie
-##        self.effectif = 0
+        self.groupement = None
         self.resultats = []
         self.distance = 0
 ##        self.equipesClasses = []
@@ -319,6 +319,21 @@ class Course():#persistent.Persistent):
         if self.temps == 0 :
             self.temps = time.time()
             self.depart = True
+
+class Groupement():
+    """Un groupement de courses"""
+    def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
+        self.nom = str(nomDuGroupement)
+        self.listeDesCourses = listeDesNomsDesCourses
+        self.manuel = False
+    def setNom(self, nomChoisi):
+        self.nom = str(nomChoisi)
+        self.manuel = True
+    def addCourse(self, nomCourse):
+        self.listeDesCourses.append(nomCourse)
+        if not self.manuel :
+            self.nom = self.nom + " / " + str(nomCourse)
+        
 
 class Temps():#persistent.Persistent):
     """Un tempsCoureur sur la ligne d'arrivée, éventuellement affecté à un dossard
@@ -467,6 +482,9 @@ if True :# __name__=="__main__":
     if not "Courses" in root :
         root["Courses"] = {}
     Courses=root["Courses"]
+    if not "Groupements" in root :
+        root["Groupements"] = []
+    Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
         root["ArriveeTemps"] = []
     ArriveeTemps=root["ArriveeTemps"]
@@ -2242,17 +2260,12 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
 
 def addCourse(categorie) :
     if categorie not in Courses :
+        print("Création du groupement ", categorie)
+        Groupements.append(Groupement(categorie,[categorie]))
         print("Création de la course", categorie)
         c = Course(categorie)
-##        c.incremente()
-        Courses.update({categorie : c}) # ajoute un coureur.
-    #else :
-        #listCourses()
-        #print(categorie)
-        #print(Courses[categorie])
-        #Courses[categorie].incremente()
-        #print("La course" , categorie, "existe déjà.")
-        ##transaction.commit()
+        Courses.update({categorie : c})
+
 
     
 def addArriveeDossard(dossard, dossardPrecedent=-1) :

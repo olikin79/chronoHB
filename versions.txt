@@ -1,3 +1,9 @@
+Travail du 28/12/21 :
+- création de l'objet Groupement (de courses) et de la liste Groupements, contenant tous les "Groupement". 
+Cela permettra de regrouper des catégories de coureurs, qui courent ensemble :
+ * la même course (même départ, à implémenter)
+ * dont l'affichage devra être commun (export affichage.html et pdf à implémenter).
+
 Travail du 26/12/21:
 - les cases à cocher ne doivent pas comporter les challenges quand les catégories officielles d'athlétisme sont choisies.
 
