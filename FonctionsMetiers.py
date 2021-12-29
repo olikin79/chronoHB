@@ -1574,8 +1574,8 @@ def generateImpressions() :
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
     for classe in Resultats :
-        if len(classe) != 1 and classe[-1:] != "F" and classe[-1:] != "G" :
-            print("Création du fichier de la classe "+classe)
+        if len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G" :
+            print("Création du fichier de "+classe)
             with open(TEXDIR+classe+ ".tex", 'w') as f :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete)
                 f.write(contenu)
@@ -1641,12 +1641,18 @@ def generateImpressions() :
             f.close()
         
     ### générer les tex pour chaque catégorie.
-    listeCategories = listCoursesCommencees()
-    for categorie  in listeCategories :
+    listeGroupements = listGroupementsCommences()
+    for nomGroupement  in listeGroupements :
         # ajout d'une sécurité si aucune arrivée dans une course
-        if categorie in Resultats.keys() :
+        aCreer = False
+        groupement = groupementAPartirDeSonNom(nomGroupement) 
+        for nomCategorie in groupement.listeDesCourses :
+            if nomCategorie in Resultats.keys() :
+                aCreer = True
+                break
+        if aCreer :
             with open(TEXDIR+categorie+ ".tex", 'w') as f :
-                f.write(creerFichierCategorie(categorie,entete))
+                f.write(creerFichierCategories(groupement,entete))
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
     
@@ -1659,6 +1665,35 @@ def generateImpressions() :
         print(compiler(compilateur, "impressions", fichierACompiler , 1))
     #os.chdir(osCWD)
     return "Tous les PDF des résultats ont été générés."
+
+def listeDesCategoriesDUnGroupement(nomGroupement):
+    retour = []
+    for groupement in Groupements :
+        if groupement.nom == nomGroupement :
+            retour = groupement.listeDesCourses
+            break
+    return retour
+
+def groupementAPartirDeSonNom(nomGroupement):
+    """ retourne un objet groupement à partir de son nom"""
+    retour = None
+    for groupement in Groupements :
+        if groupement.nom == nomGroupement :
+            retour = groupement
+            break
+    return retour
+    
+
+def groupementAPartirDUneCategorie(categorie):
+    """ retourne un objet groupement à partir d'un nom de catégorie"""
+    retour = None
+    for groupement in Groupements :
+        for cat in groupement.listeDesCourses : 
+            if cat == categorie :
+                retour = groupement
+                break
+    return retour
+    
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
@@ -1917,16 +1952,17 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     for coureur in Coureurs :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
+        groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
-        if cat not in Resultats :
-            Resultats[cat] = []
-        if classe not in Resultats :
-            Resultats[classe] = []
-        if classe not in listeDesClasses :
-            listeDesClasses.append(classe)
-        #if doss not in Resultats[classe]:
-        Resultats[classe].append(doss)
-        Resultats[cat].append(doss)
+        if groupement.nom not in Resultats :
+            Resultats[groupement.nom] = []
+        Resultats[groupement.nom].append(doss)
+        if not Parametres["CategorieDAge"] :
+            if classe not in Resultats :
+                Resultats[classe] = []
+            if classe not in listeDesClasses :
+                listeDesClasses.append(classe)
+            Resultats[classe].append(doss)
 ##    # on trie les performances d'une classe : les filles et garçons n'ont pas forcméent couru en même temps et ne sont donc pas ordonnés.
 ##    for classe in listeDesClasses :
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
@@ -1948,25 +1984,27 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
-    L = []
-    for nom in keyList :
-        if estUneClasse(nom) :
-            challenge = nom[0]
-            # création du challenge pour ce niveau, si inexistant
-            if challenge not in Resultats :
-                Resultats[challenge] = []
-                L.append(challenge)
-            # on alimente le challenge avec une EquipeClasse
-            equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
-            if Parametres["ponderationAcceptee"] :
-                Resultats[challenge].append(equ)
-            elif equ.complet :
-                Resultats[challenge].append(equ)
-            #print("Ajout au challenge:", challenge, "de l'équipe",nom, Resultats[nom], Coureurs, Parametres["nbreDeCoureursPrisEnCompte"])
-    # on trie chaque challenge par score.
-    for challenge in L :
-        Resultats[challenge]=triParScore(Resultats[challenge])
-    Tfin = time.time()
+    if not Parametres["CategorieDAge"] : # challenge uniquement pour le cross du collège
+        L = []
+        for nom in keyList :
+            if estUneClasse(nom) :
+                challenge = nom[0]
+                # création du challenge pour ce niveau, si inexistant
+                if challenge not in Resultats :
+                    Resultats[challenge] = []
+                    L.append(challenge)
+                # on alimente le challenge avec une EquipeClasse
+                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+                if Parametres["ponderationAcceptee"] :
+                    Resultats[challenge].append(equ)
+                elif equ.complet :
+                    Resultats[challenge].append(equ)
+                #print("Ajout au challenge:", challenge, "de l'équipe",nom, Resultats[nom], Coureurs, Parametres["nbreDeCoureursPrisEnCompte"])
+        # on trie chaque challenge par score.
+        for challenge in L :
+            Resultats[challenge]=triParScore(Resultats[challenge])
+    
+    #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
                 
 def estUneCourse(nom):
@@ -2965,6 +3003,24 @@ def creerFichierCategorie(cat, entete):
 \\endhead
 \n"""
     Dossards = Resultats[cat]
+    for dossard in Dossards :
+        if dossard in ArriveeDossards :
+            tableau += genereLigneTableauTEX(dossard)
+    return entete + "\n\n" + titre + "\n\n" + tableau
+
+
+def creerFichierCategories(groupement, entete):
+    titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + groupement.nom + "} \\hfill {}}"
+    tableau = """
+\\begin{center}
+\\begin{longtable}{| p{1.7cm} | p{6cm} | p{1.5cm} | p{4cm} | p{4.3cm} |}
+%\\begin{tabular}{|*{5}{c|}}
+\\hline
+{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{Prénom Nom} \\hfill {} & {}\\hfill \\textbf{Classe} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
+\\hline
+\\endhead
+\n"""
+    Dossards = Resultats[groupement.nom]
     for dossard in Dossards :
         if dossard in ArriveeDossards :
             tableau += genereLigneTableauTEX(dossard)

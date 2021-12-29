@@ -2,9 +2,9 @@ Travail du 29/12/21 :
 - adaptation des fonctions métiers comme listCoursesCommences(), etc... aux groupements. Elles ont été renommées et modifiées :
 	listGroupementsCommences(), listGroupementsNonCommences(), topDepart(listeDeGroupements), fixerDepart(nomGroupement,temps)
   On peut désormais lancer des départs et annuler des départs de groupements. Pour l'instant, les groupements se construisent avec un unique élément Course.
+- la génération des pdf par groupements : generateImpressions() a été adaptée mais non testée.
   Reste à implémenter :
   - l'interface qui associe plusieurs courses à un groupement.
-  - la génération des pdf par groupements
   - l'affichage.html par groupements.
 
 Travail du 28/12/21 :
