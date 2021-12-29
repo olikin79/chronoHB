@@ -1120,42 +1120,55 @@ def listCoursesEtChallenges():
     return retour
     ##transaction.commit()
 
-def listCoursesCommencees():
+##def listCoursesCommencees():
+##    retour = []
+##    if len(Courses)==0:
+##        #print("There are no Courses.")
+##        return retour
+##    for cat in Courses :
+##        #tests Courses[cat].top()
+##        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+##        if Courses[cat].temps != 0 :
+##            retour.append(Courses[cat].categorie)
+##    return retour
+##
+##def listCoursesNonCommencees():
+##    retour = []
+##    for cat in Courses :
+##        if Courses[cat].temps == 0 :
+##            retour.append(Courses[cat].categorie)
+##    return retour
+
+def listGroupementsCommences():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        if Courses[cat].temps != 0 :
-            retour.append(Courses[cat].categorie)
+    for groupement in Groupements :
+        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+        if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            retour.append(groupement.nom)
     return retour
 
-def listCoursesNonCommencees():
+def listGroupementsNonCommences():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        if Courses[cat].temps == 0 :
-            retour.append(Courses[cat].categorie)
+    for groupement in Groupements :
+        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+        if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            retour.append(groupement.nom)
     return retour
 
-def topDepart(listeDeCourses):
-    if len(listeDeCourses)>0:
+def topDepart(listeDeGroupements):
+    if len(listeDeGroupements)>0:
         temps = time.time()
-        for cat in listeDeCourses :
+        for cat in listeDeGroupements :
             Courses[cat].setTemps(temps)
             print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
-        ##transaction.commit()
 
-# pour les tests
-def fixerDepart(categorie,temps):
-    Courses[categorie].setTemps(temps)
-    print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
+# pour corriger un départ depuis l'interface
+def fixerDepart(nomGroupement,temps):
+    for groupement in listeDeGroupements :
+        if groupement.nom == nomGroupement :
+            for categorie in groupement.listeDesCourses :
+                Courses[categorie].setTemps(temps)
+                print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
     
 
 def generateListCoureursPourSmartphone() :
