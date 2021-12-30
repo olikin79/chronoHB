@@ -136,7 +136,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -145,7 +145,8 @@ class Coureur():#persistent.Persistent):
             self.prenom = str(prenom).upper()
         self.setSexe(sexe)
         self.classe = str(classe)
-        self.setNaissance(str(naissance)[:10]) # garder uniquement les 10 premiers caractères de la chaine.
+        self.naissance = ""
+        self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
         self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
@@ -158,9 +159,10 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         if self.__private_categorie == None :
             if CategorieDAge :
-                #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                anneeNaissance = self.naissance[6:]
-                self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+                if len(self.naissance) != 0 :
+                    #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                    anneeNaissance = self.naissance[6:]
+                    self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
             else :
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
@@ -176,7 +178,7 @@ class Coureur():#persistent.Persistent):
         except :
             self.VMA = 0
     def setNaissance(self, naissance) :
-        if naissance != None :
+        if naissance != "" :
             chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
             if naissanceValide(chNaissance) :
                 self.naissance = chNaissance
@@ -186,8 +188,8 @@ class Coureur():#persistent.Persistent):
 ##                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
 ##            else :
 ##                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
-        else :
-            self.naissance = None
+##        else :
+##            self.naissance = None
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = commentaire
     def setClasse(self, classe) :
@@ -274,7 +276,10 @@ class Course():#persistent.Persistent):
     """Une course"""
     def __init__(self, categorie, depart=False, temps=0):
         self.categorie=categorie
-        self.label = categorie[0] + "ème " + categorie[2]
+        if Parametres["CategorieDAge"] :
+            self.label = categorie
+        else :
+            self.label = categorie[0] + "ème " + categorie[2]
         self.depart=depart
         self.temps=float(temps)
         self.description = categorie
@@ -1066,6 +1071,15 @@ def listDossardsDUneClasse(classe):
                 retour.append(coureur.dossard)
     return retour
 
+
+def listDossardsDUneCategorie(cat):
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie(CategorieDAge) == cat :
+                retour.append(coureur.dossard)
+    return retour
+
 def listCoureursDUneClasse(classe):
     retour = []
     if len(Coureurs)!=0:
@@ -1574,7 +1588,8 @@ def generateImpressions() :
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
     for classe in Resultats :
-        if len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G" :
+        # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
+        if Parametres["CategorieDAge"] or (not Parametres["CategorieDAge"] and len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
             print("Création du fichier de "+classe)
             with open(TEXDIR+classe+ ".tex", 'w') as f :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete)
@@ -1651,7 +1666,7 @@ def generateImpressions() :
                 aCreer = True
                 break
         if aCreer :
-            with open(TEXDIR+categorie+ ".tex", 'w') as f :
+            with open(TEXDIR+groupement.nom+ ".tex", 'w') as f :
                 f.write(creerFichierCategories(groupement,entete))
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
@@ -2313,6 +2328,7 @@ def addCourse(categorie) :
     if categorie not in Courses :
         print("Création du groupement ", categorie)
         Groupements.append(Groupement(categorie,[categorie]))
+        print("Groupements = ",[i.nom for i in Groupements])
         print("Création de la course", categorie)
         c = Course(categorie)
         Courses.update({categorie : c})
@@ -2729,7 +2745,6 @@ def delCoureurs():
     CoureursParClasseUpdate()
     print("Coureurs effacés")
     delCourses()
-    print("Courses effacées")
     delDossardsEtTemps()
 ##    else :
 ##        print("Course commencée : impossible d'effacer le listing des coureurs")
@@ -2737,8 +2752,9 @@ def delCoureurs():
 def delCourses():
 ##    if not Parametres["CourseCommencee"] :
     root['Courses'].clear()
+    root['Groupements'].clear()
     ##transaction.commit()
-    print("Courses réinitialisées")
+    print("Courses et groupements réinitialisés")
 ##    else :
 ##        print("Courses commencées : impossible de supprimer les courses en cours.")
 
@@ -3039,7 +3055,10 @@ def creerFichierClasse(classe, entete):
 \\endhead
 \n"""
     ### il faut tous les dossards d'une classe et non seulement ceux arrivés : Dossards = Resultats[classe]
-    Dossards = listDossardsDUneClasse(classe)
+    if Parametres["CategorieDAge"] :
+        Dossards = listDossardsDUneCategorie(classe)
+    else :
+        Dossards = listDossardsDUneClasse(classe)
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in sorted(Dossards) :

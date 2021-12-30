@@ -1,11 +1,17 @@
+Travail du 30/12/21 :
+- correction de bug sur arrivee.pyw (demande d'info depuis le smartphone ne fonctionnait plus depuis fin novembre 2021)
+- tests et corrections de bugs créés lors des développements récents des derniers jours :
+	réinitialisation des Groupements OK, affichage des lignes vides en bas de tableauGUI OK, export des pdf par catégories OK.
+  Reste à implémenter :
+  - l'interface qui associe plusieurs courses à un groupement.
+  - l'affichage.html par groupements.
+
 Travail du 29/12/21 :
 - adaptation des fonctions métiers comme listCoursesCommences(), etc... aux groupements. Elles ont été renommées et modifiées :
 	listGroupementsCommences(), listGroupementsNonCommences(), topDepart(listeDeGroupements), fixerDepart(nomGroupement,temps)
   On peut désormais lancer des départs et annuler des départs de groupements. Pour l'instant, les groupements se construisent avec un unique élément Course.
 - la génération des pdf par groupements : generateImpressions() a été adaptée mais non testée.
-  Reste à implémenter :
-  - l'interface qui associe plusieurs courses à un groupement.
-  - l'affichage.html par groupements.
+
 
 Travail du 28/12/21 :
 - création de l'objet Groupement (de courses) et de la liste Groupements, contenant tous les "Groupement". 

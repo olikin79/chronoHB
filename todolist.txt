@@ -38,6 +38,8 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 Tant pis si on perd une demi-page une fois sur deux.
 
 - trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
+- dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
+
 
 Bugs à corriger sur chronoHB.py:
 1. gérer le bug où un coureur passerait la ligne avec son dossard, avant d'être parti. 
