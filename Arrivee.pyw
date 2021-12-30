@@ -187,25 +187,19 @@ def generateMessage(dossard, nature, action):
                         commentaireArrivee = ""
                     # ici, ajouter un dispositif de vérification sur le dossard demandé : course bien commencée...
                     # ce qui ne peut pas être effectué côté client.
-                    if nature == "dossard" :
-                        dossardPrecedent = form.getvalue("dossardPrecedent")
-                        if action == "add" :
-                            if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
-                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee.replace(",",";"), "," + str(doss) + ",")
-                            else :
-                                messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
-                                print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                            addInstruction([nature,action,dossard, dossardPrecedent])
-                        elif action == "del" :
-                            print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
-                            addInstruction([nature,action,dossard, dossardPrecedent])
+                    dossardPrecedent = form.getvalue("dossardPrecedent")
+                    if action == "add" :
+                        if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
+                            print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee.replace(",",";"), "," + str(doss) + ",")
                         else :
-                            print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
-                    elif nature == "identite" :
-                        if action == "info" :
-                            print("OK,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",",prenom, nom, "de la classe", classe, "," + str(doss) + ",")
-                        else :
-                            print("Action incorrecte provenant du smartphone : nature 'identité' et action", action)
+                            messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
+                            print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
+                        addInstruction([nature,action,dossard, dossardPrecedent])
+                    elif action == "del" :
+                        print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
+                        addInstruction([nature,action,dossard, dossardPrecedent])
+                    else :
+                        print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
             elif action == "recherche" :
                 nom = tpsCoureurSTR = form.getvalue("nom")
                 if nom == "0" :
@@ -224,6 +218,23 @@ def generateMessage(dossard, nature, action):
                 print("Le dossard", dossard, "n'existe pas.")
         else :
             print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
+    elif nature == "identite" :
+        if action == "info" :
+            ligneBrute = ligneIndice(donnees, dossard)
+            if ligneBrute == None :
+                print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
+            else :
+                ligne = ligneBrute.split(",")
+                doss = ligne[0]
+                nom = ligne[1]
+                prenom = ligne[2]
+                classe = ligne[3]
+                categorie = ligne[4]
+                categorieLisible = ligne[5]
+                commentaireArrivee = ligne[6]
+                print("OK,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",",prenom, nom, "de la classe", classe, "," + str(doss) + ",")
+        else :
+            print("Action incorrecte provenant du smartphone : nature 'identité' et action 'info' seules attendues", action)
     elif nature == "connexion" :
         print("IP trouvee")
     elif nature == "crossparclasse" :

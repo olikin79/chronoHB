@@ -855,13 +855,13 @@ class TopDepartFrame(Frame) :
     def __init__(self, parent):
         f = font.Font(weight="bold",size=16)
         self.parent = parent
-        self.listeDeCoursesNonCommencees = listCoursesNonCommencees()
+        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
         self.checkBoxBarDepart = Checkbar(self.parent, self.listeDeCoursesNonCommencees, vertical=False)
         self.boutonPartez = Button(self.parent, text='PARTEZ !', command=self.topDepartAction, width = 15, height=3)
         self.boutonPartez['font'] = f
         self.departsAnnulesRecemment = True
         if self.listeDeCoursesNonCommencees :
-            self.TopDepartLabel = Label(self.parent, text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
+            self.TopDepartLabel = Label(self.parent, text="Cocher les groupements de courses dont vous souhaitez donner le départ :")
             self.TopDepartLabel.pack(side=TOP)
             self.checkBoxBarDepart.pack(side=TOP, fill=X)
             self.checkBoxBarDepart.config(relief=GROOVE, bd=2)
@@ -889,7 +889,7 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
     def actualise(self) :
-        self.listeDeCoursesNonCommencees = listCoursesNonCommencees()
+        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
         if self.listeDeCoursesNonCommencees :
             self.TopDepartLabel.config(text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
@@ -1043,7 +1043,10 @@ zoneTopDepart = TopDepartFrame(Affichageframe)
 
 listeDeCourses = listCourses()
 
-listeDeCoursesEtChallenge = listCoursesEtChallenges()
+##listeDeCoursesEtChallenge = listCoursesEtChallenges()
+listeDeCoursesEtChallenge = listGroupementsCommences() 
+if not Parametres["CategorieDAge"] :
+    listeDeCoursesEtChallenge += listChallenges()
 
 zoneAffichageTV = Frame(Affichageframe)
 checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeCoursesEtChallenge, vertical=False)
@@ -1452,7 +1455,7 @@ def construireMenuAnnulDepart():
         True
         #print("pas de menu à effacer")
     annulDepart = Menu(editmenu, tearoff=0)
-    L = listCoursesCommencees()
+    L = listGroupementsCommences()
     if L :
         for course in L :
             #print("ajout du menu ", course)
@@ -1593,9 +1596,11 @@ L'ordre des colonnes est indifférent.")
 
 def actualiseToutLAffichage() :
     zoneTopDepart.actualise()
-    checkBoxBarAffichage.actualise(listCoursesCommencees())
+    checkBoxBarAffichage.actualise(listGroupementsCommences())
     listeDeCourses = listCourses()
-    listeDeCoursesEtChallenge = listCoursesEtChallenges()
+    listeDeCoursesEtChallenge = listGroupementsCommences() 
+    if not Parametres["CategorieDAge"] :
+        listeDeCoursesEtChallenge += listChallenges()
     checkBoxBarAffichage.actualise(listeDeCoursesEtChallenge)
     if Courses :
         zoneAffichageTV.pack()
@@ -2076,6 +2081,8 @@ actualiseToutLAffichage()
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
 ##root.configure(width=width, height=height)  # 100% de l'écran
+
+print("type(groupement):",isinstance(Groupements[0],Groupement))
 
 root.mainloop() # enter the message loop
 

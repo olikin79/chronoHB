@@ -136,7 +136,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance=None, absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -145,7 +145,8 @@ class Coureur():#persistent.Persistent):
             self.prenom = str(prenom).upper()
         self.setSexe(sexe)
         self.classe = str(classe)
-        self.setNaissance(str(naissance)[:10]) # garder uniquement les 10 premiers caractères de la chaine.
+        self.naissance = ""
+        self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
         self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
@@ -158,9 +159,10 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         if self.__private_categorie == None :
             if CategorieDAge :
-                #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                anneeNaissance = self.naissance[6:]
-                self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+                if len(self.naissance) != 0 :
+                    #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                    anneeNaissance = self.naissance[6:]
+                    self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
             else :
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
@@ -176,7 +178,7 @@ class Coureur():#persistent.Persistent):
         except :
             self.VMA = 0
     def setNaissance(self, naissance) :
-        if naissance != None :
+        if naissance != "" :
             chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
             if naissanceValide(chNaissance) :
                 self.naissance = chNaissance
@@ -186,8 +188,8 @@ class Coureur():#persistent.Persistent):
 ##                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
 ##            else :
 ##                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
-        else :
-            self.naissance = None
+##        else :
+##            self.naissance = None
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = commentaire
     def setClasse(self, classe) :
@@ -274,11 +276,14 @@ class Course():#persistent.Persistent):
     """Une course"""
     def __init__(self, categorie, depart=False, temps=0):
         self.categorie=categorie
-        self.label = categorie[0] + "ème " + categorie[2]
+        if Parametres["CategorieDAge"] :
+            self.label = categorie
+        else :
+            self.label = categorie[0] + "ème " + categorie[2]
         self.depart=depart
         self.temps=float(temps)
         self.description = categorie
-##        self.effectif = 0
+        self.groupement = None
         self.resultats = []
         self.distance = 0
 ##        self.equipesClasses = []
@@ -319,6 +324,21 @@ class Course():#persistent.Persistent):
         if self.temps == 0 :
             self.temps = time.time()
             self.depart = True
+
+class Groupement():
+    """Un groupement de courses"""
+    def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
+        self.nom = str(nomDuGroupement)
+        self.listeDesCourses = listeDesNomsDesCourses
+        self.manuel = False
+    def setNom(self, nomChoisi):
+        self.nom = str(nomChoisi)
+        self.manuel = True
+    def addCourse(self, nomCourse):
+        self.listeDesCourses.append(nomCourse)
+        if not self.manuel :
+            self.nom = self.nom + " / " + str(nomCourse)
+        
 
 class Temps():#persistent.Persistent):
     """Un tempsCoureur sur la ligne d'arrivée, éventuellement affecté à un dossard
@@ -467,6 +487,9 @@ if True :# __name__=="__main__":
     if not "Courses" in root :
         root["Courses"] = {}
     Courses=root["Courses"]
+    if not "Groupements" in root :
+        root["Groupements"] = []
+    Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
         root["ArriveeTemps"] = []
     ArriveeTemps=root["ArriveeTemps"]
@@ -1011,9 +1034,9 @@ def derniereModifFichierDonnneesLocalesRecente(fichier):
 ### Affichages pour les tests. A MODIFIER POUR L'INTERFACE GRAPHIQUE
 def listCourses():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
+##    if len(Courses)==0:
+##        #print("There are no Courses.")
+##        return retour
     for cat in Courses :
         #tests Courses[cat].top()
         #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
@@ -1045,6 +1068,15 @@ def listDossardsDUneClasse(classe):
     if len(Coureurs)!=0:
         for coureur in Coureurs :
             if coureur.classe == classe :
+                retour.append(coureur.dossard)
+    return retour
+
+
+def listDossardsDUneCategorie(cat):
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.categorie(CategorieDAge) == cat :
                 retour.append(coureur.dossard)
     return retour
 
@@ -1102,42 +1134,55 @@ def listCoursesEtChallenges():
     return retour
     ##transaction.commit()
 
-def listCoursesCommencees():
+##def listCoursesCommencees():
+##    retour = []
+##    if len(Courses)==0:
+##        #print("There are no Courses.")
+##        return retour
+##    for cat in Courses :
+##        #tests Courses[cat].top()
+##        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+##        if Courses[cat].temps != 0 :
+##            retour.append(Courses[cat].categorie)
+##    return retour
+##
+##def listCoursesNonCommencees():
+##    retour = []
+##    for cat in Courses :
+##        if Courses[cat].temps == 0 :
+##            retour.append(Courses[cat].categorie)
+##    return retour
+
+def listGroupementsCommences():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        if Courses[cat].temps != 0 :
-            retour.append(Courses[cat].categorie)
+    for groupement in Groupements :
+        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+        if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            retour.append(groupement.nom)
     return retour
 
-def listCoursesNonCommencees():
+def listGroupementsNonCommences():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        if Courses[cat].temps == 0 :
-            retour.append(Courses[cat].categorie)
+    for groupement in Groupements :
+        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+        if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            retour.append(groupement.nom)
     return retour
 
-def topDepart(listeDeCourses):
-    if len(listeDeCourses)>0:
+def topDepart(listeDeGroupements):
+    if len(listeDeGroupements)>0:
         temps = time.time()
-        for cat in listeDeCourses :
+        for cat in listeDeGroupements :
             Courses[cat].setTemps(temps)
             print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
-        ##transaction.commit()
 
-# pour les tests
-def fixerDepart(categorie,temps):
-    Courses[categorie].setTemps(temps)
-    print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
+# pour corriger un départ depuis l'interface
+def fixerDepart(nomGroupement,temps):
+    for groupement in listeDeGroupements :
+        if groupement.nom == nomGroupement :
+            for categorie in groupement.listeDesCourses :
+                Courses[categorie].setTemps(temps)
+                print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
     
 
 def generateListCoureursPourSmartphone() :
@@ -1191,13 +1236,18 @@ def generateDossardsNG() :
         enteteL = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
+    creerDir(TEXDIR)
     ## effacer les tex existants
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
     liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+'*.pdf',recursive = False)
     for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
         os.remove(file)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
@@ -1216,9 +1266,16 @@ def generateDossardsNG() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
         for coureur in Coureurs :
             if not coureur.dispense :
-                chaineComplete = formateChaineDossard(modele, coureur)
-                f.write(chaineComplete)
                 cat = coureur.categorie(Parametres["CategorieDAge"])
+                groupementNom = groupementAPartirDUneCategorie(cat).nom
+                print("cat =",cat, "   groupementNom=",groupementNom)
+                if cat != groupementNom :
+                    groupement = "Course : " + groupementNom
+                else :
+                    groupement = ""
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)
+                f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
@@ -1244,20 +1301,7 @@ def generateDossardsNG() :
         #print(file)
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
-
-def formateChaineDossard(modele, coureur) :
-    """ argument : une chaine modele d'un dossard à formater, un coureur de la class Coureur
-        retour : la chaine où certains mots compris entre @...@ ont été remplacés"""
-    cat = coureur.categorie(Parametres["CategorieDAge"])
-    if Parametres["CategorieDAge"] :
-        retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@typeCategories@","Catégorie ").replace("@categorie@",cat)
-    else :
-        retour = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard))\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@typeCategories@","Classe ").replace("@categorie@",coureur.classe)
-    return retour
+        
 
 def generateDossards() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
@@ -1297,7 +1341,9 @@ def generateDossards() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
         for coureur in Coureurs :
             if not coureur.dispense :
-                chaineComplete = formateChaineDossard(modele, coureur)
+                cat = coureur.categorie(Parametres["CategorieDAge"])
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1347,8 +1393,11 @@ def generateDossardsAImprimer() :
         f.write(entete + "\n\n")
         for coureur in Coureurs :
             if not coureur.dispense and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+                cat = coureur.categorie(Parametres["CategorieDAge"])
                 retour.append(coureur.dossard)
-                chaineComplete = formateChaineDossard(modele, coureur)
+                print(retour)
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
                 f.write(chaineComplete)
                 generateQRcode(coureur.dossard)
         f.write("\\end{document}")
@@ -1376,7 +1425,9 @@ def generateDossard(coureur) :
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
     with open(TEXDIR+file+ ".tex", 'w') as f :
         f.write(entete + "\n\n")
-        chaineComplete = formateChaineDossard(modele, coureur)
+        cat = coureur.categorie(Parametres["CategorieDAge"])
+        chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -1388,16 +1439,12 @@ def generateDossard(coureur) :
     #open(fichierAOuvrir)
 
 def alimenteListingPourClasse(nomClasse, file):
-    if Parametres["CategorieDAge"] :
-        legende = "Catégorie"
-    else :
-        legende = "Classe"   
     debutTab = """{}\\hfill {}
 %\\fcolorbox{black}{gray!30}{
 \\begin{minipage}{0.9\\textwidth}
 \\Huge
 {}\\hfill {}
-\\textbf{""" + legende + " " + nomClasse + """}
+\\textbf{Classe """ + nomClasse + """}
 {}\\hfill {}
 \\end{minipage}
 %}
@@ -1465,13 +1512,9 @@ def CoureursParClasseUpdate():
     CoureursParClasse.clear()
     for c in Coureurs :
         if not c.dispense :
-            if Parametres["CategorieDAge"] :
-                index=c.categorie(True)
-            else :
-                index=c.classe
-            if not index in CoureursParClasse.keys() :
-                CoureursParClasse[index]=[]
-            CoureursParClasse[index].append(c)
+            if not c.classe in CoureursParClasse.keys() :
+                CoureursParClasse[c.classe]=[]
+            CoureursParClasse[c.classe].append(c)
 
 
 
@@ -1556,8 +1599,9 @@ def generateImpressions() :
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
     for classe in Resultats :
-        if len(classe) != 1 and classe[-1:] != "F" and classe[-1:] != "G" :
-            print("Création du fichier de la classe "+classe)
+        # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
+        if Parametres["CategorieDAge"] or (not Parametres["CategorieDAge"] and len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
+            print("Création du fichier de "+classe)
             with open(TEXDIR+classe+ ".tex", 'w') as f :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete)
                 f.write(contenu)
@@ -1623,12 +1667,18 @@ def generateImpressions() :
             f.close()
         
     ### générer les tex pour chaque catégorie.
-    listeCategories = listCoursesCommencees()
-    for categorie  in listeCategories :
+    listeGroupements = listGroupementsCommences()
+    for nomGroupement  in listeGroupements :
         # ajout d'une sécurité si aucune arrivée dans une course
-        if categorie in Resultats.keys() :
-            with open(TEXDIR+categorie+ ".tex", 'w') as f :
-                f.write(creerFichierCategorie(categorie,entete))
+        aCreer = False
+        groupement = groupementAPartirDeSonNom(nomGroupement) 
+        for nomCategorie in groupement.listeDesCourses :
+            if nomCategorie in Resultats.keys() :
+                aCreer = True
+                break
+        if aCreer :
+            with open(TEXDIR+groupement.nom+ ".tex", 'w') as f :
+                f.write(creerFichierCategories(groupement,entete))
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
     
@@ -1641,6 +1691,37 @@ def generateImpressions() :
         print(compiler(compilateur, "impressions", fichierACompiler , 1))
     #os.chdir(osCWD)
     return "Tous les PDF des résultats ont été générés."
+
+def listeDesCategoriesDUnGroupement(nomGroupement):
+    retour = []
+    for groupement in Groupements :
+        if groupement.nom == nomGroupement :
+            retour = groupement.listeDesCourses
+            break
+    return retour
+
+def groupementAPartirDeSonNom(nomGroupement):
+    """ retourne un objet groupement à partir de son nom"""
+    retour = None
+    for groupement in Groupements :
+        if groupement.nom == nomGroupement :
+            retour = groupement
+            break
+    return retour
+    
+
+def groupementAPartirDUneCategorie(categorie):
+    """ retourne un objet groupement à partir d'un nom de catégorie"""
+    retour = None
+    for groupement in Groupements :
+        for cat in groupement.listeDesCourses : 
+            if cat == categorie :
+                retour = groupement
+                break
+    print("categorie cherchée :", categorie)
+    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    return retour
+    
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
@@ -1899,16 +1980,17 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     for coureur in Coureurs :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
+        groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
-        if cat not in Resultats :
-            Resultats[cat] = []
-        if classe not in Resultats :
-            Resultats[classe] = []
-        if classe not in listeDesClasses :
-            listeDesClasses.append(classe)
-        #if doss not in Resultats[classe]:
-        Resultats[classe].append(doss)
-        Resultats[cat].append(doss)
+        if groupement.nom not in Resultats :
+            Resultats[groupement.nom] = []
+        Resultats[groupement.nom].append(doss)
+        if not Parametres["CategorieDAge"] :
+            if classe not in Resultats :
+                Resultats[classe] = []
+            if classe not in listeDesClasses :
+                listeDesClasses.append(classe)
+            Resultats[classe].append(doss)
 ##    # on trie les performances d'une classe : les filles et garçons n'ont pas forcméent couru en même temps et ne sont donc pas ordonnés.
 ##    for classe in listeDesClasses :
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
@@ -1930,25 +2012,27 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
-    L = []
-    for nom in keyList :
-        if estUneClasse(nom) :
-            challenge = nom[0]
-            # création du challenge pour ce niveau, si inexistant
-            if challenge not in Resultats :
-                Resultats[challenge] = []
-                L.append(challenge)
-            # on alimente le challenge avec une EquipeClasse
-            equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
-            if Parametres["ponderationAcceptee"] :
-                Resultats[challenge].append(equ)
-            elif equ.complet :
-                Resultats[challenge].append(equ)
-            #print("Ajout au challenge:", challenge, "de l'équipe",nom, Resultats[nom], Coureurs, Parametres["nbreDeCoureursPrisEnCompte"])
-    # on trie chaque challenge par score.
-    for challenge in L :
-        Resultats[challenge]=triParScore(Resultats[challenge])
-    Tfin = time.time()
+    if not Parametres["CategorieDAge"] : # challenge uniquement pour le cross du collège
+        L = []
+        for nom in keyList :
+            if estUneClasse(nom) :
+                challenge = nom[0]
+                # création du challenge pour ce niveau, si inexistant
+                if challenge not in Resultats :
+                    Resultats[challenge] = []
+                    L.append(challenge)
+                # on alimente le challenge avec une EquipeClasse
+                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+                if Parametres["ponderationAcceptee"] :
+                    Resultats[challenge].append(equ)
+                elif equ.complet :
+                    Resultats[challenge].append(equ)
+                #print("Ajout au challenge:", challenge, "de l'équipe",nom, Resultats[nom], Coureurs, Parametres["nbreDeCoureursPrisEnCompte"])
+        # on trie chaque challenge par score.
+        for challenge in L :
+            Resultats[challenge]=triParScore(Resultats[challenge])
+    
+    #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
                 
 def estUneCourse(nom):
@@ -2255,17 +2339,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
 
 def addCourse(categorie) :
     if categorie not in Courses :
+        print("Création du groupement ", categorie)
+        Groupements.append(Groupement(categorie,[categorie]))
+        print("Groupements = ",[i.nom for i in Groupements])
         print("Création de la course", categorie)
         c = Course(categorie)
-##        c.incremente()
-        Courses.update({categorie : c}) # ajoute un coureur.
-    #else :
-        #listCourses()
-        #print(categorie)
-        #print(Courses[categorie])
-        #Courses[categorie].incremente()
-        #print("La course" , categorie, "existe déjà.")
-        ##transaction.commit()
+        Courses.update({categorie : c})
+
 
     
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
@@ -2678,7 +2758,6 @@ def delCoureurs():
     CoureursParClasseUpdate()
     print("Coureurs effacés")
     delCourses()
-    print("Courses effacées")
     delDossardsEtTemps()
 ##    else :
 ##        print("Course commencée : impossible d'effacer le listing des coureurs")
@@ -2686,8 +2765,9 @@ def delCoureurs():
 def delCourses():
 ##    if not Parametres["CourseCommencee"] :
     root['Courses'].clear()
+    root['Groupements'].clear()
     ##transaction.commit()
-    print("Courses réinitialisées")
+    print("Courses et groupements réinitialisés")
 ##    else :
 ##        print("Courses commencées : impossible de supprimer les courses en cours.")
 
@@ -2789,7 +2869,13 @@ def listerDonneesTerminal():
 
 ############## AFFICHAGE TV HTML ############################
 
-def genereAffichageTV(listeDesCourses) :
+def estGroupement(obj):
+    return isinstance(obj,Groupement)
+
+def estChallenge(obj):
+    return (isinstance(obj,str) and len(obj) == 1)
+
+def genereAffichageTV(listeDesGroupements) :
     with open("Affichage.html","w", encoding='utf8') as f :
         f.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -2820,14 +2906,14 @@ var i = 0;
         TableauxHTML = []
         EnTetesHTML = []
         TitresHTML = []
-        for courseName in listeDesCourses :
-            if len(courseName) == 1 :
+        for groupement in listeDesGroupements :
+            if estChallenge(groupement) :
                 # challenge par niveau
-                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + courseName + "ème.</h2>" )
+                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème.</h2>" )
             else :
-                TitresHTML.append( "<h2> Catégorie " + Courses[courseName].label + "</h2>" )
-            TableauxHTML.append(genereTableauHTML(courseName))
-            EnTetesHTML.append(genereEnTetesHTML(courseName)) 
+                TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+            TableauxHTML.append(genereTableauHTML(groupement))
+            EnTetesHTML.append(genereEnTetesHTML(groupement)) 
         f.write("var titres = " + str(TitresHTML) + ";\n")
         f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
         f.write("var contenus = " + str(TableauxHTML) + ";\n")
@@ -2875,8 +2961,8 @@ var i = 0;
 </script>
 </body></html>""")
 
-def genereEnTetesHTML(courseName) :
-    if len(courseName) == 1 :
+def genereEnTetesHTML(groupement) :
+    if estChallenge(groupement) :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
         tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
         tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
@@ -2892,7 +2978,7 @@ def genereEnTetesHTML(courseName) :
 def genereTableauHTML(courseName) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
-    if len(courseName) == 1 :
+    if estChallenge(courseName) :
         # challenge par classe
         i = 0
         while i < len(Resultats[courseName]) :
@@ -2958,6 +3044,24 @@ def creerFichierCategorie(cat, entete):
     return entete + "\n\n" + titre + "\n\n" + tableau
 
 
+def creerFichierCategories(groupement, entete):
+    titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + groupement.nom + "} \\hfill {}}"
+    tableau = """
+\\begin{center}
+\\begin{longtable}{| p{1.7cm} | p{6cm} | p{1.5cm} | p{4cm} | p{4.3cm} |}
+%\\begin{tabular}{|*{5}{c|}}
+\\hline
+{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{Prénom Nom} \\hfill {} & {}\\hfill \\textbf{Classe} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
+\\hline
+\\endhead
+\n"""
+    Dossards = Resultats[groupement.nom]
+    for dossard in Dossards :
+        if dossard in ArriveeDossards :
+            tableau += genereLigneTableauTEX(dossard)
+    return entete + "\n\n" + titre + "\n\n" + tableau
+
+
 def creerFichierClasse(classe, entete):
     titre = "{\\Large {} \\hfill \\textbf{CLASSE " + classe + "} \\hfill {}}"
     tableau = """
@@ -2970,7 +3074,10 @@ def creerFichierClasse(classe, entete):
 \\endhead
 \n"""
     ### il faut tous les dossards d'une classe et non seulement ceux arrivés : Dossards = Resultats[classe]
-    Dossards = listDossardsDUneClasse(classe)
+    if Parametres["CategorieDAge"] :
+        Dossards = listDossardsDUneCategorie(classe)
+    else :
+        Dossards = listDossardsDUneClasse(classe)
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in sorted(Dossards) :
