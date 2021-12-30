@@ -1236,13 +1236,18 @@ def generateDossardsNG() :
         enteteL = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
+    creerDir(TEXDIR)
     ## effacer les tex existants
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
     liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+'*.pdf',recursive = False)
     for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
         os.remove(file)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
@@ -1262,8 +1267,14 @@ def generateDossardsNG() :
         for coureur in Coureurs :
             if not coureur.dispense :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
+                groupementNom = groupementAPartirDUneCategorie(cat).nom
+                print("cat =",cat, "   groupementNom=",groupementNom)
+                if cat != groupementNom :
+                    groupement = "Course : " + groupementNom
+                else :
+                    groupement = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1707,6 +1718,8 @@ def groupementAPartirDUneCategorie(categorie):
             if cat == categorie :
                 retour = groupement
                 break
+    print("categorie cherchée :", categorie)
+    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     return retour
     
 

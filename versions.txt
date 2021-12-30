@@ -1,5 +1,6 @@
 Travail du 30/12/21 :
 - correction de bug sur arrivee.pyw (demande d'info depuis le smartphone ne fonctionnait plus depuis fin novembre 2021)
+- séparation des dossards modèles : cas des différents types de catégories.
 - tests et corrections de bugs créés lors des développements récents des derniers jours :
 	réinitialisation des Groupements OK, affichage des lignes vides en bas de tableauGUI OK, export des pdf par catégories OK.
   Reste à implémenter :
