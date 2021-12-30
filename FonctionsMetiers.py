@@ -1034,9 +1034,9 @@ def derniereModifFichierDonnneesLocalesRecente(fichier):
 ### Affichages pour les tests. A MODIFIER POUR L'INTERFACE GRAPHIQUE
 def listCourses():
     retour = []
-    if len(Courses)==0:
-        #print("There are no Courses.")
-        return retour
+##    if len(Courses)==0:
+##        #print("There are no Courses.")
+##        return retour
     for cat in Courses :
         #tests Courses[cat].top()
         #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
@@ -2869,7 +2869,13 @@ def listerDonneesTerminal():
 
 ############## AFFICHAGE TV HTML ############################
 
-def genereAffichageTV(listeDesCourses) :
+def estGroupement(obj):
+    return isinstance(obj,Groupement)
+
+def estChallenge(obj):
+    return (isinstance(obj,str) and len(obj) == 1)
+
+def genereAffichageTV(listeDesGroupements) :
     with open("Affichage.html","w", encoding='utf8') as f :
         f.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
@@ -2900,14 +2906,14 @@ var i = 0;
         TableauxHTML = []
         EnTetesHTML = []
         TitresHTML = []
-        for courseName in listeDesCourses :
-            if len(courseName) == 1 :
+        for groupement in listeDesGroupements :
+            if estChallenge(groupement) :
                 # challenge par niveau
-                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + courseName + "ème.</h2>" )
+                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème.</h2>" )
             else :
-                TitresHTML.append( "<h2> Catégorie " + Courses[courseName].label + "</h2>" )
-            TableauxHTML.append(genereTableauHTML(courseName))
-            EnTetesHTML.append(genereEnTetesHTML(courseName)) 
+                TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+            TableauxHTML.append(genereTableauHTML(groupement))
+            EnTetesHTML.append(genereEnTetesHTML(groupement)) 
         f.write("var titres = " + str(TitresHTML) + ";\n")
         f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
         f.write("var contenus = " + str(TableauxHTML) + ";\n")
@@ -2955,8 +2961,8 @@ var i = 0;
 </script>
 </body></html>""")
 
-def genereEnTetesHTML(courseName) :
-    if len(courseName) == 1 :
+def genereEnTetesHTML(groupement) :
+    if estChallenge(groupement) :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
         tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
         tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
@@ -2972,7 +2978,7 @@ def genereEnTetesHTML(courseName) :
 def genereTableauHTML(courseName) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
-    if len(courseName) == 1 :
+    if estChallenge(courseName) :
         # challenge par classe
         i = 0
         while i < len(Resultats[courseName]) :

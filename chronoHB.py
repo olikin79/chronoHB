@@ -1043,7 +1043,10 @@ zoneTopDepart = TopDepartFrame(Affichageframe)
 
 listeDeCourses = listCourses()
 
-listeDeCoursesEtChallenge = listCoursesEtChallenges()
+##listeDeCoursesEtChallenge = listCoursesEtChallenges()
+listeDeCoursesEtChallenge = listGroupementsCommences() 
+if not Parametres["CategorieDAge"] :
+    listeDeCoursesEtChallenge += listChallenges()
 
 zoneAffichageTV = Frame(Affichageframe)
 checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeCoursesEtChallenge, vertical=False)
@@ -1595,7 +1598,9 @@ def actualiseToutLAffichage() :
     zoneTopDepart.actualise()
     checkBoxBarAffichage.actualise(listGroupementsCommences())
     listeDeCourses = listCourses()
-    listeDeCoursesEtChallenge = listCoursesEtChallenges()
+    listeDeCoursesEtChallenge = listGroupementsCommences() 
+    if not Parametres["CategorieDAge"] :
+        listeDeCoursesEtChallenge += listChallenges()
     checkBoxBarAffichage.actualise(listeDeCoursesEtChallenge)
     if Courses :
         zoneAffichageTV.pack()
@@ -2076,6 +2081,8 @@ actualiseToutLAffichage()
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
 ##root.configure(width=width, height=height)  # 100% de l'écran
+
+print("type(groupement):",isinstance(Groupements[0],Groupement))
 
 root.mainloop() # enter the message loop
 
