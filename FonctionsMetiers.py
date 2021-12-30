@@ -1303,74 +1303,74 @@ def generateDossardsNG() :
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
         
 
-def generateDossards() :
-    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
-    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    generateQRcodes()
-    global CoureursParClasse
-    with open("./modeles/dossard-en-tete.tex", 'r') as f :
-        entete = f.read()
-    f.close()
-    with open("./modeles/listing-en-tete.tex", 'r') as f :
-        enteteL = f.read()
-    f.close()
-    TEXDIR = "dossards"+os.sep+"tex"+os.sep
-    creerDir(TEXDIR)
-    ## effacer les tex existants
-    liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
-    liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
-    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
-        os.remove(file)
-    # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
-        modele = f.read()
-    f.close()
-    ## générer de nouveaux en-têtes.
-    osCWD = os.getcwd()
-    #os.chdir("dossards")
-    listeCategories = listCourses()
-    listeCategories.append("0-tousLesDossards")
-    for file  in listeCategories :
-        with open(TEXDIR+file+ ".tex", 'w') as f :
-            f.write(entete + "\n\n")
-        f.close()
-    with open(TEXDIR+"0-listing.tex", 'w') as f :
-        f.write(enteteL + "\n\n")
-    f.close()
-    listeCategories.append("0-listing")
-    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
-        for coureur in Coureurs :
-            if not coureur.dispense :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
-                f.write(chaineComplete)
-                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
-                    fileCat.write(chaineComplete+ "\n\n")
-                fileCat.close()
-    f.close()
-    with open(TEXDIR+"0-listing.tex", 'a') as fL :
-        L = list(CoureursParClasse.keys())
-        L.sort()
-        for nomClasse in L :
-            alimenteListingPourClasse(nomClasse, fL)
-            if nomClasse != L[:-1] :
-                fL.write("\\newpage\n\n")
-            else :
-                fL.write("\\end{document}")
-    fL.close()
-    listeCategories.append("0-listing")
-    #print(listeCategories)
-    # pour chaque fichier dans listeCategories , ajouter le end document.
-    for file in listeCategories :
-        with open(TEXDIR+file + ".tex", 'a') as f :
-            f.write("\\end{document}")
-        f.close()
-        # il faut compiler tous les fichiers de la liste.
-        #print(file)
-        compilateurComplete = compilateur.replace("@dossier@","dossards")
-        print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
-    ### os.chdir(osCWD)
+##def generateDossards() :
+##    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
+##    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+##    generateQRcodes()
+##    global CoureursParClasse
+##    with open("./modeles/dossard-en-tete.tex", 'r') as f :
+##        entete = f.read()
+##    f.close()
+##    with open("./modeles/listing-en-tete.tex", 'r') as f :
+##        enteteL = f.read()
+##    f.close()
+##    TEXDIR = "dossards"+os.sep+"tex"+os.sep
+##    creerDir(TEXDIR)
+##    ## effacer les tex existants
+##    liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
+##    liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
+##    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
+##        os.remove(file)
+##    # utilisation du modèle de dossard.
+##    with open("./modeles/dossard-modele.tex", 'r') as f :
+##        modele = f.read()
+##    f.close()
+##    ## générer de nouveaux en-têtes.
+##    osCWD = os.getcwd()
+##    #os.chdir("dossards")
+##    listeCategories = listCourses()
+##    listeCategories.append("0-tousLesDossards")
+##    for file  in listeCategories :
+##        with open(TEXDIR+file+ ".tex", 'w') as f :
+##            f.write(entete + "\n\n")
+##        f.close()
+##    with open(TEXDIR+"0-listing.tex", 'w') as f :
+##        f.write(enteteL + "\n\n")
+##    f.close()
+##    listeCategories.append("0-listing")
+##    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
+##        for coureur in Coureurs :
+##            if not coureur.dispense :
+##                cat = coureur.categorie(Parametres["CategorieDAge"])
+##                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+##                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+##                f.write(chaineComplete)
+##                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
+##                    fileCat.write(chaineComplete+ "\n\n")
+##                fileCat.close()
+##    f.close()
+##    with open(TEXDIR+"0-listing.tex", 'a') as fL :
+##        L = list(CoureursParClasse.keys())
+##        L.sort()
+##        for nomClasse in L :
+##            alimenteListingPourClasse(nomClasse, fL)
+##            if nomClasse != L[:-1] :
+##                fL.write("\\newpage\n\n")
+##            else :
+##                fL.write("\\end{document}")
+##    fL.close()
+##    listeCategories.append("0-listing")
+##    #print(listeCategories)
+##    # pour chaque fichier dans listeCategories , ajouter le end document.
+##    for file in listeCategories :
+##        with open(TEXDIR+file + ".tex", 'a') as f :
+##            f.write("\\end{document}")
+##        f.close()
+##        # il faut compiler tous les fichiers de la liste.
+##        #print(file)
+##        compilateurComplete = compilateur.replace("@dossier@","dossards")
+##        print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
+##    ### os.chdir(osCWD)
 
 def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
@@ -1510,11 +1510,18 @@ CoureursParClasse = {}
 def CoureursParClasseUpdate():
     global CoureursParClasse
     CoureursParClasse.clear()
-    for c in Coureurs :
-        if not c.dispense :
-            if not c.classe in CoureursParClasse.keys() :
-                CoureursParClasse[c.classe]=[]
-            CoureursParClasse[c.classe].append(c)
+    if CategorieDAge :
+        for c in Coureurs :
+            if not c.dispense :
+                if not c.categorie(True) in CoureursParClasse.keys() :
+                    CoureursParClasse[c.categorie(True)]=[]
+                CoureursParClasse[c.categorie(True)].append(c)
+    else :
+        for c in Coureurs :
+            if not c.dispense :
+                if not c.classe in CoureursParClasse.keys() :
+                    CoureursParClasse[c.classe]=[]
+                CoureursParClasse[c.classe].append(c)
 
 
 
@@ -1718,8 +1725,8 @@ def groupementAPartirDUneCategorie(categorie):
             if cat == categorie :
                 retour = groupement
                 break
-    print("categorie cherchée :", categorie)
-    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+##    print("categorie cherchée :", categorie)
+##    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     return retour
     
 

@@ -2082,8 +2082,6 @@ actualiseToutLAffichage()
 ##height = root.winfo_screenheight()
 ##root.configure(width=width, height=height)  # 100% de l'écran
 
-print("type(groupement):",isinstance(Groupements[0],Groupement))
-
 root.mainloop() # enter the message loop
 
 print("Fermeture de la BDD")
