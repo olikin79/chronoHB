@@ -331,13 +331,28 @@ class Groupement():
         self.nom = str(nomDuGroupement)
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
+        self.distance = 0
+        self.actualiseNom()
     def setNom(self, nomChoisi):
         self.nom = str(nomChoisi)
         self.manuel = True
+    def setDistance(self, distance):
+        self.distance = float(distance)
+    def actualiseNom(self) :
+        if not self.manuel :
+            self.nom = ""
+            if self.listeDesCourses :
+                self.nom = self.listeDesCourses[0]
+                for nomCourse in self.listeDesCourses[1:] :
+                    self.nom = self.nom + " / " + str(nomCourse)
     def addCourse(self, nomCourse):
         self.listeDesCourses.append(nomCourse)
         if not self.manuel :
             self.nom = self.nom + " / " + str(nomCourse)
+        self.actualiseNom()
+    def removeCourse(self, nomCourse):
+        self.listeDesCourses.remove(nomCourse)
+        self.actualiseNom()
         
 
 class Temps():#persistent.Persistent):
@@ -1156,17 +1171,19 @@ def listCoursesEtChallenges():
 def listGroupementsCommences():
     retour = []
     for groupement in Groupements :
-        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-        if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
-            retour.append(groupement.nom)
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+                retour.append(groupement.nom)
     return retour
 
 def listGroupementsNonCommences():
     retour = []
     for groupement in Groupements :
-        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-        if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
-            retour.append(groupement.nom)
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+                retour.append(groupement.nom)
     return retour
 
 def topDepart(listeDeGroupements):
@@ -1728,7 +1745,24 @@ def groupementAPartirDUneCategorie(categorie):
 ##    print("categorie cherchée :", categorie)
 ##    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     return retour
-    
+
+def nettoieGroupements() :
+    """ supprime les listes vides de Groupements, créées par l'interface si un utilisateur décide d'effectuer des regroupements non incrémentés à partir de 1."""
+    try:
+        while True:
+            Groupements.remove([])
+    except ValueError:
+        pass
+
+def updateGroupements(categorie, placeInitiale, placeFinale):
+    print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
+    if placeInitiale != placeFinale :
+        Groupements[placeInitiale-1].removeCourse(categorie)    
+        Groupements[placeFinale-1].addCourse(categorie)
+        nettoieGroupements()
+    print("Groupements :")
+    for grp in Groupements :
+        print(grp.listeDesCourses)
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []

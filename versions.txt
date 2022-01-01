@@ -1,3 +1,9 @@
+Travail du 01/01/22 :
+- les combobox sont en mode readonly.
+- l'interface de groupements des courses tant attendue.
+
+
+
 Travail du 30/12/21 :
 - correction de bug sur arrivee.pyw (demande d'info depuis le smartphone ne fonctionnait plus depuis fin novembre 2021)
 - séparation des dossards modèles : cas des différents types de catégories.
