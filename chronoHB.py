@@ -597,8 +597,9 @@ class EntryCourse(Frame):
         self.groupement = groupement
         self.nomCourse = groupement.nom
         self.distance = float(self.groupement.distance)
-        self.entry = Entry(self, width=7)
-        self.entry.insert(0,str(self.distance).replace(".",","))
+        self.entry = Entry(self, width=7, justify=CENTER)
+        self.entryNom = Entry(self, width=20, justify=CENTER)
+        self.formateValeur()
         def dontsaveedit(event) :
             self.entry.delete(0)
             self.entry.insert(0,str(self.distance).replace(".",","))
@@ -610,17 +611,45 @@ class EntryCourse(Frame):
                 newVal = self.distance
             #self.entry.configure(text=newVal)
             self.groupement.setDistance(newVal)
+        def dontsaveeditNom(event) :
+            self.entryNom.delete(0)
+            self.entryNom.insert(0,str(self.nomCourse))
+        def memoriseValeurNomBind(event) :
+            ch = self.entryNom.get()
+            if len(ch) < 2 :
+                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
+            else :
+                self.nomCourse = ch
+                updateNomGroupement(self.groupement.nomStandard,ch)
+            #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
-        nomAffiche = self.nomCourse + "  : "
+        self.entryNom.bind("<FocusOut>", memoriseValeurNomBind)
+        self.entryNom.bind("<Return>", memoriseValeurNomBind)
+        self.entryNom.bind("<Escape>", dontsaveeditNom)
+        if len(self.groupement.listeDesCourses) == 1 :
+            denomination = " de la course "
+        else :
+            denomination = " du groupement "
+        nomAffiche = "Intitulé" + denomination + self.groupement.nomStandard + "  : "
         self.lbl = Label(self, text=nomAffiche)
+        self.lbl2 = Label(self, text=" Distance :")
         #print(self.nomCourse,self.distance)
         self.uniteLabel = Label(self, text=" km.")
         #self.checkbuttons.append(chk)
-        self.lbl.pack(side=LEFT) 
-        self.entry.pack(side=LEFT) # à la verticale
+        self.lbl.pack(side=LEFT)
+        self.entryNom.pack(side=LEFT)
+        self.lbl2.pack(side=LEFT)
+        self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
+        
+    def formateValeur(self):
+        self.entryNom.insert(0,str(self.nomCourse))
+        if int(self.distance) == self.distance :
+            self.entry.insert(0,str(int(self.distance)))
+        else :
+            self.entry.insert(0,str(self.distance).replace(".",","))
     def set(self, valeur):
         #print(valeur)
         try :
@@ -928,7 +957,7 @@ class TopDepartFrame(Frame) :
     def __init__(self, parent):
         f = font.Font(weight="bold",size=16)
         self.parent = parent
-        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart = Checkbar(self.parent, self.listeDeCoursesNonCommencees, vertical=False)
         self.boutonPartez = Button(self.parent, text='PARTEZ !', command=self.topDepartAction, width = 15, height=3)
         self.boutonPartez['font'] = f
@@ -949,20 +978,21 @@ class TopDepartFrame(Frame) :
     def nettoieDepartsAnnules(self) :
         self.departsAnnulesRecemment = True
     def topDepartAction(self):
+        listeDeCoursesNonCommenceesNomsStandards = listGroupementsNonCommences()
         listeCochee = []
         #print(self.checkBoxBarDepart.state(), self.listeDeCoursesNonCommencees)
         for i, val in enumerate(self.checkBoxBarDepart.state()) :
             #print(i, "pour la course", val)
             if val :
-                listeCochee.append(self.listeDeCoursesNonCommencees[i])
-        print("TOP DEPART pour :", listeCochee)
+                listeCochee.append(listeDeCoursesNonCommenceesNomsStandards[i])
+        #print("TOP DEPART pour :", listeCochee)
         topDepart(listeCochee)
         self.actualise()
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
     def actualise(self) :
-        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
         if self.listeDeCoursesNonCommencees :
             self.TopDepartLabel.config(text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
@@ -1513,10 +1543,12 @@ menubar = Menu(root)
 # create more pulldown menus
 editmenu = Menu(menubar, tearoff=0)
 
-def annulUnDepart(course) :
+def annulUnDepart(nomGroupement) :
     global annulDepart
-    Courses[course].reset()
-    annulDepart.delete(course)
+    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=False)
+    for course in groupement.listeDesCourses :
+        Courses[course].reset()
+    annulDepart.delete(groupement.nom)
     zoneTopDepart.actualise()
 
 def construireMenuAnnulDepart():
@@ -1528,7 +1560,7 @@ def construireMenuAnnulDepart():
         True
         #print("pas de menu à effacer")
     annulDepart = Menu(editmenu, tearoff=0)
-    L = listGroupementsCommences()
+    L = listNomsGroupementsCommences()
     if L :
         for course in L :
             #print("ajout du menu ", course)
@@ -1877,6 +1909,7 @@ lblInfoDistance = Label(affectationDesDistancesFrame)
 lblInfoDistance.pack()
 
 listeDesEntryGroupements = []
+
 def actualiserDistanceDesCourses():
     affectationGroupementsFrame.pack(side=LEFT)
     GroupementsFrame.pack(side=TOP)

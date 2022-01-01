@@ -288,6 +288,7 @@ class Course():#persistent.Persistent):
         self.distance = 0
 ##        self.equipesClasses = []
     def reset(self) :
+        print("On annule le départ de",self.categorie,".")
         self.temps = 0
         self.depart = False
     def setTemps(self, temps=0):
@@ -329,22 +330,25 @@ class Groupement():
     """Un groupement de courses"""
     def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
         self.nom = str(nomDuGroupement)
+        #self.nomStandard = self.nom
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
         self.distance = 0
         self.actualiseNom()
     def setNom(self, nomChoisi):
+        print("nom choisi:",nomChoisi)
         self.nom = str(nomChoisi)
         self.manuel = True
     def setDistance(self, distance):
         self.distance = float(distance)
     def actualiseNom(self) :
+        self.nomStandard = ""
+        if self.listeDesCourses :
+            self.nomStandard = self.listeDesCourses[0]
+            for nomCourse in self.listeDesCourses[1:] :
+                self.nomStandard = self.nomStandard + " / " + str(nomCourse)
         if not self.manuel :
-            self.nom = ""
-            if self.listeDesCourses :
-                self.nom = self.listeDesCourses[0]
-                for nomCourse in self.listeDesCourses[1:] :
-                    self.nom = self.nom + " / " + str(nomCourse)
+            self.nom = self.nomStandard
     def addCourse(self, nomCourse):
         self.listeDesCourses.append(nomCourse)
         if not self.manuel :
@@ -1168,30 +1172,55 @@ def listCoursesEtChallenges():
 ##            retour.append(Courses[cat].categorie)
 ##    return retour
 
+def listNomsGroupementsCommences(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+                if nomStandard :
+                    retour.append(groupement.nomStandard)
+                else :
+                    retour.append(groupement.nom)
+    return retour
+
+def listNomsGroupementsNonCommences(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+                if nomStandard :
+                    retour.append(groupement.nomStandard)
+                else :
+                    retour.append(groupement.nom)               
+    return retour
+
 def listGroupementsCommences():
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
-                retour.append(groupement.nom)
+                retour.append(groupement)
     return retour
 
-def listGroupementsNonCommences():
+def listGroupementsNonCommences(nomStandard = False):
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
-                retour.append(groupement.nom)
+                retour.append(groupement)               
     return retour
 
 def topDepart(listeDeGroupements):
-    if len(listeDeGroupements)>0:
-        temps = time.time()
-        for cat in listeDeGroupements :
-            Courses[cat].setTemps(temps)
-            print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
+    temps = time.time()
+    if listeDeGroupements :
+        for groupement in listeDeGroupements :
+            for cat in groupement.listeDesCourses :
+                Courses[cat].setTemps(temps)
+                print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
 
 # pour corriger un départ depuis l'interface
 def fixerDepart(nomGroupement,temps):
@@ -1719,18 +1748,24 @@ def generateImpressions() :
 def listeDesCategoriesDUnGroupement(nomGroupement):
     retour = []
     for groupement in Groupements :
-        if groupement.nom == nomGroupement :
+        if groupement.nomStandard == nomGroupement :
             retour = groupement.listeDesCourses
             break
     return retour
 
-def groupementAPartirDeSonNom(nomGroupement):
+def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     """ retourne un objet groupement à partir de son nom"""
     retour = None
     for groupement in Groupements :
-        if groupement.nom == nomGroupement :
-            retour = groupement
-            break
+        if nomStandard :
+            if groupement.nomStandard == nomGroupement :
+                retour = groupement
+                break
+        else :
+            if groupement.nom == nomGroupement :
+                retour = groupement
+                break
+
     return retour
     
 
@@ -1754,15 +1789,23 @@ def nettoieGroupements() :
     except ValueError:
         pass
 
+def updateNomGroupement(nomStandard, nomChoisi) :
+    groupementAPartirDeSonNom(nomStandard).setNom(nomChoisi)
+
 def updateGroupements(categorie, placeInitiale, placeFinale):
     print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
+    print("Groupements initial :")
+    for grp in Groupements :
+        print(grp.listeDesCourses)
+        print(grp.nom)
     if placeInitiale != placeFinale :
         Groupements[placeInitiale-1].removeCourse(categorie)    
         Groupements[placeFinale-1].addCourse(categorie)
         nettoieGroupements()
-    print("Groupements :")
+    print("Groupements final :")
     for grp in Groupements :
         print(grp.listeDesCourses)
+        print(grp.nom)
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
