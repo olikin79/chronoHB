@@ -325,6 +325,17 @@ class Course():#persistent.Persistent):
         if self.temps == 0 :
             self.temps = time.time()
             self.depart = True
+    def duree(self):
+        # durée de la course depuis le début
+        if self.depart :
+            duree = time.time() - self.temps
+        else :
+            duree = 0
+        return duree
+    def dureeFormatee(self):
+        # durée de la course depuis le début FORMATEE pour affichage
+        return formaterDuree(self.duree())
+    
 
 class Groupement():
     """Un groupement de courses"""
@@ -448,6 +459,35 @@ def formaterTemps(tps, HMS=True) :
 ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
+
+def formaterDuree(tps, HMS=True) :
+    partieDecimale = str(round(((tps - int(tps))*100)))
+    if len(partieDecimale) == 1 :
+        partieDecimale = "0" + partieDecimale
+    #if int(time.strftime("%j",time.gmtime(tps))) == 1 : # pas de jour à afficher. "Premier de l'année"
+    if int(time.strftime("%H",time.gmtime(tps))) == 0 : # pas d'heure à afficher.
+        #print(time.strftime("%M",time.gmtime(tps)))
+        if int(time.strftime("%M",time.gmtime(tps))) == 0 : # pas de minute à afficher.
+            if HMS : 
+                ch = time.strftime("%S s ",time.gmtime(tps)) 
+            else :
+                ch = time.strftime("00:00:%S:",time.gmtime(tps))
+        else :
+            if HMS :
+                ch = time.strftime("%M min %S s ",time.gmtime(tps))
+            else :
+                ch = time.strftime("00:%M:%S:",time.gmtime(tps))
+    else :
+        if HMS : 
+            ch = time.strftime("%H h %M min %S s",time.gmtime(tps)) # + partieDecimale
+        else :
+            ch = time.strftime("%H:%M:%S",time.gmtime(tps))
+##    else :
+##        if HMS :
+##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H h %M min %S s",time.gmtime(tps))# + partieDecimale
+##        else :
+##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
+    return ch
 
 class EquipeClasse():
     """Un objet permettant de contenir les informations pour le challenge par classe"""
@@ -1194,6 +1234,21 @@ def listNomsGroupementsNonCommences(nomStandard = False):
                     retour.append(groupement.nomStandard)
                 else :
                     retour.append(groupement.nom)               
+    return retour
+
+def listNomsGroupements(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            if nomStandard :
+                retour.append(groupement.nomStandard) 
+            else :
+                retour.append(groupement.nom) 
+    return retour
+
+def listNomsGroupementsEtChallenges(nomStandard = False):
+    retour = listNomsGroupements(nomStandard)
+    retour += listChallenges()
     return retour
 
 def listGroupementsCommences():

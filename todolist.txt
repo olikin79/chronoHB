@@ -9,7 +9,6 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 	proposer d'ignorer ou de conserver l'erreur à l'affichage. => le timer ne serait plus jamais en pause.
 - permettre l'export et l'import d'une base de données
 - sur l'interface GUI : 
-	afficher les chronos des courses en cours (avec le temps qui défile).
 	permettre une modification manuelle de l'heure de départ : fonction fixerDepart utilisable avec des sécurités à ajouter.
 - dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
 	(et Coureurs ? Normalement inutile car devrait être regénéré à la volée au démarrage du logiciel : ce serait mieux)

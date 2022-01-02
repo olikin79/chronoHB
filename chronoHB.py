@@ -467,6 +467,7 @@ class Checkbar(Frame):
                 self.checkbuttons[i].destroy()
             i += 1
     def actualise(self,picks) :
+        #print("Labels à créer",picks)
         for chkb in self.checkbuttons :
             #print("suppression d'un checkbox")
             chkb.destroy()
@@ -597,8 +598,8 @@ class EntryCourse(Frame):
         self.groupement = groupement
         self.nomCourse = groupement.nom
         self.distance = float(self.groupement.distance)
-        self.entry = Entry(self, width=7, justify=CENTER)
         self.entryNom = Entry(self, width=20, justify=CENTER)
+        self.entry = Entry(self, width=7, justify=CENTER)
         self.formateValeur()
         def dontsaveedit(event) :
             self.entry.delete(0)
@@ -991,6 +992,7 @@ class TopDepartFrame(Frame) :
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
+        actualiseAffichageDeparts()
     def actualise(self) :
         self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
@@ -1141,18 +1143,24 @@ class AffichageTVFrame(Frame) :
         self.parent = parent
         self.actualise()
            
+zoneTopDepartBienPlacee = Frame(Affichageframe)
 
-zoneTopDepart = TopDepartFrame(Affichageframe)
+zoneTopDepartBienPlacee.pack(side=TOP)
 
-listeDeCourses = listCourses()
+zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 
-##listeDeCoursesEtChallenge = listCoursesEtChallenges()
-listeDeCoursesEtChallenge = listGroupementsCommences() 
-if not Parametres["CategorieDAge"] :
-    listeDeCoursesEtChallenge += listChallenges()
+#listeDeCourses = listCourses()
+
+listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
+
+
+zoneAffichageDeparts = Frame(Affichageframe)
+
+zoneAffichageErreurs = Frame(Affichageframe)
+
 
 zoneAffichageTV = Frame(Affichageframe)
-checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeCoursesEtChallenge, vertical=False)
+checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False)
 
 ##def CoureursAleatoires() :
 ##    global listeDeCourses
@@ -1434,6 +1442,15 @@ ajouterDossardApres2.pack(side=TOP)
 
 
 
+## zones départs et erreurs
+
+zoneAffichageDeparts.pack(side=TOP)
+
+
+zoneAffichageErreurs.pack(side=TOP)
+
+
+
 
 ## AffichageFrame
 AffichageLabel = Label(zoneAffichageTV, text="Cocher les résultats de courses, challenges \n que vous souhaitez voir apparaitre sur l'écran auxiliaire :")
@@ -1454,11 +1471,11 @@ checkBoxBarAffichage.config(relief=GROOVE, bd=2)
 
 def ActualiseAffichage():
     listeCochee = []
-    #print(checkBoxBarAffichage.state(), listeDeCoursesEtChallenge)
+    #print(checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :
-            listeCochee.append(listeDeCoursesEtChallenge[i])
+            listeCochee.append(listeDeGroupementsEtChallenge[i])
     #print("Affichage de :", listeCochee)
     genereAffichageTV(listeCochee)
 
@@ -1550,6 +1567,7 @@ def annulUnDepart(nomGroupement) :
         Courses[course].reset()
     annulDepart.delete(groupement.nom)
     zoneTopDepart.actualise()
+    actualiseAffichageDeparts()
 
 def construireMenuAnnulDepart():
     global annulDepart
@@ -1692,7 +1710,7 @@ Les données précédentes ont été sauvegardées dans le fichier "+fichier+"."
             else :
                 reponse = showinfo("ERREUR","L'import SIECLE à partir du fichier "+nomFichier +" n'a pas été effectué.\n\
 Le fichier fourni doit impérativement être au format CSV, encodé en UTF8, avec des points virgules comme séparateur.\n\
-Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance'.\n \
+Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance' (l'un ou l'autre minimum).\n \
 Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
 'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
 et 'VMA' (pour la VMA en km/h). \
@@ -1701,19 +1719,59 @@ L'ordre des colonnes est indifférent.")
 
 def actualiseToutLAffichage() :
     zoneTopDepart.actualise()
-    checkBoxBarAffichage.actualise(listGroupementsCommences())
-    listeDeCourses = listCourses()
-    listeDeCoursesEtChallenge = listGroupementsCommences() 
-    if not Parametres["CategorieDAge"] :
-        listeDeCoursesEtChallenge += listChallenges()
-    checkBoxBarAffichage.actualise(listeDeCoursesEtChallenge)
+    actualiseAffichageDeparts()
+    #listeDeCourses = listCourses() # encore utile ?
+    actualiseAffichageTV()
+    absDispZone.actualiseListeDesClasses()
+    dossardsZone.actualiseListeDesClasses()
+
+listGroupementsCommences = []
+lblDict={}
+
+fr = Frame(zoneAffichageDeparts, relief=GROOVE, bd=2)
+Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
+
+def actualiseAffichageDeparts():
+    global listGroupementsCommences, lblDict
+    for grp in lblDict.keys() :
+        lblDict[grp][2].destroy()
+        #lblDict[grp][1].destroy()
+    lblDict.clear()
+    listGroupementsCommences = listNomsGroupementsCommences()
+    #print("coucou",listGroupementsCommences)
+    if listGroupementsCommences :
+        for grp in listGroupementsCommences :
+            lblFr = Frame(fr)
+            lblLegende = Label(lblFr, text= grp + " : ")
+            lblTemps = Label(lblFr, text= " 00:00:00")
+            lblLegende.pack(side=LEFT)
+            lblTemps.pack(side=LEFT)
+            lblFr.pack(side=TOP)
+            lblDict[grp] = [lblLegende,lblTemps,lblFr]
+        fr.pack()
+        actualiseTempsAffichageDeparts()
+    else :
+        fr.forget()
+
+def actualiseTempsAffichageDeparts():
+    global listGroupementsCommences, lblDict
+    for grp in lblDict.keys() :
+        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
+        tps = Courses[nomCourse].dureeFormatee()
+        #print("course",nomCourse,tps)
+        lblDict[grp][1].configure(text=tps)
+    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+    
+
+def actualiseAffichageTV() :
+    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
+    checkBoxBarAffichage.actualise(listeDeGroupementsEtChallenge)
     if Courses :
         zoneAffichageTV.pack()
     else :
         zoneAffichageTV.forget()
-    absDispZone.actualiseListeDesClasses()
-    dossardsZone.actualiseListeDesClasses()
 
+        
 def effaceDonneesCoursesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs) ?")
