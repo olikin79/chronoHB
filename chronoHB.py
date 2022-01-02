@@ -1144,6 +1144,46 @@ class AffichageTVFrame(Frame) :
     def __init__(self, parent):
         self.parent = parent
         self.actualise()
+
+
+
+class departDialog:
+    def __init__(self, groupement, parent):
+        self.groupement = groupement
+        top = self.top = Toplevel(parent)
+        self.myLabel = Label(top, text="Saisir l'heure de début du groupement "+groupement.nom)
+        self.myLabel.pack()
+
+        self.myEntryBox = Entry(top, justify=CENTER)
+        print(groupement.listeDesCourses[0], Courses[groupement.listeDesCourses[0]].temps )
+        self.myEntryBox.insert(0, Courses[groupement.listeDesCourses[0]].departFormate())
+        self.myEntryBox.pack()
+
+        self.fr = Frame(top)
+        self.myAnnulButton = Button(self.fr, text='Annuler', command=self.annul)
+        self.myAnnulButton.pack(side=LEFT)
+        self.mySubmitButton = Button(self.fr, text='Valider', command=self.send)
+        self.mySubmitButton.pack(side=LEFT)
+        self.fr.pack()
+
+    def send(self):
+        global tempsDialog
+        tempsDialog = self.myEntryBox.get()
+        self.top.destroy()
+        
+    def annul(self):
+        self.top.destroy()
+
+def onClick():
+    inputDialog = departDialog(Groupements[0],root)
+    root.wait_window(inputDialog.top)
+    print('Nouveau temps défini : ', tempsDialog)
+
+
+##tempsDialog=""
+##mainButton = Button(root, text='Click me', command=onClick)
+##mainButton.pack()
+
            
 zoneTopDepartBienPlacee = Frame(Affichageframe)
 

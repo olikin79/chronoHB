@@ -297,6 +297,15 @@ class Course():#persistent.Persistent):
         else :
             self.temps = float(temps)
         self.depart = True
+    def setTempsHMS(self, temps="00:00:00"):
+        if temps == "00:00:00" :
+            self.temps = time.time()
+        else :
+            if HMScorrect(temps) :
+                self.temps = time.mktime(time.strptime(temps, "%H:%M:%S"))
+            else :
+                print("Heure de départ incorrecte fournie par la boite de dialogue utilisateur:",temps)
+        self.depart = True
     def setDescription(self, description) :
         self.description = str(description)
     def setDistance(self, distance ) :
@@ -335,7 +344,19 @@ class Course():#persistent.Persistent):
     def dureeFormatee(self):
         # durée de la course depuis le début FORMATEE pour affichage
         return formaterDuree(self.duree())
+    def departFormate(self) :
+        return formaterTempsALaSeconde(self.temps)
     
+def HMScorrect(ch) :
+    retour = False
+    if len(ch)==8 and ch[2] == ":" and ch[5] == ":" :
+        try :
+            int(ch[0:2])
+            int(ch[3:5])
+            int(ch[6:])
+            retour = True
+        except :
+            pass
 
 class Groupement():
     """Un groupement de courses"""
@@ -460,6 +481,17 @@ def formaterTemps(tps, HMS=True) :
     return ch
 
 
+def formaterTempsALaSeconde(tps) :
+    if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
+        if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
+            ch = time.strftime("00:00:%S",time.localtime(tps)) 
+        else :
+            ch = time.strftime("00:%M:%S",time.localtime(tps))
+    else :
+        ch = time.strftime("%H:%M:%S",time.localtime(tps))
+    return ch
+
+
 def formaterDuree(tps, HMS=True) :
     partieDecimale = str(round(((tps - int(tps))*100)))
     if len(partieDecimale) == 1 :
@@ -471,12 +503,12 @@ def formaterDuree(tps, HMS=True) :
             if HMS : 
                 ch = time.strftime("%S s ",time.gmtime(tps)) 
             else :
-                ch = time.strftime("00:00:%S:",time.gmtime(tps))
+                ch = time.strftime("00:00:%S",time.gmtime(tps))
         else :
             if HMS :
                 ch = time.strftime("%M min %S s ",time.gmtime(tps))
             else :
-                ch = time.strftime("00:%M:%S:",time.gmtime(tps))
+                ch = time.strftime("00:%M:%S",time.gmtime(tps))
     else :
         if HMS : 
             ch = time.strftime("%H h %M min %S s",time.gmtime(tps)) # + partieDecimale
