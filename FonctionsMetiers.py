@@ -19,7 +19,7 @@ import xlsxwriter # pour les exports excels des résultats
 from tkinter.messagebox import *
 
 
-
+version = "1.3"
 
 # A tester :
 # interface smartphone :

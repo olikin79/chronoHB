@@ -10,6 +10,8 @@ import webbrowser
 import subprocess
 import sys, os, re
 
+version="1.3"
+
 DIR="logs"
 if not os.path.exists(DIR) :
             os.makedirs(DIR)
@@ -2046,6 +2048,9 @@ def okButtonCoureur() :
     okButtonCoureurPuisSaisie()
     tempsDesCoureurs()
 
+def noVersion():
+    showinfo("A propos de ChronoHB","Version " + version + " de l'application chronoHB.\nDéveloppeur : Olivier Lacroix, olacroix@ac-montpellier.fr")
+
 def imprimerNonImprimes() :
     print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
     listeDesDossardsGeneres = generateDossardsAImprimer()
@@ -2253,6 +2258,7 @@ menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 # help menu
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Documentation", command=documentation)
+helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 
 # display the menu
