@@ -9,6 +9,7 @@ import time
 import webbrowser 
 import subprocess
 import sys, os, re
+import copy
 
 version="1.3"
 
@@ -668,8 +669,8 @@ class EntryCourse(Frame):
 
 
 
-def updateDistancesGroupements() :
-    print("mise à jour de la frame des distances des groupements à écrire")
+##def updateDistancesGroupements() :
+##    print("mise à jour de la frame des distances des groupements à écrire")
 
 
 class EntryGroupements(Frame):
@@ -681,7 +682,11 @@ class EntryGroupements(Frame):
 ##        colonneGroup = Frame(self)
 ##        lblCat = Label(self, text="Catégories")
 ##        lblGroup = Label(self, text="Groupement affecté")
-        lbl = Label(self, text="Affecter à chaque catégorie un groupement.\nUn groupement permet de faire concourir des coureurs de catégories différentes dans une même course.")
+        if Courses :
+            ch = "Affecter à chaque catégorie un numéro de groupement.\nUn groupement permet de faire concourir des coureurs de catégories différentes dans une même course."
+        else :
+            ch = "Veuillez importer des coureurs. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide."
+        lbl = Label(self, text=ch)
         lbl.pack(side=TOP)
         self.listeDesEntryGroupement = []
         valeurs=tuple(range (1,1+self.longueur))
@@ -1151,7 +1156,7 @@ class departDialog:
     def __init__(self, groupement, parent):
         self.groupement = groupement
         top = self.top = Toplevel(parent)
-        self.myLabel = Label(top, text="Saisir l'heure de début du groupement "+groupement.nom)
+        self.myLabel = Label(top, text="Saisir l'heure de début de la course du groupement '"+groupement.nom+"'")
         self.myLabel.pack()
 
         self.myEntryBox = Entry(top, justify=CENTER)
@@ -1162,6 +1167,8 @@ class departDialog:
         self.fr = Frame(top)
         self.myAnnulButton = Button(self.fr, text='Annuler', command=self.annul)
         self.myAnnulButton.pack(side=LEFT)
+        self.myRestaureButton = Button(self.fr, text="Restaurer la valeur d'origine (clic sur le bouton)", command=self.restaure)
+        self.myRestaureButton.pack(side=LEFT)
         self.mySubmitButton = Button(self.fr, text='Valider', command=self.send)
         self.mySubmitButton.pack(side=LEFT)
         self.fr.pack()
@@ -1170,17 +1177,21 @@ class departDialog:
         global tempsDialog
         tempsDialog = self.myEntryBox.get()
         self.top.destroy()
+
+    def restaure(self):
+        self.myEntryBox.delete(0, END)
+        self.myEntryBox.insert(0, Courses[self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
         
     def annul(self):
         self.top.destroy()
 
-def onClick():
-    inputDialog = departDialog(Groupements[0],root)
-    root.wait_window(inputDialog.top)
-    print('Nouveau temps défini : ', tempsDialog)
+##def onClick():
+##    inputDialog = departDialog(Groupements[0],root)
+##    root.wait_window(inputDialog.top)
+##    print('Nouveau temps défini : ', tempsDialog)
 
 
-##tempsDialog=""
+tempsDialog=""
 ##mainButton = Button(root, text='Click me', command=onClick)
 ##mainButton.pack()
 
@@ -1761,6 +1772,7 @@ L'ordre des colonnes est indifférent.")
 
 def actualiseToutLAffichage() :
     zoneTopDepart.actualise()
+    actualiserDistanceDesCourses()
     actualiseAffichageDeparts()
     #listeDeCourses = listCourses() # encore utile ?
     actualiseAffichageTV()
@@ -1772,6 +1784,14 @@ lblDict={}
 
 fr = Frame(zoneAffichageDeparts, relief=GROOVE, bd=2)
 Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
+
+def onClick(grp):
+    groupement = groupementAPartirDeSonNom(grp, nomStandard=False)
+    print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
+    inputDialog = departDialog(groupement ,root)
+    root.wait_window(inputDialog.top)
+    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
+    
 
 def actualiseAffichageDeparts():
     global listGroupementsCommences, lblDict
@@ -1785,7 +1805,9 @@ def actualiseAffichageDeparts():
         for grp in listGroupementsCommences :
             lblFr = Frame(fr)
             lblLegende = Label(lblFr, text= grp + " : ")
-            lblTemps = Label(lblFr, text= " 00:00:00")
+            print("bouton avec commande : onClick(",grp,")")
+            arg = copy.deepcopy(grp)
+            lblTemps = Button(lblFr, text= " 00:00:00", command=lambda : onClick(arg), bd=0, relief='flat')
             lblLegende.pack(side=LEFT)
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
@@ -2002,7 +2024,17 @@ affectationDesDistancesFrame = Frame(GaucheFrameDistanceCourses, borderwidth=3)
 affectationGroupementsFrame.pack(side=LEFT)
 affectationDesDistancesFrame.pack(side=LEFT)
 
-GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
+GroupementsFrame= EntryGroupements(Groupements,affectationGroupementsFrame)
+
+def updateZoneGroupements():
+    global GroupementsFrame
+    try :
+        GroupementsFrame.destroy()
+    except :
+        pass
+    GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
+    affectationGroupementsFrame.pack(side=LEFT)
+    GroupementsFrame.pack(side=TOP)
 
 
 lblInfoDistance = Label(affectationDesDistancesFrame)
@@ -2011,8 +2043,7 @@ lblInfoDistance.pack()
 listeDesEntryGroupements = []
 
 def actualiserDistanceDesCourses():
-    affectationGroupementsFrame.pack(side=LEFT)
-    GroupementsFrame.pack(side=TOP)
+    updateZoneGroupements()
     affectationDesDistancesFrame.pack(side=LEFT)
     global listeDesEntryGroupements
     # actualisation des champs pour la saisie des distances
@@ -2024,7 +2055,7 @@ def actualiserDistanceDesCourses():
         lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
         boutonRecopie.pack(side=TOP)
     else:
-        lblInfoDistance.configure(text="Veuillez importer des données. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide.")
+        lblInfoDistance.configure(text="")
         boutonRecopie.forget()
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)

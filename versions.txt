@@ -4,7 +4,10 @@ Travail du 02/01/22 :
 	de courses apparaissait tout en bas au lieu de l'emplacement initial.
 - création d'un affichage des chronomètres quand une course est lancée (Bonne idée de P. Gutzwiller).
 - préparatif boite de dialogue pour changer l'heure de départ (voir ligne 1149-1183 de chronoHB.py). 
-	Reste à utiliser la class departDialog dans l'interface actuelle
+	
+Reste deux bugs dans ces deniers développements :
+1. le bouton de recopie de la première distance ne fonctionne pas.
+2. les boutons permettant de changer l'heure de départ n'affiche pas la bonne catégorie (seulement la dernière).
 
 
 Travail du 01/01/22 :

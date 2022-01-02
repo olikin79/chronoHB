@@ -286,6 +286,7 @@ class Course():#persistent.Persistent):
         self.groupement = None
         self.resultats = []
         self.distance = 0
+        self.tempsAuto = 0
 ##        self.equipesClasses = []
     def reset(self) :
         print("On annule le départ de",self.categorie,".")
@@ -334,6 +335,7 @@ class Course():#persistent.Persistent):
         if self.temps == 0 :
             self.temps = time.time()
             self.depart = True
+            self.tempsAuto = self.temps
     def duree(self):
         # durée de la course depuis le début
         if self.depart :
@@ -344,8 +346,11 @@ class Course():#persistent.Persistent):
     def dureeFormatee(self):
         # durée de la course depuis le début FORMATEE pour affichage
         return formaterDuree(self.duree())
-    def departFormate(self) :
-        return formaterTempsALaSeconde(self.temps)
+    def departFormate(self, tempsAuto=False) :
+        if tempsAuto :
+            return formaterTempsALaSeconde(self.tempsAuto)
+        else :
+            return formaterTempsALaSeconde(self.temps)
     
 def HMScorrect(ch) :
     retour = False
