@@ -288,6 +288,7 @@ class Course():#persistent.Persistent):
         self.distance = 0
 ##        self.equipesClasses = []
     def reset(self) :
+        print("On annule le départ de",self.categorie,".")
         self.temps = 0
         self.depart = False
     def setTemps(self, temps=0):
@@ -324,20 +325,49 @@ class Course():#persistent.Persistent):
         if self.temps == 0 :
             self.temps = time.time()
             self.depart = True
+    def duree(self):
+        # durée de la course depuis le début
+        if self.depart :
+            duree = time.time() - self.temps
+        else :
+            duree = 0
+        return duree
+    def dureeFormatee(self):
+        # durée de la course depuis le début FORMATEE pour affichage
+        return formaterDuree(self.duree())
+    
 
 class Groupement():
     """Un groupement de courses"""
     def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
         self.nom = str(nomDuGroupement)
+        #self.nomStandard = self.nom
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
+        self.distance = 0
+        self.actualiseNom()
     def setNom(self, nomChoisi):
+        print("nom choisi:",nomChoisi)
         self.nom = str(nomChoisi)
         self.manuel = True
+    def setDistance(self, distance):
+        self.distance = float(distance)
+    def actualiseNom(self) :
+        self.nomStandard = ""
+        if self.listeDesCourses :
+            self.nomStandard = self.listeDesCourses[0]
+            for nomCourse in self.listeDesCourses[1:] :
+                self.nomStandard = self.nomStandard + " / " + str(nomCourse)
+        if not self.manuel :
+            self.nom = self.nomStandard
     def addCourse(self, nomCourse):
         self.listeDesCourses.append(nomCourse)
         if not self.manuel :
             self.nom = self.nom + " / " + str(nomCourse)
+        self.actualiseNom()
+    def removeCourse(self, nomCourse):
+        self.listeDesCourses.remove(nomCourse)
+        self.actualiseNom()
         
 
 class Temps():#persistent.Persistent):
@@ -429,6 +459,35 @@ def formaterTemps(tps, HMS=True) :
 ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
+
+def formaterDuree(tps, HMS=True) :
+    partieDecimale = str(round(((tps - int(tps))*100)))
+    if len(partieDecimale) == 1 :
+        partieDecimale = "0" + partieDecimale
+    #if int(time.strftime("%j",time.gmtime(tps))) == 1 : # pas de jour à afficher. "Premier de l'année"
+    if int(time.strftime("%H",time.gmtime(tps))) == 0 : # pas d'heure à afficher.
+        #print(time.strftime("%M",time.gmtime(tps)))
+        if int(time.strftime("%M",time.gmtime(tps))) == 0 : # pas de minute à afficher.
+            if HMS : 
+                ch = time.strftime("%S s ",time.gmtime(tps)) 
+            else :
+                ch = time.strftime("00:00:%S:",time.gmtime(tps))
+        else :
+            if HMS :
+                ch = time.strftime("%M min %S s ",time.gmtime(tps))
+            else :
+                ch = time.strftime("00:%M:%S:",time.gmtime(tps))
+    else :
+        if HMS : 
+            ch = time.strftime("%H h %M min %S s",time.gmtime(tps)) # + partieDecimale
+        else :
+            ch = time.strftime("%H:%M:%S",time.gmtime(tps))
+##    else :
+##        if HMS :
+##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H h %M min %S s",time.gmtime(tps))# + partieDecimale
+##        else :
+##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
+    return ch
 
 class EquipeClasse():
     """Un objet permettant de contenir les informations pour le challenge par classe"""
@@ -1153,28 +1212,70 @@ def listCoursesEtChallenges():
 ##            retour.append(Courses[cat].categorie)
 ##    return retour
 
+def listNomsGroupementsCommences(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+                if nomStandard :
+                    retour.append(groupement.nomStandard)
+                else :
+                    retour.append(groupement.nom)
+    return retour
+
+def listNomsGroupementsNonCommences(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+                if nomStandard :
+                    retour.append(groupement.nomStandard)
+                else :
+                    retour.append(groupement.nom)               
+    return retour
+
+def listNomsGroupements(nomStandard = False):
+    retour = []
+    for groupement in Groupements :
+        if groupement.listeDesCourses :
+            if nomStandard :
+                retour.append(groupement.nomStandard) 
+            else :
+                retour.append(groupement.nom) 
+    return retour
+
+def listNomsGroupementsEtChallenges(nomStandard = False):
+    retour = listNomsGroupements(nomStandard)
+    retour += listChallenges()
+    return retour
+
 def listGroupementsCommences():
     retour = []
     for groupement in Groupements :
-        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-        if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
-            retour.append(groupement.nom)
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+                retour.append(groupement)
     return retour
 
-def listGroupementsNonCommences():
+def listGroupementsNonCommences(nomStandard = False):
     retour = []
     for groupement in Groupements :
-        nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-        if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
-            retour.append(groupement.nom)
+        if groupement.listeDesCourses :
+            nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+                retour.append(groupement)               
     return retour
 
 def topDepart(listeDeGroupements):
-    if len(listeDeGroupements)>0:
-        temps = time.time()
-        for cat in listeDeGroupements :
-            Courses[cat].setTemps(temps)
-            print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
+    temps = time.time()
+    if listeDeGroupements :
+        for groupement in listeDeGroupements :
+            for cat in groupement.listeDesCourses :
+                Courses[cat].setTemps(temps)
+                print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
 
 # pour corriger un départ depuis l'interface
 def fixerDepart(nomGroupement,temps):
@@ -1303,74 +1404,74 @@ def generateDossardsNG() :
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
         
 
-def generateDossards() :
-    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
-    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    generateQRcodes()
-    global CoureursParClasse
-    with open("./modeles/dossard-en-tete.tex", 'r') as f :
-        entete = f.read()
-    f.close()
-    with open("./modeles/listing-en-tete.tex", 'r') as f :
-        enteteL = f.read()
-    f.close()
-    TEXDIR = "dossards"+os.sep+"tex"+os.sep
-    creerDir(TEXDIR)
-    ## effacer les tex existants
-    liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
-    liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
-    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
-        os.remove(file)
-    # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
-        modele = f.read()
-    f.close()
-    ## générer de nouveaux en-têtes.
-    osCWD = os.getcwd()
-    #os.chdir("dossards")
-    listeCategories = listCourses()
-    listeCategories.append("0-tousLesDossards")
-    for file  in listeCategories :
-        with open(TEXDIR+file+ ".tex", 'w') as f :
-            f.write(entete + "\n\n")
-        f.close()
-    with open(TEXDIR+"0-listing.tex", 'w') as f :
-        f.write(enteteL + "\n\n")
-    f.close()
-    listeCategories.append("0-listing")
-    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
-        for coureur in Coureurs :
-            if not coureur.dispense :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
-                f.write(chaineComplete)
-                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
-                    fileCat.write(chaineComplete+ "\n\n")
-                fileCat.close()
-    f.close()
-    with open(TEXDIR+"0-listing.tex", 'a') as fL :
-        L = list(CoureursParClasse.keys())
-        L.sort()
-        for nomClasse in L :
-            alimenteListingPourClasse(nomClasse, fL)
-            if nomClasse != L[:-1] :
-                fL.write("\\newpage\n\n")
-            else :
-                fL.write("\\end{document}")
-    fL.close()
-    listeCategories.append("0-listing")
-    #print(listeCategories)
-    # pour chaque fichier dans listeCategories , ajouter le end document.
-    for file in listeCategories :
-        with open(TEXDIR+file + ".tex", 'a') as f :
-            f.write("\\end{document}")
-        f.close()
-        # il faut compiler tous les fichiers de la liste.
-        #print(file)
-        compilateurComplete = compilateur.replace("@dossier@","dossards")
-        print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
-    ### os.chdir(osCWD)
+##def generateDossards() :
+##    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
+##    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+##    generateQRcodes()
+##    global CoureursParClasse
+##    with open("./modeles/dossard-en-tete.tex", 'r') as f :
+##        entete = f.read()
+##    f.close()
+##    with open("./modeles/listing-en-tete.tex", 'r') as f :
+##        enteteL = f.read()
+##    f.close()
+##    TEXDIR = "dossards"+os.sep+"tex"+os.sep
+##    creerDir(TEXDIR)
+##    ## effacer les tex existants
+##    liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
+##    liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
+##    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
+##        os.remove(file)
+##    # utilisation du modèle de dossard.
+##    with open("./modeles/dossard-modele.tex", 'r') as f :
+##        modele = f.read()
+##    f.close()
+##    ## générer de nouveaux en-têtes.
+##    osCWD = os.getcwd()
+##    #os.chdir("dossards")
+##    listeCategories = listCourses()
+##    listeCategories.append("0-tousLesDossards")
+##    for file  in listeCategories :
+##        with open(TEXDIR+file+ ".tex", 'w') as f :
+##            f.write(entete + "\n\n")
+##        f.close()
+##    with open(TEXDIR+"0-listing.tex", 'w') as f :
+##        f.write(enteteL + "\n\n")
+##    f.close()
+##    listeCategories.append("0-listing")
+##    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
+##        for coureur in Coureurs :
+##            if not coureur.dispense :
+##                cat = coureur.categorie(Parametres["CategorieDAge"])
+##                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
+##                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+##                f.write(chaineComplete)
+##                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
+##                    fileCat.write(chaineComplete+ "\n\n")
+##                fileCat.close()
+##    f.close()
+##    with open(TEXDIR+"0-listing.tex", 'a') as fL :
+##        L = list(CoureursParClasse.keys())
+##        L.sort()
+##        for nomClasse in L :
+##            alimenteListingPourClasse(nomClasse, fL)
+##            if nomClasse != L[:-1] :
+##                fL.write("\\newpage\n\n")
+##            else :
+##                fL.write("\\end{document}")
+##    fL.close()
+##    listeCategories.append("0-listing")
+##    #print(listeCategories)
+##    # pour chaque fichier dans listeCategories , ajouter le end document.
+##    for file in listeCategories :
+##        with open(TEXDIR+file + ".tex", 'a') as f :
+##            f.write("\\end{document}")
+##        f.close()
+##        # il faut compiler tous les fichiers de la liste.
+##        #print(file)
+##        compilateurComplete = compilateur.replace("@dossier@","dossards")
+##        print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
+##    ### os.chdir(osCWD)
 
 def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
@@ -1510,11 +1611,18 @@ CoureursParClasse = {}
 def CoureursParClasseUpdate():
     global CoureursParClasse
     CoureursParClasse.clear()
-    for c in Coureurs :
-        if not c.dispense :
-            if not c.classe in CoureursParClasse.keys() :
-                CoureursParClasse[c.classe]=[]
-            CoureursParClasse[c.classe].append(c)
+    if CategorieDAge :
+        for c in Coureurs :
+            if not c.dispense :
+                if not c.categorie(True) in CoureursParClasse.keys() :
+                    CoureursParClasse[c.categorie(True)]=[]
+                CoureursParClasse[c.categorie(True)].append(c)
+    else :
+        for c in Coureurs :
+            if not c.dispense :
+                if not c.classe in CoureursParClasse.keys() :
+                    CoureursParClasse[c.classe]=[]
+                CoureursParClasse[c.classe].append(c)
 
 
 
@@ -1695,18 +1803,24 @@ def generateImpressions() :
 def listeDesCategoriesDUnGroupement(nomGroupement):
     retour = []
     for groupement in Groupements :
-        if groupement.nom == nomGroupement :
+        if groupement.nomStandard == nomGroupement :
             retour = groupement.listeDesCourses
             break
     return retour
 
-def groupementAPartirDeSonNom(nomGroupement):
+def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     """ retourne un objet groupement à partir de son nom"""
     retour = None
     for groupement in Groupements :
-        if groupement.nom == nomGroupement :
-            retour = groupement
-            break
+        if nomStandard :
+            if groupement.nomStandard == nomGroupement :
+                retour = groupement
+                break
+        else :
+            if groupement.nom == nomGroupement :
+                retour = groupement
+                break
+
     return retour
     
 
@@ -1718,10 +1832,35 @@ def groupementAPartirDUneCategorie(categorie):
             if cat == categorie :
                 retour = groupement
                 break
-    print("categorie cherchée :", categorie)
-    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+##    print("categorie cherchée :", categorie)
+##    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     return retour
-    
+
+def nettoieGroupements() :
+    """ supprime les listes vides de Groupements, créées par l'interface si un utilisateur décide d'effectuer des regroupements non incrémentés à partir de 1."""
+    try:
+        while True:
+            Groupements.remove([])
+    except ValueError:
+        pass
+
+def updateNomGroupement(nomStandard, nomChoisi) :
+    groupementAPartirDeSonNom(nomStandard).setNom(nomChoisi)
+
+def updateGroupements(categorie, placeInitiale, placeFinale):
+    print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
+    print("Groupements initial :")
+    for grp in Groupements :
+        print(grp.listeDesCourses)
+        print(grp.nom)
+    if placeInitiale != placeFinale :
+        Groupements[placeInitiale-1].removeCourse(categorie)    
+        Groupements[placeFinale-1].addCourse(categorie)
+        nettoieGroupements()
+    print("Groupements final :")
+    for grp in Groupements :
+        print(grp.listeDesCourses)
+        print(grp.nom)
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []

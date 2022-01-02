@@ -467,6 +467,7 @@ class Checkbar(Frame):
                 self.checkbuttons[i].destroy()
             i += 1
     def actualise(self,picks) :
+        #print("Labels à créer",picks)
         for chkb in self.checkbuttons :
             #print("suppression d'un checkbox")
             chkb.destroy()
@@ -592,13 +593,14 @@ class EntryParam(Frame):
         self.entry.pack(side=LEFT) # à la verticale
 
 class EntryCourse(Frame):
-    def __init__(self, course, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, groupement, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
-        self.course = course
-        self.nomCourse = course.categorie
-        self.distance = float(course.distance)
-        self.entry = Entry(self, width=7)
-        self.entry.insert(0,str(self.distance).replace(".",","))
+        self.groupement = groupement
+        self.nomCourse = groupement.nom
+        self.distance = float(self.groupement.distance)
+        self.entryNom = Entry(self, width=20, justify=CENTER)
+        self.entry = Entry(self, width=7, justify=CENTER)
+        self.formateValeur()
         def dontsaveedit(event) :
             self.entry.delete(0)
             self.entry.insert(0,str(self.distance).replace(".",","))
@@ -609,30 +611,131 @@ class EntryCourse(Frame):
             except :
                 newVal = self.distance
             #self.entry.configure(text=newVal)
-            self.course.setDistance(newVal)
+            self.groupement.setDistance(newVal)
+        def dontsaveeditNom(event) :
+            self.entryNom.delete(0)
+            self.entryNom.insert(0,str(self.nomCourse))
+        def memoriseValeurNomBind(event) :
+            ch = self.entryNom.get()
+            if len(ch) < 2 :
+                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
+            else :
+                self.nomCourse = ch
+                updateNomGroupement(self.groupement.nomStandard,ch)
+            #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
-        nomAffiche = self.nomCourse + "  : "
+        self.entryNom.bind("<FocusOut>", memoriseValeurNomBind)
+        self.entryNom.bind("<Return>", memoriseValeurNomBind)
+        self.entryNom.bind("<Escape>", dontsaveeditNom)
+        if len(self.groupement.listeDesCourses) == 1 :
+            denomination = " de la course "
+        else :
+            denomination = " du groupement "
+        nomAffiche = "Intitulé" + denomination + self.groupement.nomStandard + "  : "
         self.lbl = Label(self, text=nomAffiche)
+        self.lbl2 = Label(self, text=" Distance :")
         #print(self.nomCourse,self.distance)
         self.uniteLabel = Label(self, text=" km.")
         #self.checkbuttons.append(chk)
-        self.lbl.pack(side=LEFT) 
-        self.entry.pack(side=LEFT) # à la verticale
+        self.lbl.pack(side=LEFT)
+        self.entryNom.pack(side=LEFT)
+        self.lbl2.pack(side=LEFT)
+        self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
+        
+    def formateValeur(self):
+        self.entryNom.insert(0,str(self.nomCourse))
+        if int(self.distance) == self.distance :
+            self.entry.insert(0,str(int(self.distance)))
+        else :
+            self.entry.insert(0,str(self.distance).replace(".",","))
     def set(self, valeur):
         #print(valeur)
         try :
             # on mémorise la propriété , on modifie l'affichage, on modifie l'object course.
             self.distance = float(valeur)
-            self.entry.delete(0)
+            self.entry.delete(0,END)
             self.entry.insert(0,str(self.distance).replace(".",","))
-            self.course.setDistance(self.distance)
+            self.groupement.setDistance(self.distance)
         except :
             print("erreur de distance")
-    def distance(self) :
-        return self.distance
+##    def distance(self) :
+##        return self.distance
+
+
+
+def updateDistancesGroupements() :
+    print("mise à jour de la frame des distances des groupements à écrire")
+
+
+class EntryGroupements(Frame):
+    def __init__(self, groupements, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent)
+        self.groupements = groupements
+        self.longueur = len(self.groupements)
+##        colonneCat = Frame(self)
+##        colonneGroup = Frame(self)
+##        lblCat = Label(self, text="Catégories")
+##        lblGroup = Label(self, text="Groupement affecté")
+        lbl = Label(self, text="Affecter à chaque catégorie un groupement.\nUn groupement permet de faire concourir des coureurs de catégories différentes dans une même course.")
+        lbl.pack(side=TOP)
+        self.listeDesEntryGroupement = []
+        valeurs=tuple(range (1,1+self.longueur))
+        noGroupement = 1
+        for groupement in groupements :
+            for course in groupement.listeDesCourses :
+##                def memoriseValeurBind(event) :
+##                    numero = int(combobox.get())
+##                    #combobox.current(numero-1)
+##                    print("coucou", numero)
+##                    self.updateGroupements()
+##                    updateDistancesGroupements()
+##                ligne=Frame(self)
+##                combobox = ComboboxMemo(ligne, width=5, justify=CENTER, values=valeurs, state='readonly')
+##                combobox.current(noGroupement-1)
+##                combobox.bind("<<ComboboxSelected>>", combobox.memorise)
+##                nomAffiche = course + "  : "
+##                lbl = Label(ligne, text=nomAffiche)
+##                lbl.pack(side=LEFT) # à aligner avec grid. Ce serait mieux...
+##                combobox.pack(side=LEFT)
+##                ligne.pack(side=TOP)
+                #print("EntryGroupement(",course,noGroupement,self.longueur,")")
+                #self.listeDesEntryGroupement.append(
+                EntryGroupement(course,noGroupement,self.longueur, self).pack(side=TOP)
+                #    )
+                #self.listeDesEntryGroupement[-1].pack(side=TOP)
+            noGroupement = noGroupement + 1
+    
+
+##class comboboxMemo(Combobox):
+##    def __init__(self, noAffiche):
+##        self.noAffiche = noAffiche
+##    def restaure(self) :
+##        self.current       
+
+class EntryGroupement(Frame):
+    def __init__(self, course, numero, numeromax, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent)
+        self.course = course
+        self.numero = numero
+        self.max = numeromax
+        valeurs=tuple(range (1,1+self.max))
+        self.combobox = Combobox(self, width=5, justify=CENTER, values=valeurs)
+        self.combobox.current(self.numero-1)
+        def memoriseValeurBind(event) :
+            updateGroupements(self.course, self.numero,int(self.combobox.get()))
+            self.numero = int(self.combobox.get())
+            #updateDistancesGroupements()
+            actualiserDistanceDesCourses()
+        self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
+        self.nomAffiche = self.course + "  : "
+        self.lbl = Label(self, text=self.nomAffiche)
+        self.lbl.pack(side=LEFT) 
+        self.combobox.pack(side=LEFT)
+
+
 
 class Combobar(Frame):
     def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
@@ -855,7 +958,7 @@ class TopDepartFrame(Frame) :
     def __init__(self, parent):
         f = font.Font(weight="bold",size=16)
         self.parent = parent
-        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart = Checkbar(self.parent, self.listeDeCoursesNonCommencees, vertical=False)
         self.boutonPartez = Button(self.parent, text='PARTEZ !', command=self.topDepartAction, width = 15, height=3)
         self.boutonPartez['font'] = f
@@ -876,20 +979,22 @@ class TopDepartFrame(Frame) :
     def nettoieDepartsAnnules(self) :
         self.departsAnnulesRecemment = True
     def topDepartAction(self):
+        listeDeCoursesNonCommenceesNomsStandards = listGroupementsNonCommences()
         listeCochee = []
         #print(self.checkBoxBarDepart.state(), self.listeDeCoursesNonCommencees)
         for i, val in enumerate(self.checkBoxBarDepart.state()) :
             #print(i, "pour la course", val)
             if val :
-                listeCochee.append(self.listeDeCoursesNonCommencees[i])
-        print("TOP DEPART pour :", listeCochee)
+                listeCochee.append(listeDeCoursesNonCommenceesNomsStandards[i])
+        #print("TOP DEPART pour :", listeCochee)
         topDepart(listeCochee)
         self.actualise()
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
+        actualiseAffichageDeparts()
     def actualise(self) :
-        self.listeDeCoursesNonCommencees = listGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
         if self.listeDeCoursesNonCommencees :
             self.TopDepartLabel.config(text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
@@ -959,7 +1064,7 @@ class AbsDispFrame(Frame) :
         else :
             self.tupleClasses = tuple(listClasses())
         self.listeCoureursDeLaClasse = []
-        self.choixClasseCombo = Combobox(self.parent, width=15, justify="center")
+        self.choixClasseCombo = Combobox(self.parent, width=15, justify="center", state='readonly')
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
         self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
@@ -1038,18 +1143,24 @@ class AffichageTVFrame(Frame) :
         self.parent = parent
         self.actualise()
            
+zoneTopDepartBienPlacee = Frame(Affichageframe)
 
-zoneTopDepart = TopDepartFrame(Affichageframe)
+zoneTopDepartBienPlacee.pack(side=TOP)
 
-listeDeCourses = listCourses()
+zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 
-##listeDeCoursesEtChallenge = listCoursesEtChallenges()
-listeDeCoursesEtChallenge = listGroupementsCommences() 
-if not Parametres["CategorieDAge"] :
-    listeDeCoursesEtChallenge += listChallenges()
+#listeDeCourses = listCourses()
+
+listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
+
+
+zoneAffichageDeparts = Frame(Affichageframe)
+
+zoneAffichageErreurs = Frame(Affichageframe)
+
 
 zoneAffichageTV = Frame(Affichageframe)
-checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeCoursesEtChallenge, vertical=False)
+checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False)
 
 ##def CoureursAleatoires() :
 ##    global listeDeCourses
@@ -1331,6 +1442,15 @@ ajouterDossardApres2.pack(side=TOP)
 
 
 
+## zones départs et erreurs
+
+zoneAffichageDeparts.pack(side=TOP)
+
+
+zoneAffichageErreurs.pack(side=TOP)
+
+
+
 
 ## AffichageFrame
 AffichageLabel = Label(zoneAffichageTV, text="Cocher les résultats de courses, challenges \n que vous souhaitez voir apparaitre sur l'écran auxiliaire :")
@@ -1351,11 +1471,11 @@ checkBoxBarAffichage.config(relief=GROOVE, bd=2)
 
 def ActualiseAffichage():
     listeCochee = []
-    #print(checkBoxBarAffichage.state(), listeDeCoursesEtChallenge)
+    #print(checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :
-            listeCochee.append(listeDeCoursesEtChallenge[i])
+            listeCochee.append(listeDeGroupementsEtChallenge[i])
     #print("Affichage de :", listeCochee)
     genereAffichageTV(listeCochee)
 
@@ -1440,11 +1560,14 @@ menubar = Menu(root)
 # create more pulldown menus
 editmenu = Menu(menubar, tearoff=0)
 
-def annulUnDepart(course) :
+def annulUnDepart(nomGroupement) :
     global annulDepart
-    Courses[course].reset()
-    annulDepart.delete(course)
+    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=False)
+    for course in groupement.listeDesCourses :
+        Courses[course].reset()
+    annulDepart.delete(groupement.nom)
     zoneTopDepart.actualise()
+    actualiseAffichageDeparts()
 
 def construireMenuAnnulDepart():
     global annulDepart
@@ -1455,7 +1578,7 @@ def construireMenuAnnulDepart():
         True
         #print("pas de menu à effacer")
     annulDepart = Menu(editmenu, tearoff=0)
-    L = listGroupementsCommences()
+    L = listNomsGroupementsCommences()
     if L :
         for course in L :
             #print("ajout du menu ", course)
@@ -1587,7 +1710,7 @@ Les données précédentes ont été sauvegardées dans le fichier "+fichier+"."
             else :
                 reponse = showinfo("ERREUR","L'import SIECLE à partir du fichier "+nomFichier +" n'a pas été effectué.\n\
 Le fichier fourni doit impérativement être au format CSV, encodé en UTF8, avec des points virgules comme séparateur.\n\
-Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance'.\n \
+Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance' (l'un ou l'autre minimum).\n \
 Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
 'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
 et 'VMA' (pour la VMA en km/h). \
@@ -1596,20 +1719,59 @@ L'ordre des colonnes est indifférent.")
 
 def actualiseToutLAffichage() :
     zoneTopDepart.actualise()
-    checkBoxBarAffichage.actualise(listGroupementsCommences())
-    listeDeCourses = listCourses()
-    listeDeCoursesEtChallenge = listGroupementsCommences() 
-    if not Parametres["CategorieDAge"] :
-        listeDeCoursesEtChallenge += listChallenges()
-    checkBoxBarAffichage.actualise(listeDeCoursesEtChallenge)
+    actualiseAffichageDeparts()
+    #listeDeCourses = listCourses() # encore utile ?
+    actualiseAffichageTV()
+    absDispZone.actualiseListeDesClasses()
+    dossardsZone.actualiseListeDesClasses()
+
+listGroupementsCommences = []
+lblDict={}
+
+fr = Frame(zoneAffichageDeparts, relief=GROOVE, bd=2)
+Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
+
+def actualiseAffichageDeparts():
+    global listGroupementsCommences, lblDict
+    for grp in lblDict.keys() :
+        lblDict[grp][2].destroy()
+        #lblDict[grp][1].destroy()
+    lblDict.clear()
+    listGroupementsCommences = listNomsGroupementsCommences()
+    #print("coucou",listGroupementsCommences)
+    if listGroupementsCommences :
+        for grp in listGroupementsCommences :
+            lblFr = Frame(fr)
+            lblLegende = Label(lblFr, text= grp + " : ")
+            lblTemps = Label(lblFr, text= " 00:00:00")
+            lblLegende.pack(side=LEFT)
+            lblTemps.pack(side=LEFT)
+            lblFr.pack(side=TOP)
+            lblDict[grp] = [lblLegende,lblTemps,lblFr]
+        fr.pack()
+        actualiseTempsAffichageDeparts()
+    else :
+        fr.forget()
+
+def actualiseTempsAffichageDeparts():
+    global listGroupementsCommences, lblDict
+    for grp in lblDict.keys() :
+        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
+        tps = Courses[nomCourse].dureeFormatee()
+        #print("course",nomCourse,tps)
+        lblDict[grp][1].configure(text=tps)
+    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+    
+
+def actualiseAffichageTV() :
+    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
+    checkBoxBarAffichage.actualise(listeDeGroupementsEtChallenge)
     if Courses :
         zoneAffichageTV.pack()
     else :
         zoneAffichageTV.forget()
-    actualiserDistanceDesCourses()
-    absDispZone.actualiseListeDesClasses()
-    dossardsZone.actualiseListeDesClasses()
 
+        
 def effaceDonneesCoursesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs) ?")
@@ -1714,6 +1876,8 @@ def saisieDossards() :
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
     GaucheFrameAbsDisp.forget()
     dossardsZone.actualiseAffichage()
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
@@ -1724,6 +1888,8 @@ def saisieAbsDisp() :
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
     absDispZone.actualiseAffichage()
     GaucheFrameAbsDisp.pack(fill=BOTH, expand=1)
@@ -1736,6 +1902,8 @@ def ajoutManuelCoureur():
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
 def tempsDesCoureurs():
@@ -1743,18 +1911,24 @@ def tempsDesCoureurs():
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
 def distanceDesCourses():
+    nettoieGroupements()
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
-    GaucheFrameDistanceCourses.pack(side = LEFT,fill=BOTH, expand=1)
+    GaucheFrameDistanceCourses.pack(side = TOP,fill=BOTH, expand=1)
+
+
+
 
 def parametresDesCourses():
     GaucheFrame.forget()
@@ -1763,6 +1937,8 @@ def parametresDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
     actualiseEtatBoutonsRadioConfig()
     GaucheFrameParametresCourses.pack(side = LEFT,fill=BOTH, expand=1)
 
@@ -1777,39 +1953,60 @@ def actualiseEtatBoutonsRadioConfig():
         rb2.configure(state='normal')
         rbLbl.forget()
 
-listeDesEntryCourses = []
+
+affectationGroupementsFrame = Frame(GaucheFrameDistanceCourses, relief=GROOVE)
+affectationDesDistancesFrame = Frame(GaucheFrameDistanceCourses, borderwidth=3)
+
+affectationGroupementsFrame.pack(side=LEFT)
+affectationDesDistancesFrame.pack(side=LEFT)
+
+GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
+
+
+lblInfoDistance = Label(affectationDesDistancesFrame)
+lblInfoDistance.pack()
+
+listeDesEntryGroupements = []
+
 def actualiserDistanceDesCourses():
-    # actualisation des champs Entry
-    for x in listeDesEntryCourses :
+    affectationGroupementsFrame.pack(side=LEFT)
+    GroupementsFrame.pack(side=TOP)
+    affectationDesDistancesFrame.pack(side=LEFT)
+    global listeDesEntryGroupements
+    # actualisation des champs pour la saisie des distances
+    for x in listeDesEntryGroupements :
         x.destroy()
-    listeDesEntryCourses.clear()
+    listeDesEntryGroupements.clear()
     #print(Courses)
-    if Courses :
-        lblCommentaire.configure(text="Veuillez compléter les distances exactes de chaque parcours, pour chaque catégorie, en kilomètres.")
-        #boutonRecopie.pack(side=TOP)
+    if Groupements :
+        lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
+        boutonRecopie.pack(side=TOP)
     else:
-        lblCommentaire.configure(text="Veuillez importer des données. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide.")
-        #boutonRecopie.forget()
-    for cat in Courses :
+        lblInfoDistance.configure(text="Veuillez importer des données. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide.")
+        boutonRecopie.forget()
+    for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
-        listeDesEntryCourses.append(EntryCourse(Courses[cat], parent=GaucheFrameDistanceCourses))
-        #print(listeDesEntryCourses[-1:])
-    for entry in listeDesEntryCourses :
+        if groupement.listeDesCourses :
+            listeDesEntryGroupements.append(EntryCourse(groupement, parent=affectationDesDistancesFrame))
+        #print(listeDesEntryGroupements[-1:])
+    for entry in listeDesEntryGroupements :
         entry.pack(side=TOP)
     
 
 def actionBoutonRecopie() :
-    if listeDesEntryCourses :
-        valeur = listeDesEntryCourses[0].distance()
-        # la boucle suivante ne s'exécute pas alors que listeDesEntryCourses est non vide.
-        for zoneTexte in listeDesEntryCourses :
-            print(valeur)
+    global listeDesEntryGroupements
+    print(listeDesEntryGroupements, type(listeDesEntryGroupements[0]))
+    if listeDesEntryGroupements :
+        valeur = listeDesEntryGroupements[0].distance
+        print(valeur, "km recopié dans tous les champs distances")
+        # la boucle suivante ne s'exécute pas alors que listeDesEntryGroupements est non vide.
+        for zoneTexte in listeDesEntryGroupements :
             zoneTexte.set(valeur)
-
-
+ 
+            
 
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
-#boutonRecopie = Button(GaucheFrameDistanceCourses, text="Recopier la première distance partout", command=actionBoutonRecopie)
+boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 #boutonRecopie.pack(side=TOP)
 
 
@@ -2011,6 +2208,8 @@ SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
 SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
 lblCommentaire = Label(GaucheFrameDistanceCourses)
 
+
+
 IntituleFrameL.pack(side=TOP,anchor="w")
 IntituleFrame.pack(side=LEFT,anchor="w")
 LieuFrameL.pack(side=TOP,anchor="w")
@@ -2081,8 +2280,6 @@ actualiseToutLAffichage()
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
 ##root.configure(width=width, height=height)  # 100% de l'écran
-
-print("type(groupement):",isinstance(Groupements[0],Groupement))
 
 root.mainloop() # enter the message loop
 
