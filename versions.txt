@@ -1,3 +1,8 @@
+Travail du 05/01/22 :
+- bouton de recopie de la distance fonctionnel
+- boutons permettant de changer l'heure de départ fonctionnels (ainsi que la restauration de l'heure du clic en cas d'erreur de correction).
+
+
 Travail du 02/01/22 :
 - correction de bugs pour générer l'affichage TV avec les nouveaux groupements.
 - correction d'un bug d'affichage : quand il n'y avait plus de course à lancer et que l'on annulait un groupement, l'affichage des lancements

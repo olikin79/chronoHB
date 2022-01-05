@@ -600,13 +600,14 @@ class EntryCourse(Frame):
         Frame.__init__(self, parent)
         self.groupement = groupement
         self.nomCourse = groupement.nom
-        self.distance = float(self.groupement.distance)
+        self.distance = self.groupement.distance
         self.entryNom = Entry(self, width=20, justify=CENTER)
         self.entry = Entry(self, width=7, justify=CENTER)
         self.formateValeur()
         def dontsaveedit(event) :
-            self.entry.delete(0)
-            self.entry.insert(0,str(self.distance).replace(".",","))
+            #self.entry.delete(0, END)
+            #self.entry.insert(0,str(self.distance).replace(".",","))
+            self.formateValeur()
         def memoriseValeurBind(event) :
             try :
                 ch = self.entry.get()
@@ -614,7 +615,8 @@ class EntryCourse(Frame):
             except :
                 newVal = self.distance
             #self.entry.configure(text=newVal)
-            self.groupement.setDistance(newVal)
+            self.setDistance(newVal)
+            #print("distance",Groupements[0].distance)
         def dontsaveeditNom(event) :
             self.entryNom.delete(0)
             self.entryNom.insert(0,str(self.nomCourse))
@@ -649,23 +651,26 @@ class EntryCourse(Frame):
         self.uniteLabel.pack(side=LEFT)
         
     def formateValeur(self):
+        self.entryNom.delete(0, END)
         self.entryNom.insert(0,str(self.nomCourse))
+        self.entry.delete(0, END)
         if int(self.distance) == self.distance :
             self.entry.insert(0,str(int(self.distance)))
         else :
             self.entry.insert(0,str(self.distance).replace(".",","))
     def set(self, valeur):
-        #print(valeur)
         try :
             # on mémorise la propriété , on modifie l'affichage, on modifie l'object course.
+            print("on affecte au groupement", self.nomCourse,"la distance :",valeur,"km.")
             self.distance = float(valeur)
-            self.entry.delete(0,END)
-            self.entry.insert(0,str(self.distance).replace(".",","))
-            self.groupement.setDistance(self.distance)
+            self.formateValeur()
+            self.setDistance(self.distance)
         except :
             print("erreur de distance")
-##    def distance(self) :
-##        return self.distance
+    def setDistance(self, newVal) :
+        self.groupement.setDistance(newVal)
+        groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setDistance(newVal)
+        self.distance = newVal
 
 
 
@@ -1160,14 +1165,14 @@ class departDialog:
         self.myLabel.pack()
 
         self.myEntryBox = Entry(top, justify=CENTER)
-        print(groupement.listeDesCourses[0], Courses[groupement.listeDesCourses[0]].temps )
+        #print(groupement.listeDesCourses[0], Courses[groupement.listeDesCourses[0]].temps )
         self.myEntryBox.insert(0, Courses[groupement.listeDesCourses[0]].departFormate())
         self.myEntryBox.pack()
 
         self.fr = Frame(top)
         self.myAnnulButton = Button(self.fr, text='Annuler', command=self.annul)
         self.myAnnulButton.pack(side=LEFT)
-        self.myRestaureButton = Button(self.fr, text="Restaurer la valeur d'origine (clic sur le bouton)", command=self.restaure)
+        self.myRestaureButton = Button(self.fr, text="Restaurer la valeur d'origine (clic sur le bouton 'PARTEZ')", command=self.restaure)
         self.myRestaureButton.pack(side=LEFT)
         self.mySubmitButton = Button(self.fr, text='Valider', command=self.send)
         self.mySubmitButton.pack(side=LEFT)
@@ -1176,6 +1181,7 @@ class departDialog:
     def send(self):
         global tempsDialog
         tempsDialog = self.myEntryBox.get()
+        fixerDepart(self.groupement.nom,tempsDialog)
         self.top.destroy()
 
     def restaure(self):
@@ -1189,6 +1195,8 @@ class departDialog:
 ##    inputDialog = departDialog(Groupements[0],root)
 ##    root.wait_window(inputDialog.top)
 ##    print('Nouveau temps défini : ', tempsDialog)
+
+
 
 
 tempsDialog=""
@@ -1785,8 +1793,9 @@ lblDict={}
 fr = Frame(zoneAffichageDeparts, relief=GROOVE, bd=2)
 Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
 
-def onClick(grp):
-    groupement = groupementAPartirDeSonNom(grp, nomStandard=False)
+def onClick(grpe):
+    #print(grpe)
+    groupement = groupementAPartirDeSonNom(grpe, nomStandard=False)
     print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
     inputDialog = departDialog(groupement ,root)
     root.wait_window(inputDialog.top)
@@ -1805,9 +1814,8 @@ def actualiseAffichageDeparts():
         for grp in listGroupementsCommences :
             lblFr = Frame(fr)
             lblLegende = Label(lblFr, text= grp + " : ")
-            print("bouton avec commande : onClick(",grp,")")
-            arg = copy.deepcopy(grp)
-            lblTemps = Button(lblFr, text= " 00:00:00", command=lambda : onClick(arg), bd=0, relief='flat')
+            #print("bouton avec commande : onClick(",grp,")")
+            lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
             lblLegende.pack(side=LEFT)
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
@@ -2060,6 +2068,7 @@ def actualiserDistanceDesCourses():
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
+            print("EntryGroupement:", groupement.nom)
             listeDesEntryGroupements.append(EntryCourse(groupement, parent=affectationDesDistancesFrame))
         #print(listeDesEntryGroupements[-1:])
     for entry in listeDesEntryGroupements :
@@ -2068,11 +2077,10 @@ def actualiserDistanceDesCourses():
 
 def actionBoutonRecopie() :
     global listeDesEntryGroupements
-    print(listeDesEntryGroupements, type(listeDesEntryGroupements[0]))
     if listeDesEntryGroupements :
         valeur = listeDesEntryGroupements[0].distance
-        print(valeur, "km recopié dans tous les champs distances")
-        # la boucle suivante ne s'exécute pas alors que listeDesEntryGroupements est non vide.
+        #print(valeur, "km recopié dans tous les champs distances depuis", listeDesEntryGroupements[0].nomCourse)
+        #print(listeDesEntryGroupements, type(listeDesEntryGroupements[0]), listeDesEntryGroupements[0].distance, listeDesEntryGroupements[0].nomCourse)
         for zoneTexte in listeDesEntryGroupements :
             zoneTexte.set(valeur)
  

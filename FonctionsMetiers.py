@@ -292,20 +292,26 @@ class Course():#persistent.Persistent):
         print("On annule le départ de",self.categorie,".")
         self.temps = 0
         self.depart = False
-    def setTemps(self, temps=0):
+    def setTemps(self, temps=0, tempsAuto=False):
         if temps == 0 :
             self.temps = time.time()
         else :
             self.temps = float(temps)
         self.depart = True
+        if tempsAuto :
+            self.tempsAuto = self.temps
     def setTempsHMS(self, temps="00:00:00"):
         if temps == "00:00:00" :
             self.temps = time.time()
         else :
             if HMScorrect(temps) :
-                self.temps = time.mktime(time.strptime(temps, "%H:%M:%S"))
+                partieDec = nbreCentiemes(self.temps)/100
+                chaineTps = time.strftime("%d/%m/%Y", time.gmtime(self.temps))+ " " + temps
+                print("Nouveau départ fixé à",chaineTps, "pour la catégorie", self.categorie)
+                self.temps = time.mktime(time.strptime(chaineTps,  "%d/%m/%Y %H:%M:%S")) + partieDec
+                #print("Nouvelle valeur en mémoire :", self.temps)
             else :
-                print("Heure de départ incorrecte fournie par la boite de dialogue utilisateur:",temps)
+                print("Heure de départ incorrecte fournie par la boite de dialogue utilisateur:" + temps+".")
         self.depart = True
     def setDescription(self, description) :
         self.description = str(description)
@@ -362,6 +368,7 @@ def HMScorrect(ch) :
             retour = True
         except :
             pass
+    return retour
 
 class Groupement():
     """Un groupement de courses"""
@@ -455,6 +462,8 @@ class Temps():#persistent.Persistent):
 ##        Sert uniquement à l'optimisation du système afin de ne pas tout recalculer
 ##        en cas d'ajout ou de suppression de temps"""
 ##        self.dossardProvisoire = dossardProvisoire
+def nbreCentiemes(nombre) :
+    return round(((nombre - int(nombre))*100))
 
 def formaterTemps(tps, HMS=True) :
     partieDecimale = str(round(((tps - int(tps))*100)))
@@ -1311,15 +1320,15 @@ def topDepart(listeDeGroupements):
     if listeDeGroupements :
         for groupement in listeDeGroupements :
             for cat in groupement.listeDesCourses :
-                Courses[cat].setTemps(temps)
+                Courses[cat].setTemps(temps, tempsAuto=True)
                 print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
 
 # pour corriger un départ depuis l'interface
 def fixerDepart(nomGroupement,temps):
-    for groupement in listeDeGroupements :
+    for groupement in Groupements :
         if groupement.nom == nomGroupement :
             for categorie in groupement.listeDesCourses :
-                Courses[categorie].setTemps(temps)
+                Courses[categorie].setTempsHMS(temps)
                 print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
     
 

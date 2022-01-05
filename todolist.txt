@@ -8,8 +8,6 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 	Un bouton pourrait apparaître à côté : tester la bonne résolution et avertir que ce n'est pas le cas : 
 	proposer d'ignorer ou de conserver l'erreur à l'affichage. => le timer ne serait plus jamais en pause.
 - permettre l'export et l'import d'une base de données
-- sur l'interface GUI : 
-	permettre une modification manuelle de l'heure de départ : fonction fixerDepart utilisable avec des sécurités à ajouter.
 - dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
 	(et Coureurs ? Normalement inutile car devrait être regénéré à la volée au démarrage du logiciel : ce serait mieux)
 - vérifier que la sauvegarde vers la clé USB permet une restauration complète en cas de changement d'ordinateur en cours de course.
@@ -19,6 +17,7 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 - faire en sorte que l'on puisse affecter un dossard à un temps (que cela fonctionne toujours) et que l'Entry apparaisse au bon endroit. 
 	Faire des tests avec une très grande série de données pour recalculer la fonction affine qui va bien (trop arrondi actuellement).
 - documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers)
+- empêcher de changer la dénomination des groupements quand la course est lancée. L'interface d'affichage du chrono des courses plante car basée sur le nom modifié initial.
 - vérifier que le fichier coureurs.txt est bien regénéré lors de l'ajout manuel d'un coureur.
 - vitesse de défilement réglable par une entryParam sur l'application = > Prévoir un intervalle de validité.
 	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
