@@ -3,7 +3,8 @@ Travail du 05/01/22 :
 - boutons permettant de changer l'heure de départ fonctionnels (ainsi que la restauration de l'heure du clic en cas d'erreur de correction).
 - Si une course n'est pas lancée, l'affichage sur la TV affiche son chronomètre à 00:00:00. 
   Si la course est lancée et qu'aucun coureur n'est arrivé, elle affiche le chronomètre du groupement. 
-  Sinon, la TV affiche le tableau des résultats.
+  Sinon, la TV affiche le tableau des résultats (et le chronomètre en haut).
+- depuis l'ajout des groupements, les coureurs n'ont plus de rang en passant l'arrivée... Fonction estUneCourse() corrigée et renommée estUneCourseOuUnGroupement().
 
 Travail du 02/01/22 :
 - correction de bugs pour générer l'affichage TV avec les nouveaux groupements.

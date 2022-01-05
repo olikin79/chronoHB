@@ -1005,6 +1005,7 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
         actualiseAffichageDeparts()
+        ActualiseAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
     def actualise(self) :
         self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
@@ -1530,7 +1531,7 @@ checkBoxBarAffichage.config(relief=GROOVE, bd=2)
 ##    #print("Affichage de :", listeCochee)
 ##    topDepart(listeCochee)
 
-def ActualiseAffichage():
+def ActualiseAffichageTV():
     listeCochee = []
     #print(checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
@@ -1552,7 +1553,7 @@ ZoneEntryPageWeb.pack(side=TOP,anchor="w")
 
 boutonsFrameNavigateur = Frame(zoneAffichageTV)
 Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur).pack(side=LEFT)
-Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichage).pack(side=LEFT)
+Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichageTV).pack(side=LEFT)
 boutonsFrameNavigateur.pack(side=TOP)
 
 zoneAffichageTV.pack()
@@ -1708,7 +1709,7 @@ class Clock():
                         # si au moins un import sans erreur, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.                              
                         genereResultatsCoursesEtClasses(self.premiereExecution)
                         eval(self.MAJfunction + "(tableauGUI)")
-                        ActualiseAffichage() # pour mise à jour du menu annulDepart                        
+                        ActualiseAffichageTV() # pour mise à jour du menu annulDepart                        
                     ## Sauvegarde toutes les 1 minute s'il y a au moins un évènement à traiter. Sinon, rien.
                     # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
                     if self.compteurSauvegarde >= 2 and self.auMoinsUnImportSansErreur : # 12 x 5 s  = 1 minute
@@ -1842,7 +1843,7 @@ def actualiseAffichageTV() :
         zoneAffichageTV.pack()
     else :
         zoneAffichageTV.forget()
-    print(Resultats)
+    #print(Resultats)
 
         
 def effaceDonneesCoursesGUI ():

@@ -510,7 +510,7 @@ def formaterTempsALaSeconde(tps) :
 
 def formaterTempsPourHTML(tps) :
     #print("test",eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",",")))
-    return eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",","))
+    return eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",",")) + [nbreCentiemes(tps)*10]
 
 def formaterDuree(tps, HMS=True) :
     partieDecimale = str(round(((tps - int(tps))*100)))
@@ -1872,7 +1872,6 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
             if groupement.nom == nomGroupement :
                 retour = groupement
                 break
-
     return retour
     
 
@@ -2191,7 +2190,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
         # on affecte son rang à chaque coureur dans sa Course.
-        if estUneCourse(nom) :
+        if estUneCourseOuUnGroupement(nom) :
             i = 0
             while i < len(Resultats[nom]) :
                 doss = Resultats[nom][i]
@@ -2226,8 +2225,15 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
                 
-def estUneCourse(nom):
-    return nom in Courses
+def estUneCourseOuUnGroupement(nom):
+    if nom in Courses :
+        retour = True
+    elif groupementAPartirDeSonNom(nom, nomStandard=False) != None :
+        retour = True
+    else :
+        retour = False
+    #print(nom,retour)
+    return retour
 
 def estUneClasse(nom):
     """ Comme le nom des classes est libre, estUneClasse est vraie si n'est pas une course ET n'est pas un challenge (1 caractère)"""
@@ -3098,15 +3104,18 @@ var i = 0;
         TitresHTML = []
         heuresDeparts = []
         for groupement in listeDesGroupements :
-            if estChallenge(groupement) :
-                # challenge par niveau
-                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème.</h2>" )
-            else :
-                TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
             if yATIlUCoureurArrive(groupement) :
                 chrono = False
             else :
                 chrono = True
+            if estChallenge(groupement) :
+                # challenge par niveau
+                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
+            else :
+                if chrono :
+                    TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+                else :
+                    TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
             TableauxHTML.append(genereTableauHTML(groupement, chrono))
             EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
             heuresDeparts.append(genereHeureDepartHTML(groupement))
@@ -3141,12 +3150,19 @@ var i = 0;
         function chronoStart(i){
                 clearTimeout(timerID)
                 //console.debug(chronometres[i][0])
-                if (chronometres[i][0] != 0) {
-                    start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
-                    chrono();
+                if (chronometres[i][0] == 0) {
+                    // c'est une course qui n'a pas commencé
+                    document.getElementById("chronotime").innerHTML = "00:00:00";
                 }
                 else {
-                    document.getElementById("chronotime").innerHTML = "00:00:00";
+                    if (chronometres[i][0] == 1) {
+                        // c'est un challenge
+                        document.getElementById("chronotime").innerHTML = "";
+                    }
+                    else {
+                        start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+                        chrono();
+                    }
                 }
         }
         function changeContenus(i) {
@@ -3208,10 +3224,10 @@ var t4 = setTimeout(changeContenus, 3000, i);
 
 def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
-        retour = [0,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
+        retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else : 
         c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = False).listeDesCourses[0]]
-        print("TEST HTML :",c.label, c.temps)
+        #print("TEST HTML :",c.label, c.temps)
         if c.temps :
             retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
         else :
@@ -3261,7 +3277,7 @@ def genereTableauHTML(courseName, chrono = False) :
                 if dossard in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
                     tableau += genereLigneTableauHTML(dossard)
     else :
-        tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'>00:00:00</span></h1></td></tr>"
+        tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
     return tableau + "</tbody> </table>"
 
 def yATIlUCoureurArrive(groupement) :
