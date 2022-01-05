@@ -1,7 +1,9 @@
 Travail du 05/01/22 :
 - bouton de recopie de la distance fonctionnel
 - boutons permettant de changer l'heure de départ fonctionnels (ainsi que la restauration de l'heure du clic en cas d'erreur de correction).
-
+- Si une course n'est pas lancée, l'affichage sur la TV affiche son chronomètre à 00:00:00. 
+  Si la course est lancée et qu'aucun coureur n'est arrivé, elle affiche le chronomètre du groupement. 
+  Sinon, la TV affiche le tableau des résultats.
 
 Travail du 02/01/22 :
 - correction de bugs pour générer l'affichage TV avec les nouveaux groupements.

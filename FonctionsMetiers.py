@@ -352,12 +352,15 @@ class Course():#persistent.Persistent):
     def dureeFormatee(self):
         # durée de la course depuis le début FORMATEE pour affichage
         return formaterDuree(self.duree())
-    def departFormate(self, tempsAuto=False) :
-        if tempsAuto :
+    def departFormate(self, tempsAuto=False, affichageHTML=False) :
+        if affichageHTML :
+            return formaterTempsPourHTML(self.temps)
+        elif tempsAuto :
             return formaterTempsALaSeconde(self.tempsAuto)
         else :
             return formaterTempsALaSeconde(self.temps)
-    
+
+
 def HMScorrect(ch) :
     retour = False
     if len(ch)==8 and ch[2] == ":" and ch[5] == ":" :
@@ -505,6 +508,9 @@ def formaterTempsALaSeconde(tps) :
         ch = time.strftime("%H:%M:%S",time.localtime(tps))
     return ch
 
+def formaterTempsPourHTML(tps) :
+    #print("test",eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",",")))
+    return eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",","))
 
 def formaterDuree(tps, HMS=True) :
     partieDecimale = str(round(((tps - int(tps))*100)))
@@ -1912,7 +1918,7 @@ def absentsDispensesAbandonsEnTex() :
     Labs = []
     Ldisp = []
     Labandon = []
-    print(Resultats)
+    #print(Resultats)
     for c in Coureurs :
         if c.absent :
             Labs.append(c)
@@ -3070,7 +3076,7 @@ def genereAffichageTV(listeDesGroupements) :
 </head>
 <body>
 <div id="titrePage" align="center">
-<h2>Catégorie bidon </h2>
+<h2>Catégorie vide </h2>
 </div>
 <br>
 <div class="marquee-titre" id="marquee-titre" >
@@ -3078,8 +3084,7 @@ def genereAffichageTV(listeDesGroupements) :
 </div>
 <div class="marquee-rtl">
     <!-- le contenu défilant -->
-    <div id="conteneur" class="conteneur run-animation"><p></p>
-	<table border="1" cellpadding="6" cellspacing="5" id="resultats">		      <tbody >            <tr>              <td class="first">1</td>              <td>LACROIX Olivier</td>              <td>5:02</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>First</td>              <td>Second</td>              <td>Third</td>            </tr>            <tr>              <td>Last</td>              <td>Last</td>              <td>Last</td>            </tr>          </tbody>	</table>
+    <div id="conteneur" class="conteneur run-animation">
     </div>		
 </div>
 <script>
@@ -3091,32 +3096,80 @@ var i = 0;
         TableauxHTML = []
         EnTetesHTML = []
         TitresHTML = []
+        heuresDeparts = []
         for groupement in listeDesGroupements :
             if estChallenge(groupement) :
                 # challenge par niveau
                 TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème.</h2>" )
             else :
                 TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
-            TableauxHTML.append(genereTableauHTML(groupement))
-            EnTetesHTML.append(genereEnTetesHTML(groupement)) 
+            if yATIlUCoureurArrive(groupement) :
+                chrono = False
+            else :
+                chrono = True
+            TableauxHTML.append(genereTableauHTML(groupement, chrono))
+            EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
+            heuresDeparts.append(genereHeureDepartHTML(groupement))
         f.write("var titres = " + str(TitresHTML) + ";\n")
         f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
         f.write("var contenus = " + str(TableauxHTML) + ";\n")
+        f.write("var chronometres = " + str(heuresDeparts) + ";\n") # format attendu : [[2022,1,5,12,0,0],[2022,1,5,11,0,0],[2022,1,5,10,0,0],[2022,1,5,16,0,0]]
         f.write("""
+        var startTime = 0
+        var start = 0
+        var end = 0
+        var diff = 0
+        var timerID = 0
+        function chrono(){
+                end = new Date()
+                diff = end - start
+                diff = new Date(diff)
+                var msec = diff.getMilliseconds()
+                var sec = diff.getSeconds()
+                var min = diff.getMinutes()
+                var hr = diff.getHours()-1
+                if (min < 10){
+                        min = "0" + min
+                }
+                if (sec < 10){
+                        sec = "0" + sec
+                }
+
+                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec //+ ":" + msec
+                timerID = setTimeout("chrono()", 500)
+        }
+        function chronoStart(i){
+                clearTimeout(timerID)
+                //console.debug(chronometres[i][0])
+                if (chronometres[i][0] != 0) {
+                    start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+                    chrono();
+                }
+                else {
+                    document.getElementById("chronotime").innerHTML = "00:00:00";
+                }
+        }
         function changeContenus(i) {
 	var elm = document.getElementById("conteneur");
 	var newone = elm.cloneNode(true);
 	elm.parentNode.replaceChild(newone, elm);
 	document.head.classList.add("defilement-rtl");
-	if (i >= contenus.length) {
-		document.location.reload(true);
+	if (contenus.length == 0) {
+		var t4 = setTimeout("document.location.reload(true)", 10000);
 	}
+	else { 
+            if (i >= contenus.length) {
+		document.location.reload(true);
+            }
+        }
+        if (contenus.length > 0) {
 	document.getElementById("conteneur").innerHTML = contenus[i];
 	document.getElementById("marquee-titre").innerHTML = enTetes[i];
 	document.getElementById("titrePage").innerHTML = titres[i];	
 	var elmnt = document.getElementById("resultats");
 	var conteneur = document.getElementById("conteneur");
 	var difference = elmnt.offsetHeight - conteneur.offsetHeight ;
+	chronoStart(i)
 	i += 1 ;
 	if (difference < 0) {
 	// Pas d'animation et donc d'event de fin : on fixe un délai arbitraire de pauseEntreDeuxPages s avant pssage au tableau suivant.
@@ -3138,52 +3191,87 @@ var i = 0;
 		var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
 		return style.sheet;
 	}
-};
-""")
+	} else 
+	{
+		document.getElementById("titrePage").innerHTML = "Aucun affichage de chronoHB programmé pour l'instant";
+		document.getElementById("conteneur").innerHTML = "";
+		document.getElementById("marquee-titre").innerHTML ="";
+	}
+        };
+        """)
         f.write("""window.onload = function() {
   var t1 = changeContenus(0) ;
 };
+var t4 = setTimeout(changeContenus, 3000, i);
 </script>
 </body></html>""")
 
-def genereEnTetesHTML(groupement) :
+def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
-        tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-        tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
-        tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
-        tableau += '<th class="totalC">Total</th>'
-        #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
-        tableau += '</tr></thead> </table>'
+        retour = [0,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
+    else : 
+        c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = False).listeDesCourses[0]]
+        print("TEST HTML :",c.label, c.temps)
+        if c.temps :
+            retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
+        else :
+            retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
+    return retour
+        
+
+def genereEnTetesHTML(groupement, chrono=False) :
+    if not chrono :
+        if estChallenge(groupement) :
+            tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
+            tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
+            tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
+            tableau += '<th class="totalC">Total</th>'
+            #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
+            tableau += '</tr></thead> </table>'
+        else :
+            tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
+            tableau += '<thead> <tr><th class="rang"> Rang</th> <th class="nomprenom">NOM Prénom </th> <th class="classe">Classe</th>'
+            tableau += '<th class="chrono">Temps</th><th class="vitesse">Vitesse</th> </tr></thead> </table>'
     else :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-        tableau += '<thead> <tr><th class="rang"> Rang</th> <th class="nomprenom">NOM Prénom </th> <th class="classe">Classe</th>'
-        tableau += '<th class="chrono">Temps</th><th class="vitesse">Vitesse</th> </tr></thead> </table>'
+        tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead> </table>'
     return tableau 
 
-def genereTableauHTML(courseName) :
+def genereTableauHTML(courseName, chrono = False) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
-    if estChallenge(courseName) :
-        # challenge par classe
-        i = 0
-        while i < len(Resultats[courseName]) :
-            #moy = Resultats[courseName][i].moyenneTemps
-            score = Resultats[courseName][i].score
-            classe = Resultats[courseName][i].nom
-            liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
-            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ "</td><th class='detailC'>"
-            tableau += '<div class="detailC"><p>' + listeNPremiers(Resultats[courseName][i].listeCF) + '</p><p>' + listeNPremiers(Resultats[courseName][i].listeCG) + '</p></div></td>'
-            tableau += "<td class='totalC'>"+str(Resultats[courseName][i].score) +"</td>"
-            #tableau += "<td class='moyC'>" + moy +"</td>"
-            tableau += "</tr>"
-            i += 1
+    if not chrono :
+        if estChallenge(courseName) :
+            # challenge par classe
+            i = 0
+            while i < len(Resultats[courseName]) :
+                #moy = Resultats[courseName][i].moyenneTemps
+                score = Resultats[courseName][i].score
+                classe = Resultats[courseName][i].nom
+                liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
+                tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ "</td><th class='detailC'>"
+                tableau += '<div class="detailC"><p>' + listeNPremiers(Resultats[courseName][i].listeCF) + '</p><p>' + listeNPremiers(Resultats[courseName][i].listeCG) + '</p></div></td>'
+                tableau += "<td class='totalC'>"+str(Resultats[courseName][i].score) +"</td>"
+                #tableau += "<td class='moyC'>" + moy +"</td>"
+                tableau += "</tr>"
+                i += 1
+        else :
+            Dossards = Resultats[courseName]
+            for dossard in Dossards :
+                if dossard in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
+                    tableau += genereLigneTableauHTML(dossard)
     else :
-        Dossards = Resultats[courseName]
-        for dossard in Dossards :
-            if dossard in ArriveeDossards :
-                tableau += genereLigneTableauHTML(dossard)
+        tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'>00:00:00</span></h1></td></tr>"
     return tableau + "</tbody> </table>"
 
+def yATIlUCoureurArrive(groupement) :
+    retour = False
+    Dossards = Resultats[groupement]
+    for dossard in Dossards :
+        if dossard in ArriveeDossards :
+            retour = True
+            break
+    return retour
 
 ############ LATEX #######################
 

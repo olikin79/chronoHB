@@ -56,6 +56,12 @@ position: fixed;
 	text-align: center;
 }
 
+.chronometre{
+	width : 35%;
+	text-align: center;
+	overflow:hidden;
+}
+
 .nomprenom{
 	width : 35%;
 	text-align: center;

@@ -1842,6 +1842,7 @@ def actualiseAffichageTV() :
         zoneAffichageTV.pack()
     else :
         zoneAffichageTV.forget()
+    print(Resultats)
 
         
 def effaceDonneesCoursesGUI ():
@@ -2068,7 +2069,7 @@ def actualiserDistanceDesCourses():
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
-            print("EntryGroupement:", groupement.nom)
+            #print("EntryGroupement:", groupement.nom)
             listeDesEntryGroupements.append(EntryCourse(groupement, parent=affectationDesDistancesFrame))
         #print(listeDesEntryGroupements[-1:])
     for entry in listeDesEntryGroupements :
