@@ -13,14 +13,14 @@ import copy
 
 version="1.3"
 
-DIR="logs"
-if not os.path.exists(DIR) :
-            os.makedirs(DIR)
+LOGDIR="logs"
+if not os.path.exists(LOGDIR) :
+            os.makedirs(LOGDIR)
 #### DEBUG
 DEBUG = True
 
 if not DEBUG :
-    sys.stderr = open('logs\\log.txt', 'a', 1)
+    sys.stderr = open(LOGDIR + os.sep + 'log.txt', 'a', 1)
 
 from pprint import pprint
 ##class Logger(object):
@@ -32,8 +32,8 @@ from pprint import pprint
 ##        self.terminal.write(message)
 ##        self.log.write(message)
 
-#fLOG = open("ChronoHBLOG.txt", "a")
-#sys.stdout = fLOG
+fLOG = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
+sys.stdout = fLOG
 
 CoureursParClasse = {}
 tableauGUI = []
