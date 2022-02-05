@@ -36,6 +36,7 @@ Tant pis si on perd une demi-page une fois sur deux.
 
 - trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
+- import depuis un fichier xlsx à implémenter (priorité faible)
 
 
 Bugs à corriger sur chronoHB.py:
