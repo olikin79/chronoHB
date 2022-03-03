@@ -19,7 +19,8 @@ if not os.path.exists(LOGDIR) :
 #### DEBUG
 DEBUG = True
 
-if not DEBUG :
+if not DEBUG : 
+    sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
     sys.stderr = open(LOGDIR + os.sep + 'log.txt', 'a', 1)
 
 from pprint import pprint
@@ -32,8 +33,7 @@ from pprint import pprint
 ##        self.terminal.write(message)
 ##        self.log.write(message)
 
-fLOG = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
-sys.stdout = fLOG
+
 
 CoureursParClasse = {}
 tableauGUI = []
@@ -267,7 +267,7 @@ class MonTableau(Frame):
 
     def maj (self, TableauGUI) :
         global ligneTableauGUI
-        #print("mise à jour du tableau avec ", TableauGUI)
+        print("mise à jour du tableau avec ", TableauGUI)
         if TableauGUI :
             # une liste vide signifie qu'il n'y a rien à actualiser
             if TableauGUI[0]== "reinit" :

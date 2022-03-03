@@ -56,11 +56,16 @@ gérer le cas où le seul et unique temps du tableau GUI est effacé. Le tableau
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
 Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
 
+4. le rang ne s'ajoute pas dans le tableau affiché sauf en cas de redémarrage de l'application.
+
+
+
 Fonctionnalités manquantes :   
 0. Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 
 0. départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés) : la règle en UNSS est de prendre les positions 
-(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo.
+(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo. 
+Cela devra se faire dans la fonction triParScore()
 
 1. la possibilité d'éditer des listes d'élèves a posteriori (modifier un nom ou un prénom). 
 Pour l'instant, il faudrait refaire un import siecle pour modifier un de ces deux éléments. 

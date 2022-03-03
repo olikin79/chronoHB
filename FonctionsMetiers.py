@@ -873,7 +873,7 @@ def exportXLSX():
 
 #############################################################""
 
-
+global TableauGUI
 tableauGUI = []
 ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
 
@@ -2148,7 +2148,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
 def genereResultatsCoursesEtClasses(premiereExecution = False) : 
     """ procédure mettant à jour le dictionnaire Résultats et le rang de chaque coureur dans sa course"""
     global tableauGUI
-    Tdebut = time.time()
+    #Tdebut = time.time()
     calculeTousLesTemps(premiereExecution)
     Resultats.clear()
     listeDesClasses = []
@@ -2175,6 +2175,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         if groupement.nom not in Resultats :
             Resultats[groupement.nom] = []
         Resultats[groupement.nom].append(doss)
+        #print("ajout du dossard",doss, "dans le dictionnaire",Resultats)
         if not Parametres["CategorieDAge"] :
             if classe not in Resultats :
                 Resultats[classe] = []
@@ -2190,15 +2191,18 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
         # on affecte son rang à chaque coureur dans sa Course.
+        #print("course ",nom,":",Resultats[nom])
         if estUneCourseOuUnGroupement(nom) :
             i = 0
             while i < len(Resultats[nom]) :
                 doss = Resultats[nom][i]
                 coureur = Coureurs[doss-1]
+                #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
                 if coureur.temps != 0 :
                     coureur.setRang(i+1)
                 else :
                     coureur.setRang(0)
+                print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
                 i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
@@ -2643,7 +2647,7 @@ def calculeTousLesTemps(reinitialise = False):
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i]
-        if dossardAffecteAuTps != 0 and dossardAffecteAuTps <= len(Coureurs) : # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
+        if dossardAffecteAuTps != 0 and dossardAffecteAuTps <= len(Coureurs) :# 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
                 # tout est désormais bien calé entre les deux listes aux indices i et j qui se correspondent à ce stade.
@@ -2714,7 +2718,7 @@ def calculeTousLesTemps(reinitialise = False):
             k += 1
     ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     #print(DonneesAAfficher.lignes)
-    #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+    print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
     Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
