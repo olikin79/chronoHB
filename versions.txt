@@ -1,3 +1,12 @@
+
+Travail du 13/06/22 :
+- adaptation des fonctions métiers pour que la racine des scripts cgi change de "/" vers "/cgi". Déplacement de Arrivee.pyw dans /cgi
+- modification de l'application apk pour tenir compte du chemin modifié. 
+Conséquence : l'affichage sur la TV Affichage.html est accessible via le réseau à l'adresse IP du serveur à la racine.
+Cela permet un affichage sur un autre PC relié au même réseau wifi, en évitant le double écran et un long cable HDMI-VGA, ...
+Version 1.4 de l'application non rétrocompatible.
+
+
 Travail du 05/01/22 :
 - bouton de recopie de la distance fonctionnel
 - boutons permettant de changer l'heure de départ fonctionnels (ainsi que la restauration de l'heure du clic en cas d'erreur de correction).

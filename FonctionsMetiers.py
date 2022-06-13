@@ -3026,7 +3026,7 @@ def start_server(path, port=8888):
 ##    httpd.serve_forever()
     server = http.server.HTTPServer
     handler = http.server.CGIHTTPRequestHandler
-    handler.cgi_directories = ["/"]
+    handler.cgi_directories = ["/cgi"]
     print("Serveur actif sur le port :", port)
     httpd = server(server_address, handler)
     httpd.serve_forever()

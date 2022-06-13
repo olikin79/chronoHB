@@ -11,7 +11,7 @@ import subprocess
 import sys, os, re
 import copy
 
-version="1.3"
+version="1.4"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
