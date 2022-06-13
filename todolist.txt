@@ -1,7 +1,6 @@
 Bugs restants ou fonctionnalités manquantes actuelles : ChronoHB.py :
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
-- l'affichage.html pourrait afficher le chrono de(s) la course(s) en cours lorsqu'aucun coureur n'est arrivé.
 - faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
 	Qu'elles disparaissent de l'affichage quand elles ont été solutionnées... 
 	(difficile : nomenclature des erreurs à écrire / tests de bonne résolution à écrire)
@@ -31,8 +30,9 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
-- quand on supprime le seul et unique temps avec le smartphone, il ne disparaît pas de l'interface GUI.
 Tant pis si on perd une demi-page une fois sur deux.
+- quand on supprime le seul et unique temps avec le smartphone, il ne disparaît pas de l'interface GUI.
+
 
 - trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
