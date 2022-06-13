@@ -203,10 +203,10 @@ class MonTableau(Frame):
                             heureFinaleFormate = time.strftime("%m/%d/%y-%H:%M:%S:",time.localtime(heureFinale))+contenuFinal[-2:]
                             print("Heure initiale : ", heure, "Heure Finale :", heureFinaleFormate)
                             if heure != "-" :
-                                requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+heure
+                                requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+heure
                                 print("Temps précédent effacé :", requete)
                                 r = requests.get(requete)
-                                requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+heureFinaleFormate
+                                requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+heureFinaleFormate
                                 print("Temps modifié ajouté (sans report du dossard affecté pour éviter tout risque) :", requete)
                                 r = requests.get(requete)
 ##                                self.change = True
@@ -218,8 +218,8 @@ class MonTableau(Frame):
                                 print("Impossible d'ajouter cette heure", heure)
                         if column == "#3" :
                             if heure != "-" :
-                                print("requete:", 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
-                                r = requests.get('http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
+                                print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
+                                r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
                                 self.change = True
                                 self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
                                 traiterDonneesLocales()
@@ -322,8 +322,8 @@ class MonTableau(Frame):
                         while i > 0 :
                             tempsReel = tpsDisponible.tempsReelFormateDateHeure()
                             print("Ajout du temps disponible", tempsReel)
-                            print("requete :", 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-                            r = requests.get('http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
                             tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
                             i -= 1
                     else :
@@ -1275,8 +1275,8 @@ def ajouterTempsOKAction() :
         tps = Temps(tpsReelSaisi,0,0)
         if tempsClientIsNotInArriveeTemps(tps) :
             print("ajout du temps saisi", tpsReelSaisi, "car valide et pas déjà dans la liste des temps d'arrivée")
-            print("requete :", 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
-            r = requests.get('http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
+            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
+            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
             if not traiterDonneesLocales() :
                 genereResultatsCoursesEtClasses()
             annulerTempsDossards()
@@ -1297,8 +1297,8 @@ def dupliquerTempsAction() :
         tpsDisponible = dupliqueTemps(tempsSelectionne)
         tempsReel = tpsDisponible.tempsReelFormateDateHeure()
         print("Ajout du temps disponible", tempsReel)
-        print("requete :", 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-        r = requests.get('http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+        print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+        r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()
     else :
@@ -1315,8 +1315,8 @@ def supprimerTempsAction() :
     if test :
         tempsReel = test.tempsReelFormateDateHeure()
         print("suppression du temps", tempsReel)
-        print("requete :", 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-        r = requests.get('http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+        print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+        r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
         regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()
     else :
@@ -1356,7 +1356,7 @@ def ajouterDossardApresOKAction() :
         dossard = ajouterDossardApresEntry.get()
         dossardPrecedent = tableau.getDossard()
         print("ajout du dossard saisi", dossard, "si valide après le dossard", dossardPrecedent )
-        requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
         print("requete :", requete)
         r = requests.get(requete)
         regenereAffichageGUI()
@@ -1372,7 +1372,7 @@ def supprimerDossardAction() :
     dossard = tableau.getDossard()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent=-1'
+        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent=-1'
         print("requete :", requete)
         r = requests.get(requete)
         regenereAffichageGUI()
@@ -1393,10 +1393,10 @@ def avancerDossardAction() :
             dossardPrecedent = str(i)
             dossardSelectionne = str(dossardSelectionne)
             print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",i)
-            requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=-1'
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=-1'
             print("requete :", requete)
             r = requests.get(requete)
-            requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardPrecedent+'&dossardPrecedent='+dossardSelectionne
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardPrecedent+'&dossardPrecedent='+dossardSelectionne
             print("requete :", requete)
             r = requests.get(requete)
             regenereAffichageGUI()
@@ -1416,10 +1416,10 @@ def reculerDossardAction() :
             dossardSuivant = str(i)
             dossardSelectionne = str(dossardSelectionne)
             print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",i)
-            requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent=-1'
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent=-1'
             print("requete :", requete)
             r = requests.get(requete)
-            requete = 'http://127.0.0.1:8888/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
             print("requete :", requete)
             r = requests.get(requete)
             regenereAffichageGUI()
