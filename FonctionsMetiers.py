@@ -2717,11 +2717,11 @@ def calculeTousLesTemps(reinitialise = False):
             ligneAjoutee += 1
             k += 1
     ligneTableauGUI[0] = ligneTableauGUI[1] + 1
-    #print(DonneesAAfficher.lignes)
-    print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
-    Parametres["calculateAll"] = False
-    Parametres["positionDansArriveeTemps"] = i
-    Parametres["positionDansArriveeDossards"] = j
+    if Parametres["calculateAll"] :
+        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        Parametres["calculateAll"] = False
+        Parametres["positionDansArriveeTemps"] = i
+        Parametres["positionDansArriveeDossards"] = j
     ##transaction.commit()
     if reinitialise :
         retour = "<p>RECALCUL DE TOUS LES TEMPS :</p>\n" + retour

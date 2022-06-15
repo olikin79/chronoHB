@@ -31,7 +31,7 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourr
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
-- quand on supprime le seul et unique temps avec le smartphone, il ne disparaît pas de l'interface GUI.
+
 
 
 - trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
@@ -48,9 +48,6 @@ L'idéal serait :
 QUID si on annule un départ. On peut alors se retrouver dans ce cas là également. 
 Il faut donc signaler, alerter mais permettre depuis l'interface d'ignorer ce type d'erreur.
 
-2. (FAIT par "Patch rapide à corriger plus tard" dans FonctionsMetiers.py dans delArriveeTemps(...), 
-aux environs de la ligne 1836 dans chronoHB1.1 mais peut-être perdu lors des mic-mac 2021 : chronoHB 1.2 issu de chronoHB1 et non 1.1 trop buggué) 
-gérer le cas où le seul et unique temps du tableau GUI est effacé. Le tableau ne se vide pas et après la complétion par d'autres temps est incorrecte.
 
 3. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 

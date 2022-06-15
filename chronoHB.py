@@ -250,7 +250,7 @@ class MonTableau(Frame):
     def reinit(self):
         self.listeDesTemps = []
         self.effectif = 0
-        self.delTreeviewFrom(1)
+        self.delTreeviewFrom(0)
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
@@ -266,39 +266,43 @@ class MonTableau(Frame):
         self.effectif = len(self.treeview.get_children())
 
     def maj (self, TableauGUI) :
-        global ligneTableauGUI
-        print("mise à jour du tableau avec ", TableauGUI)
-        if TableauGUI :
-            # une liste vide signifie qu'il n'y a rien à actualiser
-            if TableauGUI[0]== "reinit" :
-                # on doit vider le tableau affiché.
-                self.reinit()
-            else:
-                # il y a des lignes à actualiser
-                ligneInitiale = TableauGUI[0][0]
-                #ligneAjoutee = ligneTableauGUI[0]
-                derniereLigneStabilisee = ligneTableauGUI[1]
-                #print("ligneInitiale :" , ligneInitiale)
-                items = self.treeview.get_children()
-                #print(ligneTableauGUI)
-                for donnee in TableauGUI :
-                    #print("ajout de ", ligne, "")
-                    self.majLigne(ligneInitiale, donnee, items)
-                    ligneInitiale += 1
-                ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
-                premiereLigneASupprimer = ligneInitiale
-                while premiereLigneASupprimer <= len(items) :
-                    # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
-                      # on supprime les derniers éléments de listeDesTemps
-                    item = items[premiereLigneASupprimer - 1]
-                    self.treeview.delete(item)
-                    premiereLigneASupprimer += 1
-                del self.listeDesTemps[ligneInitiale - 1:]
-                #nbreFileAttenteLabel.pack()
-                if self.defilementAuto :
-                                                 
-                    #print("défilement automatique activé. AVANT :", self.vsb.get())
-                    self.treeview.yview_moveto('1.0')
+        global ligneTableauGUI, ArriveeTemps
+        if len(ArriveeTemps)==0 :
+            print("Il n'y a aucun temps à afficher")
+            self.reinit()
+        else :
+            if TableauGUI :
+                print("mise à jour du tableau avec ", TableauGUI)
+                # une liste vide signifie qu'il n'y a rien à actualiser
+                if TableauGUI[0]== "reinit" :
+                    # on doit vider le tableau affiché.
+                    self.reinit()
+                else:
+                    # il y a des lignes à actualiser
+                    ligneInitiale = TableauGUI[0][0]
+                    #ligneAjoutee = ligneTableauGUI[0]
+                    derniereLigneStabilisee = ligneTableauGUI[1]
+                    #print("ligneInitiale :" , ligneInitiale)
+                    items = self.treeview.get_children()
+                    #print(ligneTableauGUI)
+                    for donnee in TableauGUI :
+                        #print("ajout de ", ligne, "")
+                        self.majLigne(ligneInitiale, donnee, items)
+                        ligneInitiale += 1
+                    ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
+                    premiereLigneASupprimer = ligneInitiale
+                    while premiereLigneASupprimer <= len(items) :
+                        # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
+                          # on supprime les derniers éléments de listeDesTemps
+                        item = items[premiereLigneASupprimer - 1]
+                        self.treeview.delete(item)
+                        premiereLigneASupprimer += 1
+                    del self.listeDesTemps[ligneInitiale - 1:]
+                    #nbreFileAttenteLabel.pack()
+                    if self.defilementAuto :
+                                                     
+                        #print("défilement automatique activé. AVANT :", self.vsb.get())
+                        self.treeview.yview_moveto('1.0')
 
         #print(self.effectif , ligneTableauGUI)
         ### nbFileDAttente =  len(TableauGUI) #self.effectif - ligneTableauGUI[0] + 1
