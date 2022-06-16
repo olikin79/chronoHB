@@ -1,3 +1,13 @@
+A tester :
+- class CoureurFrame pour modification d'un coureur.
+Bug à corriger : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement.
+
+Travail du 16/06/22 :
+- correction d'un bug : @groupement@ n'était pas remplacé dans le fichier tex du dossard généré.
+- correction d'un bug : ajout de coureur non fonctionnel pour les catégories d'âge : le champ 'date de naissance' était affecté à la 'classe' du coureur généré.
+- création de la classe CoureurFrame, destinée à ajouter un coureur manuellement (fonctionnalité déjà implémentée) puis à modifier un coureur existant (à partir de son numéro de dossard)
+
+
 Travail du 15/06/22 :
 - correction du bug : quand on supprime le seul et unique temps avec le smartphone, il ne disparaissait pas de l'interface GUI. Corrigé.
 

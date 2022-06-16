@@ -1982,7 +1982,21 @@ def ajoutManuelCoureur():
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
+    zoneCoureursAjoutModif.setAjout(True)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
+
+def modifManuelleCoureur():
+    GaucheFrame.forget()
+    DroiteFrame.forget()
+    GaucheFrameAbsDisp.forget()
+    GaucheFrameDossards.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameDistanceCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
+    zoneCoureursAjoutModif.setAjout(False)
+    GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
+
 
 def tempsDesCoureurs():
     GaucheFrameAbsDisp.forget()
@@ -2108,57 +2122,8 @@ def affecterParametres() :
     #actualiserDistanceDesCourses()
 
 # zone saisie coureur
-def okButtonCoureurPuisSaisie() :
-    try :
-        vma = float(vmaE.get())
-    except :
-        vma = 0
-    if Parametres['CategorieDAge'] :
-        addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vma, aImprimer = True)
-    else :
-        addCoureur(nomE.get(), prenomE.get(), sexeE.get(), classeE.get(), commentaireArrivee=commentaireArriveeE.get(), VMA=vma, aImprimer = True)
-    # ménage
-    nomE.delete(0, END)
-    prenomE.delete(0, END)
-    classeE.delete(0, END)
-    sexeE.delete(0, END)
-    vmaE.delete(0, END)
-    commentaireArriveeE.delete(0, END)
-    absDispZone.actualiseListeDesClasses()
-    dossardsZone.actualiseListeDesClasses()
-    CoureursParClasseUpdate()                                      
-
-
-def okButtonCoureur() :
-    okButtonCoureurPuisSaisie()
-    tempsDesCoureurs()
-
 def noVersion():
     showinfo("A propos de ChronoHB","Version " + version + " de l'application chronoHB.\nDéveloppeur : Olivier Lacroix, olacroix@ac-montpellier.fr")
-
-def imprimerNonImprimes() :
-    print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
-    listeDesDossardsGeneres = generateDossardsAImprimer()
-    nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
-    if os.path.exists(nomFichierGenere) :
-        os.remove(nomFichierGenere)
-    if os.path.exists(nomFichierGenere):
-        if windows() :
-            if imprimePDF(nomFichierGenere) :
-                reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
-            else :
-                reponse = False
-        else :
-            print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
-            subprocess.Popen([nomFichierGenere],shell=True)
-            reponse = True
-        if reponse :
-            print(listeDesDossardsGeneres)
-            for n in listeDesDossardsGeneres :
-                print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                Coureurs[n-1].setAImprimer(False)
-    else :
-        print("Fichier non généré : probablement vide car tous les coureurs ont déjà été imprimés")
 
 # create a pulldown menu, and add it to the menu bar
 filemenu = Menu(menubar, tearoff=0)
@@ -2177,6 +2142,7 @@ filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
+filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
 filemenu.add_command(label="Imprimer un dossard particulier", command=saisieDossards)
 filemenu.add_separator()
 filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
@@ -2196,50 +2162,140 @@ menubar.add_cascade(label="Préparation course", menu=filemenu)
 
 
 
-lblCommentaireInfoAddCoureur = Label(GaucheFrameCoureur, text=\
+##### ajout de coureur.
+class CoureurFrame(Frame) :
+    def __init__(self, parent, ajout=True):
+        self.parent = parent
+        self.ajoutCoureur = ajout
+        self.lblCommentaireInfoAddCoureur = Label(self.parent)
+        self.lblNom = Label(self.parent, text="Nom :")
+        self.nomE = Entry(self.parent)
+        self.lblprenom = Label(self.parent, text="Prénom :")
+        self.prenomE = Entry(self.parent)
+        self.lblSexe = Label(self.parent, text="Sexe (G ou F) :")
+        self.sexeE = Entry(self.parent)
+        self.lblClasse = Label(self.parent)
+        self.classeE = Entry(self.parent)
+        self.vma = 0
+        self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
+        self.vmaE = Entry(self.parent)
+        self.lblCommentaire = Label(self.parent, text="Commentaire à l'arrivée (facultatif) :")
+        self.commentaireArriveeE = Entry(self.parent)
+        self.boutonsFrame = Frame(self.parent)
+        self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
+        self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.reinitialiserChamps)
+        self.coureurBimprimer = Button(self.boutonsFrame, text="Imprimer les dossards non imprimés", command=self.imprimerNonImprimes)
+        #self.coureurBok = Button(self.boutonsFrame, text="OK", command=self.okButtonCoureur)
+
+        self.actualiseAffichage()
+    def actualiseAffichage(self) :
+        if self.ajoutCoureur :
+            # cas où l'on ajoute manuellement un coureur
+            self.lblCommentaireInfoAddCoureur.configure(text=\
                                      "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
-lblCommentaireInfoAddCoureur.pack(side=TOP)
+            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+        else :
+            # cas où on modifie un coureur existant
+            self.lblCommentaireInfoAddCoureur.configure(text=\
+                                     "Choisir le numéro de dossard dans le menu déroulant afin de modifier les caractistiques du coureur correspondant.")
+            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+            # afficher le menu déroulant ici.
+            
+        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
+        self.lblNom.pack()
+        self.nomE.pack()
+        self.lblprenom.pack()
+        self.prenomE.pack()
+        self.lblSexe.pack()
+        self.sexeE.pack()
+        if Parametres["CategorieDAge"] :
+            self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
+        else :
+            self.lblClasse.configure(text="Classe :")
+        self.lblClasse.pack()
+        self.classeE.pack()
+        self.lblVMA.pack()
+        self.vmaE.pack()
+        self.lblCommentaire.pack()
+        self.commentaireArriveeE.pack()
+        self.coureurBannul.pack(side = LEFT)
+        ### INUTILE ? coureurBok.pack(side = LEFT)
+        self.coureurBoksuivant.pack(side = LEFT)
+        self.coureurBimprimer.pack(side = LEFT)
+        self.boutonsFrame.pack()
 
-Label(GaucheFrameCoureur, text="Nom :").pack()
-nomE = Entry(GaucheFrameCoureur)
-nomE.pack()
-Label(GaucheFrameCoureur, text="Prénom :").pack()
-prenomE = Entry(GaucheFrameCoureur)
-prenomE.pack()
-Label(GaucheFrameCoureur, text="Sexe (G ou F) :").pack()
-sexeE = Entry(GaucheFrameCoureur)
-sexeE.pack()
-lblClasse = Label(GaucheFrameCoureur, text="Classe :")
-lblClasse.pack()
-if Parametres["CategorieDAge"] :
-    lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
-classeE = Entry(GaucheFrameCoureur)
-classeE.pack()
-Label(GaucheFrameCoureur, text="VMA en km/h (facultatif) :").pack()
-vmaE = Entry(GaucheFrameCoureur)
-vmaE.pack()  
-Label(GaucheFrameCoureur, text="Commentaire à l'arrivée (facultatif) :").pack()
-commentaireArriveeE = Entry(GaucheFrameCoureur)
-commentaireArriveeE.pack()              
+    def setAjout(self,valeur):
+        if valeur :
+            self.ajoutCoureur = True
+        else :
+            self.ajoutCoureur = False
+        self.actualiseAffichage()
 
-boutonsFrame = Frame(GaucheFrameCoureur)
+    def okButtonCoureurPuisSaisie(self) :
+        try :
+            self.vma = float(self.vmaE.get())
+        except :
+            self.vma = 0
+        if Parametres['CategorieDAge'] :
+            addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+        else :
+            addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+        self.reinitialiserChamps()
 
-coureurBoksuivant = Button(boutonsFrame, text="OK puis nouvelle saisie", command=okButtonCoureurPuisSaisie)
-#coureurBok = Button(boutonsFrame, text="OK", command=okButtonCoureur)
-coureurBannul = Button(boutonsFrame, text="Annuler", command=tempsDesCoureurs)
-coureurBimprimer = Button(boutonsFrame, text="Imprimer les dossards non imprimés", command=imprimerNonImprimes)
+    def reinitialiserChamps(self):
+        # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
 
-coureurBannul.pack(side = LEFT)
-### INUTILE ? coureurBok.pack(side = LEFT)
-coureurBoksuivant.pack(side = LEFT)
-coureurBimprimer.pack(side = LEFT)
-boutonsFrame.pack()
+        # Sinon, ménage
+        self.nomE.delete(0, END)
+        self.prenomE.delete(0, END)
+        self.classeE.delete(0, END)
+        self.sexeE.delete(0, END)
+        self.vmaE.delete(0, END)
+        self.commentaireArriveeE.delete(0, END)
+        
+        absDispZone.actualiseListeDesClasses()
+        dossardsZone.actualiseListeDesClasses()
+        CoureursParClasseUpdate()                                      
 
+    def okButtonCoureur(self) :
+        okButtonCoureurPuisSaisie()
+        tempsDesCoureurs()
+
+    def imprimerNonImprimes(self) :
+        print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
+        listeDesDossardsGeneres = generateDossardsAImprimer()
+        nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
+        if os.path.exists(nomFichierGenere) :
+            os.remove(nomFichierGenere)
+        if os.path.exists(nomFichierGenere):
+            if windows() :
+                if imprimePDF(nomFichierGenere) :
+                    reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
+                else :
+                    reponse = False
+            else :
+                print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
+                subprocess.Popen([nomFichierGenere],shell=True)
+                reponse = True
+            if reponse :
+                print(listeDesDossardsGeneres)
+                for n in listeDesDossardsGeneres :
+                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    Coureurs[n-1].setAImprimer(False)
+        else :
+            print("Fichier aImprimer.pdf non généré : probablement vide car tous les coureurs ont déjà été imprimés")
+
+zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
+
+
+##### fin ajout de coureur.
+        
+
+# zone saisie des distances des courses et paramètres
 
 def choixCC():		# Fonction associée à Catégories par Classes
     #print('Case à cocher : ',str(svRadio.get()))
-    lblClasse.configure(text="Classe :")
-    Parametres["CategorieDAge"]=False
+    #inutile Parametres["CategorieDAge"]=False
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
@@ -2247,8 +2303,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     
 def choixCA():		# Fonction associée à catégories par Age
     #print('Case à cocher : ',str(svRadio.get()))
-    lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
-    Parametres["CategorieDAge"]=True
+    # inutile Parametres["CategorieDAge"]=True
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
@@ -2269,8 +2324,6 @@ def forgetAutresWidgets():
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
 
-# zone saisie des distances des courses et paramètres
-
 
 IntituleFrameL = Frame(GaucheFrameParametresCourses)
 IntituleFrame = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=IntituleFrameL)
@@ -2283,6 +2336,7 @@ if Parametres["CategorieDAge"] :
     svRadio.set('0')
 else :
     svRadio.set('1')
+    
 rbGF = Frame(GaucheFrameParametresCourses)
 rbF = Frame(rbGF)
 rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
@@ -2311,11 +2365,12 @@ rbF.pack(side=TOP,anchor="w")
 rbLbl.pack(side=TOP,anchor="w")
 rbGF.pack(side=TOP,anchor="w")
 
-
 if Parametres["CategorieDAge"] :
     choixCA()
 else :
     choixCC()
+
+
 
 
 

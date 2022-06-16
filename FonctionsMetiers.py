@@ -19,7 +19,7 @@ import xlsxwriter # pour les exports excels des résultats
 from tkinter.messagebox import *
 
 
-version = "1.3"
+version = "1.4"
 
 # A tester :
 # interface smartphone :
@@ -1550,7 +1550,8 @@ def generateDossardsAImprimer() :
                 retour.append(coureur.dossard)
                 print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat))
                 f.write(chaineComplete)
                 generateQRcode(coureur.dossard)
         f.write("\\end{document}")
@@ -1580,7 +1581,8 @@ def generateDossard(coureur) :
         f.write(entete + "\n\n")
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+            .replace("@groupement@",groupementAPartirDUneCategorie(cat))
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
