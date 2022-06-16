@@ -21,7 +21,7 @@ DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
-    sys.stderr = open(LOGDIR + os.sep + 'log.txt', 'a', 1)
+    sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
 
 from pprint import pprint
 ##class Logger(object):
