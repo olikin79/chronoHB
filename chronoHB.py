@@ -16,6 +16,7 @@ version="1.4"
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
+
 #### DEBUG
 DEBUG = True
 
@@ -2125,6 +2126,34 @@ def affecterParametres() :
 def noVersion():
     showinfo("A propos de ChronoHB","Version " + version + " de l'application chronoHB.\nDéveloppeur : Olivier Lacroix, olacroix@ac-montpellier.fr")
 
+def imprimerDossardsNonImprimes() :
+    print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
+    listeDesDossardsGeneres = generateDossardsAImprimer()
+    if listeDesDossardsGeneres :
+        print("listeDesDossardsGeneres =",listeDesDossardsGeneres)
+        nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
+        if os.path.exists(nomFichierGenere) :
+            os.remove(nomFichierGenere)
+        if os.path.exists(nomFichierGenere):
+            if windows() :
+                if imprimePDF(nomFichierGenere) :
+                    reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
+                else :
+                    reponse = False
+            else :
+                print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
+                subprocess.Popen([nomFichierGenere],shell=True)
+                reponse = True
+            if reponse :
+                print(listeDesDossardsGeneres)
+                for n in listeDesDossardsGeneres :
+                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    Coureurs[n-1].setAImprimer(False)
+        else :
+            print("Fichier aImprimer.pdf non généré : probablement vide car tous les coureurs ont déjà été imprimés")
+    else :
+        print("Aucun dossard à imprimer pour l'instant.")
+
 # create a pulldown menu, and add it to the menu bar
 filemenu = Menu(menubar, tearoff=0)
 
@@ -2143,6 +2172,7 @@ filemenu.add_command(label="Générer tous les dossards", command=generateDossar
 filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
+filemenu.add_command(label="Imprimer tous les dossards non encore imprimés", command=imprimerDossardsNonImprimes)
 filemenu.add_command(label="Imprimer un dossard particulier", command=saisieDossards)
 filemenu.add_separator()
 filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
@@ -2168,40 +2198,67 @@ class CoureurFrame(Frame) :
         self.parent = parent
         self.ajoutCoureur = ajout
         self.lblCommentaireInfoAddCoureur = Label(self.parent)
+        self.choixDossardCombo = Combobox(self.parent, width=15, justify="center", state='readonly')
+        self.choixDossardCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
         self.lblNom = Label(self.parent, text="Nom :")
         self.nomE = Entry(self.parent)
+        self.nomE.bind("<KeyPress>", self.reactiverBoutons)
         self.lblprenom = Label(self.parent, text="Prénom :")
         self.prenomE = Entry(self.parent)
+        self.prenomE.bind("<KeyPress>", self.reactiverBoutons)
         self.lblSexe = Label(self.parent, text="Sexe (G ou F) :")
         self.sexeE = Entry(self.parent)
+        self.sexeE.bind("<KeyPress>", self.reactiverBoutons)
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
+        self.classeE.bind("<KeyPress>", self.reactiverBoutons)
         self.vma = 0
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
+        self.vmaE.bind("<KeyPress>", self.reactiverBoutons)
         self.lblCommentaire = Label(self.parent, text="Commentaire à l'arrivée (facultatif) :")
         self.commentaireArriveeE = Entry(self.parent)
+        self.commentaireArriveeE.bind("<KeyPress>", self.reactiverBoutons)
         self.boutonsFrame = Frame(self.parent)
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
         self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.reinitialiserChamps)
         self.coureurBimprimer = Button(self.boutonsFrame, text="Imprimer les dossards non imprimés", command=self.imprimerNonImprimes)
         #self.coureurBok = Button(self.boutonsFrame, text="OK", command=self.okButtonCoureur)
-
         self.actualiseAffichage()
+
+    def reactiverBoutons(self,event) :
+        self.boutonsFrame.pack()
+
+    def actualiseAffichageBind(self,event) :
+        self.reinitialiserChamps()
+        
     def actualiseAffichage(self) :
+        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
         if self.ajoutCoureur :
             # cas où l'on ajoute manuellement un coureur
             self.lblCommentaireInfoAddCoureur.configure(text=\
                                      "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
             self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+            self.choixDossardCombo.forget()
+            self.reinitialiserChamps()
+            self.reconstruireLesChamps()
         else :
             # cas où on modifie un coureur existant
             self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Choisir le numéro de dossard dans le menu déroulant afin de modifier les caractistiques du coureur correspondant.")
-            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+                                     "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+            self.coureurBoksuivant.configure(text="Valider")
             # afficher le menu déroulant ici.
+            self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+            self.choixDossardCombo['values']=self.tupleDesDossards
+            if self.tupleDesDossards :
+                self.choixDossardCombo.current(0)
+                self.reinitialiserChamps()
+            self.choixDossardCombo.pack()
+            self.cacherLesChamps()
+            self.reconstruireLesChamps()
+            self.coureurBimprimer.forget()
             
-        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
+    def reconstruireLesChamps(self) :
         self.lblNom.pack()
         self.nomE.pack()
         self.lblprenom.pack()
@@ -2222,7 +2279,25 @@ class CoureurFrame(Frame) :
         ### INUTILE ? coureurBok.pack(side = LEFT)
         self.coureurBoksuivant.pack(side = LEFT)
         self.coureurBimprimer.pack(side = LEFT)
-        self.boutonsFrame.pack()
+        #self.boutonsFrame.pack()
+
+    def cacherLesChamps(self) :
+        self.lblNom.forget()
+        self.nomE.forget()
+        self.lblprenom.forget()
+        self.prenomE.forget()
+        self.lblSexe.forget()
+        self.sexeE.forget()
+        self.lblClasse.forget()
+        self.classeE.forget()
+        self.lblVMA.forget()
+        self.vmaE.forget()
+        self.lblCommentaire.forget()
+        self.commentaireArriveeE.forget()
+        self.coureurBannul.forget()
+        self.coureurBoksuivant.forget()
+        self.coureurBimprimer.forget()
+        self.boutonsFrame.forget()
 
     def setAjout(self,valeur):
         if valeur :
@@ -2236,22 +2311,42 @@ class CoureurFrame(Frame) :
             self.vma = float(self.vmaE.get())
         except :
             self.vma = 0
-        if Parametres['CategorieDAge'] :
-            addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+        if self.ajoutCoureur :
+            if Parametres['CategorieDAge'] :
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            else :
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            self.reinitialiserChamps()
         else :
-            addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
-        self.reinitialiserChamps()
+            self.boutonsFrame.forget()
+            doss = int(self.choixDossardCombo.get())
+            if Parametres['CategorieDAge'] :
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            else :
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
 
     def reinitialiserChamps(self):
-        # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
-
-        # Sinon, ménage
+        # ménage
         self.nomE.delete(0, END)
         self.prenomE.delete(0, END)
         self.classeE.delete(0, END)
         self.sexeE.delete(0, END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
+        if not self.ajoutCoureur :
+            # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
+            doss = int(self.choixDossardCombo.get())
+            coureur = Coureurs[doss-1]
+            self.nomE.insert(0, coureur.nom)
+            self.prenomE.insert(0, coureur.prenom)
+            if Parametres['CategorieDAge'] :
+                self.classeE.insert(0, coureur.naissance)
+            else :
+                self.classeE.insert(0, coureur.classe)
+            self.sexeE.insert(0, coureur.sexe)
+            self.vmaE.insert(0, coureur.VMA)
+            self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
+        self.boutonsFrame.forget()
         
         absDispZone.actualiseListeDesClasses()
         dossardsZone.actualiseListeDesClasses()
@@ -2262,28 +2357,7 @@ class CoureurFrame(Frame) :
         tempsDesCoureurs()
 
     def imprimerNonImprimes(self) :
-        print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
-        listeDesDossardsGeneres = generateDossardsAImprimer()
-        nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
-        if os.path.exists(nomFichierGenere) :
-            os.remove(nomFichierGenere)
-        if os.path.exists(nomFichierGenere):
-            if windows() :
-                if imprimePDF(nomFichierGenere) :
-                    reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
-                else :
-                    reponse = False
-            else :
-                print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
-                subprocess.Popen([nomFichierGenere],shell=True)
-                reponse = True
-            if reponse :
-                print(listeDesDossardsGeneres)
-                for n in listeDesDossardsGeneres :
-                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                    Coureurs[n-1].setAImprimer(False)
-        else :
-            print("Fichier aImprimer.pdf non généré : probablement vide car tous les coureurs ont déjà été imprimés")
+        imprimerDossardsNonImprimes()
 
 zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 
