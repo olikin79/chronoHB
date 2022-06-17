@@ -1,8 +1,10 @@
 Bugs à corriger : 
 - si en modifiant un coureur, on se retrouve à créer une nouvelle catégorie indirectement, alors le dossard du coureur ne contient aucun groupement.
-Il faudra trouver pourquoi en affichant à de multiples 
+Quand on génère tous les dossards, on a bien le groupement du coureur en question. Il faudra trouver pourquoi...
 - la génération du pdf aImprimer.pdf non fonctionnelle 
-alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent..
+alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
+
+A finir : permettre la modification de la catégorie d'un coureur manuellement.
 
 Travail du 16/06/22 :
 - correction d'un bug : @groupement@ n'était pas remplacé dans le fichier tex du dossard généré.

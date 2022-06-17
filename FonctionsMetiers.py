@@ -157,18 +157,32 @@ class Coureur():#persistent.Persistent):
         self.rang = 0
         self.commentaireArrivee = commentaireArrivee
         self.aImprimer = aImprimer
+        self.categorieAuto = True
         self.__private_categorie = None
+        self.__private_categorie_manuelle = None
     def categorie(self, CategorieDAge=False):
-        if self.__private_categorie == None :
-            if CategorieDAge :
-                if len(self.naissance) != 0 :
-                    #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                    anneeNaissance = self.naissance[6:]
-                    self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
-            else :
-                if len(self.classe) != 0 :
-                    self.__private_categorie = self.classe[0] + "-" + self.sexe
-        return self.__private_categorie    
+        if self.categorieAuto :
+            if self.__private_categorie == None :
+                if CategorieDAge :
+                    if len(self.naissance) != 0 :
+                        #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                        anneeNaissance = self.naissance[6:]
+                        self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+                else :
+                    if len(self.classe) != 0 :
+                        self.__private_categorie = self.classe[0] + "-" + self.sexe
+            return self.__private_categorie
+        else :
+            return 
+    def setCategorie(self, nouveauNom, CategorieDAge=False):
+        try :
+            self.__private_categorie_manuelle = str(nouveauNom)
+            self.categorieAuto = False
+        except:
+            print("nom de catégorie incorrect:", nouveauNom)
+    def setCategorieAuto(self):
+        self.categorieAuto = True
+
     def setDossard(self, dossard) :
         try :
             self.dossard = int(dossard)
@@ -384,7 +398,6 @@ class Groupement():
     """Un groupement de courses"""
     def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
         self.nom = str(nomDuGroupement)
-        #self.nomStandard = self.nom
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
         self.distance = 0
@@ -411,6 +424,8 @@ class Groupement():
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
+    def affichageInfoTerminal(self) :
+        print("Groupement", self.nom, "de nom standard", self.nomStandard,"contenant les courses",self.listeDesCourses,"de distance",self.distance)
         
 
 class Temps():#persistent.Persistent):
@@ -1434,7 +1449,8 @@ def generateDossardsNG() :
                 else :
                     groupement = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)\
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1893,8 +1909,9 @@ def groupementAPartirDUneCategorie(categorie):
             if cat == categorie :
                 retour = groupement
                 break
-##    print("categorie cherchée :", categorie)
-##    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    #print("categorie cherchée :", categorie)
+    #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    #print(categorie, "est dans",retour.affichageInfoTerminal())
     return retour
 
 def nettoieGroupements() :
