@@ -1677,9 +1677,10 @@ class Clock():
         self.root = root
         self.MAJfunction = MAJfunction
         self.premiereExecution = True
-        self.enPause = False
+        #self.enPause = False
         self.compteurSauvegarde = 1
-        self.auMoinsUnImportSansErreur = False
+        self.auMoinsUnImport = False
+        self.delaiActualisation = 5 # en secondes
         self.update_clock()
         
     def update_clock(self):
@@ -1687,58 +1688,94 @@ class Clock():
         if self.premiereExecution : # si c'est la première exécution, il nous faut un  affichage.
             genereResultatsCoursesEtClasses(self.premiereExecution)
             eval(self.MAJfunction + "(tableauGUI)")
-        if not Log.cget("text") : # si le label Log est vide, il n'y a pas d'erreur...
-            self.enPause = False
-            #print("####################  action toutes les 5 secondes ###################")
-            tableau.makeDefilementAuto()                                    
-            # est utile de tout traiter lors du lancement du logiciel ?
-            # Je ne pense pas que ce soit important de savoir si c'est une première exécution ou non
-            # traiterDonneesSmartphone(self.premiereExecution) devenu inutile.
-            retour1 = traiterDonneesSmartphone()
-            #print("retour1=" + str(retour1) +".")
-            if retour1 and retour1 != "RAS" :
-                messageDErreurInterface(retour1, True)
-                self.auMoinsUnImportSansErreur = False
-            else :
-                retour2 = traiterDonneesLocales()
-                #print("retour2=" + str(retour2) +".")
-                if retour2 and retour2 != "RAS":
-                    messageDErreurInterface(retour2, False)
-                    self.auMoinsUnImportSansErreur = False
-                else :
-                    Log.configure(text="")
-                    ## s'il n'y a pas d'erreur à l'import ou pas d'import, on se retrouve ici.
-                    if retour1 != "RAS" or retour2 != "RAS" :
-                        ## il y a eu un import sans erreur
-                        self.auMoinsUnImportSansErreur = True
-                        # si au moins un import sans erreur, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.                              
-                        genereResultatsCoursesEtClasses(self.premiereExecution)
-                        eval(self.MAJfunction + "(tableauGUI)")
-                        ActualiseAffichageTV() # pour mise à jour du menu annulDepart                        
-                    ## Sauvegarde toutes les 1 minute s'il y a au moins un évènement à traiter. Sinon, rien.
-                    # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
-                    if self.compteurSauvegarde >= 2 and self.auMoinsUnImportSansErreur : # 12 x 5 s  = 1 minute
-                        #print("Sauvegarde enclenchée")
-                        ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
-                        self.compteurSauvegarde = 1
-                        self.auMoinsUnImportSansErreur = False
-                    else :
-                        #print("Pas de sauvegarde", self.compteurSauvegarde)
-                        self.compteurSauvegarde += 1
-                    
-        if Log.cget("text") :
-            print("Timer en pause")
-            if not self.enPause :
-                print('impression que ces deux lignes sont inutiles :  messageDErreurInterface(Log.cget("text") et self.enPause = True')
-                self.enPause = True
+        ## nouvelle version sans bloquant
+        tableau.makeDefilementAuto()
+        traitementSmartphone = traiterDonneesSmartphone()
+        traitementLocal = traiterDonneesLocales()
+        # si au moins un évènement à traiter (erreur ou pas), on programme une sauvegarde des données incrémentale.
+        if traitementSmartphone  or traitementLocal :
+            self.auMoinsUnImport = True
+        retour1 = [erreur for erreur in traitementSmartphone if erreur.numero != 0]  # on ne garde que les codes d'erreur
+        retour2 = [erreur for erreur in traitementLocal if erreur.numero != 0]
+        retour = retour1 + retour2
+        print("retour des erreurs 1 et 2 =" + str(retour) +".")
+        # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
+        genereResultatsCoursesEtClasses(self.premiereExecution)
+        eval(self.MAJfunction + "(tableauGUI)")
+        ActualiseAffichageTV() # pour mise à jour du menu annulDepart
+        ### Traitement des erreurs : affichage par une frame dédiée.
+        #ErreursFrame.alimente(retour)
+        ### Fin du traitement des erreurs
+        ## Sauvegarde toutes les 1 minutes s'il y a au moins un évènement à traiter. Sinon, rien.
+        # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
+        if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
+            print("Sauvegarde enclenchée toutes les minutes ")
+            ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
+            self.auMoinsUnImport = False
+            self.compteurSauvegarde = 1
+        self.compteurSauvegarde += 1
+        # fin sauvegarde des données
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
         # se relance dans un temps prédéfini.
         self.premiereExecution = False
-        self.root.after(5000, self.update_clock)
+        self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 ##    def enPause(choix) :
 ##        self.enPause = choix
+        ## Ancienne version
+##        if not Log.cget("text") : # si le label Log est vide, il n'y a pas d'erreur...
+##            self.enPause = False
+##            #print("####################  action toutes les 5 secondes ###################")
+##            tableau.makeDefilementAuto()
+##            # est utile de tout traiter lors du lancement du logiciel ?
+##            # Je ne pense pas que ce soit important de savoir si c'est une première exécution ou non
+##            # traiterDonneesSmartphone(self.premiereExecution) devenu inutile.
+##            retour1 = [erreur for erreur in traiterDonneesSmartphone() if erreur.numero != 0]  # on ne garde que les codes d'erreur 
+##            print("retour1=" + str(retour1) +".")
+##            if retour1 and retour1 != [] :
+##                messageDErreurInterface(retour1, True)
+##                self.auMoinsUnImportSansErreur = False
+##            else :
+##                retour2 = [erreur for erreur in traiterDonneesLocales() if erreur.numero != 0] # traiterDonneesLocales()
+##                #print("retour2=" + str(retour2) +".")
+##                if retour2 and retour2 != "RAS":
+##                    messageDErreurInterface(retour2, False)
+##                    self.auMoinsUnImportSansErreur = False
+##                else :
+##                    Log.configure(text="")
+##                    ## s'il n'y a pas d'erreur à l'import ou pas d'import, on se retrouve ici.
+##                    if retour1 != "RAS" or retour2 != "RAS" :
+##                        ## il y a eu un import sans erreur
+##                        self.auMoinsUnImportSansErreur = True
+##                        # si au moins un import sans erreur, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.                              
+##                        genereResultatsCoursesEtClasses(self.premiereExecution)
+##                        eval(self.MAJfunction + "(tableauGUI)")
+##                        ActualiseAffichageTV() # pour mise à jour du menu annulDepart                        
+##                    ## Sauvegarde toutes les 1 minute s'il y a au moins un évènement à traiter. Sinon, rien.
+##                    # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
+##                    if self.compteurSauvegarde >= 2 and self.auMoinsUnImportSansErreur : # 12 x 5 s  = 1 minute
+##                        #print("Sauvegarde enclenchée")
+##                        ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
+##                        self.compteurSauvegarde = 1
+##                        self.auMoinsUnImportSansErreur = False
+##                    else :
+##                        #print("Pas de sauvegarde", self.compteurSauvegarde)
+##                        self.compteurSauvegarde += 1
+##                    
+##        if Log.cget("text") :
+##            print("Timer en pause")
+##            if not self.enPause :
+##                print('impression que ces deux lignes sont inutiles :  messageDErreurInterface(Log.cget("text") et self.enPause = True')
+##                self.enPause = True
+##        if zoneTopDepart.departsAnnulesRecemment :
+##            construireMenuAnnulDepart()
+##            zoneTopDepart.nettoieDepartsAnnules()
+##        # se relance dans un temps prédéfini.
+##        self.premiereExecution = False
+##        self.root.after(5000, self.update_clock)
+####    def enPause(choix) :
+####        self.enPause = choix
         
 timer=Clock(root, "tableau.maj")
 

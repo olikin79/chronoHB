@@ -13,10 +13,13 @@ Il faut donc signaler, alerter mais permettre depuis l'interface d'ignorer ce ty
 
 3. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
+MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
 Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
 
 4. le rang ne s'ajoute plus dans le tableau affiché au fur et à mesure des remontées du smartphone, sauf en cas de redémarrage de l'application serveur.
 
+5. la génération du pdf aImprimer.pdf non fonctionnelle 
+alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
 
 NON PRIORITAIRES :
@@ -33,6 +36,8 @@ A TESTER :
 
 - vérifier si un ascenceur existe dans la combobox de modification d'un coureur quand il y en a beaucoup.
 Dans le cas contraire, un champ Entry sera peut-être nécessaire.
+
+- 
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
@@ -83,9 +88,7 @@ d'imprimer les dossards par groupements, catégories, classes avec des cases à 
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
 - import depuis un fichier xlsx à implémenter en plus du CSV (priorité faible)
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
-- départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés) : la règle en UNSS est de prendre les positions 
-(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo. 
-Cela devra se faire dans la fonction triParScore()
+
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
 - anonymer la documentation en faisant un import SIECLE avec des noms bidons et de nouvelles captures d'écrans.
 - Créer un système évitant des incohérences entre les smartphones et la base locale : 
