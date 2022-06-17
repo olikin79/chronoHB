@@ -2324,6 +2324,7 @@ class CoureurFrame(Frame) :
                 modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
             else :
                 modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+        generateListCoureursPourSmartphone()
 
     def reinitialiserChamps(self):
         # ménage

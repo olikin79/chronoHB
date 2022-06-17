@@ -161,6 +161,10 @@ class Coureur():#persistent.Persistent):
         self.__private_categorie = None
         self.__private_categorie_manuelle = None
     def categorie(self, CategorieDAge=False):
+        try :
+            self.categorieAuto
+        except :
+            self.categorieAuto = True
         if self.categorieAuto :
             if self.__private_categorie == None :
                 if CategorieDAge :
@@ -1400,6 +1404,7 @@ def generateQRcodes() :
 
 
 def generateDossardsNG() :
+    print("Utilisation de generateDossardsNG")
     generateQRcodes() # génère autant de QR-codes que nécessaire
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
@@ -1448,9 +1453,8 @@ def generateDossardsNG() :
                     groupement = "Course : " + groupementNom
                 else :
                     groupement = ""
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe).replace("@categorie@",cat)\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1552,6 +1556,7 @@ def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    print("Utilisation de generateDossardsAImprimer")
     global CoureursParClasse
     retour=[]
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
@@ -1560,7 +1565,11 @@ def generateDossardsAImprimer() :
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
@@ -1588,13 +1597,18 @@ def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     #global CoureursParClasse
+    print("Utilisation de generateDossard")
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
