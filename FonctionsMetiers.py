@@ -18,8 +18,10 @@ import xlsxwriter # pour les exports excels des résultats
 
 from tkinter.messagebox import *
 
+#### DEBUG
+DEBUG = False
 
-version = "1.3"
+version = "1.4"
 
 # A tester :
 # interface smartphone :
@@ -155,18 +157,36 @@ class Coureur():#persistent.Persistent):
         self.rang = 0
         self.commentaireArrivee = commentaireArrivee
         self.aImprimer = aImprimer
+        self.categorieAuto = True
         self.__private_categorie = None
+        self.__private_categorie_manuelle = None
     def categorie(self, CategorieDAge=False):
-        if self.__private_categorie == None :
-            if CategorieDAge :
-                if len(self.naissance) != 0 :
-                    #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                    anneeNaissance = self.naissance[6:]
-                    self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
-            else :
-                if len(self.classe) != 0 :
-                    self.__private_categorie = self.classe[0] + "-" + self.sexe
-        return self.__private_categorie    
+        try :
+            self.categorieAuto
+        except :
+            self.categorieAuto = True
+        if self.categorieAuto :
+            if self.__private_categorie == None :
+                if CategorieDAge :
+                    if len(self.naissance) != 0 :
+                        #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                        anneeNaissance = self.naissance[6:]
+                        self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+                else :
+                    if len(self.classe) != 0 :
+                        self.__private_categorie = self.classe[0] + "-" + self.sexe
+            return self.__private_categorie
+        else :
+            return 
+    def setCategorie(self, nouveauNom, CategorieDAge=False):
+        try :
+            self.__private_categorie_manuelle = str(nouveauNom)
+            self.categorieAuto = False
+        except:
+            print("nom de catégorie incorrect:", nouveauNom)
+    def setCategorieAuto(self):
+        self.categorieAuto = True
+
     def setDossard(self, dossard) :
         try :
             self.dossard = int(dossard)
@@ -271,6 +291,11 @@ class Coureur():#persistent.Persistent):
         self.rang = int(rang)
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
+    def setNom(self, valeur) :
+        self.nom = str(valeur)
+    def setPrenom(self, valeur) :
+        self.prenom = str(valeur)
+
 
 class Course():#persistent.Persistent):
     """Une course"""
@@ -377,7 +402,6 @@ class Groupement():
     """Un groupement de courses"""
     def __init__(self, nomDuGroupement, listeDesNomsDesCourses):
         self.nom = str(nomDuGroupement)
-        #self.nomStandard = self.nom
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
         self.distance = 0
@@ -404,6 +428,8 @@ class Groupement():
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
+    def affichageInfoTerminal(self) :
+        print("Groupement", self.nom, "de nom standard", self.nomStandard,"contenant les courses",self.listeDesCourses,"de distance",self.distance)
         
 
 class Temps():#persistent.Persistent):
@@ -679,7 +705,7 @@ if os.name=="posix" :
     compilateur = "/Library/TeX/texbin/pdflatex"
 else :
     sep="\\"
-    compilateur = 'start "" /I /wait /min /D ".\\@dossier@\\tex" ".\\texlive\\2020\\bin\\win32\\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." '#
+    compilateur = 'start "" /I /wait /min /D .\\@dossier@\\tex .\\texlive\\2020\\bin\\win32\\pdflatex.exe -synctex=1 -no-shell-escape -interaction=nonstopmode -output-directory=.. '#
 
     ### commande fonctionnelle mais pas propre car le logo doit se trouver dans la distribution, dans win32
     ## start "" /I /wait /min /D ".\dossards\tex\" ".\texlive\2020\bin\win32\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." "3-F.tex"
@@ -1378,6 +1404,7 @@ def generateQRcodes() :
 
 
 def generateDossardsNG() :
+    print("Utilisation de generateDossardsNG")
     generateQRcodes() # génère autant de QR-codes que nécessaire
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
@@ -1426,8 +1453,8 @@ def generateDossardsNG() :
                     groupement = "Course : " + groupementNom
                 else :
                     groupement = ""
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupement)
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe).replace("@categorie@",cat)\
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1529,6 +1556,7 @@ def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    print("Utilisation de generateDossardsAImprimer")
     global CoureursParClasse
     retour=[]
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
@@ -1537,7 +1565,11 @@ def generateDossardsAImprimer() :
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
@@ -1550,9 +1582,11 @@ def generateDossardsAImprimer() :
                 retour.append(coureur.dossard)
                 print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 generateQRcode(coureur.dossard)
+        f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
     compilateurComplete = compilateur.replace("@dossier@","dossards")
@@ -1563,13 +1597,18 @@ def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     #global CoureursParClasse
+    print("Utilisation de generateDossard")
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    with open("./modeles/dossard-modele.tex", 'r') as f :
+    if Parametres["CategorieDAge"] :
+        modeleDosssard = "./modeles/dossard-modele.tex"
+    else :
+        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
     ## générer de nouveaux en-têtes.
@@ -1580,7 +1619,8 @@ def generateDossard(coureur) :
         f.write(entete + "\n\n")
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
+            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -1883,8 +1923,9 @@ def groupementAPartirDUneCategorie(categorie):
             if cat == categorie :
                 retour = groupement
                 break
-##    print("categorie cherchée :", categorie)
-##    print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    #print("categorie cherchée :", categorie)
+    #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    #print(categorie, "est dans",retour.affichageInfoTerminal())
     return retour
 
 def nettoieGroupements() :
@@ -2016,8 +2057,10 @@ def compilerDossards(compilateur, chemin, fichierACompiler, nombre) :
     for i in range(nombre) :
         #os.chdir(chemin)
         cmd = compilateur + fichierACompiler
+##        if DEBUG :
+##            cmd = cmd + "& pause"
         #subprocess.Popen(cmd, shell=False)
-        print("Exécution de",cmd)
+        print(cmd)
         syscmd(cmd)
         ##### FONCTIONNEL mais visible :
         #os.system(cmd)
@@ -2533,6 +2576,36 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+        else :
+            print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
+    except :
+        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
+
+def modifyCoureur(dossard, nom, prenom, sexe, classe='', naissance=None, commentaireArrivee="", VMA="0", aImprimer = True):
+    testNaissance = naissanceValide(naissance)
+    try :
+        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
+        vma = float(VMA)
+        if testNaissance :
+            naissanceValid = naissance
+        else :
+            naissanceValid = None
+        if Parametres['CategorieDAge'] :
+            complement = testNaissance
+        else :
+            complement = classe != ""
+        if nom != "" and prenom != "" and complement :
+            Coureurs[dossard-1].setNom(nom)
+            Coureurs[dossard-1].setPrenom(prenom)
+            Coureurs[dossard-1].setSexe(sexe)
+            Coureurs[dossard-1].setAImprimer(aImprimer)
+            Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+##                if commentaireArrivee != "" :
+##                    print("mise à jour commentaire :",commentaireArrivee)
+            Coureurs[dossard-1].setClasse(classe)
+            Coureurs[dossard-1].setVMA(vma)
+            Coureurs[dossard-1].setNaissance(naissanceValid)
+            addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
         else :
             print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
     except :
