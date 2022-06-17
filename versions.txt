@@ -1,10 +1,13 @@
-A tester :
-- class CoureurFrame pour modification d'un coureur.
-Bug à corriger : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement.
+Bugs à corriger : 
+- si en modifiant un coureur, on se retrouve à créer une nouvelle catégorie indirectement, alors le dossard du coureur ne contient aucun groupement.
+Il faudra trouver pourquoi en affichant à de multiples 
+- la génération du pdf aImprimer.pdf non fonctionnelle 
+alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent..
 
 Travail du 16/06/22 :
 - correction d'un bug : @groupement@ n'était pas remplacé dans le fichier tex du dossard généré.
 - correction d'un bug : ajout de coureur non fonctionnel pour les catégories d'âge : le champ 'date de naissance' était affecté à la 'classe' du coureur généré.
+- modification des dossards par défaut en tex pour affichage des groupements au lieu de la catégorie automatique (si les groupements ne sont pas utilisés, la catégorie s'affiche par défaut).
 - création de la classe CoureurFrame, destinée à ajouter un coureur manuellement (fonctionnalité déjà implémentée) puis à modifier un coureur existant (à partir de son numéro de dossard)
 
 

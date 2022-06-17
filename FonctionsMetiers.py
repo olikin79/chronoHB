@@ -18,6 +18,8 @@ import xlsxwriter # pour les exports excels des résultats
 
 from tkinter.messagebox import *
 
+#### DEBUG
+DEBUG = False
 
 version = "1.4"
 
@@ -271,6 +273,11 @@ class Coureur():#persistent.Persistent):
         self.rang = int(rang)
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
+    def setNom(self, valeur) :
+        self.nom = str(valeur)
+    def setPrenom(self, valeur) :
+        self.prenom = str(valeur)
+
 
 class Course():#persistent.Persistent):
     """Une course"""
@@ -679,7 +686,7 @@ if os.name=="posix" :
     compilateur = "/Library/TeX/texbin/pdflatex"
 else :
     sep="\\"
-    compilateur = 'start "" /I /wait /min /D ".\\@dossier@\\tex" ".\\texlive\\2020\\bin\\win32\\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." '#
+    compilateur = 'start "" /I /wait /min /D .\\@dossier@\\tex .\\texlive\\2020\\bin\\win32\\pdflatex.exe -synctex=1 -no-shell-escape -interaction=nonstopmode -output-directory=.. '#
 
     ### commande fonctionnelle mais pas propre car le logo doit se trouver dans la distribution, dans win32
     ## start "" /I /wait /min /D ".\dossards\tex\" ".\texlive\2020\bin\win32\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." "3-F.tex"
@@ -1551,9 +1558,10 @@ def generateDossardsAImprimer() :
                 print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat))
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 generateQRcode(coureur.dossard)
+        f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
     compilateurComplete = compilateur.replace("@dossier@","dossards")
@@ -1582,7 +1590,7 @@ def generateDossard(coureur) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
             .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-            .replace("@groupement@",groupementAPartirDUneCategorie(cat))
+            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -2018,8 +2026,10 @@ def compilerDossards(compilateur, chemin, fichierACompiler, nombre) :
     for i in range(nombre) :
         #os.chdir(chemin)
         cmd = compilateur + fichierACompiler
+##        if DEBUG :
+##            cmd = cmd + "& pause"
         #subprocess.Popen(cmd, shell=False)
-        print("Exécution de",cmd)
+        print(cmd)
         syscmd(cmd)
         ##### FONCTIONNEL mais visible :
         #os.system(cmd)
@@ -2535,6 +2545,36 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+        else :
+            print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
+    except :
+        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
+
+def modifyCoureur(dossard, nom, prenom, sexe, classe='', naissance=None, commentaireArrivee="", VMA="0", aImprimer = True):
+    testNaissance = naissanceValide(naissance)
+    try :
+        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
+        vma = float(VMA)
+        if testNaissance :
+            naissanceValid = naissance
+        else :
+            naissanceValid = None
+        if Parametres['CategorieDAge'] :
+            complement = testNaissance
+        else :
+            complement = classe != ""
+        if nom != "" and prenom != "" and complement :
+            Coureurs[dossard-1].setNom(nom)
+            Coureurs[dossard-1].setPrenom(prenom)
+            Coureurs[dossard-1].setSexe(sexe)
+            Coureurs[dossard-1].setAImprimer(aImprimer)
+            Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+##                if commentaireArrivee != "" :
+##                    print("mise à jour commentaire :",commentaireArrivee)
+            Coureurs[dossard-1].setClasse(classe)
+            Coureurs[dossard-1].setVMA(vma)
+            Coureurs[dossard-1].setNaissance(naissanceValid)
+            addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
         else :
             print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
     except :
