@@ -1,5 +1,12 @@
-Bugs à corriger : 
+Travail du 21/06/22 : 
+- amélioration de stabilité : ajoutArriveeDossard : on ignore l'ajout successif d'un même dossard.
+Lié à des problèmes de communication wifi constatés (parfois) en conditions réelles. Accusé de réception http non reçu par le smartphone qui renvoie l'information une 2ème fois.
+- 
 
+
+Travail du 18/06/22 : 
+- Implémentation de la class Erreur.
+A finir : prise en compte dans le timer de chronoHB.py des erreurs et implémentation de ErreursFrame pour un affichage permettant de modifier l'erreur.
 
 
 Travail du 17/06/22 :

@@ -274,36 +274,31 @@ class MonTableau(Frame):
         else :
             if TableauGUI :
                 print("mise à jour du tableau avec ", TableauGUI)
-                # une liste vide signifie qu'il n'y a rien à actualiser
-                if TableauGUI[0]== "reinit" :
-                    # on doit vider le tableau affiché.
-                    self.reinit()
-                else:
-                    # il y a des lignes à actualiser
-                    ligneInitiale = TableauGUI[0][0]
-                    #ligneAjoutee = ligneTableauGUI[0]
-                    derniereLigneStabilisee = ligneTableauGUI[1]
-                    #print("ligneInitiale :" , ligneInitiale)
-                    items = self.treeview.get_children()
-                    #print(ligneTableauGUI)
-                    for donnee in TableauGUI :
-                        #print("ajout de ", ligne, "")
-                        self.majLigne(ligneInitiale, donnee, items)
-                        ligneInitiale += 1
-                    ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
-                    premiereLigneASupprimer = ligneInitiale
-                    while premiereLigneASupprimer <= len(items) :
-                        # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
-                          # on supprime les derniers éléments de listeDesTemps
-                        item = items[premiereLigneASupprimer - 1]
-                        self.treeview.delete(item)
-                        premiereLigneASupprimer += 1
-                    del self.listeDesTemps[ligneInitiale - 1:]
-                    #nbreFileAttenteLabel.pack()
-                    if self.defilementAuto :
-                                                     
-                        #print("défilement automatique activé. AVANT :", self.vsb.get())
-                        self.treeview.yview_moveto('1.0')
+                # il y a des lignes à actualiser
+                ligneInitiale = TableauGUI[0][0]
+                #ligneAjoutee = ligneTableauGUI[0]
+                derniereLigneStabilisee = ligneTableauGUI[1]
+                #print("ligneInitiale :" , ligneInitiale)
+                items = self.treeview.get_children()
+                #print(ligneTableauGUI)
+                for donnee in TableauGUI :
+                    #print("ajout de ", ligne, "")
+                    self.majLigne(ligneInitiale, donnee, items)
+                    ligneInitiale += 1
+                ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
+                premiereLigneASupprimer = ligneInitiale
+                while premiereLigneASupprimer <= len(items) :
+                    # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
+                      # on supprime les derniers éléments de listeDesTemps
+                    item = items[premiereLigneASupprimer - 1]
+                    self.treeview.delete(item)
+                    premiereLigneASupprimer += 1
+                del self.listeDesTemps[ligneInitiale - 1:]
+                #nbreFileAttenteLabel.pack()
+                if self.defilementAuto :
+                                                 
+                    #print("défilement automatique activé. AVANT :", self.vsb.get())
+                    self.treeview.yview_moveto('1.0')
 
         #print(self.effectif , ligneTableauGUI)
         ### nbFileDAttente =  len(TableauGUI) #self.effectif - ligneTableauGUI[0] + 1
@@ -359,7 +354,7 @@ class MonTableau(Frame):
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        ligneAAjouter = donnee[:1] + [donnee[1].tempsReelFormate(False)] + donnee[2:]
+        ligneAAjouter = donnee[:1] + [donnee[1].tempsReelFormate(False)] + donnee[2:]           
         #print(ligneAAjouter)
         if ligne <= len(items) :
             # mise à jour d'une ligne
@@ -1688,6 +1683,7 @@ class Clock():
         if self.premiereExecution : # si c'est la première exécution, il nous faut un  affichage.
             genereResultatsCoursesEtClasses(self.premiereExecution)
             eval(self.MAJfunction + "(tableauGUI)")
+            self.premiereExecution = False
         ## nouvelle version sans bloquant
         tableau.makeDefilementAuto()
         traitementSmartphone = traiterDonneesSmartphone()
@@ -1719,7 +1715,6 @@ class Clock():
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
         # se relance dans un temps prédéfini.
-        self.premiereExecution = False
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 ##    def enPause(choix) :
 ##        self.enPause = choix

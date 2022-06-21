@@ -1035,8 +1035,8 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                 print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
             i += 1
             retour.append(codeErreur)
-##    else :
-##        #print("Fichier du smartphone déjà traité à cette heure")
+    else :
+        print("Fichier du smartphone déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
 
@@ -2262,7 +2262,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                     coureur.setRang(i+1)
                 else :
                     coureur.setRang(0)
-                print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+                #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
                 i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
@@ -2285,7 +2285,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         # on trie chaque challenge par score.
         for challenge in L :
             Resultats[challenge]=triParScore(Resultats[challenge])
-    
+    # calculeTousLesTemps(premiereExecution)
     #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
                 
@@ -2653,12 +2653,16 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     coureur = Coureurs[doss-1]
     infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
     if doss in ArriveeDossards :
-        message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
-        print(message)
-        return Erreur(401,message)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
-                #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
-                # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
-                # return message
+        if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
+            print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
+            return Erreur(0)
+        else :
+            message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+            print(message)
+            return Erreur(401,message)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+                    #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
+                    # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
+                    # return message
     elif doss > len(Coureurs) or doss < 1 :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
@@ -2721,6 +2725,7 @@ def calculeTousLesTemps(reinitialise = False):
     """ associe un temps à chaque dossard ayant passé la ligne d'arrivée permet les décalages positifs et négatifs.
     Si l'argument est True, recalcule tout depuis le début.
     Retourne une liste d'instances de la class Erreur pour traitement par l'interface GUI."""
+    #print("Début de CalculeTousLesTemps()")
     global ligneTableauGUI,TableauGUI
     retour = []
     reinitTableauGUI()
@@ -2739,6 +2744,7 @@ def calculeTousLesTemps(reinitialise = False):
     #print("len(ArriveeDossards)",len(ArriveeDossards), "len(ArriveeTemps)",len(ArriveeTemps))
     while j < len(ArriveeDossards) and i < len(ArriveeTemps): # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
         doss = ArriveeDossards[j]
+        #print(ligneTableauGUI,"dossard", doss, reinitialise)
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i]
@@ -2782,7 +2788,8 @@ def calculeTousLesTemps(reinitialise = False):
         ligneAjoutee += 1
     # à partir de cet indice, il faut actualiser systématiquement le tableau de l'interface GUI
     #print("derniere ligne stabilisée", ligneAjoutee - 1)
-    ligneTableauGUI[1] = ligneAjoutee - 1
+    derniereLigneStabilisee = ligneAjoutee - 1
+    #print("derniereLigneStabilisee",derniereLigneStabilisee)
     # Cas classique où des coureurs sont dans la file d'attente pour être scannés.
     if j == len(ArriveeDossards) :
         k = i
@@ -2814,12 +2821,13 @@ def calculeTousLesTemps(reinitialise = False):
             retour.append(affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee))
             ligneAjoutee += 1
             k += 1
-    ligneTableauGUI[0] = ligneTableauGUI[1] + 1
+    ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
+    #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
         #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
-        Parametres["positionDansArriveeTemps"] = i
-        Parametres["positionDansArriveeDossards"] = j
+    Parametres["positionDansArriveeTemps"] = i
+    Parametres["positionDansArriveeDossards"] = j
     ##transaction.commit()
     #if reinitialise :
         #retour = "<p>RECALCUL DE TOUS LES TEMPS :</p>\n" + retour
@@ -2952,7 +2960,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             else :
                 alimenteTableauGUI (tableauGUI, coureur, tps , dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
                 #DonneesAAfficher.append(coureur,tps, dossardAffecteAuTps)
-            #print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss)
+            print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
             message = "On affecte le temps " + str(arrivee) + " - " + str(depart) + " = " + formateTemps(coureur.temps) + " au coureur " + str(doss)+"."
             print(message)
     else :
@@ -2962,7 +2970,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         #alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
         message = "La course " + cat+ " n'est pas partie. Le coureur "+ coureur.nom+ " n'est pas censé avoir franchi la ligne."
         print(message)
-        retour.append(431,message)
+        retour.append(Erreur(431,message))
     return retour
 
 def reindexDossards(numeroInitial) :
@@ -3005,9 +3013,9 @@ def delArriveeDossard(dossard):
         except :
             message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
             print(message)
-            retour = Erreur(441, message)
+            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
 ##            PasDErreur = True
-    return retour # la suppression d'un dossard dans une interface constitue une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur . retour
+    return retour 
 
 def delArriveeDossards():
 ##    if not Parametres["CourseCommencee"] :

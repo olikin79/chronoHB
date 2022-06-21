@@ -22,6 +22,7 @@ Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface pu
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
 
+
 NON PRIORITAIRES :
 - si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
