@@ -119,11 +119,27 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
 
 class Erreur():
     """ Une erreur de chronoHB"""
-    def __init__(self, numero, courteDescription=""):
+    def __init__(self, numero, courteDescription="", elementConcerne=""):
         self.numero = numero
         self.courteDescription = courteDescription
-        
+        if isinstance(elementConcerne,int) : # c'est un dossard.
+            self.dossard = elementConcerne
+            self.temps = 0.0
+        elif isinstance(elementConcerne,float) : # c'est un temps.
+            self.dossard = 0
+            self.temps = elementConcerne    
+        else :
+            self.dossard = 0
+            self.temps = 0.0
 
+class ErreursATraiter():
+    """ Contient la liste des erreurs à traiter et des méthodes permettant de constater la "résolution" des erreurs précédemment constatées"""
+    def __init__(self):
+        self.vider()
+    def add(self, err):
+        self.liste.append(err)
+    def vider(self) :
+        self.liste = []
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
 def naissanceValide(naissance) :
@@ -3013,7 +3029,7 @@ def delArriveeDossard(dossard):
         except :
             message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
             print(message)
-            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
+            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. La class ErreurATraiter doit en tenir compte.
 ##            PasDErreur = True
     return retour 
 

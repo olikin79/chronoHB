@@ -24,7 +24,7 @@ alors que le .tex est généré correctement et que les autres compilations de d
 
 
 NON PRIORITAIRES :
-- si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
+- dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
 
 - dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps),
@@ -57,14 +57,13 @@ le smartphone pourrait mémoriser les diverses sauvegardes successives avec un n
 	L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable. Utile ? car bloquant en cas de panne temporaire du serveur.
 	Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
 - dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
-	(et Coureurs ? Normalement inutile car devrait être regénéré à la volée au démarrage du logiciel : ce serait mieux)
+	(et Coureurs ? Normalement inutile car il devra être regénéré à la volée au démarrage du logiciel : ce serait mieux => A faire en une ligne au démarrage)
 	
 
 MOYENNEMENT PRIORITAIRE :
 - Faire en sorte que l'on puisse affecter un dossard à un temps (que cela fonctionne toujours) et que l'Entry apparaisse au bon endroit. 
 Faire des tests avec une très grande série de données comme celle du cross pour recalculer la fonction affine qui va bien (trop arrondi actuellement).
 - mettre à jour la documentation avec les nouveautés de 2021-2022 + documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
-- empêcher de changer la dénomination des groupements quand la course est lancée. L'interface d'affichage du chrono des courses plante car basée sur le nom modifié initial.
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 

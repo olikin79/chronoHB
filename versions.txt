@@ -1,3 +1,8 @@
+Travail du 22/06/22 :
+- on empêche de changer la structure et la dénomination des groupements quand la course est lancée. 
+L'interface d'affichage du chrono des courses plantait car basée sur le nom modifié et non celui initial. Testé et foncitonnel.
+
+
 Travail du 21/06/22 : 
 - amélioration de stabilité : ajoutArriveeDossard : on ignore l'ajout successif d'un même dossard.
 Lié à des problèmes de communication wifi constatés (parfois) en conditions réelles. Accusé de réception http non reçu par le smartphone qui renvoie l'information une 2ème fois.
