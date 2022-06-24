@@ -3388,8 +3388,10 @@ def genereEnTetesHTML(groupement, chrono=False) :
             tableau += '</tr></thead> </table>'
         else :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-            tableau += '<thead> <tr><th class="rang"> Rang</th> <th class="nomprenom">NOM Prénom </th> <th class="classe">Classe</th>'
-            tableau += '<th class="chrono">Temps</th><th class="vitesse">Vitesse</th> </tr></thead> </table>'
+            tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
+            if not CategorieDAge :
+                tableau += '<th class="classe">Classe</th>'
+            tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
     else :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
         tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead> </table>'
@@ -3607,8 +3609,10 @@ def listeNPremiers(listeCoureurs):
 
 def genereLigneTableauHTML(dossard) :
     coureur = Coureurs[dossard - 1]
-    ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom +"</td><td class='classe'>"+coureur.classe
-    ligne += "</td><td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
+    ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom +"</td>"
+    if not CategorieDAge :
+        ligne += "<td class='classe'>"+coureur.classe + "</td>"
+    ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
     return ligne
 
 

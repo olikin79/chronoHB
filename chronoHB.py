@@ -1199,10 +1199,12 @@ class departDialog:
         tempsDialog = self.myEntryBox.get()
         fixerDepart(self.groupement.nom,tempsDialog)
         self.top.destroy()
+        regenereAffichageGUI()
 
     def restaure(self):
         self.myEntryBox.delete(0, END)
         self.myEntryBox.insert(0, Courses[self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
+        regenereAffichageGUI()
         
     def annul(self):
         self.top.destroy()
@@ -1865,12 +1867,13 @@ timer=Clock(root, "tableau.maj")
 
 
 def regenereAffichageGUI() :
-    Parametres["calculateAll"] = True
-    traiterDonneesLocales()
-    genereResultatsCoursesEtClasses(True)
-    #print(tableauGUI)
-    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
-    tableau.maj(tableauGUI)
+    rejouerToutesLesActionsMemorisees()
+##    Parametres["calculateAll"] = True
+##    traiterDonneesLocales()
+##    genereResultatsCoursesEtClasses(True)
+##    #print(tableauGUI)
+##    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
+##    tableau.maj(tableauGUI)
 
 
 

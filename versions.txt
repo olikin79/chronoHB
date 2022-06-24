@@ -1,8 +1,11 @@
 
-Travail du 23/06/22 :
-- le menu annule départ actualise l'affichage des groupements et la possibilité ou l'impossibilité de modifier la dénomination d'un groupement.
-- construction de l'interface d'affichage des erreurs. De nombreuses modifications dans le traitement des erreurs à tous les niveaux,
+Travail du 24/06/22 :
+- Implémentation de l'interface d'affichage des erreurs. De nombreuses modifications dans le traitement des erreurs à tous les niveaux,
 afin de poursuivre le traitement des fonctions métiers, même en cas d'erreur.
+Corrections de bugs :
+- si on change l'horaire de départ d'une course, on relance regenereAffichageGUI() pour actualiser l'affichage.
+- dans l'affichage en mode catégories d'âge = True, la colonne avec la classe devrait être supprimée.
+- le menu annule départ actualise l'affichage des groupements et la possibilité ou l'impossibilité de modifier la dénomination d'un groupement.
 
 
 Travail du 22/06/22 :
