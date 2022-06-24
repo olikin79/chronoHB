@@ -1,30 +1,29 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-1. quand une erreur s'affiche "un dossard déjà ajouté par un autre smartphone", etc... La boite de dialogue peut apparaître plusieurs fois.
-  le bug est dans l'action du timer... Ce bug devrait disparaitre avec la nouvelle gestion des erreurs non bloquantes, prévue en développement.
-  
-2. gérer le bug où un coureur passerait la ligne avec son dossard, avant d'être parti. 
-Pour l'instant, c'est plutôt mal géré mais on peut forcer le blocage (voir la documentation).
-L'idéal serait :
-	a) de ne pas ajouter la ligne add dossard dans le fichier txt des données du téléphone.
-	b) d'avoir un retour de l'erreur côté smartphone => supprimer le dossard de la liste d'arrivée sur le téléphone pour données cohérentes
-QUID si on annule un départ. On peut alors se retrouver dans ce cas là également. 
-Il faut donc signaler, alerter mais permettre depuis l'interface d'ignorer ce type d'erreur.
-
-3. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
+1. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
+MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
 Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
 
-4. le rang ne s'ajoute plus dans le tableau affiché au fur et à mesure des remontées du smartphone, sauf en cas de redémarrage de l'application serveur.
+2. le rang ne s'ajoute plus dans le tableau affiché au fur et à mesure des remontées du smartphone, sauf en cas de redémarrage de l'application serveur.
+
+3. la génération du pdf aImprimer.pdf non fonctionnelle 
+alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
 
 
 NON PRIORITAIRES :
-- si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
+- dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
 
 - dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps),
    alors le script plante : à blinder !
+
+- dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
+mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
+Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé
+
+
 
 
 
@@ -35,14 +34,11 @@ A TESTER :
 Dans le cas contraire, un champ Entry sera peut-être nécessaire.
 
 
+
+
+
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- faire en sorte que les erreurs soient affichées (pas dur) mais pas bloquantes. 
-	Qu'elles disparaissent de l'affichage quand elles ont été solutionnées... 
-	(difficile : nomenclature des erreurs à écrire / tests de bonne résolution à écrire)
-	Un bouton pourrait apparaître à côté : tester la bonne résolution et avertir que ce n'est pas le cas : 
-	proposer d'ignorer ou de conserver l'erreur à l'affichage. => le timer ne serait plus jamais en pause.
-
 - permettre l'export et l'import d'une base de données. Quid de la sauvegarde et du réimport des donneesSmartphones.txt (cohérence finale?):
 le smartphone pourrait mémoriser les diverses sauvegardes successives avec un numéro de course (requête HTTP sur le serveur) : 
 	* propose une liste vide si nouvelle course.
@@ -50,15 +46,15 @@ le smartphone pourrait mémoriser les diverses sauvegardes successives avec un n
 	Tout en automatique 
 	L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable. Utile ? car bloquant en cas de panne temporaire du serveur.
 	Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
+	
 - dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
-	(et Coureurs ? Normalement inutile car devrait être regénéré à la volée au démarrage du logiciel : ce serait mieux)
+	(et Coureurs ? Normalement inutile car il devra être regénéré à la volée au démarrage du logiciel : ce serait mieux => A faire en une ligne au démarrage)
 	
 
 MOYENNEMENT PRIORITAIRE :
 - Faire en sorte que l'on puisse affecter un dossard à un temps (que cela fonctionne toujours) et que l'Entry apparaisse au bon endroit. 
 Faire des tests avec une très grande série de données comme celle du cross pour recalculer la fonction affine qui va bien (trop arrondi actuellement).
 - mettre à jour la documentation avec les nouveautés de 2021-2022 + documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
-- empêcher de changer la dénomination des groupements quand la course est lancée. L'interface d'affichage du chrono des courses plante car basée sur le nom modifié initial.
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 
@@ -83,9 +79,7 @@ d'imprimer les dossards par groupements, catégories, classes avec des cases à 
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
 - import depuis un fichier xlsx à implémenter en plus du CSV (priorité faible)
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
-- départager le challenge avec une règle claire (actuellement, les ex-aequos ne sont pas gérés) : la règle en UNSS est de prendre les positions 
-(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo. 
-Cela devra se faire dans la fonction triParScore()
+
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
 - anonymer la documentation en faisant un import SIECLE avec des noms bidons et de nouvelles captures d'écrans.
 - Créer un système évitant des incohérences entre les smartphones et la base locale : 
