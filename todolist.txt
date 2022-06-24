@@ -10,6 +10,8 @@ Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface pu
 3. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
+4. Lorsque l'on affecte un dossard à un temps dans l'interface, cela ne s'actualise plus... sauf à relancer tout le processus de calcul.
+
 
 
 NON PRIORITAIRES :
@@ -33,12 +35,18 @@ A TESTER :
 - vérifier si un ascenceur existe dans la combobox de modification d'un coureur quand il y en a beaucoup.
 Dans le cas contraire, un champ Entry sera peut-être nécessaire.
 
-
+- est ce que Coureurs.txt est regénéré à chaque démarrage par rapport à la base de données
+ A faire si ce n'est pas le cas (pour que les sauvegardes et récupérations soient niquels)
 
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
+- mettre l'heure exacte à la seconde de l'ordinateur quelque part sur l'interface. 
+L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 
+par l'opérateur sur le premier smartphone. Cela décharge ce dernier qui va voir arriver plein de coureurs et n'a souvent pas le temps
+d'effectuer l'association du premier coureur d'une course avec son temps.
+
 - permettre l'export et l'import d'une base de données. Quid de la sauvegarde et du réimport des donneesSmartphones.txt (cohérence finale?):
 le smartphone pourrait mémoriser les diverses sauvegardes successives avec un numéro de course (requête HTTP sur le serveur) : 
 	* propose une liste vide si nouvelle course.
@@ -47,8 +55,23 @@ le smartphone pourrait mémoriser les diverses sauvegardes successives avec un n
 	L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable. Utile ? car bloquant en cas de panne temporaire du serveur.
 	Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
 	
-- dans la sauvegarde, ajouter les deux fichiers donneesSmartphones et donneesLocales.txt 
-	(et Coureurs ? Normalement inutile car il devra être regénéré à la volée au démarrage du logiciel : ce serait mieux => A faire en une ligne au démarrage)
+- prévoir une procédure en cas de plantage au démarrage try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
+Traceback (most recent call last):
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1866, in <module>
+    timer=Clock(root, "tableau.maj")
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1765, in __init__
+    self.update_clock()
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1776, in update_clock
+    traitementLocal = traiterDonneesLocales()
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1162, in traiterDonneesLocales
+    codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1231, in decodeActionsRecupSmartphone
+    retour = addArriveeDossard(dossard, dossardPrecedent)
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 2747, in addArriveeDossard
+    coureur = Coureurs[doss-1]
+IndexError: list index out of range
+
+Devrait lancer recupererSauvegardeGUI() en cas de plantage.
 	
 
 MOYENNEMENT PRIORITAIRE :

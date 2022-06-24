@@ -57,16 +57,16 @@ import pickle
 #import chronoHBClasses
 
 # récupère les données de sauvegarde de à la carte en tant que variables globales pour être utilisées par les autres fonctions.
-def lire_sauvegarde(sauvegarde) :
-    if os.path.exists(sauvegarde+".db") :
-        #d = 
-        retour = pickle.load(open(sauvegarde+".db","rb"))
-        #d = shelve.open(sauvegarde)
-        #retour = d['root']
-        d.close()
-    else :
-        retour = {}
-    return retour
+##def lire_sauvegarde(sauvegarde) :
+##    if os.path.exists(sauvegarde+".db") :
+##        #d = 
+##        retour = pickle.load(open(sauvegarde+".db","rb"))
+##        #d = shelve.open(sauvegarde)
+##        #retour = d['root']
+##        d.close()
+##    else :
+##        retour = {}
+##    return retour
 
 def creerDir(path) :
     retour = True
@@ -99,10 +99,17 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
         else :
             destination = "db"
         if destination != "" and creerDir(destination) :
-            nomFichierCopie = destination + os.sep + sauvegarde+"_"+ time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()) + commentaire + ".db"
+            date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            nomFichierCopie = destination + os.sep + sauvegarde+"-"+ date + commentaire + ".db"
+            nomFichierCopie = nomFichierCopie.replace("_","-") # protection contre le bug de os.path.basename qui gère mal les _
             if not os.path.exists(nomFichierCopie) :
-                shutil.copy2(sauvegarde+".db",  nomFichierCopie)
+                if os.path.exists(sauvegarde+".db") :
+                    shutil.copy2(sauvegarde+".db",  nomFichierCopie)
                 print("La sauvegarde", nomFichierCopie, "est créée.")
+                if os.path.exists("donneesModifLocale.txt"):
+                    shutil.copy2("donneesModifLocale.txt", destination + os.sep + sauvegarde +"-"+ date + commentaire + "_ML.txt")
+                if os.path.exists("donneesSmartphone.txt"):
+                    shutil.copy2("donneesSmartphone.txt", destination + os.sep + sauvegarde +"-"+ date + commentaire + "_DS.txt")
             else :
                 print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
         elif destination != "" :
@@ -116,6 +123,70 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
 ##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
         return nomFichierCopie
 
+
+# enregistre les données de sauvegarde 
+# récupère les données de sauvegarde 
+def recupere_sauvegarde(sauvegardeChoisie) :
+    global sauvegarde
+    #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
+    #rep = os.path.dirname(sauvegardeChoisie)
+    #fichierDonnees = sauvegardeChoisie
+    #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
+    fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+    fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+    tousPresents = True
+    ### tester si les trois fichiers existent.
+    for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
+        if not os.path.exists(fichier) :
+            tousPresents = False
+            break
+    ### avertir sinon
+    if not tousPresents :
+        message = "Le fichier", fichier,"est absent. La sauvegarde est incomplète. Import annulé."
+        print(message)
+        showinfo("ERREUR",message)
+    else :
+        ### sauvegarder les données actuelles de façon automatique avec ecrire_sauvegarde(...)
+        ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees",surCle=False)
+        ### copier les trois fichiers : celui db à la place de l'ancien + 2 fichiers textes finissant par ML et DS
+        shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
+        shutil.copy2(fichierML, "donneesModifLocale.txt")
+        shutil.copy2(fichierDS, "donneesSmartphone.txt")
+        ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
+        chargerDonnees()
+        ### voir comment actualiser l'interface
+        actualiseToutLAffichage()
+    
+##    d = open(sauvegarde+".db","wb")
+##    pickle.dump(root, d)
+##    #d['root'] = root
+##    d.close()
+##    if os.path.exists(sauvegarde+".db") :
+##        if surCle :
+##            # ajout d'une sauvegarde sur clé très régulière
+##            destination = Parametres["cheminSauvegardeUSB"]
+##        else :
+##            destination = "db"
+##        if destination != "" and creerDir(destination) :
+##            date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+##            nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire + ".db"
+##            if not os.path.exists(nomFichierCopie) :
+##                shutil.copy2(sauvegarde+".db",  nomFichierCopie)
+##                print("La sauvegarde", nomFichierCopie, "est créée.")
+##                os.path.copy("donneesModifLocale.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_ML.txt")
+##                os.path.copy("donneesSmartphone.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
+##            else :
+##                print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
+##        elif destination != "" :
+##            print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
+##            nomFichierCopie = "Pas de SAUVEGARDE CREE : chemin spécifié incorrect : " +destination
+##        else :
+##            nomFichierCopie = "Pas de SAUVEGARDE CREE : paramètre spécifié vide"
+####        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
+####            noSauvegarde += 1
+####        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
+####        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
+##        return nomFichierCopie
 
 class Erreur():
     """ Une erreur de chronoHB"""
@@ -630,11 +701,11 @@ class EquipeClasse():
 
 
 # setup the database
-if True :# __name__=="__main__":
-    #storage=FileStorage("Course.fs")
-    #db=DB(storage)
-    #connection=db.open()
-    #root=connection.root()
+def chargerDonnees() :
+    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
+           tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
+           CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
+           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -728,6 +799,7 @@ if True :# __name__=="__main__":
     tempsPause=Parametres["tempsPause"]
     ##transaction.commit()
 
+chargerDonnees()
 
 if os.name=="posix" :
     sep="/"
@@ -2675,59 +2747,62 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         Retourne 0 s'il n'y a pas d'erreur."""
     doss = int(dossard)
     dossPrecedent = int(dossardPrecedent)
-    coureur = Coureurs[doss-1]
-    infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
-    if doss in ArriveeDossards :
-        if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
-            print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
-            return Erreur(0,elementConcerne=doss)
-        else :
-            message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+    try :
+        coureur = Coureurs[doss-1]
+        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+        if doss in ArriveeDossards :
+            if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
+                print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
+                return Erreur(0,elementConcerne=doss)
+            else :
+                message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+                print(message)
+                return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+                        #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
+                        # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
+                        # return message
+        elif doss > len(Coureurs) or doss < 1 :
+            message = "Numéro de dossard incorrect :\n"  + infos
             print(message)
-            return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
-                    #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
-                    # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
-                    # return message
-    elif doss > len(Coureurs) or doss < 1 :
-        message = "Numéro de dossard incorrect :\n"  + infos
-        print(message)
-        return Erreur(411,message,elementConcerne=doss)
-    elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
-        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
-        print(message)
-        return Erreur(421,message,elementConcerne=doss)
-    elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
-        message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
-        print(message)
-        return Erreur(431,message,elementConcerne=doss)
-    else :
-        if dossPrecedent == -1 : # ajoute à la suite
-            #position = len(ArriveeDossards)
-            ArriveeDossards.append(doss)
-            #print("Dossard arrivé :",doss)
-            return Erreur(0)
-        elif dossPrecedent == 0 : # insère au début de liste
-            #print("insertion en début de liste d'arrivée")
-            #position = 0
-            ArriveeDossards.insert(0 , doss)
-            Parametres["calculateAll"] = True
-            #DonneesAAfficher.reinit() # on regénère le tableau GUI
-            return Erreur(0)
+            return Erreur(411,message,elementConcerne=doss)
+        elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
+            message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
+            print(message)
+            return Erreur(421,message,elementConcerne=doss)
+        elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
+            message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+            print(message)
+            return Erreur(431,message,elementConcerne=doss)
         else :
-            # insère juste après le dossard dossardPrecedent , si on le trouve.
-            try :
-                n = ArriveeDossards.index(dossPrecedent)
-                #position = n+1
-                ArriveeDossards.insert(n+1 , doss)
+            if dossPrecedent == -1 : # ajoute à la suite
+                #position = len(ArriveeDossards)
+                ArriveeDossards.append(doss)
+                #print("Dossard arrivé :",doss)
+                return Erreur(0)
+            elif dossPrecedent == 0 : # insère au début de liste
+                #print("insertion en début de liste d'arrivée")
+                #position = 0
+                ArriveeDossards.insert(0 , doss)
                 Parametres["calculateAll"] = True
                 #DonneesAAfficher.reinit() # on regénère le tableau GUI
                 return Erreur(0)
-            except ValueError :
-                message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
-                print(message)
-                return Erreur(499,message)
-    ##transaction.commit()
-        #calculeTousLesTemps(True)
+            else :
+                # insère juste après le dossard dossardPrecedent , si on le trouve.
+                try :
+                    n = ArriveeDossards.index(dossPrecedent)
+                    #position = n+1
+                    ArriveeDossards.insert(n+1 , doss)
+                    Parametres["calculateAll"] = True
+                    #DonneesAAfficher.reinit() # on regénère le tableau GUI
+                    return Erreur(0)
+                except ValueError :
+                    message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
+                    print(message)
+                    return Erreur(499,message)
+        ##transaction.commit()
+            #calculeTousLesTemps(True)
+    except :
+        recupererSauvegardeGUI()
 
 def imprimePDF(pdf_file_name) :
     if os.path.exists(pdf_file_name) :

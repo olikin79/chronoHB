@@ -259,7 +259,7 @@ class MonTableau(Frame):
         print(self.treeview.get_children(), len(x))
         if ligne < len(x) :
             ToDeleteList = x[ligne - 1 : ]
-            print(ToDeleteList)
+            #print(ToDeleteList)
             for item in ToDeleteList:
                 print("suppression de ", item)
                 self.treeview.delete(item)
@@ -269,7 +269,7 @@ class MonTableau(Frame):
     def maj (self, TableauGUI) :
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
-            print("Il n'y a aucun temps à afficher")
+            #print("Il n'y a aucun temps à afficher")
             self.reinit()
         else :
             if TableauGUI :
@@ -2293,6 +2293,19 @@ def imprimerDossardsNonImprimes() :
     else :
         print("Aucun dossard à imprimer pour l'instant.")
 
+def recupererSauvegardeGUI() :
+    CURRENT_DIRECTORY = os.getcwd()
+    options = {
+                'initialdir': CURRENT_DIRECTORY,
+                'title': 'Choisir la sauvegarde à récupérer',
+                'filetypes': (("Sauvegarde chronoHB","*.db"),)
+              }
+ 
+    name_file = askopenfilename(**options)
+    #print("Sauvegarde choisie :",name_file)
+    recupere_sauvegarde(name_file)
+    
+
 # create a pulldown menu, and add it to the menu bar
 filemenu = Menu(menubar, tearoff=0)
 
@@ -2300,6 +2313,9 @@ resetmenu = Menu(menubar, tearoff=0)
 # menu reset
 resetmenu.add_command(label="Effacer toutes les données (coureurs et données de courses)", command=effaceDonneesGUI)
 resetmenu.add_command(label="Effacer les données de courses mais pas les coureurs (noms, dossards,...)", command=effaceDonneesCoursesGUI)
+resetmenu.add_separator()
+resetmenu.add_command(label="Récupérer une sauvegarde", command=recupererSauvegardeGUI)
+resetmenu.add_separator()
 resetmenu.add_command(label="Quitter", command=root.quit)
 menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
