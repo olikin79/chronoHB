@@ -121,7 +121,7 @@ class Erreur():
     """ Une erreur de chronoHB"""
     def __init__(self, numero, courteDescription="", elementConcerne=""):
         self.numero = numero
-        self.courteDescription = courteDescription
+        self.description = courteDescription
         if isinstance(elementConcerne,int) : # c'est un dossard.
             self.dossard = elementConcerne
             self.temps = 0.0
@@ -137,9 +137,14 @@ class ErreursATraiter():
     def __init__(self):
         self.vider()
     def add(self, err):
+        self.controledesErreursPrecedentes(self, err)
         self.liste.append(err)
     def vider(self) :
         self.liste = []
+    def controledesErreursPrecedentes(self) :
+        # on peut contrôler que l'erreur nouvelle ne corrige pas une erreur précédente selon les cas repérés en conditions réelles
+        # Exemple : pas sûr que cela soit utile. A voir
+        True
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
 def naissanceValide(naissance) :
@@ -1002,8 +1007,8 @@ coureurVide = Coureur("", "", "", "", "")
 
 ### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on reinitialise la course.
 def traiterToutesDonnees():
-    traiterDonneesSmartphone(True, True)
-    traiterDonneesLocales(True,True)
+    traiterDonneesSmartphone(True, False)
+    traiterDonneesLocales(True,False)
     
 def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
     """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
@@ -1033,26 +1038,28 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                 codeErreur = decodeActionsRecupSmartphone(ligne)
                 if codeErreur.numero :
                     # une erreur s'est produite
-                    print("Code erreur : ", codeErreur.numero)
+                    print("Code erreur :", codeErreur.numero)
                     print(ligne)
-                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
-                        print("Erreur ignorée")
-                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
-                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
+##                        print("Erreur ignorée")
+##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
+##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
                     #else :
                         #pasDErreur = False
-                else :
+##                else :
                     print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
-                    Parametres["ligneDerniereRecuperationSmartphone"] += 1
-                    Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
+                ### désormais, même s'il y a une erreur, on poursuit les imports.
+                Parametres["ligneDerniereRecuperationSmartphone"] += 1
+                Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
                     ##transaction.commit()
             else :
                 #pasDErreur = False
                 print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
             i += 1
             retour.append(codeErreur)
-    else :
-        print("Fichier du smartphone déjà traité à cette heure")
+        #print("Erreurs retournées :",retour)
+    #else :
+    #    print("Fichier du smartphone déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
 
@@ -1088,16 +1095,17 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
                     # une erreur s'est produite
                     print("Code erreur : ", codeErreur.numero)
                     print(ligne)
-                    if ignorerErreurs or Parametres["ligneDerniereRecuperationLocale"] in LignesIgnoreesLocal :
-                        print("Erreur ignorée")
-                        Parametres["ligneDerniereRecuperationLocale"] += 1
-                        Parametres["tempsDerniereRecuperationLocale"] = time.time()
+##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationLocale"] in LignesIgnoreesLocal :
+##                        print("Erreur ignorée")
+##                        Parametres["ligneDerniereRecuperationLocale"] += 1
+##                        Parametres["tempsDerniereRecuperationLocale"] = time.time()
                     #else :
                      #   pasDErreur = False
                 else :
                     print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
-                    Parametres["ligneDerniereRecuperationLocale"] += 1
-                    Parametres["tempsDerniereRecuperationLocale"] = time.time() 
+                # même si une erreur se produit, désormais, on poursuit les imports.
+                Parametres["ligneDerniereRecuperationLocale"] += 1
+                Parametres["tempsDerniereRecuperationLocale"] = time.time() 
                     ##transaction.commit()
             else :
                 #pasDErreur = False
@@ -2225,7 +2233,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     """ procédure mettant à jour le dictionnaire Résultats et le rang de chaque coureur dans sa course"""
     global tableauGUI
     #Tdebut = time.time()
-    calculeTousLesTemps(premiereExecution)
+    retour = calculeTousLesTemps(premiereExecution)
     Resultats.clear()
     listeDesClasses = []
     # ajout des coureurs ayant terminé la course dans le bon ordre.
@@ -2304,6 +2312,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     # calculeTousLesTemps(premiereExecution)
     #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
+    return retour
                 
 def estUneCourseOuUnGroupement(nom):
     if nom in Courses :
@@ -2671,26 +2680,26 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     if doss in ArriveeDossards :
         if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
             print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
-            return Erreur(0)
+            return Erreur(0,elementConcerne=doss)
         else :
             message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
             print(message)
-            return Erreur(401,message)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+            return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
                     # return message
     elif doss > len(Coureurs) or doss < 1 :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
-        return Erreur(411,message)
+        return Erreur(411,message,elementConcerne=doss)
     elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
         message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
         print(message)
-        return Erreur(421,message)
+        return Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
         message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
-        return Erreur(431,message)
+        return Erreur(431,message,elementConcerne=doss)
     else :
         if dossPrecedent == -1 : # ajoute à la suite
             #position = len(ArriveeDossards)
@@ -2769,7 +2778,7 @@ def calculeTousLesTemps(reinitialise = False):
             if dossardAffecteAuTps == doss :
                 # tout est désormais bien calé entre les deux listes aux indices i et j qui se correspondent à ce stade.
                 #print("Le dossard", doss, "est affecté manuellement au temps indice n°", i, ". TempsCoureur=",tps.tempsCoureur, ", TempsReelCalculé=",tps.tempsReel)
-                retour.append(affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee))
+                retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
                 i += 1
                 j += 1
             else :
@@ -2777,7 +2786,7 @@ def calculeTousLesTemps(reinitialise = False):
                 tps = ArriveeTemps[i-1]
                 dossardAffecteAuTps = ArriveeTempsAffectes[i-1]
                 # retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps,ligneAjoutee, derniereLigneStabilisee, True)
-                retour.append(affecteChronoAUnCoureur(doss, tps, '-',ligneAjoutee, derniereLigneStabilisee, True))
+                retour += affecteChronoAUnCoureur(doss, tps, '-',ligneAjoutee, derniereLigneStabilisee, True)
                 #retour += "<p><red>Il manque un chrono juste avant le dossard " + str(dossardAffecteAuTps) + ". Le dossard " + str(doss) + " se voit affecté le temps de son prédécesseur.</red></p>\n"
                 j += 1
         else :
@@ -2798,7 +2807,7 @@ def calculeTousLesTemps(reinitialise = False):
                 #retour += affecteChronoAUnCoureur(doss, tps)
             else :
                 # pas d'affectation manuelle (cas le plus courant). On poursuit l'affectation dossard <=> temps aux rangs i et j des deux listes.
-                retour.append(affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee))
+                retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
                 i+=1
                 j+=1
         ligneAjoutee += 1
@@ -2834,7 +2843,7 @@ def calculeTousLesTemps(reinitialise = False):
                 dossardAffecteAuTps = ArriveeTempsAffectes[i-1]
             else :
                 dossardAffecteAuTps = 0
-            retour.append(affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee))
+            retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
             ligneAjoutee += 1
             k += 1
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
@@ -2978,7 +2987,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
                 #DonneesAAfficher.append(coureur,tps, dossardAffecteAuTps)
             print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
             message = "On affecte le temps " + str(arrivee) + " - " + str(depart) + " = " + formateTemps(coureur.temps) + " au coureur " + str(doss)+"."
-            print(message)
+            #print(message)
     else :
         coureur.setTemps(0)
         print("La course ", cat, "n'est pas partie. Le coureur ", coureur.nom, " n'est pas censé avoir franchi la ligne")
@@ -3029,7 +3038,7 @@ def delArriveeDossard(dossard):
         except :
             message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
             print(message)
-            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. La class ErreurATraiter doit en tenir compte.
+            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
 ##            PasDErreur = True
     return retour 
 
@@ -3770,21 +3779,7 @@ def supprLF(ch) :
     # selon la dernière colonne du csv importée, choisie par l'utilisateur, on peut potentiellement avoir un LF dans n'importe quel champ.
     return ch.replace("\n","")
 
-def rejouerToutesLesActionsMemorisees() :
-    print("On supprime tous les temps, tous les dossards arrivés.")
-    print("On conserve le listing coureurs, le top départ de chaque course.")
-    Parametres["positionDansArriveeTemps"] = 0
-    Parametres["positionDansArriveeDossards"] = 0
-    Parametres["tempsDerniereRecuperationSmartphone"]=0
-    Parametres["ligneDerniereRecuperationSmartphone"]=1
-    Parametres["tempsDerniereRecuperationLocale"]=0
-    Parametres["ligneDerniereRecuperationLocale"]=1
-    delArriveeDossards()
-    delArriveeTempss()
-    ligneTableauGUI = [1,0]
-    print("On retraite tous les fichiers de données")
-    traiterDonneesSmartphone(True, True)
-    traiterDonneesLocales(True,True)
+ 
 
 
 if __name__=="__main__":

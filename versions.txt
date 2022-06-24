@@ -1,3 +1,10 @@
+
+Travail du 23/06/22 :
+- le menu annule départ actualise l'affichage des groupements et la possibilité ou l'impossibilité de modifier la dénomination d'un groupement.
+- construction de l'interface d'affichage des erreurs. De nombreuses modifications dans le traitement des erreurs à tous les niveaux,
+afin de poursuivre le traitement des fonctions métiers, même en cas d'erreur.
+
+
 Travail du 22/06/22 :
 - on empêche de changer la structure et la dénomination des groupements quand la course est lancée. 
 L'interface d'affichage du chrono des courses plantait car basée sur le nom modifié et non celui initial. Testé et foncitonnel.

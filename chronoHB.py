@@ -273,7 +273,7 @@ class MonTableau(Frame):
             self.reinit()
         else :
             if TableauGUI :
-                print("mise à jour du tableau avec ", TableauGUI)
+                ##print("mise à jour du tableau avec ", TableauGUI)
                 # il y a des lignes à actualiser
                 ligneInitiale = TableauGUI[0][0]
                 #ligneAjoutee = ligneTableauGUI[0]
@@ -1106,6 +1106,9 @@ class AbsDispFrame(Frame) :
         self.actualiseAffichage()
         if self.tupleClasses :
             self.choixClasseCombo.current(0)
+    def set(self,texte) :
+        self.choixClasseCombo.set(texte)
+        self.actualiseAffichage()
     def actualiseAffichageBind(self, event) :
         self.actualiseAffichage()
     def actualiseAffichage(self) :
@@ -1640,8 +1643,8 @@ def annulUnDepart(nomGroupement) :
     for course in groupement.listeDesCourses :
         Courses[course].reset()
     annulDepart.delete(groupement.nom)
-    zoneTopDepart.actualise()
-    actualiseAffichageDeparts()
+    actualiseToutLAffichage()
+    
 
 def construireMenuAnnulDepart():
     global annulDepart
@@ -1676,6 +1679,72 @@ def messageDErreurInterface(message, SurSmartphone):
     ReprendreTimerButton.pack(side=TOP,fill=BOTH)
     LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1 )
 
+#### zone d'affichage des erreurs : boutons permettant de modifier le départ d'une course.
+lblDictE={}
+#listErreursEnCours=[]
+
+frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
+Label(frE, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
+
+def onClickE(err):
+    #print(grpe)
+    print("Changement de menu pour modifier l'erreur.",err.description,"concernant le dossard", err.dossard,"ou le temps",err.temps)
+    #inputDialog = departDialog(groupement ,root)
+    #root.wait_window(inputDialog.top)
+    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
+    if err.numero == 421 :
+        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
+        saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
+    elif err.numero == 431 :
+        print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
+        modifManuelleCoureur(err.dossard)
+    else :
+        print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
+    
+
+def actualiseAffichageErreurs(listErreursEnCours):
+    listErreursEnCours, lblDictE
+    for grp in lblDictE.keys() :
+        lblDictE[grp][1].destroy()
+    lblDictE.clear()
+    #print("Liste des erreurs en cours : ",listErreursEnCours)
+    if listErreursEnCours :
+        for grp in listErreursEnCours :
+            lblFrE = Frame(frE)
+            lblLegende = Label(lblFrE, text= " : ")
+            #print("bouton avec commande : onClick(",grp,")")
+            lblTemps = Button(lblFrE, text= grp.description, command=partial(onClickE,grp), bd=0)
+            #lblLegende.pack(side=LEFT)
+            lblTemps.pack(side=LEFT)
+            lblFrE.pack(side=TOP)
+            lblDictE[grp] = [lblTemps,lblFrE]
+        frE.pack()
+        zoneAffichageErreurs.pack()
+    else :
+        frE.forget()
+
+
+def rejouerToutesLesActionsMemorisees() :
+    print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
+    print("On supprime tous les temps, tous les dossards arrivés.")
+    print("On conserve le listing coureurs, le top départ de chaque course.")
+    Parametres["positionDansArriveeTemps"] = 0
+    Parametres["positionDansArriveeDossards"] = 0
+    Parametres["tempsDerniereRecuperationSmartphone"]=0
+    Parametres["ligneDerniereRecuperationSmartphone"]=1
+    Parametres["tempsDerniereRecuperationLocale"]=0
+    Parametres["ligneDerniereRecuperationLocale"]=1
+    delArriveeDossards()
+    delArriveeTempss()
+    ligneTableauGUI = [1,0]
+    print("On retraite tous les fichiers de données grace au timer.")
+    timer.reinitErreursATraiter()
+    #listErreursEnCours = traiterDonneesSmartphone(True, False) + traiterDonneesLocales(True,False)
+    #actualiseAffichageErreurs(listErreursEnCours)
+   
+
+#### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
+
 # timer 
 class Clock():
     global tableauGUI
@@ -1688,6 +1757,9 @@ class Clock():
         self.compteurSauvegarde = 1
         self.auMoinsUnImport = False
         self.delaiActualisation = 5 # en secondes
+##        self.retour1 = []
+##        self.retour2 = []
+        self.erreursEnCours = []
         self.update_clock()
         
     def update_clock(self):
@@ -1700,24 +1772,17 @@ class Clock():
         tableau.makeDefilementAuto()
         traitementSmartphone = traiterDonneesSmartphone()
         traitementLocal = traiterDonneesLocales()
-        # si au moins un évènement à traiter (erreur ou pas), on programme une sauvegarde des données incrémentale.
-        if traitementSmartphone  or traitementLocal :
-            self.auMoinsUnImport = True
-        retour1 = [erreur for erreur in traitementSmartphone if erreur.numero != 0]  # on ne garde que les codes d'erreur
-        retour2 = [erreur for erreur in traitementLocal if erreur.numero != 0]
-        retour = retour1 + retour2
-        print("retour des erreurs 1 et 2 =" + str(retour) +".")
-        # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
         genereResultatsCoursesEtClasses(self.premiereExecution)
         eval(self.MAJfunction + "(tableauGUI)")
-        ActualiseAffichageTV() # pour mise à jour du menu annulDepart
-        ### Traitement des erreurs : affichage par une frame dédiée.
-        #ErreursFrame.alimente(retour)
-        ### Fin du traitement des erreurs
+        self.erreursATraiter(traitementSmartphone + traitementLocal)
+
+        # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
+        ActualiseAffichageTV() # pour mise à jour de l'affichage TV +  menu annulDepart
+
         ## Sauvegarde toutes les 1 minutes s'il y a au moins un évènement à traiter. Sinon, rien.
         # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
-            print("Sauvegarde enclenchée toutes les minutes ")
+            print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.auMoinsUnImport = False
             self.compteurSauvegarde = 1
@@ -1728,6 +1793,18 @@ class Clock():
             zoneTopDepart.nettoieDepartsAnnules()
         # se relance dans un temps prédéfini.
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
+
+    def reinitErreursATraiter(self):
+        self.erreursEnCours = []
+        
+    def erreursATraiter(self,listErreursEnCours):
+        if listErreursEnCours : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
+            self.auMoinsUnImport = True
+        for erreur in listErreursEnCours :
+            if erreur.numero != 0 :
+                self.erreursEnCours.append(erreur)
+        ### Traitement des erreurs : affichage par une frame dédiée.
+        actualiseAffichageErreurs(self.erreursEnCours)
 ##    def enPause(choix) :
 ##        self.enPause = choix
         ## Ancienne version
@@ -1837,6 +1914,8 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
 
+
+#### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
 listGroupementsCommences = []
 lblDict={}
 
@@ -1884,6 +1963,12 @@ def actualiseTempsAffichageDeparts():
         lblDict[grp][1].configure(text=tps)
     zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
     
+
+#### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
+
+
+
+
 
 def actualiseAffichageTV() :
     listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
@@ -2005,7 +2090,7 @@ def saisieDossards() :
     dossardsZone.actualiseAffichage()
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
 
-def saisieAbsDisp() :
+def saisieAbsDisp(classeOuCategorie="") :
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
@@ -2016,6 +2101,9 @@ def saisieAbsDisp() :
     GaucheFrameDossards.forget()
     absDispZone.actualiseAffichage()
     GaucheFrameAbsDisp.pack(fill=BOTH, expand=1)
+    if classeOuCategorie :
+        absDispZone.set(classeOuCategorie)
+        #print("il faudrait modifier la combobox de la frame GaucheFrameAbsDisp avec la valeur",classeOuCategorie, "et actualiser.")
     
     
 def ajoutManuelCoureur():
@@ -2030,7 +2118,7 @@ def ajoutManuelCoureur():
     zoneCoureursAjoutModif.setAjout(True)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
-def modifManuelleCoureur():
+def modifManuelleCoureur(dossard=0):
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameAbsDisp.forget()
@@ -2041,6 +2129,9 @@ def modifManuelleCoureur():
 ##    affectationDesDistancesFrame.forget()
     zoneCoureursAjoutModif.setAjout(False)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
+    if dossard :
+        #print("on modifie la combobox de la frame GaucheFrameCoureur avec la valeur",dossard, "et actualiser.")
+        zoneCoureursAjoutModif.afficheCoureur(dossard)
 
 
 def tempsDesCoureurs():
@@ -2051,6 +2142,7 @@ def tempsDesCoureurs():
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
+    rejouerToutesLesActionsMemorisees()
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
@@ -2246,23 +2338,24 @@ class CoureurFrame(Frame) :
         self.choixDossardCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
         self.lblNom = Label(self.parent, text="Nom :")
         self.nomE = Entry(self.parent)
-        self.nomE.bind("<KeyPress>", self.reactiverBoutons)
+        self.nomE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblprenom = Label(self.parent, text="Prénom :")
         self.prenomE = Entry(self.parent)
-        self.prenomE.bind("<KeyPress>", self.reactiverBoutons)
+        self.prenomE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblSexe = Label(self.parent, text="Sexe (G ou F) :")
         self.sexeE = Entry(self.parent)
-        self.sexeE.bind("<KeyPress>", self.reactiverBoutons)
+        self.sexeE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
-        self.classeE.bind("<KeyPress>", self.reactiverBoutons)
+        self.classeE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
         self.vma = 0
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
-        self.vmaE.bind("<KeyPress>", self.reactiverBoutons)
+        self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblCommentaire = Label(self.parent, text="Commentaire à l'arrivée (facultatif) :")
         self.commentaireArriveeE = Entry(self.parent)
-        self.commentaireArriveeE.bind("<KeyPress>", self.reactiverBoutons)
+        self.commentaireArriveeE.bind("<KeyRelease>", self.reactiverBoutons)
         self.boutonsFrame = Frame(self.parent)
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
         self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.reinitialiserChamps)
@@ -2271,7 +2364,34 @@ class CoureurFrame(Frame) :
         self.actualiseAffichage()
 
     def reactiverBoutons(self,event) :
-        self.boutonsFrame.pack()
+        ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
+        resultat = self.categorieEstCorrecte()
+        print(resultat , self.nomE.get() , self.prenomE.get())
+        if resultat and self.nomE.get() and self.prenomE.get() :
+            self.lblCat.configure(text="Catégorie : " + resultat)
+            self.boutonsFrame.pack()
+        else :
+            self.lblCat.configure(text="Catégorie : inconnue")
+            self.boutonsFrame.forget()
+
+    def afficheCoureur(self,dossard) :
+        self.choixDossardCombo.set(dossard)
+        self.reinitialiserChamps() 
+
+    def categorieEstCorrecte(self):
+        resultat = ""
+        s = self.sexeE.get()
+        print("sexe",s)
+        if s ==  "G" or s == "F" :
+            if Parametres["CategorieDAge"] :
+                anneeNaissance = self.classeE.get()[6:]
+                if len(anneeNaissance) == 4 :
+                    c = categorieAthletisme(anneeNaissance)
+                    if c :
+                        resultat = c + "-" + s
+            else :
+                resultat = self.classeE.get()[0] + s
+        return resultat
 
     def actualiseAffichageBind(self,event) :
         self.reinitialiserChamps()
@@ -2315,6 +2435,12 @@ class CoureurFrame(Frame) :
             self.lblClasse.configure(text="Classe :")
         self.lblClasse.pack()
         self.classeE.pack()
+        if self.ajoutCoureur :
+            self.lblCat.forget()
+        else :
+            self.lblCat.pack()
+            #self.lblCat.configure(fg="black")
+        self.lblCat.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -2334,6 +2460,7 @@ class CoureurFrame(Frame) :
         self.sexeE.forget()
         self.lblClasse.forget()
         self.classeE.forget()
+        self.lblCat.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -2388,6 +2515,7 @@ class CoureurFrame(Frame) :
                 self.classeE.insert(0, coureur.naissance)
             else :
                 self.classeE.insert(0, coureur.classe)
+            self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
             self.sexeE.insert(0, coureur.sexe)
             self.vmaE.insert(0, coureur.VMA)
             self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
@@ -2503,7 +2631,7 @@ annulDepart = Menu(editmenu, tearoff=0)
 ##affichage.add_command(label="Ajout d'un coureur", command=ajoutManuelCoureur)
 ##editmenu.add_cascade(label="Affichage", menu=affichage)
 editmenu.add_command(label="Affichage des données de courses", command=tempsDesCoureurs)
-editmenu.add_command(label="Réimporter toutes les données dans l'ordre en ignorant les erreurs (amené à disparaitre ?)", command=rejouerToutesLesActionsMemorisees)
+editmenu.add_command(label="Réimporter toutes les données (amené à disparaitre)", command=rejouerToutesLesActionsMemorisees)
 construireMenuAnnulDepart()
 menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
