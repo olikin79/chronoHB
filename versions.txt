@@ -1,6 +1,7 @@
 Travail du 25/06/22 :
 - Implémentation de la restauration de sauvegarde : la restauration depuis les sauvegardes automatiques dans db ou depuis une clé USB fonctionne.
-
+- Correction de bug : dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps),
+   alors le script plantait. Corrigé.
 
 Travail du 24/06/22 :
 - Implémentation de l'interface d'affichage des erreurs. De nombreuses modifications dans le traitement des erreurs à tous les niveaux,

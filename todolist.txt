@@ -24,9 +24,6 @@ NON PRIORITAIRES :
 - dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
 
-- dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps),
-   alors le script plante : à blinder !
-
 - dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
 mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
 Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé

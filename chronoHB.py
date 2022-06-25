@@ -387,11 +387,11 @@ class MonTableau(Frame):
             return self.listeDesTemps[indiceDeLaLigneSelectionnee]
 
     def getDossard(self) :
-        item_text = "-"
+        item_text = ""
         for item in self.treeview.selection():
             item_text = self.treeview.item(item, "values")
-            # on ne garde que le dernier sélectionné
-        if item_text == "-" :
+            # on ne garde que le dernier sélectionné si sélection multiple
+        if item_text == "" or item_text[5] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return ""
         else :
             return item_text[5]
