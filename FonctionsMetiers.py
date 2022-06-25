@@ -100,16 +100,19 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
             destination = "db"
         if destination != "" and creerDir(destination) :
             date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-            nomFichierCopie = destination + os.sep + sauvegarde+"-"+ date + commentaire + ".db"
-            nomFichierCopie = nomFichierCopie.replace("_","-") # protection contre le bug de os.path.basename qui gère mal les _
+            nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire + ".db"
+            nomFichierCopie = nomFichierCopie# .replace("_","-") # protection contre le bug de os.path.basename qui gère mal les _
             if not os.path.exists(nomFichierCopie) :
                 if os.path.exists(sauvegarde+".db") :
                     shutil.copy2(sauvegarde+".db",  nomFichierCopie)
                 print("La sauvegarde", nomFichierCopie, "est créée.")
                 if os.path.exists("donneesModifLocale.txt"):
-                    shutil.copy2("donneesModifLocale.txt", destination + os.sep + sauvegarde +"-"+ date + commentaire + "_ML.txt")
+                    shutil.copy2("donneesModifLocale.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_ML.txt")
+                else :
+                    print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                    open("donneesModifLocale.txt", 'a').close()
                 if os.path.exists("donneesSmartphone.txt"):
-                    shutil.copy2("donneesSmartphone.txt", destination + os.sep + sauvegarde +"-"+ date + commentaire + "_DS.txt")
+                    shutil.copy2("donneesSmartphone.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
             else :
                 print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
         elif destination != "" :
@@ -138,11 +141,12 @@ def recupere_sauvegarde(sauvegardeChoisie) :
     ### tester si les trois fichiers existent.
     for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
         if not os.path.exists(fichier) :
+            #print("Fichier",fichier,"absent")
             tousPresents = False
             break
     ### avertir sinon
     if not tousPresents :
-        message = "Le fichier", fichier,"est absent. La sauvegarde est incomplète. Import annulé."
+        message = "Le fichier " + fichier + " est absent. La sauvegarde est incomplète. Import annulé."
         print(message)
         showinfo("ERREUR",message)
     else :
@@ -154,8 +158,7 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         shutil.copy2(fichierDS, "donneesSmartphone.txt")
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
         chargerDonnees()
-        ### voir comment actualiser l'interface
-        actualiseToutLAffichage()
+        
     
 ##    d = open(sauvegarde+".db","wb")
 ##    pickle.dump(root, d)
@@ -2747,62 +2750,61 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         Retourne 0 s'il n'y a pas d'erreur."""
     doss = int(dossard)
     dossPrecedent = int(dossardPrecedent)
-    try :
-        coureur = Coureurs[doss-1]
-        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
-        if doss in ArriveeDossards :
-            if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
-                print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
-                return Erreur(0,elementConcerne=doss)
-            else :
-                message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
-                print(message)
-                return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
-                        #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
-                        # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
-                        # return message
-        elif doss > len(Coureurs) or doss < 1 :
-            message = "Numéro de dossard incorrect :\n"  + infos
-            print(message)
-            return Erreur(411,message,elementConcerne=doss)
-        elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
-            message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
-            print(message)
-            return Erreur(421,message,elementConcerne=doss)
-        elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
-            message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
-            print(message)
-            return Erreur(431,message,elementConcerne=doss)
+    coureur = Coureurs[doss-1]
+    infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+    if doss in ArriveeDossards :
+        if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
+            print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
+            return Erreur(0,elementConcerne=doss)
         else :
-            if dossPrecedent == -1 : # ajoute à la suite
-                #position = len(ArriveeDossards)
-                ArriveeDossards.append(doss)
-                #print("Dossard arrivé :",doss)
-                return Erreur(0)
-            elif dossPrecedent == 0 : # insère au début de liste
-                #print("insertion en début de liste d'arrivée")
-                #position = 0
-                ArriveeDossards.insert(0 , doss)
+            message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+            print(message)
+            return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+                    #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
+                    # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
+                    # return message
+    elif doss > len(Coureurs) or doss < 1 :
+        message = "Numéro de dossard incorrect :\n"  + infos
+        print(message)
+        return Erreur(411,message,elementConcerne=doss)
+    elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
+        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
+        print(message)
+        return Erreur(421,message,elementConcerne=doss)
+    elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
+        message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        print(message)
+        return Erreur(431,message,elementConcerne=doss)
+    else :
+        if dossPrecedent == -1 : # ajoute à la suite
+            #position = len(ArriveeDossards)
+            ArriveeDossards.append(doss)
+            #print("Dossard arrivé :",doss)
+            return Erreur(0)
+        elif dossPrecedent == 0 : # insère au début de liste
+            #print("insertion en début de liste d'arrivée")
+            #position = 0
+            ArriveeDossards.insert(0 , doss)
+            Parametres["calculateAll"] = True
+            #DonneesAAfficher.reinit() # on regénère le tableau GUI
+            return Erreur(0)
+        else :
+            # insère juste après le dossard dossardPrecedent , si on le trouve.
+            try :
+                n = ArriveeDossards.index(dossPrecedent)
+                #position = n+1
+                ArriveeDossards.insert(n+1 , doss)
                 Parametres["calculateAll"] = True
                 #DonneesAAfficher.reinit() # on regénère le tableau GUI
                 return Erreur(0)
-            else :
-                # insère juste après le dossard dossardPrecedent , si on le trouve.
-                try :
-                    n = ArriveeDossards.index(dossPrecedent)
-                    #position = n+1
-                    ArriveeDossards.insert(n+1 , doss)
-                    Parametres["calculateAll"] = True
-                    #DonneesAAfficher.reinit() # on regénère le tableau GUI
-                    return Erreur(0)
-                except ValueError :
-                    message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
-                    print(message)
-                    return Erreur(499,message)
-        ##transaction.commit()
-            #calculeTousLesTemps(True)
-    except :
-        recupererSauvegardeGUI()
+            except ValueError :
+                message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
+                print(message)
+                return Erreur(499,message)
+    ##transaction.commit()
+        #calculeTousLesTemps(True)
+##    except :
+##        recupererSauvegardeGUI()
 
 def imprimePDF(pdf_file_name) :
     if os.path.exists(pdf_file_name) :

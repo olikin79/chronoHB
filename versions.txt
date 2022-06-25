@@ -1,10 +1,15 @@
+Travail du 25/06/22 :
+- Implémentation de la restauration de sauvegarde : la restauration depuis les sauvegardes automatiques dans db ou depuis une clé USB fonctionne.
+
 
 Travail du 24/06/22 :
 - Implémentation de l'interface d'affichage des erreurs. De nombreuses modifications dans le traitement des erreurs à tous les niveaux,
 afin de poursuivre le traitement des fonctions métiers, même en cas d'erreur.
+- dans la sauvegarde, ajout des deux fichiers donneesSmartphones.txt et donneesLocales.txt pour permettre une récupération complète.
+- En cours de travail : implémentation du menu de "récupération de sauvegarde" : bug restant 'actualiseToutLAffichage' is not defined
 Corrections de bugs :
 - si on change l'horaire de départ d'une course, on relance regenereAffichageGUI() pour actualiser l'affichage.
-- dans l'affichage en mode catégories d'âge = True, la colonne avec la classe devrait être supprimée.
+- dans l'affichage en mode catégories d'âge = True, la colonne avec la classe est désormais supprimée.
 - le menu annule départ actualise l'affichage des groupements et la possibilité ou l'impossibilité de modifier la dénomination d'un groupement.
 
 

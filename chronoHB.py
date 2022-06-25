@@ -2302,8 +2302,11 @@ def recupererSauvegardeGUI() :
               }
  
     name_file = askopenfilename(**options)
-    #print("Sauvegarde choisie :",name_file)
-    recupere_sauvegarde(name_file)
+    
+    if name_file :
+        #print("Sauvegarde choisie :",name_file)
+        recupere_sauvegarde(name_file)
+        actualiseToutLAffichage()
     
 
 # create a pulldown menu, and add it to the menu bar

@@ -6,6 +6,12 @@ MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'
 Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
 
 2. le rang ne s'ajoute plus dans le tableau affiché au fur et à mesure des remontées du smartphone, sauf en cas de redémarrage de l'application serveur.
+Normal dans le processus actuel : 
+	1. on rapproche les temps des dossards dans traiterDonneesSmartphone() dans lequel on génère le tableauGUI (rang inconnu à ce stade)
+	2. on calcule tous les rangs, le challenge dans la fonction dédié.
+	3. on lance l'actualisation de l'affichage avec maj(tableauGUI)
+	
+	Il faudrait alimenter le tableau GUI (actuellement fait dans calculeTousLesTemps()) plus tard, à la fin de calculeResultatCoursesEtClasses()
 
 3. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
@@ -25,19 +31,21 @@ Très peu probable en condition réelle car, avec un groupe, on ne peut anticipe
 mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
 Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé
 
-
+- si en cours de course, on crée un coureur dans une catégorie qui n'existe pas encore. Qu'ensuite, on regroupe cette catégorie avec une 
+dont le départ a déjà été donné. Alors le départ dans cette nouvelle catégorie devrait être donné (ce n'est pas fait) et l'affichage 
+actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE COURSE)
 
 
 
 A TESTER :
-- vérifier que la sauvegarde vers la clé USB permet une restauration complète en cas de changement d'ordinateur en cours de course.
-
 - vérifier si un ascenceur existe dans la combobox de modification d'un coureur quand il y en a beaucoup.
 Dans le cas contraire, un champ Entry sera peut-être nécessaire.
 
 - est ce que Coureurs.txt est regénéré à chaque démarrage par rapport à la base de données
  A faire si ce n'est pas le cas (pour que les sauvegardes et récupérations soient niquels)
 
+- trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
+Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
