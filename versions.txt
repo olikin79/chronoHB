@@ -6,7 +6,7 @@ Travail du 26/06/22 :
 - regénérer le fichier Coureurs.txt à chaque ajout manuel de coureur ou réimport d'une base de données.
 C'était seulement effectué après un import CSV ou une modif manuelle de coureur. :-(
 - correction bug : plusieurs pop-up apparaissaient quand des temps manquaient par rapport au nombre de dossards scannés. Le popup n'apparaît plus qu'une fois.
-
+- suppression la colonne "Classe" dans TableauGUI quand ce sont les catégories d'age qui sont prises en compte.
 
 Travail du 25/06/22 :
 - Implémentation de la restauration de sauvegarde : la restauration depuis les sauvegardes automatiques dans db ou depuis une clé USB fonctionne.

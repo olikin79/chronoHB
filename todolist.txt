@@ -1,5 +1,7 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+0. Un temps négatif n'affiche toujours pas les boutons dans l'interface. Trouver pourquoi.
+
 1. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
 MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
@@ -16,8 +18,6 @@ Normal dans le processus actuel :
 3. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
-4. Lorsque l'on affecte un dossard à un temps dans l'interface, cela ne s'actualise plus... sauf à relancer tout le processus de calcul.
-
 
 
 NON PRIORITAIRES :
@@ -32,10 +32,9 @@ Bug confirmé si le temps est négatif et que la course est partie mais après l
 dont le départ a déjà été donné. Alors le départ dans cette nouvelle catégorie devrait être donné (ce n'est pas fait) et l'affichage 
 actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE COURSE)
 
-- dans le tableauGUI, il faudrait supprimer la colonne "Classe" quand ce sont les catégories d'age qui sont prises en compte.
-
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
+
 
 ESTHETIQUE :
 - faire un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
@@ -43,17 +42,10 @@ Exactement comme pour la zone de gestion des erreurs, par exemple. C'est juste u
 
 - faire en sorte que MonTableau s'agrandisse avec la fenêtre sur des écrans en grande résolution.
 
-
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 
 
 A TESTER :
-- vérifier si un ascenceur existe dans la combobox de modification d'un coureur quand il y en a beaucoup.
-Dans le cas contraire, un champ Entry sera peut-être nécessaire.
-
-- est ce que Coureurs.txt est regénéré à chaque démarrage par rapport à la base de données
- A faire si ce n'est pas le cas (pour que les sauvegardes et récupérations soient niquels)
-
 - trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
 Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.
 
@@ -61,8 +53,9 @@ Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
 - mettre à jour la documentation en 1.4 : départs affichés et modifiables, menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
+documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
 
-- mettre l'heure exacte à la seconde de l'ordinateur quelque part sur l'interface. 
+- mettre l'heure exacte du serveur à la seconde de l'ordinateur quelque part sur l'interface. 
 L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 
 par l'opérateur sur le premier smartphone. Cela décharge ce dernier qui va voir arriver plein de coureurs et n'a souvent pas le temps
 d'effectuer l'association du premier coureur d'une course avec son temps.
@@ -72,7 +65,8 @@ le smartphone pourrait mémoriser les diverses sauvegardes successives avec un n
 	* propose une liste vide si nouvelle course.
 	* réimporte les saisies initiales si ancienne course
 	Tout en automatique 
-	L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable. Utile ? car bloquant en cas de panne temporaire du serveur.
+	L'accès à l'écran de saisie serait conditionné au fait que le serveur serait joignable et que le numéro de course correspond OU que les données soient vides.
+	Utile ? car bloquant en cas de panne temporaire du serveur.
 	Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
 	
 - prévoir une procédure en cas de plantage au démarrage try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
@@ -95,27 +89,22 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage.
 	
 
 MOYENNEMENT PRIORITAIRE :
-- Faire en sorte que l'on puisse affecter un dossard à un temps (que cela fonctionne toujours) et que l'Entry apparaisse au bon endroit. 
-Faire des tests avec une très grande série de données comme celle du cross pour recalculer la fonction affine qui va bien (trop arrondi actuellement).
-- mettre à jour la documentation avec les nouveautés de 2021-2022 + documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 - récupérer l'adresse IP de l'ordinateur pour l'afficher dans l'interface afin d'aider un non initié à accéder à l'affichage via le wifi.
 
 
 A PLUS LONG TERME :
-- permettre la modification de la catégorie d'un coureur manuellement. Est ce vraiment utile ?
-Actuellement, les catégories sont automatiquement générées à partir de la date de naissance ou de la classe (suivant la configuration).
-On peut déjà changer la date de naissance ou la classe d'appartenance (quitte à en inventer une) pour changer indirectement la catégorie d'un coureur.
-La class Coureur contient déjà les méthodes pour définir une catégorie manuellement. Méthodes non utilisées dans l'interface GUI actuellement.
-Quid d'un réimport SIECLE : doit il écraser la catégorie fixée manuellement ? Oui ?
+- Quid d'un réimport SIECLE sur une catégorie d'un coureur : doit il modifier les éléments modifiés manuellement (nom, prénom, sexe, naissance, classe) ?
+  Que fait-il actuellement ?
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
+
 - vitesse de défilement réglable par une entryParam sur l'application = > Prévoir un intervalle de validité.
 	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
 	une vérificaiton optionnelle isnumeric dans la classe "EntryParam" avec un intervalle de validité sera suffisant 
-- photo finish à l'arrivée automatiques et accessible depuis l'interface GUI
+- photo finish à l'arrivée automatique et accessible depuis l'interface GUI
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
 - possibilité de configurer les dossards générés : possibilité de trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
@@ -125,7 +114,7 @@ d'imprimer les dossards par groupements, catégories, classes avec des cases à 
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
-- anonymer la documentation en faisant un import SIECLE avec des noms bidons et de nouvelles captures d'écrans.
+- anonymer la documentation en faisant un import CSV avec des noms bidons et de nouvelles captures d'écrans.
 - Créer un système évitant des incohérences entre les smartphones et la base locale : 
 un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées ou celles du smartphone effacées.
 A réfléchir...
