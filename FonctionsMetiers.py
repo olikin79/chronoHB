@@ -2575,10 +2575,11 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
     if n != 0 :
         while n > 0 :
             tpsPresent = ArriveeTemps[n-1]
-            print("tpsPresent en position", n-1, ":",tpsPresent.tempsReel, " soit ", tpsPresent.tempsReelFormate()) 
+            #print("tpsPresent en position", n-1, ":",tpsPresent.tempsReel, " soit ", tpsPresent.tempsReelFormate()) 
             if tpsPresent.tempsReel == tempsReel :
                 ArriveeTempsAffectes[n-1] = doss
-                print("Dossard", doss, "affecté au temps sélectionné")
+                if DEBUG :
+                    print("Dossard", doss, "affecté au temps sélectionné")
                 CodeRetour = Erreur(0)
                 break
             n -= 1
@@ -2776,13 +2777,14 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     coureur = Coureurs[doss-1]
     infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
     if doss in ArriveeDossards :
-        if doss == ArriveeDossards[-1:] : # si deux ajouts successifs du même dossard, ignoré
+        if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
             print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
             return Erreur(0,elementConcerne=doss)
         else :
             message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
             print(message)
-            return Erreur(401,message,elementConcerne=doss)# en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+            return Erreur(401,message,elementConcerne=doss)
+            # en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
                     # return message

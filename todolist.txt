@@ -34,9 +34,17 @@ actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE C
 
 - dans le tableauGUI, il faudrait supprimer la colonne "Classe" quand ce sont les catégories d'age qui sont prises en compte.
 
+- quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
+(Inutile en l'état actuel des besoins)
+
 ESTHETIQUE :
 - faire un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
 Exactement comme pour la zone de gestion des erreurs, par exemple. C'est juste une propriété de la frame conteneur.
+
+- faire en sorte que MonTableau s'agrandisse avec la fenêtre sur des écrans en grande résolution.
+
+
+- le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 
 
 A TESTER :
@@ -52,7 +60,7 @@ Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- mettre à jour la documentation en 1.4 : menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
+- mettre à jour la documentation en 1.4 : départs affichés et modifiables, menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
 
 - mettre l'heure exacte à la seconde de l'ordinateur quelque part sur l'interface. 
 L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 

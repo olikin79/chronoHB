@@ -1,8 +1,12 @@
 Travail du 26/06/22 :
 - bug compatibilité ascendante : possibilité de réimporter des vieux fichiers de données sans groupements : création des groupements manquants à la volée.
-- correction : emplacement de l'entry permettant d'affecter un dossard à un temps ou de modifier un temps...
+- correction de bug : emplacement de l'entry permettant d'affecter un dossard à un temps ou de modifier un temps parfaitement placé désormais...
 - documentation vers 1.4 : paragraphes rédigés sur les nouvelles fonctionnalités.
-- le fichier messageParDefaut.txt ne doit pas faire partie du package. Il est généré par le logiciel.
+- le fichier messageParDefaut.txt et d'autres ne doivent pas faire partie du package. Ils sont générés par le logiciel donc supprimés du dépôt.
+- regénérer le fichier Coureurs.txt à chaque ajout manuel de coureur ou réimport d'une base de données.
+C'était seulement effectué après un import CSV ou une modif manuelle de coureur. :-(
+- correction bug : plusieurs pop-up apparaissaient quand des temps manquaient par rapport au nombre de dossards scannés. Le popup n'apparaît plus qu'une fois.
+
 
 Travail du 25/06/22 :
 - Implémentation de la restauration de sauvegarde : la restauration depuis les sauvegardes automatiques dans db ou depuis une clé USB fonctionne.
@@ -28,7 +32,6 @@ L'interface d'affichage du chrono des courses plantait car basée sur le nom mod
 Travail du 21/06/22 : 
 - amélioration de stabilité : ajoutArriveeDossard : on ignore l'ajout successif d'un même dossard.
 Lié à des problèmes de communication wifi constatés (parfois) en conditions réelles. Accusé de réception http non reçu par le smartphone qui renvoie l'information une 2ème fois.
-- 
 
 
 Travail du 18/06/22 : 
