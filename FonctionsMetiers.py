@@ -2710,6 +2710,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispe
                 ##transaction.commit()
                 #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
                 addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+                ## on regénère la liste des Coureurs après un ajout manuel.
+                generateListCoureursPourSmartphone()
+                CoureursParClasseUpdate()
         else :
             print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
     except :
@@ -3082,7 +3085,8 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             else :
                 alimenteTableauGUI (tableauGUI, coureur, tps , dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
                 #DonneesAAfficher.append(coureur,tps, dossardAffecteAuTps)
-            print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
+            if DEBUG :
+                print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
             message = "On affecte le temps " + str(arrivee) + " - " + str(depart) + " = " + formateTemps(coureur.temps) + " au coureur " + str(doss)+"."
             #print(message)
             retour.append(Erreur(0))
