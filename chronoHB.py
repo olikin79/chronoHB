@@ -45,10 +45,11 @@ ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pa
 from FonctionsMetiers import *
 from functools import partial
 
-##Bugs connus :
-##  - (mineur) le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
-##  - (majeur) quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème :
-##              problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
+generateListCoureursPourSmartphone()
+CoureursParClasseUpdate()
+
+
+
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
         """ données est un tableau de lignes de même taille : une ligne est un tableau. La première ligne contient les en-têtes."""
@@ -314,6 +315,7 @@ class MonTableau(Frame):
                 print("il manque ", nbreTempsManquants," temps. Voici le tableau non stabilisé ",TableauGUI)
                 nbreFileAttenteLabel.config(text="Il manque " + str(nbreTempsManquants) + " temps saisis à l'arrivée. INCOHERENCE A CORRIGER RAPIDEMENT.")
                 if self.incoherenceFutureACorriger :
+                    self.incoherenceFutureACorriger = False
                     reponse = askokcancel("INCOHERENCE CONSTATEE", "Il y a "+str(nbreTempsManquants)+" dossards scannés qui ne correspondent à aucun temps de passage sur la ligne d'arrivée.\nVoulez vous corriger cete incohérence en affectant le dernier temps mesuré à tous ces dossards (FORTEMENT CONSEILLE) ?")
                     if reponse :
                         print("Correction de l'incohérence en dupliquant le temps", nbreTempsManquants, "fois.")
@@ -327,8 +329,7 @@ class MonTableau(Frame):
                             tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
                             i -= 1
                     else :
-                        print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")
-                        self.incoherenceFutureACorriger = False
+                        print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")  
         if self.noPremierTempsSansCorrespondance > 0 :
             self.incoherenceFutureACorriger = True
             # si les deux derniers temps sont différents, on est dans le cas d'une file d'attente normal
