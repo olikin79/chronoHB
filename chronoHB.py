@@ -153,7 +153,7 @@ class MonTableau(Frame):
             rn = conv_Hexa_vers_Dec(str(row).replace('I',''))
             if self.enTetes[cn-1] in self.donneesEditables :
                 #print("ligne=",rn, ", colonne=", cn)
-                entryedit = Entry(parent,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
+                entryedit = Entry(self,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
                 contenuInitial=item_text[cn-1]
                 if contenuInitial != "-" : # si le contenu de la case est différent de "-", l'Entry est remplie avec le contenu correspondant.
                     entryedit.insert(INSERT,contenuInitial)
@@ -163,7 +163,7 @@ class MonTableau(Frame):
                 sommeLargeurColonnes = 0
                 for i in range(cn-1) :
                     sommeLargeurColonnes += self.largeursColonnes[i]
-                entryedit.place(x=sommeLargeurColonnes, y=50+(rn-premierNomVisible)*20.01)
+                entryedit.place(x=sommeLargeurColonnes, y=(rn-premierNomVisible)*20.01+25)
                 entryedit.focus_set()
                 def estValideSaisie(column, saisie) :
                     retour = False
@@ -1697,7 +1697,7 @@ def onClickE(err):
     if err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
         saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
-    elif err.numero == 431 :
+    elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
     else :

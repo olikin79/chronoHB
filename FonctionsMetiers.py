@@ -701,8 +701,6 @@ class EquipeClasse():
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
 
-
-
 # setup the database
 def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
@@ -729,6 +727,20 @@ def chargerDonnees() :
     Courses=root["Courses"]
     if not "Groupements" in root :
         root["Groupements"] = []
+        # compatibilité ascendante pour pouvoir importer de vieilles sauvegardes (avant création des groupements).
+        # on récupère les noms de toutes les catégories présentes, on regarde si chacune est bien dans un groupement existant. A défaut, on le crée.
+        L = []
+        for cat in Courses :
+            L.append(Courses[cat].categorie) 
+        for cat in L :
+            estPresent = False
+            for grpment in root["Groupements"] :
+                if cat in grpment.listeDesCourses :
+                    estPresent = True
+                    break
+            if not estPresent:
+                print("Création du groupement ", cat)
+                root["Groupements"].append(Groupement(cat,[cat])) # on crée les groupements de même nom que les catégories existantes.
     Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
         root["ArriveeTemps"] = []
@@ -1046,7 +1058,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
         if coureur.nom == "" :
             tempsDuCoureur = "-"
         else :
-            tempsDuCoureur = "Départ non donné."
+            tempsDuCoureur = "Nég. ou nul."
     if coureur.dossard != 0 :
         dossard = coureur.dossard
     else :
@@ -1282,7 +1294,7 @@ def derniereModifFichierDonnneesLocalesRecente(fichier):
     diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationLocale"]
     return diff > 0
 
-### Affichages pour les tests. A MODIFIER POUR L'INTERFACE GRAPHIQUE
+### fonctions de listes.
 def listCourses():
     retour = []
 ##    if len(Courses)==0:
@@ -1294,7 +1306,7 @@ def listCourses():
         retour.append(Courses[cat].categorie)
     return retour
     ##transaction.commit()
-
+    
 def listCategories():
     retour = []
     if len(Coureurs)!=0:
@@ -2400,8 +2412,8 @@ def estUneCourseOuUnGroupement(nom):
     return retour
 
 def estUneClasse(nom):
-    """ Comme le nom des classes est libre, estUneClasse est vraie si n'est pas une course ET n'est pas un challenge (1 caractère)"""
-    return len(nom) > 1 and (not estUneCourse(nom))
+    """ Comme le nom des classes est libre, estUneClasse est vraie si n'est pas une course ou un groupement ET n'est pas un challenge (1 caractère)"""
+    return len(nom) > 1 and (not estUneCourseOuUnGroupement(nom))
 
 def estSuperieur(d1, d2):
     if Coureurs[d1-1].temps == 0 :
@@ -2734,10 +2746,18 @@ def modifyCoureur(dossard, nom, prenom, sexe, classe='', naissance=None, comment
         print("Impossible de modifier " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 
 def addCourse(categorie) :
-    if categorie not in Courses :
+    # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+    estPresent = False 
+    for grpment in Groupements :
+        if categorie in grpment.listeDesCourses :
+            estPresent = True
+            break
+    if not estPresent:
         print("Création du groupement ", categorie)
         Groupements.append(Groupement(categorie,[categorie]))
         print("Groupements = ",[i.nom for i in Groupements])
+    # création de la course si elle n'existe pas.
+    if categorie not in Courses :
         print("Création de la course", categorie)
         c = Course(categorie)
         Courses.update({categorie : c})
@@ -3049,11 +3069,11 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le dossard " + str(doss) + " se retrouve avec un temps négatif " + str(arrivee) + "-" + str(depart) +"."
-            retour.append(Erreur(299,message))
+            message = "Le dossard " + str(doss) + " a avec un temps négatif : " + str(arrivee) + "-" + str(depart) +"."
+            retour.append(Erreur(211,message))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :
-            #alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
+            alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
         else :
             coureur.setTemps(arrivee- depart, Courses[cat].distance)
             if tpsNonSaisi :
@@ -3065,6 +3085,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
             message = "On affecte le temps " + str(arrivee) + " - " + str(depart) + " = " + formateTemps(coureur.temps) + " au coureur " + str(doss)+"."
             #print(message)
+            retour.append(Erreur(0))
     else :
         coureur.setTemps(0)
         print("La course ", cat, "n'est pas partie. Le coureur ", coureur.nom, " n'est pas censé avoir franchi la ligne")

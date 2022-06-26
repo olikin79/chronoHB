@@ -1,3 +1,9 @@
+Travail du 26/06/22 :
+- bug compatibilité ascendante : possibilité de réimporter des vieux fichiers de données sans groupements : création des groupements manquants à la volée.
+- correction : emplacement de l'entry permettant d'affecter un dossard à un temps ou de modifier un temps...
+- documentation vers 1.4 : paragraphes rédigés sur les nouvelles fonctionnalités.
+- le fichier messageParDefaut.txt ne doit pas faire partie du package. Il est généré par le logiciel.
+
 Travail du 25/06/22 :
 - Implémentation de la restauration de sauvegarde : la restauration depuis les sauvegardes automatiques dans db ou depuis une clé USB fonctionne.
 - Correction de bug : dans l'interface, quand on ajoute un dossard derrière un autre et que la sélection dans l'interface ne contient pas de dossard (seul un temps),

@@ -32,6 +32,11 @@ Bug confirmé si le temps est négatif et que la course est partie mais après l
 dont le départ a déjà été donné. Alors le départ dans cette nouvelle catégorie devrait être donné (ce n'est pas fait) et l'affichage 
 actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE COURSE)
 
+- dans le tableauGUI, il faudrait supprimer la colonne "Classe" quand ce sont les catégories d'age qui sont prises en compte.
+
+ESTHETIQUE :
+- faire un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
+Exactement comme pour la zone de gestion des erreurs, par exemple. C'est juste une propriété de la frame conteneur.
 
 
 A TESTER :
@@ -47,6 +52,8 @@ Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
+- mettre à jour la documentation en 1.4 : menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
+
 - mettre l'heure exacte à la seconde de l'ordinateur quelque part sur l'interface. 
 L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 
 par l'opérateur sur le premier smartphone. Cela décharge ce dernier qui va voir arriver plein de coureurs et n'a souvent pas le temps
@@ -85,6 +92,7 @@ Faire des tests avec une très grande série de données comme celle du cross po
 - mettre à jour la documentation avec les nouveautés de 2021-2022 + documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
+- récupérer l'adresse IP de l'ordinateur pour l'afficher dans l'interface afin d'aider un non initié à accéder à l'affichage via le wifi.
 
 
 A PLUS LONG TERME :
