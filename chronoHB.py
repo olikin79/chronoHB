@@ -1575,23 +1575,23 @@ boutonsFrameNavigateur.pack(side=TOP)
 
 zoneAffichageTV.pack()
 
-def reprendreTimer() :
-##    timer.enPause(False)
-    global CorrectionDErreurSmartphone
-    if CorrectionDErreurSmartphone :
-        LignesIgnoreesSmartphone.append(Parametres["ligneDerniereRecuperationSmartphone"])
-        print("LignesIgnoreesSmartphone : ", LignesIgnoreesSmartphone)
-    else :
-        LignesIgnoreesLocal.append(Parametres["ligneDerniereRecuperationLocale"])
-        print("LignesIgnoreesLocal : ", LignesIgnoreesLocal)
-    Log.configure(text="")
-    LogFrame.forget()
-    timer.update_clock()
+##def reprendreTimer() :
+####    timer.enPause(False)
+##    global CorrectionDErreurSmartphone
+##    if CorrectionDErreurSmartphone :
+##        LignesIgnoreesSmartphone.append(Parametres["ligneDerniereRecuperationSmartphone"])
+##        print("LignesIgnoreesSmartphone : ", LignesIgnoreesSmartphone)
+##    else :
+##        LignesIgnoreesLocal.append(Parametres["ligneDerniereRecuperationLocale"])
+##        print("LignesIgnoreesLocal : ", LignesIgnoreesLocal)
+##    Log.configure(text="")
+##    LogFrame.forget()
+##    timer.update_clock()
 # LogFrame
 
 LogFrame = Frame(DroiteFrame)
 Log = Label(LogFrame, text="")
-ReprendreTimerButton = Button(LogFrame, text='Ignorer cette erreur APRES CORRECTION SUR LE SMARTPHONE', width=30, command=reprendreTimer)
+#ReprendreTimerButton = Button(LogFrame, text='Ignorer cette erreur APRES CORRECTION SUR LE SMARTPHONE', width=30, command=reprendreTimer)
 CorrectionDErreurSmartphone = True
 #Log.pack(side=TOP,fill=BOTH, expand=1 )
 #ReprendreTimerButton.pack(side=TOP,fill=BOTH, expand=1 )
@@ -1627,9 +1627,16 @@ defilementAutoCB.pack()
 ##for i in range (1,5) :
 ##    donnees.append(["nom " + str(i), "prenom" + str(i), '10.13.71.' +str(i)])
 #print(donnees)
+if CategorieDAge :
+    largeurClasse = 0
+    largeurChrono = 50
+else :
+    largeurClasse = 30
+    largeurChrono = 30
+    
 tableau = MonTableau(["No","Heure Arrivée","Doss. Aff.","Nom","Prénom","Dossard","Classe","Chrono","Cat.","Rang","Vitesse"],\
                      donneesEditables = ["Heure Arrivée","Doss. Aff."],\
-                     largeursColonnes = [30,80,40,100, 80, 40, 30, 90,30,35,120], parent=topframe)
+                     largeursColonnes = [30,80,40,100, 80, 40, largeurClasse, 90, largeurChrono,35,120], parent=topframe)
 tableau.pack()
 
 nbreFileAttenteLabel = Label(bottomframe, text="")
@@ -2306,6 +2313,8 @@ def recupererSauvegardeGUI() :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         recupere_sauvegarde(name_file)
+        generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
         actualiseToutLAffichage()
     
 
@@ -2518,6 +2527,7 @@ class CoureurFrame(Frame) :
             else :
                 modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
         generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
 
     def reinitialiserChamps(self):
         # ménage
