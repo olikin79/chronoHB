@@ -45,6 +45,7 @@ FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
 - mettre à jour la documentation en 1.4 : départs affichés et modifiables, menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
 documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
+Anonymer la documentation en faisant un import CSV avec des noms bidons et de nouvelles captures d'écrans.
 
 - mettre l'heure exacte du serveur à la seconde de l'ordinateur quelque part sur l'interface. 
 L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 
@@ -82,6 +83,7 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage.
 MOYENNEMENT PRIORITAIRE :
 - possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
+
 - récupérer l'adresse IP de l'ordinateur pour l'afficher dans l'interface afin d'aider un non initié à accéder à l'affichage via le wifi.
 
 
@@ -105,7 +107,7 @@ d'imprimer les dossards par groupements, catégories, classes avec des cases à 
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
-- anonymer la documentation en faisant un import CSV avec des noms bidons et de nouvelles captures d'écrans.
+
 - Créer un système évitant des incohérences entre les smartphones et la base locale : 
 un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées ou celles du smartphone effacées.
 A réfléchir...
