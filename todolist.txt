@@ -5,15 +5,7 @@ Il est sûrement encore présent puisque tableauGUI ne contient pas l'informatio
 MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
 Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
 
-2. le rang ne s'ajoute plus dans le tableau affiché au fur et à mesure des remontées du smartphone, sauf en cas de redémarrage de l'application serveur.
-Normal dans le processus actuel : 
-	1. on rapproche les temps des dossards dans traiterDonneesSmartphone() dans lequel on génère le tableauGUI (rang inconnu à ce stade)
-	2. on calcule tous les rangs, le challenge dans la fonction dédié.
-	3. on lance l'actualisation de l'affichage avec maj(tableauGUI)
-	
-	Il faudrait alimenter le tableau GUI (actuellement fait dans calculeTousLesTemps()) plus tard, à la fin de calculeResultatCoursesEtClasses()
-
-3. la génération du pdf aImprimer.pdf non fonctionnelle 
+2. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
 

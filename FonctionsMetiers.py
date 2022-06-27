@@ -1063,6 +1063,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
         dossard = coureur.dossard
     else :
         dossard = "-"
+    #Noligne = formateNoLigne(ligneAjoutee)
     #return [ligneAjoutee , temps.tempsCoureurFormate(), dossardAffecte, temps.tempsReelFormate() , nom, coureur.prenom, coureur.dossard, coureur.tempsFormate(),categorie, rang, vitesse]
     return [ligneAjoutee , temps, dossardAffecte, nom, coureur.prenom, coureur.dossard, coureur.classe, tempsDuCoureur,categorie, rang, vitesse]
 ##        self.lignes.append(ligneAAjouter)
@@ -1081,6 +1082,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
 ##        i += 1
 ##    return [ ind , newlines ]
 
+    
 
 
 Resultats = {} # dictionnaire des résultats calculés qui sera regénéré à chaque lancement en fonction des données de root

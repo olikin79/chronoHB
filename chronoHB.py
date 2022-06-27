@@ -88,6 +88,18 @@ class MonTableau(Frame):
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=self.vsb.set, xscrollcommand=self.hsb.set)
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
+
+        #mémorisation des colonnes utiles
+        i = 0
+        for el in self.enTetes :
+            if el == "Dossard" :
+                self.colonneDossard = i
+            elif el == "Rang" :
+                self.colonneRang = i
+            elif el == "Heure Arrivée" :
+                self.colonneTemps = i
+            i += 1
+        print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
 ##        self.treeview.update()
         #print(len(donnees))
@@ -305,7 +317,8 @@ class MonTableau(Frame):
         ### nbFileDAttente =  len(TableauGUI) #self.effectif - ligneTableauGUI[0] + 1
         # si les deux derniers temps sont identiques, cela signifie qu'un nombre insuffisant de temps a été saisi. Il y a trop de dossards scannés.
         # Créer une alerte dans l'interface et proposer de dupliquer dans le bon nombre le dernier temps pour tout recaler.
-        if len(self.listeDesTemps) >= 2 and self.listeDesTemps[-1].tempsReelFormateDateHeure() == self.listeDesTemps[-2].tempsReelFormateDateHeure():
+        #print(self.listeDesTemps[-1], self.listeDesTemps[-2])
+        if len(self.listeDesTemps) >= 2 and self.listeDesTemps[-1] == self.listeDesTemps[-2] :#self.listeDesTemps[-1].tempsReelFormateDateHeure() == self.listeDesTemps[-2].tempsReelFormateDateHeure():
             nbreTempsManquants = 0
             i = len(self.listeDesTemps)-1
             while i > 0 and self.listeDesTemps[i] == self.listeDesTemps[i-1] :
@@ -348,15 +361,21 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[5] == 0 : # si pas de coureur, pas de dossard à l'affichage.
-            donnee[5] = '-'
+        if donnee[self.colonneDossard] == 0 : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        ligneAAjouter = donnee[:1] + [donnee[1].tempsReelFormate(False)] + donnee[2:]           
-        #print(ligneAAjouter)
+        doss = int(donnee[self.colonneDossard])
+        ligneAAjouter = donnee
+        if doss == 0:
+            ligneAAjouter[self.colonneDossard] = '-'
+        #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
+        ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+        if ligneAAjouter[self.colonneRang] == 0:
+            ligneAAjouter[self.colonneRang] = '-'
+        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         if ligne <= len(items) :
             # mise à jour d'une ligne
             self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps

@@ -1,6 +1,8 @@
 Travail du 27/06/22 :
 - ajout d'un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
 - Implémentation : Erreurs affichées sur l'interface graphique avec des boutons permettant la correction.
+- Le rang des coureurs est affiché immédiatement quand le coureur passe la ligne. 
+Il est également recalculé lors de toute correction sur la catégorie d'un coureur dans le menu approprié.
 
 
 Travail du 26/06/22 :
