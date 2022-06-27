@@ -21,13 +21,18 @@ Bug confirmé si le temps est négatif et que la course est partie mais après l
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
 
+- vitesse de défilement réglable par une entryParam sur l'application = > Prévoir un intervalle de validité.
+	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
+	une vérificaiton optionnelle isnumeric dans la classe "EntryParam" avec un intervalle de validité sera suffisant 
+	
+	
 
 ESTHETIQUE :
 - faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
 
-- faire en sorte que MonTableau s'agrandisse avec la fenêtre sur des écrans en grande résolution.
+- faire en sorte que MonTableau s'agrandisse avec la fenêtre sur des écrans en grande résolution. fill=both pour toutes les frames conteneurs.
 
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 
@@ -72,7 +77,7 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage.
 	
 
 MOYENNEMENT PRIORITAIRE :
-- possibilité de compiler les dossards de chaque course séparément: utile finalement après massicot de ce jour ! 
+- possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 
 - récupérer l'adresse IP de l'ordinateur pour l'afficher dans l'interface afin d'aider un non initié à accéder à l'affichage via le wifi.
@@ -84,10 +89,6 @@ A PLUS LONG TERME :
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
-
-- vitesse de défilement réglable par une entryParam sur l'application = > Prévoir un intervalle de validité.
-	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
-	une vérificaiton optionnelle isnumeric dans la classe "EntryParam" avec un intervalle de validité sera suffisant 
 - photo finish à l'arrivée automatique et accessible depuis l'interface GUI
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
@@ -96,9 +97,7 @@ d'imprimer les dossards par groupements, catégories, classes avec des cases à 
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
 - import depuis un fichier xlsx à implémenter en plus du CSV (priorité faible)
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
-
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
-
 - Créer un système évitant des incohérences entre les smartphones et la base locale : 
 un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées ou celles du smartphone effacées.
 A réfléchir...
