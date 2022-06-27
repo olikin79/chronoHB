@@ -6,6 +6,7 @@ from tkinter.ttk import Combobox
 import tkinter.font as font
 
 import time
+from datetime import datetime
 import webbrowser 
 import subprocess
 import sys, os, re
@@ -18,7 +19,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -45,10 +46,11 @@ ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pa
 from FonctionsMetiers import *
 from functools import partial
 
-##Bugs connus :
-##  - (mineur) le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
-##  - (majeur) quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème :
-##              problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
+generateListCoureursPourSmartphone()
+CoureursParClasseUpdate()
+
+
+
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
         """ données est un tableau de lignes de même taille : une ligne est un tableau. La première ligne contient les en-têtes."""
@@ -87,6 +89,18 @@ class MonTableau(Frame):
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=self.vsb.set, xscrollcommand=self.hsb.set)
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
+
+        #mémorisation des colonnes utiles
+        i = 0
+        for el in self.enTetes :
+            if el == "Dossard" :
+                self.colonneDossard = i
+            elif el == "Rang" :
+                self.colonneRang = i
+            elif el == "Heure Arrivée" :
+                self.colonneTemps = i
+            i += 1
+        print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
 ##        self.treeview.update()
         #print(len(donnees))
@@ -153,7 +167,7 @@ class MonTableau(Frame):
             rn = conv_Hexa_vers_Dec(str(row).replace('I',''))
             if self.enTetes[cn-1] in self.donneesEditables :
                 #print("ligne=",rn, ", colonne=", cn)
-                entryedit = Entry(parent,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
+                entryedit = Entry(self,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
                 contenuInitial=item_text[cn-1]
                 if contenuInitial != "-" : # si le contenu de la case est différent de "-", l'Entry est remplie avec le contenu correspondant.
                     entryedit.insert(INSERT,contenuInitial)
@@ -163,7 +177,7 @@ class MonTableau(Frame):
                 sommeLargeurColonnes = 0
                 for i in range(cn-1) :
                     sommeLargeurColonnes += self.largeursColonnes[i]
-                entryedit.place(x=sommeLargeurColonnes, y=50+(rn-premierNomVisible)*20.01)
+                entryedit.place(x=sommeLargeurColonnes, y=(rn-premierNomVisible)*20.01+25)
                 entryedit.focus_set()
                 def estValideSaisie(column, saisie) :
                     retour = False
@@ -304,7 +318,8 @@ class MonTableau(Frame):
         ### nbFileDAttente =  len(TableauGUI) #self.effectif - ligneTableauGUI[0] + 1
         # si les deux derniers temps sont identiques, cela signifie qu'un nombre insuffisant de temps a été saisi. Il y a trop de dossards scannés.
         # Créer une alerte dans l'interface et proposer de dupliquer dans le bon nombre le dernier temps pour tout recaler.
-        if len(self.listeDesTemps) >= 2 and self.listeDesTemps[-1].tempsReelFormateDateHeure() == self.listeDesTemps[-2].tempsReelFormateDateHeure():
+        #print(self.listeDesTemps[-1], self.listeDesTemps[-2])
+        if len(self.listeDesTemps) >= 2 and self.listeDesTemps[-1] == self.listeDesTemps[-2] :#self.listeDesTemps[-1].tempsReelFormateDateHeure() == self.listeDesTemps[-2].tempsReelFormateDateHeure():
             nbreTempsManquants = 0
             i = len(self.listeDesTemps)-1
             while i > 0 and self.listeDesTemps[i] == self.listeDesTemps[i-1] :
@@ -314,6 +329,7 @@ class MonTableau(Frame):
                 print("il manque ", nbreTempsManquants," temps. Voici le tableau non stabilisé ",TableauGUI)
                 nbreFileAttenteLabel.config(text="Il manque " + str(nbreTempsManquants) + " temps saisis à l'arrivée. INCOHERENCE A CORRIGER RAPIDEMENT.")
                 if self.incoherenceFutureACorriger :
+                    self.incoherenceFutureACorriger = False
                     reponse = askokcancel("INCOHERENCE CONSTATEE", "Il y a "+str(nbreTempsManquants)+" dossards scannés qui ne correspondent à aucun temps de passage sur la ligne d'arrivée.\nVoulez vous corriger cete incohérence en affectant le dernier temps mesuré à tous ces dossards (FORTEMENT CONSEILLE) ?")
                     if reponse :
                         print("Correction de l'incohérence en dupliquant le temps", nbreTempsManquants, "fois.")
@@ -327,8 +343,7 @@ class MonTableau(Frame):
                             tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
                             i -= 1
                     else :
-                        print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")
-                        self.incoherenceFutureACorriger = False
+                        print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")  
         if self.noPremierTempsSansCorrespondance > 0 :
             self.incoherenceFutureACorriger = True
             # si les deux derniers temps sont différents, on est dans le cas d'une file d'attente normal
@@ -347,15 +362,20 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[5] == 0 : # si pas de coureur, pas de dossard à l'affichage.
-            donnee[5] = '-'
+        if donnee[self.colonneDossard] == 0 : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        ligneAAjouter = donnee[:1] + [donnee[1].tempsReelFormate(False)] + donnee[2:]           
-        #print(ligneAAjouter)
+        doss = int(donnee[self.colonneDossard])
+        ligneAAjouter = donnee
+        ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
+        if doss == 0:
+            ligneAAjouter[self.colonneDossard] = '-'
+            ligneAAjouter[self.colonneRang] = '-'
+        #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
         if ligne <= len(items) :
             # mise à jour d'une ligne
             self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
@@ -387,11 +407,11 @@ class MonTableau(Frame):
             return self.listeDesTemps[indiceDeLaLigneSelectionnee]
 
     def getDossard(self) :
-        item_text = "-"
+        item_text = ""
         for item in self.treeview.selection():
             item_text = self.treeview.item(item, "values")
-            # on ne garde que le dernier sélectionné
-        if item_text == "-" :
+            # on ne garde que le dernier sélectionné si sélection multiple
+        if item_text == "" or item_text[5] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return ""
         else :
             return item_text[5]
@@ -700,7 +720,7 @@ class EntryGroupements(Frame):
         lbl = Label(self, text=ch)
         lbl.pack(side=TOP)
         self.listeDesEntryGroupement = []
-        valeurs=tuple(range (1,1+self.longueur))
+        #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
             for course in groupement.listeDesCourses :
@@ -721,7 +741,7 @@ class EntryGroupements(Frame):
 ##                ligne.pack(side=TOP)
                 #print("EntryGroupement(",course,noGroupement,self.longueur,")")
                 #self.listeDesEntryGroupement.append(
-                EntryGroupement(course,noGroupement,self.longueur, self).pack(side=TOP)
+                EntryGroupement(course,noGroupement,self.longueur, self, self.groupements).pack(side=TOP)
                 #    )
                 #self.listeDesEntryGroupement[-1].pack(side=TOP)
             noGroupement = noGroupement + 1
@@ -734,14 +754,24 @@ class EntryGroupements(Frame):
 ##        self.current       
 
 class EntryGroupement(Frame):
-    def __init__(self, course, numero, numeromax, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, course, numero, numeromax, parent=None, groupements=[]):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         self.course = course
         self.numero = numero
         self.max = numeromax
-        valeurs=tuple(range (1,1+self.max))
+        i = 1
+        valeursPossibles = list(range(1,1+self.max))
+        ## tentative pour éliminer les valeurs des courses déjà commencées.
+        if not Courses[self.course].depart :
+            for grpment in groupements :
+                if Courses[grpment.listeDesCourses[0]].depart :
+                    valeursPossibles.remove(i)
+                i += 1
+        valeurs=tuple(valeursPossibles)
+        print(course,valeurs)
         self.combobox = Combobox(self, width=5, justify=CENTER, values=valeurs)
-        self.combobox.current(self.numero-1)
+        #self.combobox.current(self.numero-1)
+        self.combobox.set(self.numero)
         def memoriseValeurBind(event) :
             updateGroupements(self.course, self.numero,int(self.combobox.get()))
             self.numero = int(self.combobox.get())
@@ -1224,7 +1254,7 @@ tempsDialog=""
            
 zoneTopDepartBienPlacee = Frame(Affichageframe)
 
-zoneTopDepartBienPlacee.pack(side=TOP)
+zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 
@@ -1233,12 +1263,14 @@ zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
 
 
-zoneAffichageDeparts = Frame(Affichageframe)
+zoneAffichageDeparts = Frame(Affichageframe, relief=GROOVE, bd=2)
 
-zoneAffichageErreurs = Frame(Affichageframe)
+zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 
-zoneAffichageTV = Frame(Affichageframe)
+zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)
+
+
 checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False)
 
 ##def CoureursAleatoires() :
@@ -1523,10 +1555,10 @@ ajouterDossardApres2.pack(side=TOP)
 
 ## zones départs et erreurs
 
-zoneAffichageDeparts.pack(side=TOP)
+zoneAffichageDeparts.pack(side=TOP,fill=X)
 
 
-zoneAffichageErreurs.pack(side=TOP)
+#zoneAffichageErreurs.pack(side=TOP)
 
 
 
@@ -1575,23 +1607,23 @@ boutonsFrameNavigateur.pack(side=TOP)
 
 zoneAffichageTV.pack()
 
-def reprendreTimer() :
-##    timer.enPause(False)
-    global CorrectionDErreurSmartphone
-    if CorrectionDErreurSmartphone :
-        LignesIgnoreesSmartphone.append(Parametres["ligneDerniereRecuperationSmartphone"])
-        print("LignesIgnoreesSmartphone : ", LignesIgnoreesSmartphone)
-    else :
-        LignesIgnoreesLocal.append(Parametres["ligneDerniereRecuperationLocale"])
-        print("LignesIgnoreesLocal : ", LignesIgnoreesLocal)
-    Log.configure(text="")
-    LogFrame.forget()
-    timer.update_clock()
+##def reprendreTimer() :
+####    timer.enPause(False)
+##    global CorrectionDErreurSmartphone
+##    if CorrectionDErreurSmartphone :
+##        LignesIgnoreesSmartphone.append(Parametres["ligneDerniereRecuperationSmartphone"])
+##        print("LignesIgnoreesSmartphone : ", LignesIgnoreesSmartphone)
+##    else :
+##        LignesIgnoreesLocal.append(Parametres["ligneDerniereRecuperationLocale"])
+##        print("LignesIgnoreesLocal : ", LignesIgnoreesLocal)
+##    Log.configure(text="")
+##    LogFrame.forget()
+##    timer.update_clock()
 # LogFrame
 
 LogFrame = Frame(DroiteFrame)
 Log = Label(LogFrame, text="")
-ReprendreTimerButton = Button(LogFrame, text='Ignorer cette erreur APRES CORRECTION SUR LE SMARTPHONE', width=30, command=reprendreTimer)
+#ReprendreTimerButton = Button(LogFrame, text='Ignorer cette erreur APRES CORRECTION SUR LE SMARTPHONE', width=30, command=reprendreTimer)
 CorrectionDErreurSmartphone = True
 #Log.pack(side=TOP,fill=BOTH, expand=1 )
 #ReprendreTimerButton.pack(side=TOP,fill=BOTH, expand=1 )
@@ -1606,12 +1638,32 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+### zone en haut avec défilement et heure actuelle
+defilementEtHeureFrame = Frame(topframe)
+defilementEtHeureFrame.pack(side=TOP)#, fill='both', expand=True)
+
+defilementFrame = Frame(defilementEtHeureFrame)
+heureFrame = Frame(defilementEtHeureFrame)
+
 defilement = IntVar()
-defilementAutoCB  = Checkbutton(topframe, text='Défilement automatique',
+defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement automatique',
     variable=defilement, command=parametreTableau)
-defilementAutoCB.pack()
+defilementAutoCB.pack(side=LEFT)
 
+lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
+lblHeureActuelle.pack(side=RIGHT)
 
+defilementFrame.pack(side=LEFT)
+heureFrame.pack(side=RIGHT)
+
+def actualiseHeureActuelle():
+    lblHeureActuelle.configure(text="                     Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
+    defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
+
+##print(time.localtime())
+##print(time.strftime("%H:%M:%S", time.localtime()))
+actualiseHeureActuelle()
+    
 ##Log["text"] = ""#calculeTousLesTemps(True)
 ##Log.pack(side=LEFT,fill=BOTH, expand=1 )
 ##LogFrame.pack(side=LEFT,fill=BOTH, expand=1 )
@@ -1627,9 +1679,16 @@ defilementAutoCB.pack()
 ##for i in range (1,5) :
 ##    donnees.append(["nom " + str(i), "prenom" + str(i), '10.13.71.' +str(i)])
 #print(donnees)
+if CategorieDAge :
+    largeurClasse = 0
+    largeurChrono = 50
+else :
+    largeurClasse = 30
+    largeurChrono = 30
+    
 tableau = MonTableau(["No","Heure Arrivée","Doss. Aff.","Nom","Prénom","Dossard","Classe","Chrono","Cat.","Rang","Vitesse"],\
                      donneesEditables = ["Heure Arrivée","Doss. Aff."],\
-                     largeursColonnes = [30,80,40,100, 80, 40, 30, 90,30,35,120], parent=topframe)
+                     largeursColonnes = [30,80,40,100, 80, 40, largeurClasse, 90, largeurChrono,35,120], parent=topframe)
 tableau.pack()
 
 nbreFileAttenteLabel = Label(bottomframe, text="")
@@ -1682,11 +1741,11 @@ def messageDErreurInterface(message, SurSmartphone):
     LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1 )
 
 #### zone d'affichage des erreurs : boutons permettant de modifier le départ d'une course.
-lblDictE={}
-#listErreursEnCours=[]
+lblListE=[]
+listErreursEnCours=[]
 
-frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
-Label(frE, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
+#frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
+Label(zoneAffichageErreurs, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
 
 def onClickE(err):
     #print(grpe)
@@ -1697,7 +1756,7 @@ def onClickE(err):
     if err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
         saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
-    elif err.numero == 431 :
+    elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
     else :
@@ -1705,25 +1764,26 @@ def onClickE(err):
     
 
 def actualiseAffichageErreurs(listErreursEnCours):
-    listErreursEnCours, lblDictE
-    for grp in lblDictE.keys() :
-        lblDictE[grp][1].destroy()
-    lblDictE.clear()
+    #print(listErreursEnCours)
+    global lblListE
+    for bouton in lblListE :
+        #print("Destruction de ",bouton)
+        bouton.destroy()
+    lblListE = []
     #print("Liste des erreurs en cours : ",listErreursEnCours)
     if listErreursEnCours :
         for grp in listErreursEnCours :
-            lblFrE = Frame(frE)
-            lblLegende = Label(lblFrE, text= " : ")
+            lblFrE = Frame(zoneAffichageErreurs)
+            #lblLegende = Label(lblFrE, text= " : ")
             #print("bouton avec commande : onClick(",grp,")")
-            lblTemps = Button(lblFrE, text= grp.description, command=partial(onClickE,grp), bd=0)
+            errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
             #lblLegende.pack(side=LEFT)
-            lblTemps.pack(side=LEFT)
-            lblFrE.pack(side=TOP)
-            lblDictE[grp] = [lblTemps,lblFrE]
-        frE.pack()
+            errBouton.pack(side=TOP)
+            #lblFrE.pack(side=TOP)
+            lblListE.append(errBouton)#[lblTemps,lblFrE]
         zoneAffichageErreurs.pack()
     else :
-        frE.forget()
+        zoneAffichageErreurs.forget()
 
 
 def rejouerToutesLesActionsMemorisees() :
@@ -1765,18 +1825,30 @@ class Clock():
         self.update_clock()
         
     def update_clock(self):
-        global tableauGUI
-        if self.premiereExecution : # si c'est la première exécution, il nous faut un  affichage.
-            genereResultatsCoursesEtClasses(self.premiereExecution)
-            eval(self.MAJfunction + "(tableauGUI)")
-            self.premiereExecution = False
-        ## nouvelle version sans bloquant
-        tableau.makeDefilementAuto()
+        #print("self.premiereExecution",self.premiereExecution)
+        global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
+        ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
+        #if self.premiereExecution :
         traitementSmartphone = traiterDonneesSmartphone()
         traitementLocal = traiterDonneesLocales()
-        genereResultatsCoursesEtClasses(self.premiereExecution)
+        traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
+        self.premiereExecution = False
+        #else :
+        #    traitementSmartphone += traiterDonneesSmartphone()
+        #    traitementLocal += traiterDonneesLocales()
+        #    traitementDonneesRecuperees += genereResultatsCoursesEtClasses(self.premiereExecution)
+        #print(traitementSmartphone , traitementLocal , traitementDonneesRecuperees)
+        listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
+##        for err in listeErreursATraiter :
+##            if err.numero : 
+##                print("retour en erreur n°", err.numero, ":", err.description)
+
+        # maj affichage.
         eval(self.MAJfunction + "(tableauGUI)")
-        self.erreursATraiter(traitementSmartphone + traitementLocal)
+        tableau.makeDefilementAuto()
+
+        # création des boutons pour traitement des erreurs
+        self.erreursATraiter(listeNouvellesErreursATraiter)
 
         # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
         ActualiseAffichageTV() # pour mise à jour de l'affichage TV +  menu annulDepart
@@ -1803,7 +1875,7 @@ class Clock():
         if listErreursEnCours : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
             self.auMoinsUnImport = True
         for erreur in listErreursEnCours :
-            if erreur.numero != 0 :
+            if not erreur.numero in [0, 311, 312, 321] : ### "erreurs" internes qui doivent être ignorés par l'interface graphique.
                 self.erreursEnCours.append(erreur)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
@@ -2306,6 +2378,8 @@ def recupererSauvegardeGUI() :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         recupere_sauvegarde(name_file)
+        generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
         actualiseToutLAffichage()
     
 
@@ -2518,6 +2592,7 @@ class CoureurFrame(Frame) :
             else :
                 modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
         generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
 
     def reinitialiserChamps(self):
         # ménage
