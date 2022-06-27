@@ -3,6 +3,14 @@ Travail du 27/06/22 :
 - Implémentation : Erreurs affichées sur l'interface graphique avec des boutons permettant la correction.
 - Le rang des coureurs est affiché immédiatement quand le coureur passe la ligne. 
 Il est également recalculé lors de toute correction sur la catégorie d'un coureur dans le menu approprié.
+- l'heure exacte du serveur à la seconde de l'ordinateur est affichée en rouge en haut de l'interface. 
+L'opérateur qui est sur le serveur et qui voit passer un coureur peut ensuite associer ce temps vu à celui qui va apparaître mesuré 
+par l'opérateur sur le premier smartphone. Cela décharge ce dernier qui va voir arriver plein de coureurs et n'a souvent pas le temps
+d'effectuer l'association du premier coureur d'une course avec son temps.
+- si en cours de course, on crée un coureur dans une catégorie qui n'existe pas encore. Qu'ensuite, on regroupe cette catégorie avec une 
+dont le départ a déjà été donné. Alors le départ dans cette nouvelle catégorie devrait être donné (ce n'est pas fait) et l'affichage 
+actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE COURSE).
+=> J'empêche d'effectuer le regroupement d'une course qui n'a pas commencé avec un groupement qui a commencé.
 
 
 Travail du 26/06/22 :

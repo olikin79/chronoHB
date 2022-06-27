@@ -6,6 +6,7 @@ from tkinter.ttk import Combobox
 import tkinter.font as font
 
 import time
+from datetime import datetime
 import webbrowser 
 import subprocess
 import sys, os, re
@@ -719,7 +720,7 @@ class EntryGroupements(Frame):
         lbl = Label(self, text=ch)
         lbl.pack(side=TOP)
         self.listeDesEntryGroupement = []
-        valeurs=tuple(range (1,1+self.longueur))
+        #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
             for course in groupement.listeDesCourses :
@@ -740,7 +741,7 @@ class EntryGroupements(Frame):
 ##                ligne.pack(side=TOP)
                 #print("EntryGroupement(",course,noGroupement,self.longueur,")")
                 #self.listeDesEntryGroupement.append(
-                EntryGroupement(course,noGroupement,self.longueur, self).pack(side=TOP)
+                EntryGroupement(course,noGroupement,self.longueur, self, self.groupements).pack(side=TOP)
                 #    )
                 #self.listeDesEntryGroupement[-1].pack(side=TOP)
             noGroupement = noGroupement + 1
@@ -753,14 +754,24 @@ class EntryGroupements(Frame):
 ##        self.current       
 
 class EntryGroupement(Frame):
-    def __init__(self, course, numero, numeromax, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, course, numero, numeromax, parent=None, groupements=[]):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         self.course = course
         self.numero = numero
         self.max = numeromax
-        valeurs=tuple(range (1,1+self.max))
+        i = 1
+        valeursPossibles = list(range(1,1+self.max))
+        ## tentative pour éliminer les valeurs des courses déjà commencées.
+        if not Courses[self.course].depart :
+            for grpment in groupements :
+                if Courses[grpment.listeDesCourses[0]].depart :
+                    valeursPossibles.remove(i)
+                i += 1
+        valeurs=tuple(valeursPossibles)
+        print(course,valeurs)
         self.combobox = Combobox(self, width=5, justify=CENTER, values=valeurs)
-        self.combobox.current(self.numero-1)
+        #self.combobox.current(self.numero-1)
+        self.combobox.set(self.numero)
         def memoriseValeurBind(event) :
             updateGroupements(self.course, self.numero,int(self.combobox.get()))
             self.numero = int(self.combobox.get())
@@ -1243,7 +1254,7 @@ tempsDialog=""
            
 zoneTopDepartBienPlacee = Frame(Affichageframe)
 
-zoneTopDepartBienPlacee.pack(side=TOP)
+zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 
@@ -1544,7 +1555,7 @@ ajouterDossardApres2.pack(side=TOP)
 
 ## zones départs et erreurs
 
-zoneAffichageDeparts.pack(side=TOP)
+zoneAffichageDeparts.pack(side=TOP,fill=X)
 
 
 #zoneAffichageErreurs.pack(side=TOP)
@@ -1627,12 +1638,32 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+### zone en haut avec défilement et heure actuelle
+defilementEtHeureFrame = Frame(topframe)
+defilementEtHeureFrame.pack(side=TOP)#, fill='both', expand=True)
+
+defilementFrame = Frame(defilementEtHeureFrame)
+heureFrame = Frame(defilementEtHeureFrame)
+
 defilement = IntVar()
-defilementAutoCB  = Checkbutton(topframe, text='Défilement automatique',
+defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement automatique',
     variable=defilement, command=parametreTableau)
-defilementAutoCB.pack()
+defilementAutoCB.pack(side=LEFT)
 
+lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
+lblHeureActuelle.pack(side=RIGHT)
 
+defilementFrame.pack(side=LEFT)
+heureFrame.pack(side=RIGHT)
+
+def actualiseHeureActuelle():
+    lblHeureActuelle.configure(text="                     Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
+    defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
+
+##print(time.localtime())
+##print(time.strftime("%H:%M:%S", time.localtime()))
+actualiseHeureActuelle()
+    
 ##Log["text"] = ""#calculeTousLesTemps(True)
 ##Log.pack(side=LEFT,fill=BOTH, expand=1 )
 ##LogFrame.pack(side=LEFT,fill=BOTH, expand=1 )
