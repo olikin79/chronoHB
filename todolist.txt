@@ -1,7 +1,5 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-0. Un temps négatif n'affiche toujours pas les boutons dans l'interface. Trouver pourquoi.
-
 1. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
 MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
@@ -37,8 +35,9 @@ actualisé pour en tenir compte. (BUG TORDU MAIS POSSIBLE DANS L'URGENCE D'UNE C
 
 
 ESTHETIQUE :
-- faire un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
-Exactement comme pour la zone de gestion des erreurs, par exemple. C'est juste une propriété de la frame conteneur.
+- faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
+(interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
+Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
 
 - faire en sorte que MonTableau s'agrandisse avec la fenêtre sur des écrans en grande résolution.
 

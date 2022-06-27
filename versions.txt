@@ -1,3 +1,8 @@
+Travail du 27/06/22 :
+- ajout d'un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
+- Implémentation : Erreurs affichées sur l'interface graphique avec des boutons permettant la correction.
+
+
 Travail du 26/06/22 :
 - bug compatibilité ascendante : possibilité de réimporter des vieux fichiers de données sans groupements : création des groupements manquants à la volée.
 - correction de bug : emplacement de l'entry permettant d'affecter un dossard à un temps ou de modifier un temps parfaitement placé désormais...

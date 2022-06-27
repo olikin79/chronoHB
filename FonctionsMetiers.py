@@ -2321,6 +2321,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     global tableauGUI
     #Tdebut = time.time()
     retour = calculeTousLesTemps(premiereExecution)
+    #print("calculeTousLesTemps : ",retour)
     Resultats.clear()
     listeDesClasses = []
     # ajout des coureurs ayant terminé la course dans le bon ordre.
@@ -2399,6 +2400,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     # calculeTousLesTemps(premiereExecution)
     #Tfin = time.time()
     ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
+    #print("fin de genereResultatsCoursesEtClasses",retour)
     return retour
                 
 def estUneCourseOuUnGroupement(nom):
@@ -2551,13 +2553,15 @@ def affecteDossardArriveeTemps(tempsCoureur, dossard=0) :
     CodeRetour = Erreur(311)
     doss = int(dossard)
     n = len(ArriveeTemps)
+    message = "Temps coureur cherché : " + str(tempsCoureur) + " pour affectation du dossard " + str(doss) + "."
+    CodeRetour = Erreur(311, message , elementConcerne=tempsCoureur )
     if n != 0 :
         while n > 0 :
             tpsPresent = ArriveeTemps[n-1]
             if tpsPresent.tempsCoureur == tempsCoureur :
                 ArriveeTempsAffectes[n-1] = doss
                 #print("Dossard", doss, "affecté au temps sélectionné")
-                CodeRetour = Erreur(0)
+                CodeRetour = Erreur(0, message , elementConcerne=tempsCoureur )
                 break
             n -= 1
     Parametres["calculateAll"] = True
@@ -2566,12 +2570,14 @@ def affecteDossardArriveeTemps(tempsCoureur, dossard=0) :
 
 def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsReel.
+    (utile pour une affectation du temps depuis l'interface graphique du serveur)
     Appelé avec le temps seul, efface le dossard affecté. """
-    CodeRetour = Erreur(312)
     doss = int(dossard)
     n = len(ArriveeTemps)
     temps = Temps(tempsReel, 0, 0)
-    print("tempsReel cherché :",temps.tempsReel, " soit ", temps.tempsReelFormate())
+    message = "Temps cherché : " + str(temps.tempsReel) + " soit " + temps.tempsReelFormate() + " pour affectation du dossard " + str(doss) + "."
+    CodeRetour = Erreur(312, message , elementConcerne=tempsReel )
+    print(message)
     if n != 0 :
         while n > 0 :
             tpsPresent = ArriveeTemps[n-1]
@@ -2579,8 +2585,8 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
             if tpsPresent.tempsReel == tempsReel :
                 ArriveeTempsAffectes[n-1] = doss
                 if DEBUG :
-                    print("Dossard", doss, "affecté au temps sélectionné")
-                CodeRetour = Erreur(0)
+                    print("Dossard", doss, "affecté au temps sélectionné", temps.tempsReelFormate())
+                CodeRetour = Erreur(0, message, elementConcerne=tempsReel )
                 break
             n -= 1
     Parametres["calculateAll"] = True
@@ -2647,7 +2653,7 @@ def delArriveeTemps(tempsCoureur, dossard=0) :
                 break
         n -= 1
     if codeRetour == "" : 
-        calculeTousLesTemps(True)
+        Parametres["calculateAll"] = True # le prochain calcul se fera sur l'intégralité des données.
     else :
         #codeRetour = ""
         print("La suppression demandée ne peut pas être effectuée : ",tempsCoureur,",", dossard,". Le temps a été supprimé depuis un autre autre appareil.")
@@ -2825,7 +2831,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
             except ValueError :
                 message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
                 print(message)
-                return Erreur(499,message)
+                return Erreur(499,message, elementConcerne=doss)
     ##transaction.commit()
         #calculeTousLesTemps(True)
 ##    except :
@@ -2868,6 +2874,7 @@ def calculeTousLesTemps(reinitialise = False):
     chronosInutilesAvantLeDossard = 0
     ligneAjoutee = ligneTableauGUI[0]
     derniereLigneStabilisee = ligneTableauGUI[1]
+    #print("DerniereLigneStabilisee au début",derniereLigneStabilisee, "i=", i, "j=",j,"retour",retour)
     #print("len(ArriveeDossards)",len(ArriveeDossards), "len(ArriveeTemps)",len(ArriveeTemps))
     while j < len(ArriveeDossards) and i < len(ArriveeTemps): # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
         doss = ArriveeDossards[j]
@@ -2900,7 +2907,7 @@ def calculeTousLesTemps(reinitialise = False):
                 #i = iTrouve
                 if chronosInutilesAvantLeDossard != doss :
                     message = "Il y a un (des) chrono(s) inutilisé(s) juste avant le dossard " + str(doss) + "."
-                    retour.append(Erreur(321,message))
+                    retour.append(Erreur(321,message, elementConcerne=doss))
                     chronosInutilesAvantLeDossard = doss
                 #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps)
                 coureur = Coureurs[doss - 1]
@@ -2916,7 +2923,7 @@ def calculeTousLesTemps(reinitialise = False):
     # à partir de cet indice, il faut actualiser systématiquement le tableau de l'interface GUI
     #print("derniere ligne stabilisée", ligneAjoutee - 1)
     derniereLigneStabilisee = ligneAjoutee - 1
-    #print("derniereLigneStabilisee",derniereLigneStabilisee)
+    #print("derniereLigneStabilisee au milieu",derniereLigneStabilisee, "i=", i, "j=",j, "retour", retour)
     # Cas classique où des coureurs sont dans la file d'attente pour être scannés.
     if j == len(ArriveeDossards) :
         k = i
@@ -2955,9 +2962,7 @@ def calculeTousLesTemps(reinitialise = False):
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
-    ##transaction.commit()
-    #if reinitialise :
-        #retour = "<p>RECALCUL DE TOUS LES TEMPS :</p>\n" + retour
+    #print("A la fin",retour)
     return retour
 
 ##def calculeTousLesTemps(reinitialise = False):
@@ -3075,7 +3080,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
             message = "Le dossard " + str(doss) + " a avec un temps négatif : " + str(arrivee) + "-" + str(depart) +"."
-            retour.append(Erreur(211,message))
+            retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :
             alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
@@ -3100,6 +3105,8 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         message = "La course " + cat+ " n'est pas partie. Le coureur "+ coureur.nom+ " n'est pas censé avoir franchi la ligne."
         print(message)
         retour.append(Erreur(431,message))
+    #if retour[0].numero :
+    #    print("retour affecteChronoAUnCoureur",retour, retour[0].numero)
     return retour
 
 def reindexDossards(numeroInitial) :

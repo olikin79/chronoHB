@@ -18,7 +18,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1234,12 +1234,14 @@ zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
 
 
-zoneAffichageDeparts = Frame(Affichageframe)
+zoneAffichageDeparts = Frame(Affichageframe, relief=GROOVE, bd=2)
 
-zoneAffichageErreurs = Frame(Affichageframe)
+zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 
-zoneAffichageTV = Frame(Affichageframe)
+zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)
+
+
 checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False)
 
 ##def CoureursAleatoires() :
@@ -1527,7 +1529,7 @@ ajouterDossardApres2.pack(side=TOP)
 zoneAffichageDeparts.pack(side=TOP)
 
 
-zoneAffichageErreurs.pack(side=TOP)
+#zoneAffichageErreurs.pack(side=TOP)
 
 
 
@@ -1690,11 +1692,11 @@ def messageDErreurInterface(message, SurSmartphone):
     LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1 )
 
 #### zone d'affichage des erreurs : boutons permettant de modifier le départ d'une course.
-lblDictE={}
-#listErreursEnCours=[]
+lblListE=[]
+listErreursEnCours=[]
 
-frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
-Label(frE, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
+#frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
+Label(zoneAffichageErreurs, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
 
 def onClickE(err):
     #print(grpe)
@@ -1713,25 +1715,26 @@ def onClickE(err):
     
 
 def actualiseAffichageErreurs(listErreursEnCours):
-    listErreursEnCours, lblDictE
-    for grp in lblDictE.keys() :
-        lblDictE[grp][1].destroy()
-    lblDictE.clear()
+    #print(listErreursEnCours)
+    global lblListE
+    for bouton in lblListE :
+        #print("Destruction de ",bouton)
+        bouton.destroy()
+    lblListE = []
     #print("Liste des erreurs en cours : ",listErreursEnCours)
     if listErreursEnCours :
         for grp in listErreursEnCours :
-            lblFrE = Frame(frE)
-            lblLegende = Label(lblFrE, text= " : ")
+            lblFrE = Frame(zoneAffichageErreurs)
+            #lblLegende = Label(lblFrE, text= " : ")
             #print("bouton avec commande : onClick(",grp,")")
-            lblTemps = Button(lblFrE, text= grp.description, command=partial(onClickE,grp), bd=0)
+            errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
             #lblLegende.pack(side=LEFT)
-            lblTemps.pack(side=LEFT)
-            lblFrE.pack(side=TOP)
-            lblDictE[grp] = [lblTemps,lblFrE]
-        frE.pack()
+            errBouton.pack(side=TOP)
+            #lblFrE.pack(side=TOP)
+            lblListE.append(errBouton)#[lblTemps,lblFrE]
         zoneAffichageErreurs.pack()
     else :
-        frE.forget()
+        zoneAffichageErreurs.forget()
 
 
 def rejouerToutesLesActionsMemorisees() :
@@ -1773,18 +1776,30 @@ class Clock():
         self.update_clock()
         
     def update_clock(self):
-        global tableauGUI
-        if self.premiereExecution : # si c'est la première exécution, il nous faut un  affichage.
-            genereResultatsCoursesEtClasses(self.premiereExecution)
-            eval(self.MAJfunction + "(tableauGUI)")
-            self.premiereExecution = False
-        ## nouvelle version sans bloquant
-        tableau.makeDefilementAuto()
+        #print("self.premiereExecution",self.premiereExecution)
+        global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
+        ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
+        #if self.premiereExecution :
         traitementSmartphone = traiterDonneesSmartphone()
         traitementLocal = traiterDonneesLocales()
-        genereResultatsCoursesEtClasses(self.premiereExecution)
+        traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
+        self.premiereExecution = False
+        #else :
+        #    traitementSmartphone += traiterDonneesSmartphone()
+        #    traitementLocal += traiterDonneesLocales()
+        #    traitementDonneesRecuperees += genereResultatsCoursesEtClasses(self.premiereExecution)
+        #print(traitementSmartphone , traitementLocal , traitementDonneesRecuperees)
+        listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
+##        for err in listeErreursATraiter :
+##            if err.numero : 
+##                print("retour en erreur n°", err.numero, ":", err.description)
+
+        # maj affichage.
         eval(self.MAJfunction + "(tableauGUI)")
-        self.erreursATraiter(traitementSmartphone + traitementLocal)
+        tableau.makeDefilementAuto()
+
+        # création des boutons pour traitement des erreurs
+        self.erreursATraiter(listeNouvellesErreursATraiter)
 
         # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
         ActualiseAffichageTV() # pour mise à jour de l'affichage TV +  menu annulDepart
@@ -1811,7 +1826,7 @@ class Clock():
         if listErreursEnCours : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
             self.auMoinsUnImport = True
         for erreur in listErreursEnCours :
-            if erreur.numero != 0 :
+            if not erreur.numero in [0, 311, 312, 321] : ### "erreurs" internes qui doivent être ignorés par l'interface graphique.
                 self.erreursEnCours.append(erreur)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
