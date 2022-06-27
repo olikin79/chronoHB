@@ -369,13 +369,12 @@ class MonTableau(Frame):
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = int(donnee[self.colonneDossard])
         ligneAAjouter = donnee
+        ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         if doss == 0:
             ligneAAjouter[self.colonneDossard] = '-'
-        #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
-        ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
-        if ligneAAjouter[self.colonneRang] == 0:
             ligneAAjouter[self.colonneRang] = '-'
-        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
+        #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
         if ligne <= len(items) :
             # mise à jour d'une ligne
             self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
