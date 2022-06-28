@@ -1,5 +1,7 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+0. bug apparu récemment : les départs proposés sont par catégories et non par groupements. Le top départ ne fonctionne plus.
+
 1. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
 Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
 MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.

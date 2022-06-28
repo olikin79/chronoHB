@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -772,7 +772,7 @@ class EntryGroupement(Frame):
         ## tentative pour éliminer les valeurs des courses déjà commencées.
         if not Courses[self.course].depart :
             for grpment in groupements :
-                if Courses[grpment.listeDesCourses[0]].depart :
+                if grpment.listeDesCourses and Courses[grpment.listeDesCourses[0]].depart :
                     valeursPossibles.remove(i)
                 i += 1
         valeurs=tuple(valeursPossibles)
