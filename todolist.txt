@@ -20,7 +20,9 @@ Bug confirmé si le temps est négatif et que la course est partie mais après l
 
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
-	
+
+- vérifier que générer tous les dossards les considère tous imprimés. 
+Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"	
 	
 
 ESTHETIQUE :
