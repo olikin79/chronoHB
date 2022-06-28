@@ -1,3 +1,10 @@
+Travail du 28/06/22 :
+- affichage d'info dans un tooltip au survol du bouton "ouvrir un navigateur" : URL à saisir pour affichage distant notamment.
+- mise à jour de la documentation vers 1.4 (en cours)
+- vitesse de défilement réglable et temps de pause de l'affichage doivent être numériques. Sinon, la valeur précédente est réimposée.
+Cela permet d'éviter le plantage de la page web d'affichage en cas de saisie incorrecte.
+
+
 Travail du 27/06/22 :
 - ajout d'un cadre autour de la zone pour donner les départs ainsi qu'autour de la zone avec les résultats à projeter sur une TV. 
 - Implémentation : Erreurs affichées sur l'interface graphique avec des boutons permettant la correction.

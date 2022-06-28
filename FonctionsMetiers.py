@@ -3350,7 +3350,7 @@ def genereAffichageTV(listeDesGroupements) :
 </div>
 <script>
 var pauseEntreDeuxPages = """)
-        f.write(Parametres["tempsPause"])
+        f.write(str(Parametres["tempsPause"]))
         f.write(""";
 var i = 0;
 """)

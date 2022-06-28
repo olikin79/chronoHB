@@ -11,6 +11,9 @@ import webbrowser
 import subprocess
 import sys, os, re
 import copy
+import socket # obtenir ip
+from idlelib.tooltip import Hovertip # tooltip
+
 
 version="1.4"
 
@@ -19,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -100,7 +103,7 @@ class MonTableau(Frame):
             elif el == "Heure Arrivée" :
                 self.colonneTemps = i
             i += 1
-        print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
+        #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
 ##        self.treeview.update()
         #print(len(donnees))
@@ -595,14 +598,19 @@ class EntryParam(Frame):
             self.valeur = "" # n'existe pas dans la base de données. Ne devrait pas arriver.
         self.nombre = nombre
         self.entry = Entry(self, width=self.largeur)
-        self.entry.insert(0,str(self.valeur))
+        self.entry.insert(0,str(self.valeur).replace(".",","))
         def dontsaveedit(event) :
-            self.entry.delete(0)
-            self.entry.insert(0,str(self.valeur))
+            self.entry.delete(0, END)
+            self.entry.insert(0,str(self.valeur).replace(".",","))
         def memoriseValeurBind(event) :
             ch = self.entry.get()
+            ch = ch.replace(",",".")
             if self.nombre :
-                setParam(self.param, int(ch))
+                try :
+                    float(ch)
+                    setParam(self.param, ch)
+                except :
+                    dontsaveedit(None)
             else :
                 setParam(self.param, ch)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
@@ -768,7 +776,7 @@ class EntryGroupement(Frame):
                     valeursPossibles.remove(i)
                 i += 1
         valeurs=tuple(valeursPossibles)
-        print(course,valeurs)
+        #print(course,valeurs)
         self.combobox = Combobox(self, width=5, justify=CENTER, values=valeurs)
         #self.combobox.current(self.numero-1)
         self.combobox.set(self.numero)
@@ -956,6 +964,18 @@ class Buttonbar(Frame):
             else :
                 fr.pack(side=TOP)
 
+def extract_ip():
+    st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:       
+        st.connect(('10.255.255.255', 1))
+        IP = st.getsockname()[0]
+    except Exception:
+        IP = '127.0.0.1'
+    finally:
+        st.close()
+    return IP
+
+#print("IP",extract_ip())
 
 
 root = Tk() # initial box declaration
@@ -1594,14 +1614,15 @@ def OuvrirNavigateur():
     webbrowser.open('affichage.html')
 
 ZoneEntryPageWeb = Frame(zoneAffichageTV) # souhait initial de mettre les deux entry en gauche droite : abandonné
-VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 3)", largeur=5, parent=ZoneEntryPageWeb)
-TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb)
+VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 3)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
+TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 VitesseDefilementFrame.pack(side=TOP,anchor="w")
 TempsPauseFrame.pack(side=TOP,anchor="w")
 ZoneEntryPageWeb.pack(side=TOP,anchor="w")
 
 boutonsFrameNavigateur = Frame(zoneAffichageTV)
-Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur).pack(side=LEFT)
+ouvrirBouton = Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur)
+ouvrirBouton.pack(side=LEFT)
 Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichageTV).pack(side=LEFT)
 boutonsFrameNavigateur.pack(side=TOP)
 
@@ -1822,7 +1843,9 @@ class Clock():
 ##        self.retour1 = []
 ##        self.retour2 = []
         self.erreursEnCours = []
+        self.ipActuelle = ""
         self.update_clock()
+        
         
     def update_clock(self):
         #print("self.premiereExecution",self.premiereExecution)
@@ -1852,7 +1875,12 @@ class Clock():
 
         # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
         ActualiseAffichageTV() # pour mise à jour de l'affichage TV +  menu annulDepart
-
+        ip = extract_ip()
+        if ip != self.ipActuelle :
+            self.ouvrirBoutonMessage = "Cliquer ici pour afficher les informations sur un 2ème écran relié\nà cet ordinateur (touche WIN+P pour 'étendre l'affichage').\nSur le même réseau wifi, saisir l'adresse suivante pour afficher\nles résultats sur un autre ordinateur :\nhttp://"+ ip +":8888/Affichage.html "
+            myTip = Hovertip(ouvrirBouton,self.ouvrirBoutonMessage)
+            self.ipActuelle = ip
+        
         ## Sauvegarde toutes les 1 minutes s'il y a au moins un évènement à traiter. Sinon, rien.
         # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute

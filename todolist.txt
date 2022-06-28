@@ -20,10 +20,6 @@ Bug confirmé si le temps est négatif et que la course est partie mais après l
 
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
-
-- vitesse de défilement réglable par une entryParam sur l'application = > Prévoir un intervalle de validité.
-	 Actuellement, les données saisies ne sont pas vérifiées, ce qui peut planter la page web (pas dramatique)
-	une vérificaiton optionnelle isnumeric dans la classe "EntryParam" avec un intervalle de validité sera suffisant 
 	
 	
 
@@ -79,8 +75,6 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage.
 MOYENNEMENT PRIORITAIRE :
 - possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
-
-- récupérer l'adresse IP de l'ordinateur pour l'afficher dans l'interface afin d'aider un non initié à accéder à l'affichage via le wifi.
 
 
 A PLUS LONG TERME :
