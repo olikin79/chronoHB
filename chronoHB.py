@@ -196,7 +196,7 @@ class MonTableau(Frame):
                         if p.match(saisie) :
                             try :
                                 dossard = int(saisie)
-                                if len(Coureurs) > dossard :
+                                if len(Coureurs) > dossard and dossard > 0:
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -205,7 +205,7 @@ class MonTableau(Frame):
                     saveedit()
                 def saveedit():
                     contenuFinal=entryedit.get()
-                    print("rn",rn, " cn", cn)
+                    print("rn",rn, " cn", cn, "self.listeDesTemps[rn-1]", self.listeDesTemps[rn-1])
                     heure = self.listeDesTemps[rn-1].tempsReelFormateDateHeure()
                     if contenuFinal == "-" or contenuFinal == "" :
                         contenuFinal = "0"
@@ -362,6 +362,7 @@ class MonTableau(Frame):
 
             
     def majLigne(self, ligne, donnee, items) :
+        print(donnee[1], items)
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
@@ -372,13 +373,14 @@ class MonTableau(Frame):
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = int(donnee[self.colonneDossard])
-        ligneAAjouter = donnee
+        ligneAAjouter = list(donnee)
         ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         if doss == 0:
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
+        print("temps de la ligne", ligne, donnee[1])
         if ligne <= len(items) :
             # mise à jour d'une ligne
             self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
@@ -655,6 +657,7 @@ class EntryCourse(Frame):
             else :
                 self.nomCourse = ch
                 updateNomGroupement(self.groupement.nomStandard,ch)
+                actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
@@ -784,7 +787,8 @@ class EntryGroupement(Frame):
             updateGroupements(self.course, self.numero,int(self.combobox.get()))
             self.numero = int(self.combobox.get())
             #updateDistancesGroupements()
-            actualiserDistanceDesCourses()
+            #actualiserDistanceDesCourses()
+            actualiseToutLAffichage()
         self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
         self.actualiseEtat()
         self.nomAffiche = self.course + "  : "
@@ -1848,7 +1852,7 @@ class Clock():
         
         
     def update_clock(self):
-        #print("self.premiereExecution",self.premiereExecution)
+        #print("Timer en exécution",self.premiereExecution)
         global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
         #if self.premiereExecution :
@@ -1867,6 +1871,7 @@ class Clock():
 ##                print("retour en erreur n°", err.numero, ":", err.description)
 
         # maj affichage.
+        print("tableauGUI transmis", tableauGUI)
         eval(self.MAJfunction + "(tableauGUI)")
         tableau.makeDefilementAuto()
 

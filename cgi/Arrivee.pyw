@@ -121,7 +121,7 @@ def formateClasse(classe) :
         retour = ""
     return retour
 
-def generateMessage(dossard, nature, action):     
+def generateMessage(dossard, nature, action, uid):     
     global local
     donnees = "Coureurs.txt"
     if nature == "tps" :
@@ -166,7 +166,7 @@ def generateMessage(dossard, nature, action):
             else :
                 dossard = 0
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
-        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur])
+        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid])
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
@@ -194,10 +194,10 @@ def generateMessage(dossard, nature, action):
                         else :
                             messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                        addInstruction([nature,action,dossard, dossardPrecedent])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid])
                     elif action == "del" :
                         print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
-                        addInstruction([nature,action,dossard, dossardPrecedent])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid])
                     else :
                         print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
             elif action == "recherche" :
@@ -253,12 +253,15 @@ try :
     dossard = int(form.getvalue("dossard"))
 except:
     dossard = form.getvalue("dossard") # cas d'un QRcode scanné par erreur non numérique.
-
+try :
+    uid = int(form.getvalue("UID"))
+except:
+    uid = 0 # cas d'un QRcode scanné par erreur non numérique.
 
 # retour au client : erreurs à gérer.
 print("Content-type: text/html; charset=utf-8\n")
 
-generateMessage(dossard,nature,action)
+generateMessage(dossard,nature,action,uid)
     
         
 #print("coucou")

@@ -706,7 +706,7 @@ def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
-           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde
+           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, listeUIDPrecedents
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -757,6 +757,9 @@ def chargerDonnees() :
     if not "LignesIgnoreesLocal" in root :
         root["LignesIgnoreesLocal"] = []
     LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
+    if not "listeUIDPrecedents" in root :
+        root["listeUIDPrecedents"] = []
+    listeUIDPrecedents=root["listeUIDPrecedents"]
     ### paramètres par défaut
     if not "Parametres" in root :
         root["Parametres"] = {}
@@ -1124,7 +1127,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
             print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne)
+                codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = listeUIDPrecedents)
                 if codeErreur.numero :
                     # une erreur s'est produite
                     print("Code erreur :", codeErreur.numero)
@@ -1179,7 +1182,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
             print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
+                codeErreur = decodeActionsRecupSmartphone(ligne, local=True, UIDPrecedents = listeUIDPrecedents)
                 if codeErreur.numero :
                     # une erreur s'est produite
                     print("Code erreur : ", codeErreur.numero)
@@ -1207,7 +1210,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
     return retour
         
 
-def decodeActionsRecupSmartphone(ligne, local=False) :
+def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
@@ -1217,43 +1220,63 @@ def decodeActionsRecupSmartphone(ligne, local=False) :
         tpsCoureur = float(listeAction[3])
         tpsClient = float(listeAction[4])
         tpsServeur = float(listeAction[5])
-        if action == "add" :
-            retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
-        elif action =="del" :
-            if local :
-            # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut supprimer, la liste arriveeTemps est classée par rapport à celui-ci.
-                retour = delArriveeTemps(tpsCoureur, dossard)
+        try :
+            uid = int(listeAction[6])
+        except : 
+            uid = 0
+        if not uid in UIDPrecedents :
+            if action == "add" :
+                retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
+            elif action =="del" :
+                if local :
+                # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut supprimer, la liste arriveeTemps est classée par rapport à celui-ci.
+                    retour = delArriveeTemps(tpsCoureur, dossard)
+                else :
+                # si la demande vient d'un smartphone, on cherche à supprimer le tempsCoureur (celui mesuré sur le smartphone). La liste arriveeTemps n'est pas par ordre croissant du client.
+                    retour = delArriveeTempsClient(tpsCoureur, dossard)
+            elif action == "affecte" :
+                Tps = Temps(tpsCoureur, tpsClient, tpsServeur)
+                if local :
+                # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut rechercher.
+                    retour = affecteDossardArriveeTempsLocal(Tps.tempsReel, dossard)
+                else :
+                    # si la demande vient d'un smartphone, c'est le tempsCoureur qu'il faut rechercher.
+                    retour = affecteDossardArriveeTemps(Tps.tempsCoureur, dossard)
+            elif action == "desaffecte" :
+                Tps = Temps(tpsCoureur, tpsClient, tpsServeur)
+                if local :
+                # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut rechercher.
+                    retour = affecteDossardArriveeTempsLocal(Tps.tempsReel)
+                else :
+                    # si la demande vient d'un smartphone, c'est le tempsCoureur qu'il faut rechercher.
+                    retour = affecteDossardArriveeTemps(Tps.tempsCoureur)
             else :
-            # si la demande vient d'un smartphone, on cherche à supprimer le tempsCoureur (celui mesuré sur le smartphone). La liste arriveeTemps n'est pas par ordre croissant du client.
-                retour = delArriveeTempsClient(tpsCoureur, dossard)
-        elif action == "affecte" :
-            Tps = Temps(tpsCoureur, tpsClient, tpsServeur)
-            if local :
-            # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut rechercher.
-                retour = affecteDossardArriveeTempsLocal(Tps.tempsReel, dossard)
-            else :
-                # si la demande vient d'un smartphone, c'est le tempsCoureur qu'il faut rechercher.
-                retour = affecteDossardArriveeTemps(Tps.tempsCoureur, dossard)
-        elif action == "desaffecte" :
-            Tps = Temps(tpsCoureur, tpsClient, tpsServeur)
-            if local :
-            # si la demande vient de l'interface GUI du serveur, c'est le tempsReel qu'il faut rechercher.
-                retour = affecteDossardArriveeTempsLocal(Tps.tempsReel)
-            else :
-                # si la demande vient d'un smartphone, c'est le tempsCoureur qu'il faut rechercher.
-                retour = affecteDossardArriveeTemps(Tps.tempsCoureur)
+                print("Action venant du smartphone incorrecte", ligne)
+                retour = Erreur(301)
+            if uid : 
+                UIDPrecedents.append(uid)
         else :
-            print("Action venant du smartphone incorrecte", ligne)
-            retour = Erreur(301)
+            print("UID déjà utilisé : entrée ignorée. Ligne = ",ligne)
+            retour = Erreur(451)
     elif listeAction[0] =="dossard" :
         dossardPrecedent = int(listeAction[3])
-        if action == "add" :
-            retour = addArriveeDossard(dossard, dossardPrecedent)
-        elif action =="del" :
-            retour = delArriveeDossard(dossard)
+        try :
+            uid = int(listeAction[4])
+        except : 
+            uid = 0
+        if not uid in UIDPrecedents :
+            if action == "add" :
+                retour = addArriveeDossard(dossard, dossardPrecedent)
+            elif action =="del" :
+                retour = delArriveeDossard(dossard)
+            else :
+                print("Action venant du smartphone incorrecte", ligne)
+                retour = Erreur(301)
+            if uid :
+                UIDPrecedents.append(uid)
         else :
-            print("Action venant du smartphone incorrecte", ligne)
-            retour = Erreur(301)
+            print("UID déjà utilisé : entrée ignorée. Ligne = ",ligne)
+            retour = Erreur(451)       
     else :
         print("Type d'action venant du smartphone incorrecte", ligne)
         retour = Erreur(301)
@@ -2289,6 +2312,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     listeCG = []
     listeCF = []
     listeDesRangs = []
+    nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
         doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
         coureur = Coureurs[doss-1]

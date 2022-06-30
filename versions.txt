@@ -1,3 +1,13 @@
+Travail du 30/06/22 :
+- création d'un UID unique lors de chaque transmission d'une donnée depuis un smartphone.
+Cela évite les problèmes liés à la transmission en double des données : elles seront ignorées lors du traitement des fichiers issus des smartphones si uid en doublon.
+L'UID est un décimal constitué d'une partie entière aléatoire entre 1 et 10^11 et d'une partie décimale initialisée à 1/10000 lors de la première transmission puis incrémentée par 1/10000 à chaque transmission.
+Modification de l'application android.
+Rétro-compatibilité assurée avec l'import d'anciens fichiers. L'uid=0 ou un uid absent dans une vieille sauvegarde provoque l'import automatique des données.
+- correction de bugs introduits récemment : 
+	*l'affectation d'un dossard à un temps plantait.
+	*l'actualisation de la frame topdepart ne s'effectuait pas quand on redéfinit les groupements. Sauf un redémarrage corrigeait le problème. On actualise tout l'affichage dans ce cas.
+
 Travail du 28/06/22 :
 - affichage d'info dans un tooltip au survol du bouton "ouvrir un navigateur" : URL à saisir pour affichage distant notamment.
 - mise à jour de la documentation vers 1.4 (en cours)
