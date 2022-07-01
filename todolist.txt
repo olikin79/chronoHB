@@ -1,19 +1,12 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-
-1. Tester si ce bug persiste : impossible de supprimer un temps dans l'interface GUI qui ne serait pas de la date du jour. 
-Il est sûrement encore présent puisque tableauGUI ne contient pas l'information. 
-MODIFIER formateLigneGUI pour ajouter cette information puis l'interface pour l'exploiter.
-Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface puisse connaître le temps GMT depuis epoch exact à supprimer.
-
-2. la génération du pdf aImprimer.pdf non fonctionnelle 
+1. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
-3. dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
+2. dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
 mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
 Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé
 
-4. prévoir un bip beaucoup plus court sur le smartphone pour qu'il puisse en émettre plusieurs en peu de temps.
 
 
 NON PRIORITAIRES :
@@ -42,6 +35,7 @@ Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de
 - vérifier que générer tous les dossards les considère tous imprimés. 
 Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
 
+- tester si l'interface émet plusieurs bips courts pour plusieurs temps d'arrivée en même temps (bouton ad hoc).
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :

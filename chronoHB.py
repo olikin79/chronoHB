@@ -1394,8 +1394,9 @@ def supprimerTempsAction() :
         tempsReel = test.tempsReelFormateDateHeure()
         print("suppression du temps", tempsReel)
         print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-        r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-        regenereAffichageGUI()
+        if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
+            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+            regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à supprimer."
@@ -2029,6 +2030,7 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
+    timer.reinitErreursATraiter()
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -2107,7 +2109,7 @@ def effaceDonneesCoursesGUI ():
         delDossardsEtTemps()
         tableau.reinit()
         actualiseToutLAffichage()
-        actualiseEtatBoutonsRadioConfig()
+        #actualiseEtatBoutonsRadioConfig()
         reponse = showinfo("DONNEES EFFACEES","Les données de courses ont été effacées, il reste celles sur les coureurs.\nLes données précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
@@ -2116,7 +2118,7 @@ def effaceToutesDonnees() :
         delCoureurs()
         tableau.reinit()
         actualiseToutLAffichage()
-        actualiseEtatBoutonsRadioConfig()
+        #actualiseEtatBoutonsRadioConfig()
         
 def effaceDonneesGUI ():
     global tableau
