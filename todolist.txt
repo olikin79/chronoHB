@@ -13,6 +13,7 @@ alors que le .tex est généré correctement et que les autres compilations de d
 mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
 Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé
 
+4. prévoir un bip beaucoup plus court sur le smartphone pour qu'il puisse en émettre plusieurs en peu de temps.
 
 
 NON PRIORITAIRES :

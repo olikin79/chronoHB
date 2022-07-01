@@ -6,7 +6,7 @@ Travail du 01/07/22 :
 - limite maximale sur le nom automatique des Groupements dans l'interface (cas où il y aurait énorméménent de catégories dans un groupement) => esthétique de l'interface.
 Pas de modif du nom du groupement affiché dans les résultats si nom par défaut conservé.
 - meilleure implémentation des dossards non encore imprimés
-
+- modification de l'apk android avec un bip plus court (1/10 de seconde) pour pouvoir en entendre plusieurs dans un court laps de temps.
 
 
 Travail du 30/06/22 :
