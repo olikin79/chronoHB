@@ -2435,6 +2435,7 @@ def recupererSauvegardeGUI() :
         #print("global",globals()["Courses"])
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
+        actualiseEtatBoutonsRadioConfig()
         generateListCoureursPourSmartphone()
         rejouerToutesLesActionsMemorisees()
         
