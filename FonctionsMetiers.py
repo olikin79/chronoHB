@@ -1743,20 +1743,21 @@ def generateDossardsAImprimer() :
     with open(TEXDIR+"aImprimer.tex", 'w') as f :
         f.write(entete + "\n\n")
         for coureur in Coureurs :
-            if not coureur.dispense and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+            if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 retour.append(coureur.dossard)
                 print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                                  .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
-                f.write(chaineComplete)
+                f.write(chaineComplete + "\n\n")
                 generateQRcode(coureur.dossard)
-        f.write(chaineComplete+ "\n\n")
+        ## f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
-    compilateurComplete = compilateur.replace("@dossier@","dossards")
-    print(compilerDossards(compilateurComplete, ".", "aImprimer.tex" , 1))
+    if not retour : # s'il n'y a aucun dossard à imprimer on ne compile pas inutilement.
+        compilateurComplete = compilateur.replace("@dossier@","dossards")
+        print(compilerDossards(compilateurComplete, ".", "aImprimer.tex" , 1))
     return retour
 
 def generateDossard(coureur) :

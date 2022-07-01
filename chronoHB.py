@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -2407,9 +2407,10 @@ def imprimerDossardsNonImprimes() :
                     print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
                     Coureurs[n-1].setAImprimer(False)
         else :
-            print("Fichier aImprimer.pdf non généré : probablement vide car tous les coureurs ont déjà été imprimés")
+            print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
     else :
-        print("Aucun dossard à imprimer pour l'instant.")
+        showinfo("Informations","Il n'y a aucun dossard créé manuellement, non absent ou dispensé, et qui n'aurait pas encore été imprimé pour l'instant.")
+        print("Il n'y a aucun dossard créé manuellement, non absent ou dispensé, et qui n'aurait pas encore été imprimé pour l'instant.")
 
 def recupererSauvegardeGUI() :
     #global root,Courses
