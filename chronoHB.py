@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -65,6 +65,7 @@ class MonTableau(Frame):
         self.noPremierTempsSansCorrespondance = 0
         self.noDernierTempsSansCorrespondance = 0
         self.incoherenceFutureACorriger = True
+        self.AncienneLargeurFrame = 1
         if largeursColonnes :
             self.largeursColonnes = largeursColonnes
         else: 
@@ -258,6 +259,17 @@ class MonTableau(Frame):
                 #print(self.vsb.get())
         self.treeview.bind('<Double-1>', set_cell_value) # Double-click the left button to enter the edit
 
+    def setLargeurColonnesAuto(self):
+        largeurFrame = self.treeview.winfo_width()
+        if self.AncienneLargeurFrame != largeurFrame :
+            if largeurFrame > 300 : # à l'initialisation, largeurFrame vaut 1. On évite ce cas.
+                total = sum(self.largeursColonnes)
+                #print("total",total,"largeurframe",largeurFrame, "colonne 0",self.largeursColonnes[0])
+                for i, enTete in enumerate(self.enTetes) :
+                    #print(i, enTete)
+                    self.treeview.column('#' + str(i+1), width=round(largeurFrame*self.largeursColonnes[i]/total)) # indicates column, not displayed
+                    self.AncienneLargeurFrame = largeurFrame
+    
     def setDefilementAuto(self, booleen) :
         self.defilementAuto = booleen
         
@@ -1041,7 +1053,7 @@ class TopDepartFrame(Frame) :
         self.parent = parent
         self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart = Checkbar(self.parent, self.listeDeCoursesNonCommencees, vertical=False)
-        self.boutonPartez = Button(self.parent, text='PARTEZ !', command=self.topDepartAction, width = 15, height=3)
+        self.boutonPartez = Button(self.parent, text='PARTEZ !', command=self.topDepartAction, width = 15, height=1, bg="gray")
         self.boutonPartez['font'] = f
         self.departsAnnulesRecemment = True
         if self.listeDeCoursesNonCommencees :
@@ -1628,7 +1640,7 @@ VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement
 TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 VitesseDefilementFrame.pack(side=TOP,anchor="w")
 TempsPauseFrame.pack(side=TOP,anchor="w")
-ZoneEntryPageWeb.pack(side=TOP,anchor="w")
+ZoneEntryPageWeb.pack(side=TOP,anchor="w",fill=X)
 
 boutonsFrameNavigateur = Frame(zoneAffichageTV)
 ouvrirBouton = Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur)
@@ -1636,21 +1648,7 @@ ouvrirBouton.pack(side=LEFT)
 Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichageTV).pack(side=LEFT)
 boutonsFrameNavigateur.pack(side=TOP)
 
-zoneAffichageTV.pack()
-
-##def reprendreTimer() :
-####    timer.enPause(False)
-##    global CorrectionDErreurSmartphone
-##    if CorrectionDErreurSmartphone :
-##        LignesIgnoreesSmartphone.append(Parametres["ligneDerniereRecuperationSmartphone"])
-##        print("LignesIgnoreesSmartphone : ", LignesIgnoreesSmartphone)
-##    else :
-##        LignesIgnoreesLocal.append(Parametres["ligneDerniereRecuperationLocale"])
-##        print("LignesIgnoreesLocal : ", LignesIgnoreesLocal)
-##    Log.configure(text="")
-##    LogFrame.forget()
-##    timer.update_clock()
-# LogFrame
+zoneAffichageTV.pack(fill=X)
 
 LogFrame = Frame(DroiteFrame)
 Log = Label(LogFrame, text="")
@@ -1720,7 +1718,9 @@ else :
 tableau = MonTableau(["No","Heure Arrivée","Doss. Aff.","Nom","Prénom","Dossard","Classe","Chrono","Cat.","Rang","Vitesse"],\
                      donneesEditables = ["Heure Arrivée","Doss. Aff."],\
                      largeursColonnes = [30,80,40,100, 80, 40, largeurClasse, 90, largeurChrono,35,120], parent=topframe)
-tableau.pack()
+tableau.pack(fill=BOTH,expand=True)
+## ne fonctionne pas contrairement à toutes les indications trouvées sur internet
+#topframe.bind('<Configure>',tableau.setLargeurColonnesAuto())
 
 nbreFileAttenteLabel = Label(bottomframe, text="")
 nbreFileAttenteLabel.pack(side= LEFT)
@@ -1858,19 +1858,18 @@ class Clock():
         
         
     def update_clock(self):
-        #print("Timer en exécution",self.premiereExecution)
+        #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
+
+        # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
+        tableau.setLargeurColonnesAuto()
+        
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        #if self.premiereExecution :
         traitementSmartphone = traiterDonneesSmartphone()
         traitementLocal = traiterDonneesLocales()
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
         self.premiereExecution = False
-        #else :
-        #    traitementSmartphone += traiterDonneesSmartphone()
-        #    traitementLocal += traiterDonneesLocales()
-        #    traitementDonneesRecuperees += genereResultatsCoursesEtClasses(self.premiereExecution)
-        #print(traitementSmartphone , traitementLocal , traitementDonneesRecuperees)
+
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
 ##        for err in listeErreursATraiter :
 ##            if err.numero : 
@@ -1919,61 +1918,6 @@ class Clock():
                 self.erreursEnCours.append(erreur)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
-##    def enPause(choix) :
-##        self.enPause = choix
-        ## Ancienne version
-##        if not Log.cget("text") : # si le label Log est vide, il n'y a pas d'erreur...
-##            self.enPause = False
-##            #print("####################  action toutes les 5 secondes ###################")
-##            tableau.makeDefilementAuto()
-##            # est utile de tout traiter lors du lancement du logiciel ?
-##            # Je ne pense pas que ce soit important de savoir si c'est une première exécution ou non
-##            # traiterDonneesSmartphone(self.premiereExecution) devenu inutile.
-##            retour1 = [erreur for erreur in traiterDonneesSmartphone() if erreur.numero != 0]  # on ne garde que les codes d'erreur 
-##            print("retour1=" + str(retour1) +".")
-##            if retour1 and retour1 != [] :
-##                messageDErreurInterface(retour1, True)
-##                self.auMoinsUnImportSansErreur = False
-##            else :
-##                retour2 = [erreur for erreur in traiterDonneesLocales() if erreur.numero != 0] # traiterDonneesLocales()
-##                #print("retour2=" + str(retour2) +".")
-##                if retour2 and retour2 != "RAS":
-##                    messageDErreurInterface(retour2, False)
-##                    self.auMoinsUnImportSansErreur = False
-##                else :
-##                    Log.configure(text="")
-##                    ## s'il n'y a pas d'erreur à l'import ou pas d'import, on se retrouve ici.
-##                    if retour1 != "RAS" or retour2 != "RAS" :
-##                        ## il y a eu un import sans erreur
-##                        self.auMoinsUnImportSansErreur = True
-##                        # si au moins un import sans erreur, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.                              
-##                        genereResultatsCoursesEtClasses(self.premiereExecution)
-##                        eval(self.MAJfunction + "(tableauGUI)")
-##                        ActualiseAffichageTV() # pour mise à jour du menu annulDepart                        
-##                    ## Sauvegarde toutes les 1 minute s'il y a au moins un évènement à traiter. Sinon, rien.
-##                    # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
-##                    if self.compteurSauvegarde >= 2 and self.auMoinsUnImportSansErreur : # 12 x 5 s  = 1 minute
-##                        #print("Sauvegarde enclenchée")
-##                        ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
-##                        self.compteurSauvegarde = 1
-##                        self.auMoinsUnImportSansErreur = False
-##                    else :
-##                        #print("Pas de sauvegarde", self.compteurSauvegarde)
-##                        self.compteurSauvegarde += 1
-##                    
-##        if Log.cget("text") :
-##            print("Timer en pause")
-##            if not self.enPause :
-##                print('impression que ces deux lignes sont inutiles :  messageDErreurInterface(Log.cget("text") et self.enPause = True')
-##                self.enPause = True
-##        if zoneTopDepart.departsAnnulesRecemment :
-##            construireMenuAnnulDepart()
-##            zoneTopDepart.nettoieDepartsAnnules()
-##        # se relance dans un temps prédéfini.
-##        self.premiereExecution = False
-##        self.root.after(5000, self.update_clock)
-####    def enPause(choix) :
-####        self.enPause = choix
         
 timer=Clock(root, "tableau.maj")
 
@@ -2816,7 +2760,7 @@ root.config(menu=menubar)
 
 ### mise en page des Frames entre eux...
 
-bottomframe.pack( side = BOTTOM,fill=BOTH, expand=1 )
+bottomframe.pack( side = BOTTOM,fill=X )
 topframe.pack( side = TOP, fill=BOTH, expand=1 )
 Arriveesframe.pack(side = BOTTOM, fill=BOTH, expand=1 )
 

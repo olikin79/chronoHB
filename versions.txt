@@ -7,7 +7,10 @@ Travail du 01/07/22 :
 Pas de modif du nom du groupement affiché dans les résultats si nom par défaut conservé.
 - meilleure implémentation des dossards non encore imprimés
 - modification de l'apk android avec un bip plus court (1/10 de seconde) pour pouvoir en entendre plusieurs dans un court laps de temps.
-- 
+- Esthétique :
+	* taille et couleur du bouton "PARTEZ".
+	* largeur adaptative de la zone affichageTV
+	* le tableau d'affichage des temps et dossards arrivés s'agrandit en fonction de la taille de la fenêtre.
 
 Travail du 30/06/22 :
 - création d'un UID unique lors de chaque transmission d'une donnée depuis un smartphone.

@@ -5,6 +5,7 @@ alors que le .tex est généré correctement et que les autres compilations de d
 
 2. actualisation de l'interface pour donner les départs : quand il n'y a plus de départ à donner : un cadre semble rester.
 
+
 NON PRIORITAIRES :
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
