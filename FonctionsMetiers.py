@@ -2801,7 +2801,7 @@ def addCourse(categorie) :
     if not estPresent:
         print("Création du groupement ", categorie)
         Groupements.append(Groupement(categorie,[categorie]))
-        print("Groupements = ",[i.nom for i in Groupements])
+        #print("Groupements = ",[i.nom for i in Groupements])
     # création de la course si elle n'existe pas.
     #print(categorie, " est dans ", Courses,"?")
     if categorie not in Courses :

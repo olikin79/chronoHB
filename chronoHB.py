@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -2028,6 +2028,7 @@ def actualiseToutLAffichage() :
     actualiseAffichageTV()
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
+    actualiseEtatBoutonsRadioConfig()
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -2294,6 +2295,11 @@ def parametresDesCourses():
 
 
 def actualiseEtatBoutonsRadioConfig():
+    # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
+    if Parametres["CategorieDAge"] :
+        svRadio.set('0')
+    else :
+        svRadio.set('1')
     if len(Coureurs) :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
@@ -2435,7 +2441,6 @@ def recupererSauvegardeGUI() :
         #print("global",globals()["Courses"])
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
-        actualiseEtatBoutonsRadioConfig()
         generateListCoureursPourSmartphone()
         rejouerToutesLesActionsMemorisees()
         
@@ -2697,7 +2702,7 @@ zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 
 def choixCC():		# Fonction associée à Catégories par Classes
     #print('Case à cocher : ',str(svRadio.get()))
-    #inutile Parametres["CategorieDAge"]=False
+    Parametres["CategorieDAge"]=False
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
@@ -2705,7 +2710,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     
 def choixCA():		# Fonction associée à catégories par Age
     #print('Case à cocher : ',str(svRadio.get()))
-    # inutile Parametres["CategorieDAge"]=True
+    Parametres["CategorieDAge"]=True
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
