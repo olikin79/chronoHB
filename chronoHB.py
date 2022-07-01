@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -268,17 +268,17 @@ class MonTableau(Frame):
     def reinit(self):
         self.listeDesTemps = []
         self.effectif = 0
-        self.delTreeviewFrom(0)
+        self.delTreeviewFrom(1)
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
         x = self.treeview.get_children()
-        print(self.treeview.get_children(), len(x))
+        #print(self.treeview.get_children(), len(x))
         if ligne < len(x) :
             ToDeleteList = x[ligne - 1 : ]
-            #print(ToDeleteList)
+            #print("liste a supprimer",ToDeleteList)
             for item in ToDeleteList:
-                print("suppression de ", item)
+                #print("suppression de ", item)
                 self.treeview.delete(item)
         self.treeview.pack(side=LEFT, fill=BOTH)
         self.effectif = len(self.treeview.get_children())
@@ -362,7 +362,7 @@ class MonTableau(Frame):
 
             
     def majLigne(self, ligne, donnee, items) :
-        print(donnee[1], items)
+        #print(donnee[1], items)
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
@@ -380,7 +380,7 @@ class MonTableau(Frame):
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
-        print("temps de la ligne", ligne, donnee[1])
+        #print("temps de la ligne", ligne, donnee[1])
         if ligne <= len(items) :
             # mise à jour d'une ligne
             self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
@@ -1080,11 +1080,13 @@ class TopDepartFrame(Frame) :
             self.TopDepartLabel.pack(side=TOP)
             self.checkBoxBarDepart.pack(side=TOP, fill=X)
             self.boutonPartez.pack(side=TOP)
+            self.parent.pack()
         else :
             self.TopDepartLabel.config(text="Il n'y a aucune course à lancer.")
             self.checkBoxBarDepart.forget()
             self.TopDepartLabel.forget()
             self.boutonPartez.forget()
+            self.parent.forget()
 
 
 class DossardsFrame(Frame) :
@@ -1871,7 +1873,8 @@ class Clock():
 ##                print("retour en erreur n°", err.numero, ":", err.description)
 
         # maj affichage.
-        print("tableauGUI transmis", tableauGUI)
+##        if tableauGUI :
+##            print("tableauGUI transmis", tableauGUI)
         eval(self.MAJfunction + "(tableauGUI)")
         tableau.makeDefilementAuto()
 
@@ -2014,6 +2017,7 @@ L'ordre des colonnes est indifférent.")
                 
 
 def actualiseToutLAffichage() :
+    print("Actualise tout l'affichage")
     zoneTopDepart.actualise()
     actualiserDistanceDesCourses()
     actualiseAffichageDeparts()
@@ -2066,6 +2070,9 @@ def actualiseTempsAffichageDeparts():
     global listGroupementsCommences, lblDict
     for grp in lblDict.keys() :
         nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
+        #print("-"+nomCourse+"-", "est dans ?", Courses)
+        addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+        #print(listCoursesEtChallenges())
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
         lblDict[grp][1].configure(text=tps)
@@ -2100,16 +2107,19 @@ def effaceDonneesCoursesGUI ():
         reponse = showinfo("DONNEES EFFACEES","Les données de courses ont été effacées, il reste celles sur les coureurs.\nLes données précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
-    
+
+def effaceToutesDonnees() :
+        delCoureurs()
+        tableau.reinit()
+        actualiseToutLAffichage()
+        actualiseEtatBoutonsRadioConfig()
+        
 def effaceDonneesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données (coureurs, données de courses,...) ?")
     if reponse :
         fichier = ecrire_sauvegarde(sauvegarde, "-Avant-effacement-toutes-donnees")
-        delCoureurs()
-        tableau.reinit()
-        actualiseToutLAffichage()
-        actualiseEtatBoutonsRadioConfig()
+        effaceToutesDonnees()
         reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
@@ -2399,21 +2409,31 @@ def imprimerDossardsNonImprimes() :
         print("Aucun dossard à imprimer pour l'instant.")
 
 def recupererSauvegardeGUI() :
+    #global root,Courses
     CURRENT_DIRECTORY = os.getcwd()
     options = {
                 'initialdir': CURRENT_DIRECTORY,
                 'title': 'Choisir la sauvegarde à récupérer',
                 'filetypes': (("Sauvegarde chronoHB","*.db"),)
               }
- 
     name_file = askopenfilename(**options)
-    
     if name_file :
         #print("Sauvegarde choisie :",name_file)
+        effaceToutesDonnees()
+        CoureursParClasseUpdate()
         recupere_sauvegarde(name_file)
-        generateListCoureursPourSmartphone()
+        dictionnaire = chargerDonnees()
+        if dictionnaire :
+            globals().update(dictionnaire)
+        #print(locals()["Courses"])
+        print("---------------")
+        print("COURSES dans recuperer_sauvegardeGUI =",Courses)
+        #print("global",globals()["Courses"])
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
+        generateListCoureursPourSmartphone()
+        rejouerToutesLesActionsMemorisees()
+        
     
 
 # create a pulldown menu, and add it to the menu bar

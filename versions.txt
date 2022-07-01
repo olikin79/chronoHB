@@ -1,3 +1,8 @@
+Travail du 01/07/22 :
+- si le temps d'un coureur s'avère négatif, l'affichage est explicite sur les horaires de départ et d'arrivée afin d'aider à la résolution du problème.
+- bug résolu : réimport de sauvegarde non fonctionnel sans redémarrage de l'application.
+
+
 Travail du 30/06/22 :
 - création d'un UID unique lors de chaque transmission d'une donnée depuis un smartphone.
 Cela évite les problèmes liés à la transmission en double des données : elles seront ignorées lors du traitement des fichiers issus des smartphones si uid en doublon.
@@ -7,6 +12,7 @@ Rétro-compatibilité assurée avec l'import d'anciens fichiers. L'uid=0 ou un u
 - correction de bugs introduits récemment : 
 	*l'affectation d'un dossard à un temps plantait.
 	*l'actualisation de la frame topdepart ne s'effectuait pas quand on redéfinit les groupements. Sauf un redémarrage corrigeait le problème. On actualise tout l'affichage dans ce cas.
+
 
 Travail du 28/06/22 :
 - affichage d'info dans un tooltip au survol du bouton "ouvrir un navigateur" : URL à saisir pour affichage distant notamment.

@@ -117,9 +117,9 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
                 print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
         elif destination != "" :
             print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
-            nomFichierCopie = "Pas de SAUVEGARDE CREE : chemin spécifié incorrect : " +destination
+            nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
         else :
-            nomFichierCopie = "Pas de SAUVEGARDE CREE : paramètre spécifié vide"
+            nomFichierCopie = "Pas de SAUVEGARDE CREEE : paramètre spécifié vide"
 ##        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
 ##            noSauvegarde += 1
 ##        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
@@ -157,7 +157,13 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         shutil.copy2(fichierML, "donneesModifLocale.txt")
         shutil.copy2(fichierDS, "donneesSmartphone.txt")
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
-        chargerDonnees()
+        retour = chargerDonnees()
+        try :
+            print(locals()["Courses"])
+            print("Courses dans recupere_sauvegarde =",Courses)
+        except:
+            print("dans recupere_sauvegarde",globals()["Courses"])
+        return retour 
         
     
 ##    d = open(sauvegarde+".db","wb")
@@ -712,6 +718,7 @@ def chargerDonnees() :
     if os.path.exists(sauvegarde+".db") :
         with open(sauvegarde+".db","rb") as d :
             root = pickle.load(d)
+            #print("on charge les données depuis le fichier",sauvegarde+".db")
         #d = shelve.open(sauvegarde)
         #retour = d['root']
     else :
@@ -723,7 +730,11 @@ def chargerDonnees() :
         root["Coureurs"] = []
     Coureurs=root["Coureurs"]
     if not "Courses" in root :
+        print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
+    else :
+        print("----------")
+        print("Courses chargé :",root["Courses"])
     Courses=root["Courses"]
     if not "Groupements" in root :
         root["Groupements"] = []
@@ -816,6 +827,7 @@ def chargerDonnees() :
         Parametres["tempsPause"]= "5"
     tempsPause=Parametres["tempsPause"]
     ##transaction.commit()
+    return globals()
 
 chargerDonnees()
 
@@ -1599,7 +1611,7 @@ def generateDossardsNG() :
             if not coureur.dispense :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 groupementNom = groupementAPartirDUneCategorie(cat).nom
-                print("cat =",cat, "   groupementNom=",groupementNom)
+                #print("cat =",cat, "   groupementNom=",groupementNom)
                 if cat != groupementNom :
                     groupement = "Course : " + groupementNom
                 else :
@@ -2793,6 +2805,7 @@ def addCourse(categorie) :
         Groupements.append(Groupement(categorie,[categorie]))
         print("Groupements = ",[i.nom for i in Groupements])
     # création de la course si elle n'existe pas.
+    #print(categorie, " est dans ", Courses,"?")
     if categorie not in Courses :
         print("Création de la course", categorie)
         c = Course(categorie)
@@ -3105,7 +3118,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le dossard " + str(doss) + " a avec un temps négatif : " + str(arrivee) + "-" + str(depart) +"."
+            message = "Le dossard " + str(doss) + " aurait avec un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
             retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :

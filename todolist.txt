@@ -9,21 +9,19 @@ Il faudra ajouter le temps précis en bout de tableauGUI pour que l'interface pu
 2. la génération du pdf aImprimer.pdf non fonctionnelle 
 alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
-
-
-NON PRIORITAIRES :
-- dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
-Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
-
-- dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
+3. dans l'interface, si on "ajoute un dossard après" un déjà arrivé, pour lequel il y a un temps disponible à la fin de la liste, que le départ est donné,
 mais que le temps est négatif, le dossard et le temps disparaissent de l'interface. Erreur à gérer...
 Bug confirmé si le temps est négatif et que la course est partie mais après le temps d'arrivée associé
 
+
+
+NON PRIORITAIRES :
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
 
-- vérifier que générer tous les dossards les considère tous imprimés. 
-Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"	
+- dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
+Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
+
 	
 
 ESTHETIQUE :
@@ -35,12 +33,14 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 
-- améliorer l'affichage du bouton "temps négatif" en formatant les temps en H:M:S.
-
 
 A TESTER :
 - trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
 Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.
+
+- vérifier que générer tous les dossards les considère tous imprimés. 
+Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
+
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
@@ -48,6 +48,10 @@ PRIORITAIRES :
 - mettre à jour la documentation en 1.4 : départs affichés et modifiables, menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
 documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
 Anonymer la documentation en faisant un import CSV avec des noms bidons et de nouvelles captures d'écrans.
+
+- possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
+Tant pis si on perd une demi-page une fois sur deux.
+
 
 - permettre l'export et l'import d'une base de données. Quid de la sauvegarde et du réimport des donneesSmartphones.txt (cohérence finale?):
 le smartphone pourrait mémoriser les diverses sauvegardes successives avec un numéro de course (requête HTTP sur le serveur) : 
@@ -58,7 +62,11 @@ le smartphone pourrait mémoriser les diverses sauvegardes successives avec un n
 	Utile ? car bloquant en cas de panne temporaire du serveur.
 	Sinon, un message indiquerait que l'on continue avec la base actuelle. Pas bloquant.
 	
-- prévoir une procédure en cas de plantage au démarrage try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
+
+	
+MOYENNEMENT PRIORITAIRE :
+- prévoir une procédure en cas de plantage au démarrage lié à une base de données incorrecte.
+try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
 Traceback (most recent call last):
   File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1866, in <module>
     timer=Clock(root, "tableau.maj")
@@ -74,17 +82,13 @@ Traceback (most recent call last):
     coureur = Coureurs[doss-1]
 IndexError: list index out of range
 
-Devrait lancer recupererSauvegardeGUI() en cas de plantage.
-	
-
-MOYENNEMENT PRIORITAIRE :
-- possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
-Tant pis si on perd une demi-page une fois sur deux.
+Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une base correcte.
 
 
 A PLUS LONG TERME :
 - Quid d'un réimport SIECLE sur une catégorie d'un coureur : doit il modifier les éléments modifiés manuellement (nom, prénom, sexe, naissance, classe) ?
-  Que fait-il actuellement ?
+  Actuellement, cela semble bien car sexe, naissance, classe, absent, dispensé, commentaire sont modifiés. 
+  Seuls nom et prénom, s'ils sont différents, imposent la création d'un autre coureur (nouveau numéro de dossard). Du coup, l'autre dossard devient inutile.
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
 Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
