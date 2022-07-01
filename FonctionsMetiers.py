@@ -161,11 +161,7 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         shutil.copy2(fichierDS, "donneesSmartphone.txt")
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
         retour = chargerDonnees()
-        try :
-            print(locals()["Courses"])
-            print("Courses dans recupere_sauvegarde =",Courses)
-        except:
-            print("dans recupere_sauvegarde",globals()["Courses"])
+        setParametres() # fichier à destination du smartphone à regéréner.
         return retour 
         
     

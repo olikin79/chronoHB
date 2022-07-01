@@ -1,10 +1,12 @@
 Travail du 01/07/22 :
 - si le temps d'un coureur s'avère négatif, l'affichage est explicite sur les horaires de départ et d'arrivée afin d'aider à la résolution du problème.
-- bug résolu : réimport de sauvegarde non fonctionnel sans redémarrage de l'application.
+- bug résolu : réimport de sauvegarde non fonctionnel sans redémarrage de l'application + changement de catégorie à destination des smartphones corrigé.
 - création du fichiers DonneesSmartphones.txt dans la sauvegarde si vide (pour une cohérence des sauvegardes qui contiendront toutes 3 fichiers).
 - limite maximale sur le nom automatique des Groupements dans l'interface (cas où il y aurait énorméménent de catégories dans un groupement) => esthétique de l'interface.
 Pas de modif du nom du groupement affiché dans les résultats si nom par défaut conservé.
 - meilleure implémentation des dossards non encore imprimés
+
+
 
 Travail du 30/06/22 :
 - création d'un UID unique lors de chaque transmission d'une donnée depuis un smartphone.
