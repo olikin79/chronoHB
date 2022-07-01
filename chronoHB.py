@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1186,7 +1186,7 @@ class AbsDispFrame(Frame) :
         if self.tupleClasses :
             self.choixClasseCombo.pack(side=TOP)
             self.TopDepartLabel.configure(text="Absents et dispensés par classe : sélectionner une classe dans le menu déroulant. Compléter les absents ou dispensés (enregistrement automatique).")
-            self.comboBoxBarClasse.pack(side=TOP, expand=YES)#fill=X)
+            self.comboBoxBarClasse.pack(side=TOP, expand=0)#fill=X)
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
             if CategorieDAge :
@@ -2168,7 +2168,7 @@ def saisieAbsDisp(classeOuCategorie="") :
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
     absDispZone.actualiseAffichage()
-    GaucheFrameAbsDisp.pack(fill=BOTH, expand=1)
+    GaucheFrameAbsDisp.pack(side=TOP,fill=X)
     if classeOuCategorie :
         absDispZone.set(classeOuCategorie)
         #print("il faudrait modifier la combobox de la frame GaucheFrameAbsDisp avec la valeur",classeOuCategorie, "et actualiser.")
@@ -2222,7 +2222,7 @@ def distanceDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
-    GaucheFrameDistanceCourses.pack(side = TOP,fill=BOTH, expand=1)
+    GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
 
 
@@ -2237,7 +2237,7 @@ def parametresDesCourses():
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     actualiseEtatBoutonsRadioConfig()
-    GaucheFrameParametresCourses.pack(side = LEFT,fill=BOTH, expand=1)
+    GaucheFrameParametresCourses.pack(side = TOP,fill=X)
 
 
 def actualiseEtatBoutonsRadioConfig():
@@ -2255,12 +2255,13 @@ def actualiseEtatBoutonsRadioConfig():
         rb2.configure(state='normal')
         rbLbl.forget()
 
+GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
+affectationGroupementsFrame = Frame(GroupementsEtDistancesFrame, relief=GROOVE)
+affectationDesDistancesFrame = Frame(GroupementsEtDistancesFrame, borderwidth=3)
 
-affectationGroupementsFrame = Frame(GaucheFrameDistanceCourses, relief=GROOVE)
-affectationDesDistancesFrame = Frame(GaucheFrameDistanceCourses, borderwidth=3)
-
-affectationGroupementsFrame.pack(side=LEFT)
-affectationDesDistancesFrame.pack(side=LEFT)
+affectationGroupementsFrame.pack(side=LEFT,fill=X)
+affectationDesDistancesFrame.pack(side=LEFT,fill=X)
+GroupementsEtDistancesFrame.pack(side=TOP,fill=X)
 
 GroupementsFrame= EntryGroupements(Groupements,affectationGroupementsFrame)
 
@@ -2271,7 +2272,7 @@ def updateZoneGroupements():
     except :
         pass
     GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
-    affectationGroupementsFrame.pack(side=LEFT)
+    affectationGroupementsFrame.pack(side=LEFT,fill=X)
     GroupementsFrame.pack(side=TOP)
 
 
