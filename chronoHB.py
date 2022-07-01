@@ -669,7 +669,10 @@ class EntryCourse(Frame):
             denomination = " de la course "
         else :
             denomination = " du groupement "
-        nomAffiche = "Intitulé" + denomination + self.groupement.nomStandard + "  : "
+        nomGprment = self.groupement.nomStandard
+        if len(nomGprment)>12 :
+            nomGprment = nomGprment[:13]+ "..."
+        nomAffiche = "Intitulé" + denomination + nomGprment + "  : "
         self.lbl = Label(self, text=nomAffiche)
         self.lbl2 = Label(self, text=" Distance :")
         #print(self.nomCourse,self.distance)

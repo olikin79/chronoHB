@@ -113,6 +113,9 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
                     open("donneesModifLocale.txt", 'a').close()
                 if os.path.exists("donneesSmartphone.txt"):
                     shutil.copy2("donneesSmartphone.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
+                else :
+                    print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                    open("donneesSmartphone.txt", 'a').close()
             else :
                 print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
         elif destination != "" :
