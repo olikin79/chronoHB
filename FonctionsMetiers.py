@@ -1872,16 +1872,14 @@ def CoureursParClasseUpdate():
     CoureursParClasse.clear()
     if CategorieDAge :
         for c in Coureurs :
-            if not c.dispense :
-                if not c.categorie(True) in CoureursParClasse.keys() :
-                    CoureursParClasse[c.categorie(True)]=[]
-                CoureursParClasse[c.categorie(True)].append(c)
+            if not c.categorie(True) in CoureursParClasse.keys() :
+                CoureursParClasse[c.categorie(True)]=[]
+            CoureursParClasse[c.categorie(True)].append(c)
     else :
         for c in Coureurs :
-            if not c.dispense :
-                if not c.classe in CoureursParClasse.keys() :
-                    CoureursParClasse[c.classe]=[]
-                CoureursParClasse[c.classe].append(c)
+            if not c.classe in CoureursParClasse.keys() :
+                CoureursParClasse[c.classe]=[]
+            CoureursParClasse[c.classe].append(c)
 
 
 
