@@ -17,8 +17,6 @@ Il est donc impossible de pré-saisir le numéro du dossard.
 	
 
 ESTHETIQUE :
-- l'entry pour saisir le numéro de dossard associé n'a plus la bonne ordonnée.
-
 - le bouton "imprimer tous les dossards non imprimés" ne devrait pas disparaître après le clic sur ok.
 
 - faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres

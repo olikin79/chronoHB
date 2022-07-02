@@ -273,8 +273,10 @@ class MonTableau(Frame):
                 #print("total",total,"largeurframe",largeurFrame, "colonne 0",self.largeursColonnes[0])
                 for i, enTete in enumerate(self.enTetes) :
                     #print(i, enTete)
-                    self.treeview.column('#' + str(i+1), width=round(largeurFrame*self.largeursColonnes[i]/total)) # indicates column, not displayed
-                    self.AncienneLargeurFrame = largeurFrame
+                    nouvelleLargeurDeLaColonne = int(largeurFrame*self.largeursColonnes[i]/total)
+                    self.largeursColonnes[i] = nouvelleLargeurDeLaColonne
+                    self.treeview.column('#' + str(i+1), width=nouvelleLargeurDeLaColonne) # indicates column, not displayed
+                self.AncienneLargeurFrame = largeurFrame
     
     def setDefilementAuto(self, booleen) :
         self.defilementAuto = booleen

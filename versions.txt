@@ -4,6 +4,7 @@ En fait, dans imprimerDossardsNonImprimes(), le fichier généré était instant
 - Implémenté : quand on imprimait manuellement un dossard, le coureur devait se retrouver avec la propriété aImprimer = False. C'est le cas désormais.
 Impression immédiate du dossard sous windows.
 - correction de bug : saisie vide pour affecter un dossard était refusée suite aux protections ajoutées ces jours-ci.
+- correctif esthétique : l'entry pour saisir le numéro de dossard associé n'avait plus la bonne abscisse suite au redimensionnement automatique des largeurs des colonnes du treeview.
 
 
 Travail du 01/07/22 :
