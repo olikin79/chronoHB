@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -193,11 +193,13 @@ class MonTableau(Frame):
                         else :
                             print("Le contenu saisi n'est pas une heure valide.")
                     elif column =="#3" or column =="#6"  :
+                        if saisie == "-" or saisie == "" :
+                            saisie = 0
                         p = re.compile('[0-9]*')
                         if p.match(saisie) :
                             try :
                                 dossard = int(saisie)
-                                if len(Coureurs) > dossard and dossard > 0:
+                                if len(Coureurs) > dossard and dossard >= 0:
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -214,27 +216,28 @@ class MonTableau(Frame):
                     if estValideSaisie(column, contenuFinal) and contenuInitial != contenuFinal :
                         ## appeler la bonne fonction pour insérer-modifier un temps ou affecter un dossard.
                         if column == "#2" :
-                            #nbreSecondesJusquAMinuit = time.mktime(time.strptime(heure[:-12], "%m/%d/%y"))
-                            #nbreSecondesJusquAHeureInitiale = time.mktime(time.strptime(heure[:-3], "%m/%d/%y-%H:%M:%S"))
-                            print("Heure", heure[:-11] + contenuFinal[:-3])
-                            heureFinale = time.mktime(time.strptime(heure[:-11] + contenuFinal[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(contenuFinal[-2:])/100)
-                            #heureFinale = nbreSecondesJusquAMinuit+ time.mktime(time.strptime(contenuFinal[:-3], "%H:%M:%S"))+ (int(contenuFinal[-2:])/100)
-                            heureFinaleFormate = time.strftime("%m/%d/%y-%H:%M:%S:",time.localtime(heureFinale))+contenuFinal[-2:]
-                            print("Heure initiale : ", heure, "Heure Finale :", heureFinaleFormate)
-                            if heure != "-" :
-                                requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+heure
-                                print("Temps précédent effacé :", requete)
-                                r = requests.get(requete)
-                                requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+heureFinaleFormate
-                                print("Temps modifié ajouté (sans report du dossard affecté pour éviter tout risque) :", requete)
-                                r = requests.get(requete)
-##                                self.change = True
-##                                self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
-##                                traiterDonneesLocales()
-##                                genereResultatsCoursesEtClasses()
-##                                self.maj(tableauGUI)
-                            else :
-                                print("Impossible d'ajouter cette heure", heure)
+                            try :
+                                #nbreSecondesJusquAMinuit = time.mktime(time.strptime(heure[:-12], "%m/%d/%y"))
+                                #nbreSecondesJusquAHeureInitiale = time.mktime(time.strptime(heure[:-3], "%m/%d/%y-%H:%M:%S"))
+                                print("Heure", heure[:-11] + contenuFinal[:-3])
+                                heureFinale = time.mktime(time.strptime(heure[:-11] + contenuFinal[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(contenuFinal[-2:])/100)
+                                #heureFinale = nbreSecondesJusquAMinuit+ time.mktime(time.strptime(contenuFinal[:-3], "%H:%M:%S"))+ (int(contenuFinal[-2:])/100)
+                                heureFinaleFormate = time.strftime("%m/%d/%y-%H:%M:%S:",time.localtime(heureFinale))+contenuFinal[-2:]
+                                print("Heure initiale : ", heure, "Heure Finale :", heureFinaleFormate)
+                                if heure != "-" :
+                                    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+heure
+                                    print("Temps précédent effacé :", requete)
+                                    r = requests.get(requete)
+                                    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+heureFinaleFormate
+                                    print("Temps modifié ajouté (sans report du dossard affecté pour éviter tout risque) :", requete)
+                                    r = requests.get(requete)
+    ##                                self.change = True
+    ##                                self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
+    ##                                traiterDonneesLocales()
+    ##                                genereResultatsCoursesEtClasses()
+    ##                                self.maj(tableauGUI)
+                            except :
+                                print("Saisie invalide. Impossible d'ajouter cette heure :", heure)
                         if column == "#3" :
                             if heure != "-" :
                                 print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
@@ -246,7 +249,10 @@ class MonTableau(Frame):
                                 self.maj(tableauGUI)
                             else :
                                 print("Impossible d'affecter un dossard à un temps qui n'existe pas dans le tableau : le tiret indique qu'il manque un temps.")
+                    else :
+                        print("Saisie non valide :",contenuFinal)
                     entryedit.destroy()
+                
                     #okb.destroy()
                 def dontsaveedit(event):
                     entryedit.destroy()

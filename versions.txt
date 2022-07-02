@@ -3,6 +3,7 @@ Travail du 02/07/22 :
 En fait, dans imprimerDossardsNonImprimes(), le fichier généré était instantanément supprimé intentionnellement. Pourquoi cette ligne ? Mystère !
 - Implémenté : quand on imprimait manuellement un dossard, le coureur devait se retrouver avec la propriété aImprimer = False. C'est le cas désormais.
 Impression immédiate du dossard sous windows.
+- correction de bug : saisie vide pour affecter un dossard était refusée suite aux protections ajoutées ces jours-ci.
 
 
 Travail du 01/07/22 :

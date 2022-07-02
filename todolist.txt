@@ -6,6 +6,7 @@ Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
+3. L'erreur "pas assez de temps saisis" apparaît plusieurs fois dans l'interface. A résoudre.
 
 
 NON PRIORITAIRES :
@@ -16,6 +17,10 @@ Il est donc impossible de pré-saisir le numéro du dossard.
 	
 
 ESTHETIQUE :
+- l'entry pour saisir le numéro de dossard associé n'a plus la bonne ordonnée.
+
+- le bouton "imprimer tous les dossards non imprimés" ne devrait pas disparaître après le clic sur ok.
+
 - faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
@@ -23,11 +28,13 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 
 A TESTER :
+- vérifier que les ficheirs donneessamrtphones et donneeslocales.txt sont bien supprimés quand on réinitialise toutes les données. J'ai un doute.
+
 - vérifier que générer tous les dossards les considère tous imprimés. 
 Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
 
 - est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
-S'il est ignoré, la finalisation du développement de l'UID unique devient peu prioritaire.
+Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique devient peu prioritaire.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
