@@ -1597,7 +1597,7 @@ ajouterDossardApres2.pack(side=TOP)
 
 ## zones départs et erreurs
 
-zoneAffichageDeparts.pack(side=TOP,fill=X)
+#zoneAffichageDeparts.pack(side=TOP,fill=X)
 
 
 #zoneAffichageErreurs.pack(side=TOP)
@@ -1967,8 +1967,8 @@ L'ordre des colonnes est indifférent.")
 def actualiseToutLAffichage() :
     print("Actualise tout l'affichage")
     zoneTopDepart.actualise()
+    actualiseAffichageDeparts()  
     actualiserDistanceDesCourses()
-    actualiseAffichageDeparts()
     #listeDeCourses = listCourses() # encore utile ?
     actualiseAffichageTV()
     absDispZone.actualiseListeDesClasses()
@@ -2011,13 +2011,17 @@ def actualiseAffichageDeparts():
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
-        fr.pack()
         actualiseTempsAffichageDeparts()
+        zoneAffichageDeparts.pack(side=TOP,fill=X)
+        fr.pack()
     else :
+        zoneAffichageDeparts.forget()
         fr.forget()
 
+tagActualiseTemps = False 
+
 def actualiseTempsAffichageDeparts():
-    global listGroupementsCommences, lblDict
+    global listGroupementsCommences, lblDict, tagActualiseTemps
     for grp in lblDict.keys() :
         nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
         #print("-"+nomCourse+"-", "est dans ?", Courses)
@@ -2026,7 +2030,8 @@ def actualiseTempsAffichageDeparts():
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
         lblDict[grp][1].configure(text=tps)
-    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+    if not tagActualiseTemps :
+        zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
     
 
 #### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -2341,9 +2346,7 @@ def imprimerDossardsNonImprimes() :
     listeDesDossardsGeneres = generateDossardsAImprimer()
     if listeDesDossardsGeneres :
         print("listeDesDossardsGeneres =",listeDesDossardsGeneres)
-        nomFichierGenere = "dossards"+os.sep+"aImprimer.pdf"
-        if os.path.exists(nomFichierGenere) :
-            os.remove(nomFichierGenere)
+        nomFichierGenere = "dossards"+os.sep+"A-imprimer.pdf"
         if os.path.exists(nomFichierGenere):
             if windows() :
                 if imprimePDF(nomFichierGenere) :

@@ -729,11 +729,8 @@ def chargerDonnees() :
         root["Coureurs"] = []
     Coureurs=root["Coureurs"]
     if not "Courses" in root :
-        print("Courses n'est pas dans root : on le crée vide.")
+        #print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
-    else :
-        print("----------")
-        print("Courses chargé :",root["Courses"])
     Courses=root["Courses"]
     if not "Groupements" in root :
         root["Groupements"] = []
@@ -1718,8 +1715,8 @@ def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    print("Utilisation de generateDossardsAImprimer")
-    global CoureursParClasse
+    #print("Utilisation de generateDossardsAImprimer")
+    #global CoureursParClasse
     retour=[]
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
@@ -1736,13 +1733,12 @@ def generateDossardsAImprimer() :
     f.close()
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
-    with open(TEXDIR+"aImprimer.tex", 'w') as f :
+    with open(TEXDIR+"A-imprimer.tex", 'w') as f :
         f.write(entete + "\n\n")
         for coureur in Coureurs :
             if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 retour.append(coureur.dossard)
-                print(retour)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                                  .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
@@ -1751,9 +1747,10 @@ def generateDossardsAImprimer() :
         ## f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
-    if not retour : # s'il n'y a aucun dossard à imprimer on ne compile pas inutilement.
+    #print(retour)
+    if retour : # s'il n'y a aucun dossard à imprimer on ne compile pas inutilement.
         compilateurComplete = compilateur.replace("@dossier@","dossards")
-        print(compilerDossards(compilateurComplete, ".", "aImprimer.tex" , 1))
+        print(compilerDossards(compilateurComplete, ".", "A-imprimer.tex" , 1))
     return retour
 
 def generateDossard(coureur) :
@@ -2234,11 +2231,6 @@ def compilerDossards(compilateur, chemin, fichierACompiler, nombre) :
         if os.path.exists(fichierCherche) :
             #print("Suppression de ",fichierCherche)
             os.remove(fichierCherche)#  + fichierACompiler[:-4] + ".log " + fichierACompiler[:-4] + ".out " + fichierACompiler[:-4] + ".synctex.gz "
-    # affichage dans le lecteur de pdf par défaut.
-    #cmd = "open " + fichierACompiler[:-4] + ".pdf"
-    #os.system(cmd)
-    #subprocess.call(cmd, stdout=f)
-    #f.close()
     return retour
 
 def dossardPrecedentDansArriveeDossards(dossard):

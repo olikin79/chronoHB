@@ -1,18 +1,18 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-1. la génération du pdf aImprimer.pdf non fonctionnelle 
-alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 
-2. actualisation de l'interface pour donner les départs : quand il n'y a plus de départ à donner et lors d'une récupération de sauvegarde un cadre semble rester. En redémarrant, tout va bien.
+1. actualisation de l'interface pour donner les départs : quand il n'y a plus de départ à donner et lors d'une récupération de sauvegarde un cadre semble rester. En redémarrant, tout va bien.
 
-3. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
+2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
+3. quand on imprime manuellement un dossard, le coureur doit se retrouver avec la propriété aImprimer = False. Pas le cas actuellement.
 
 
 NON PRIORITAIRES :
 - dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
+Il est donc impossible de pré-saisir le numéro du dossard.
 
 	
 
@@ -21,7 +21,8 @@ ESTHETIQUE :
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
 
-
+- les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
+Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 
 
 A TESTER :
