@@ -1,6 +1,8 @@
 Travail du 02/07/22 :
 - correction de bug : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 En fait, dans imprimerDossardsNonImprimes(), le fichier généré était instantanément supprimé intentionnellement. Pourquoi cette ligne ? Mystère !
+- Implémenté : quand on imprimait manuellement un dossard, le coureur devait se retrouver avec la propriété aImprimer = False. C'est le cas désormais.
+Impression immédiate du dossard sous windows.
 
 
 Travail du 01/07/22 :

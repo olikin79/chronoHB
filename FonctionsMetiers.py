@@ -1788,8 +1788,11 @@ def generateDossard(coureur) :
     compilateurComplete = compilateur.replace("@dossier@","dossards")
     print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
     fichierAOuvrir = "dossards" + sep + file+".pdf"
-    subprocess.Popen([fichierAOuvrir],shell=True)
+    # Finalement, on retourne le nom du fichier.
+    # celui-ci sera imprimé directement sous windows et ouvert dans le lecteur pdf par défaut sous les OS unix 
+    # subprocess.Popen([fichierAOuvrir],shell=True)
     #open(fichierAOuvrir)
+    return fichierAOuvrir
 
 def alimenteListingPourClasse(nomClasse, file):
     debutTab = """{}\\hfill {}

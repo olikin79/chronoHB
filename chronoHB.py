@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -581,7 +581,22 @@ class ButtonBoxDossards(Frame):
         self.coureur = coureur
         def genererUnDossard() :
             print("coureur : ", self.coureur.nom, self.coureur.prenom)
-            generateDossard(coureur)
+            nomFichierGenere = generateDossard(coureur)
+            if os.path.exists(nomFichierGenere):
+                if windows() :
+                    if imprimePDF(nomFichierGenere) :
+                        reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
+                    else :
+                        reponse = False
+                else :
+                    print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
+                    subprocess.Popen([nomFichierGenere],shell=True)
+                    reponse = True
+                if reponse :
+                    print("le coureur",self.coureur.nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    self.coureur.setAImprimer(False)
+            else :
+                print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
 ##            if self.combobox.get() == "Abs" :
 ##                self.coureur.setAbsent(True)
 ##                #print(self.coureur.nom + "absent")

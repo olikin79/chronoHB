@@ -1,12 +1,11 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-
-1. actualisation de l'interface pour donner les départs : quand il n'y a plus de départ à donner et lors d'une récupération de sauvegarde un cadre semble rester. En redémarrant, tout va bien.
+1. les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
+Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 
 2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
-3. quand on imprime manuellement un dossard, le coureur doit se retrouver avec la propriété aImprimer = False. Pas le cas actuellement.
 
 
 NON PRIORITAIRES :
@@ -21,17 +20,14 @@ ESTHETIQUE :
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
 
-- les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
-Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 
 
 A TESTER :
 - vérifier que générer tous les dossards les considère tous imprimés. 
 Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
 
-- tester si l'interface émet plusieurs bips courts pour plusieurs temps d'arrivée en même temps (bouton ad hoc). Elle le fait pour des appuis sur le bouton arrivée unique.
-Par contre, l'appui sur un bouton 2, 3, ... ne provoque qu'un seul bip.
-
+- est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
+S'il est ignoré, la finalisation du développement de l'UID unique devient peu prioritaire.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
@@ -71,6 +67,7 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une b
 
 
 A PLUS LONG TERME :
+- pouvoir choisir l'imprimante vers laquelle on imprime dans les paramètres.
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)
 - Quid d'un réimport SIECLE sur une catégorie d'un coureur : doit il modifier les éléments modifiés manuellement (nom, prénom, sexe, naissance, classe) ?
