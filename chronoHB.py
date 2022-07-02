@@ -22,7 +22,7 @@ if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -2472,7 +2472,7 @@ class CoureurFrame(Frame) :
     def reactiverBoutons(self,event) :
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
-        print(resultat , self.nomE.get() , self.prenomE.get())
+        #print(resultat , self.nomE.get() , self.prenomE.get())
         if resultat and self.nomE.get() and self.prenomE.get() :
             self.lblCat.configure(text="Catégorie : " + resultat)
             self.boutonsFrame.pack()
@@ -2487,7 +2487,7 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeE.get()
-        print("sexe",s)
+        #print("sexe",s)
         if s ==  "G" or s == "F" :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
@@ -2496,7 +2496,8 @@ class CoureurFrame(Frame) :
                     if c :
                         resultat = c + "-" + s
             else :
-                resultat = self.classeE.get()[0] + s
+                if self.classeE.get() :
+                    resultat = self.classeE.get()[0] + s
         return resultat
 
     def actualiseAffichageBind(self,event) :
