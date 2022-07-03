@@ -13,6 +13,7 @@ Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 => si le coureur est absent, dispensé ou que la course n'a pas été lancée, le coureur n'apparaît plus dans les tableaux de résultats affichés et imprimés.
 - les vitesses sont de nouveau affichées : elles ont disparu lors du développement des Groupements. La distance du groupement n'était pas répercuté pour chaque course de celui-ci.
 - l'affichage TV du challenge par classe ne fonctionnait plus suite à l'ajout du chronomètre dans les courses. Corrigé.
+- les statistiques séparent les classes des groupements en deux tableaux. Celui des groupements est vide.
 
 
 Travail du 02/07/22 :
