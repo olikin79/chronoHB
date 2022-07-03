@@ -343,30 +343,18 @@ class MonTableau(Frame):
         # Créer une alerte dans l'interface et proposer de dupliquer dans le bon nombre le dernier temps pour tout recaler.
         #print(self.listeDesTemps[-1], self.listeDesTemps[-2])
         if len(self.listeDesTemps) >= 2 and self.listeDesTemps[-1] == self.listeDesTemps[-2] :#self.listeDesTemps[-1].tempsReelFormateDateHeure() == self.listeDesTemps[-2].tempsReelFormateDateHeure():
-            nbreTempsManquants = 0
+            self.nbreTempsManquants = 0
             i = len(self.listeDesTemps)-1
             while i > 0 and self.listeDesTemps[i] == self.listeDesTemps[i-1] :
-                nbreTempsManquants += 1
+                self.nbreTempsManquants += 1
                 i -= 1
-            if nbreTempsManquants > 0 :
-                print("il manque ", nbreTempsManquants," temps. Voici le tableau non stabilisé ",TableauGUI)
-                nbreFileAttenteLabel.config(text="Il manque " + str(nbreTempsManquants) + " temps saisis à l'arrivée. INCOHERENCE A CORRIGER RAPIDEMENT.")
+            if self.nbreTempsManquants > 0 :
+                nbreFileAttenteLabel.config(text="Il manque " + str(self.nbreTempsManquants) + " temps saisis à l'arrivée. INCOHERENCE A CORRIGER RAPIDEMENT.")
                 if self.incoherenceFutureACorriger :
-                    self.incoherenceFutureACorriger = False
-                    reponse = askokcancel("INCOHERENCE CONSTATEE", "Il y a "+str(nbreTempsManquants)+" dossards scannés qui ne correspondent à aucun temps de passage sur la ligne d'arrivée.\nVoulez vous corriger cete incohérence en affectant le dernier temps mesuré à tous ces dossards (FORTEMENT CONSEILLE) ?")
-                    if reponse :
-                        print("Correction de l'incohérence en dupliquant le temps", nbreTempsManquants, "fois.")
-                        i = nbreTempsManquants
-                        tpsDisponible = dupliqueTemps(self.listeDesTemps[-1])
-                        while i > 0 :
-                            tempsReel = tpsDisponible.tempsReelFormateDateHeure()
-                            print("Ajout du temps disponible", tempsReel)
-                            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-                            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-                            tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
-                            i -= 1
-                    else :
-                        print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")  
+                    print("il manque ", self.nbreTempsManquants," temps. Voici le tableau non stabilisé ",TableauGUI)
+                    self.corrigeTempsManquants()
+##                else :
+##                    print("On ne corrige rien et on ne le propose plus jusqu'à ce qu'il y ait à nouveau plus de temps que de dossards saisis. Dès lors, l'alerte refonctionne.")  
         if self.noPremierTempsSansCorrespondance > 0 :
             self.incoherenceFutureACorriger = True
             # si les deux derniers temps sont différents, on est dans le cas d'une file d'attente normal
@@ -380,7 +368,26 @@ class MonTableau(Frame):
         else :
             nbreFileAttenteLabel.config(text="Il ne devrait y avoir personne dans la file d'attente d'arrivée.")
 
-            
+    def setIncoherenceFutureACorriger(self,val):
+        self.incoherenceFutureACorriger = val
+        
+    def corrigeTempsManquants(self):
+        self.incoherenceFutureACorriger = False # pour ne pas poser deux fois la question
+        reponse = askokcancel("INCOHERENCE CONSTATEE", "Il y a "+str(self.nbreTempsManquants)+" dossards scannés qui ne correspondent à aucun temps de passage sur la ligne d'arrivée.\nVoulez vous corriger cete incohérence en affectant le dernier temps mesuré à tous ces dossards (FORTEMENT CONSEILLE) ?")
+        if reponse :
+            print("Correction de l'incohérence en dupliquant le temps", self.nbreTempsManquants, "fois.")
+            i = self.nbreTempsManquants
+            tpsDisponible = dupliqueTemps(self.listeDesTemps[-1])
+            while i > 0 :
+                tempsReel = tpsDisponible.tempsReelFormateDateHeure()
+                print("Ajout du temps disponible", tempsReel)
+                print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
+                i -= 1
+            rejouerToutesLesActionsMemorisees()
+            actualiseToutLAffichage()
+                
     def majLigne(self, ligne, donnee, items) :
         #print(donnee[1], items)
         #index = int(donnee[0])
@@ -1780,26 +1787,26 @@ def construireMenuAnnulDepart():
         zoneTopDepart.menuActualise()
 
 
-def messageDErreurInterface(message, SurSmartphone):
-    global timer, CorrectionDErreurSmartphone
-    if SurSmartphone :
-        complement = " (erreur issue du smartphone)."
-    else :
-        complement  = "."
-    reponse = showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message + complement)
-    CorrectionDErreurSmartphone = SurSmartphone
-    # on met le timer de l'interface en pause et on affiche une Frame dédiée à l'affichage des erreurs et à relancer le timer via un bouton.
-    Log.configure(text=message)
-    Log.pack(side=TOP,fill=BOTH)
-    ReprendreTimerButton.pack(side=TOP,fill=BOTH)
-    LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1 )
+##def messageDErreurInterface(message, SurSmartphone):
+##    global timer, CorrectionDErreurSmartphone
+##    if SurSmartphone :
+##        complement = " (erreur issue du smartphone)."
+##    else :
+##        complement  = "."
+##    reponse = showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message + complement)
+##    CorrectionDErreurSmartphone = SurSmartphone
+##    # on met le timer de l'interface en pause et on affiche une Frame dédiée à l'affichage des erreurs et à relancer le timer via un bouton.
+##    Log.configure(text=message)
+##    Log.pack(side=TOP,fill=BOTH)
+##    ReprendreTimerButton.pack(side=TOP,fill=BOTH)
+##    LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1 )
 
 #### zone d'affichage des erreurs : boutons permettant de modifier le départ d'une course.
 lblListE=[]
 listErreursEnCours=[]
 
 #frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
-Label(zoneAffichageErreurs, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP)
+Label(zoneAffichageErreurs, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP, fill=X)
 
 def onClickE(err):
     #print(grpe)
@@ -1813,50 +1820,34 @@ def onClickE(err):
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
+    elif err.numero == 331 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
+        tableau.corrigeTempsManquants()
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
-    
+
+ 
 
 def actualiseAffichageErreurs(listErreursEnCours):
-    #print(listErreursEnCours)
     global lblListE
     for bouton in lblListE :
         #print("Destruction de ",bouton)
         bouton.destroy()
+    print("Liste des erreurs en cours : ",listErreursEnCours)
     lblListE = []
-    #print("Liste des erreurs en cours : ",listErreursEnCours)
     if listErreursEnCours :
         for grp in listErreursEnCours :
-            lblFrE = Frame(zoneAffichageErreurs)
-            #lblLegende = Label(lblFrE, text= " : ")
-            #print("bouton avec commande : onClick(",grp,")")
-            errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
-            #lblLegende.pack(side=LEFT)
-            errBouton.pack(side=TOP)
-            #lblFrE.pack(side=TOP)
-            lblListE.append(errBouton)#[lblTemps,lblFrE]
-        zoneAffichageErreurs.pack()
+                lblFrE = Frame(zoneAffichageErreurs)
+                #lblLegende = Label(lblFrE, text= " : ")
+                #print("bouton avec commande : onClick(",grp,")")
+                errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
+                #lblLegende.pack(side=LEFT)
+                errBouton.pack(side=TOP)
+                #lblFrE.pack(side=TOP)
+                lblListE.append(errBouton)#[lblTemps,lblFrE]
+        zoneAffichageErreurs.pack(side=TOP,fill=X)
     else :
         zoneAffichageErreurs.forget()
 
-
-def rejouerToutesLesActionsMemorisees() :
-    print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
-    print("On supprime tous les temps, tous les dossards arrivés.")
-    print("On conserve le listing coureurs, le top départ de chaque course.")
-    Parametres["positionDansArriveeTemps"] = 0
-    Parametres["positionDansArriveeDossards"] = 0
-    Parametres["tempsDerniereRecuperationSmartphone"]=0
-    Parametres["ligneDerniereRecuperationSmartphone"]=1
-    Parametres["tempsDerniereRecuperationLocale"]=0
-    Parametres["ligneDerniereRecuperationLocale"]=1
-    delArriveeDossards()
-    delArriveeTempss()
-    ligneTableauGUI = [1,0]
-    print("On retraite tous les fichiers de données grace au timer.")
-    timer.reinitErreursATraiter()
-    #listErreursEnCours = traiterDonneesSmartphone(True, False) + traiterDonneesLocales(True,False)
-    #actualiseAffichageErreurs(listErreursEnCours)
    
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
@@ -1876,6 +1867,7 @@ class Clock():
 ##        self.retour1 = []
 ##        self.retour2 = []
         self.erreursEnCours = []
+        self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
         self.update_clock()
         
@@ -1932,18 +1924,60 @@ class Clock():
 
     def reinitErreursATraiter(self):
         self.erreursEnCours = []
+        self.erreursEnCoursNumeros = []
         
-    def erreursATraiter(self,listErreursEnCours):
-        if listErreursEnCours : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
+    def erreursATraiter(self,listeNouvellesErreursATraiter):
+        # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
+        # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
+        i = 0
+        indicesASupprimer = []
+        print("self.erreursEnCours",self.erreursEnCours)
+        print("self.erreursEnCoursNumeros",self.erreursEnCoursNumeros)
+        while i < len(self.erreursEnCoursNumeros) : # on supprime l'erreur 331 des erreurs précédentes
+            if self.erreursEnCoursNumeros[i] == 331 :
+                indicesASupprimer.append(i)
+            i += 1
+        for i in indicesASupprimer:
+            del self.erreursEnCoursNumeros[i]
+            del self.erreursEnCours[i]
+        if listeNouvellesErreursATraiter : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
             self.auMoinsUnImport = True
-        for erreur in listErreursEnCours :
-            if not erreur.numero in [0, 311, 312, 321] : ### "erreurs" internes qui doivent être ignorés par l'interface graphique.
+        for erreur in listeNouvellesErreursATraiter :
+            if not erreur.numero in [0, 311, 312, 321]:#, 331] : ### "erreurs" internes qui doivent être ignorées par l'interface graphique
+                ######## Les ligns suivantes sont devenues inutiles.
+                ######## L'erreur 331 ne survient qu'une seule fois par traitement et elle est supprimée en début de erreursATraiter()
+##                if erreur.numero in [331]: ### numeros d'erreurs à ne lister qu'une seule fois. Les autres seront donc ignorées : erreurs "internes"
+##                    if not erreur.numero in self.erreursEnCoursNumeros :
+##                        self.erreursEnCours.append(erreur)
+##                        self.erreursEnCoursNumeros.append(erreur.numero)
+##                        #print("ajout unique",erreur.numero)
+##            else : #les erreurs autres sont à indiquer
                 self.erreursEnCours.append(erreur)
+                self.erreursEnCoursNumeros.append(erreur.numero)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
         
 timer=Clock(root, "tableau.maj")
 
+
+
+def rejouerToutesLesActionsMemorisees() :
+    print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
+    print("On supprime tous les temps, tous les dossards arrivés.")
+    print("On conserve le listing coureurs, le top départ de chaque course.")
+    Parametres["positionDansArriveeTemps"] = 0
+    Parametres["positionDansArriveeDossards"] = 0
+    Parametres["tempsDerniereRecuperationSmartphone"]=0
+    Parametres["ligneDerniereRecuperationSmartphone"]=1
+    Parametres["tempsDerniereRecuperationLocale"]=0
+    Parametres["ligneDerniereRecuperationLocale"]=1
+    delArriveeDossards()
+    delArriveeTempss()
+    ligneTableauGUI = [1,0]
+    print("On retraite tous les fichiers de données grace au timer.")
+    timer.reinitErreursATraiter()
+
+rejouerToutesLesActionsMemorisees()
 
 def regenereAffichageGUI() :
     rejouerToutesLesActionsMemorisees()
@@ -1997,7 +2031,7 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
-    timer.reinitErreursATraiter()
+    #timer.reinitErreursATraiter()
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.

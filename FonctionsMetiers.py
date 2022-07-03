@@ -2973,7 +2973,7 @@ def calculeTousLesTemps(reinitialise = False):
     if i == len(ArriveeTemps) and len(ArriveeTemps)>0 :
         k = j
         if k != len(ArriveeDossards) :
-            message = "Pas assez de temps saisis pour le(s) dernier(s) dossards : on leur affecte le dernier temps"
+            message = "Pas assez de temps saisis pour le(s) dernier(s) dossards :\nil faut leur affecter un temps comme proposé."
             retour.append(Erreur(331,message))
             print(message)
         while k < len(ArriveeDossards) :

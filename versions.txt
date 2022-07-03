@@ -1,3 +1,10 @@
+Travail du 03/07/22 :
+- gestion correcte de l'erreur 331 : cas où il n'y aurait pas assez de temps par rapport au nombre de dossards. 
+C'est une erreur particulière qui peut se corriger seule suite à une rémontée d'infos du smartphone n°1.
+Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
+- esthétique : largeur de la frame erreurs corrigée.
+
+
 Travail du 02/07/22 :
 - correction de bug : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
 En fait, dans imprimerDossardsNonImprimes(), le fichier généré était instantanément supprimé intentionnellement. Pourquoi cette ligne ? Mystère !
