@@ -1,16 +1,16 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-1. les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
-Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
-
-2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
-Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
-
-3. les statistiques mélangent tout : les classes et les groupements. A séparer en deux tableaux.
+- les statistiques mélangent tout : les classes et les groupements. A séparer en deux tableaux.
 A tester avec les catégories d'age de l'athlétisme.
 
-4. l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
+- l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
 Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge par classe.
+
+- les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
+Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
+
+- l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
+Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
 
 
