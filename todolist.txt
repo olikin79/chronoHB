@@ -1,5 +1,7 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+- les challenges sont classés dans le mauvais ordre.
+
 - si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
 alors vérifier si le bouton amène bien vers le bon menu de modif.
