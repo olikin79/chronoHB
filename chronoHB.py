@@ -2538,10 +2538,14 @@ class CoureurFrame(Frame) :
         #print(resultat , self.nomE.get() , self.prenomE.get())
         if resultat and self.nomE.get() and self.prenomE.get() :
             self.lblCat.configure(text="Catégorie : " + resultat)
+            self.coureurBannul.pack(side=LEFT)
+            self.coureurBoksuivant.pack(side=LEFT)
             self.boutonsFrame.pack()
         else :
             self.lblCat.configure(text="Catégorie : inconnue")
-            self.boutonsFrame.forget()
+            #self.boutonsFrame.forget()
+            self.coureurBannul.forget()
+            self.coureurBoksuivant.forget()
 
     def afficheCoureur(self,dossard) :
         self.choixDossardCombo.set(dossard)
@@ -2576,6 +2580,7 @@ class CoureurFrame(Frame) :
             self.choixDossardCombo.forget()
             self.reinitialiserChamps()
             self.reconstruireLesChamps()
+            self.boutonsFrame.pack()
         else :
             # cas où on modifie un coureur existant
             self.lblCommentaireInfoAddCoureur.configure(text=\
@@ -2591,6 +2596,7 @@ class CoureurFrame(Frame) :
             self.cacherLesChamps()
             self.reconstruireLesChamps()
             self.coureurBimprimer.forget()
+            
             
     def reconstruireLesChamps(self) :
         self.lblNom.pack()
@@ -2615,11 +2621,11 @@ class CoureurFrame(Frame) :
         self.vmaE.pack()
         self.lblCommentaire.pack()
         self.commentaireArriveeE.pack()
-        self.coureurBannul.pack(side = LEFT)
+        #self.coureurBannul.pack(side = LEFT)
         ### INUTILE ? coureurBok.pack(side = LEFT)
-        self.coureurBoksuivant.pack(side = LEFT)
+        #self.coureurBoksuivant.pack(side = LEFT)
         self.coureurBimprimer.pack(side = LEFT)
-        #self.boutonsFrame.pack()
+        
 
     def cacherLesChamps(self) :
         self.lblNom.forget()

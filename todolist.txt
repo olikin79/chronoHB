@@ -14,14 +14,10 @@ Très peu probable en condition réelle car, avec un groupe, on ne peut anticipe
 Il est donc impossible de pré-saisir le numéro du dossard.
 
 	
-
 ESTHETIQUE :
-- le bouton "imprimer tous les dossards non imprimés" ne devrait pas disparaître après le clic sur ok.
-
 - faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
-
 
 
 A TESTER :
@@ -71,6 +67,8 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une b
 
 
 A PLUS LONG TERME :
+- dans ajout manuel de coureur, le sexe devrait être une liste déroulante avec G ou F
+  et la classe devrait aussi être une liste avec les classes précédentes mais permettant de saisir une nouvelle classe.
 - pouvoir choisir l'imprimante vers laquelle on imprime dans les paramètres.
 - quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
 (Inutile en l'état actuel des besoins)

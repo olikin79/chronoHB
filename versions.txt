@@ -5,7 +5,11 @@ Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 - esthétique : largeur de la frame erreurs corrigée.
 - suppression du menu "Réimport de toutes les données" en mode DEBUG=False. 
 - Mise à jour de la documentation : suppression du menu "réimport des données".
-- esthétique : meilleure délimitation des zones à droite (bordures uniformisées)
+- esthétique : 
+	* meilleure délimitation des zones à droite (bordures uniformisées)
+	* le bouton "imprimer tous les dossards non imprimés" (dans ajout manuel de coureur) ne disparait plus après le clic sur ok.
+	* les boutons "ok" et "annuler" (dans modif de coureur) n'apparaissent que s'il y a une modification.
+
 
 Travail du 02/07/22 :
 - correction de bug : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
