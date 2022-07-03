@@ -115,7 +115,8 @@ Travail du 17/06/22 :
 - correction du bug : groupement parfois non affiché sur le dossard.
 - correction de bug : le fichier coureurs.txt n'était pas regénéré lors de l'ajout manuel d'un coureur (ou sa modification).
 - développement : départage du challenge avec une règle claire : la règle en UNSS est de prendre les positions 
-(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo. Cela se fait dans la fonction estSuperieurS().
+(comparer la position du meilleur (fille ou garçon) de chaque classe, puis le second, etc... tant qu'il y a ex-aequo. 
+Cela se fait dans la fonction estSuperieurS().
 
 
 Travail du 16/06/22 :
