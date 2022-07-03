@@ -6,7 +6,6 @@ Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
-3. L'erreur "pas assez de temps saisis" apparaît plusieurs fois dans l'interface. A résoudre.
 
 
 NON PRIORITAIRES :
@@ -32,7 +31,7 @@ A TESTER :
 Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
 
 - est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
-Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique devient peu prioritaire.
+Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique reste prioritaire.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
