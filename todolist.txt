@@ -6,12 +6,18 @@ A tester avec les catégories d'age de l'athlétisme.
 - l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
 Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge par classe.
 
+- si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
+A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
+alors vérifier si le bouton amène bien vers le bon menu de modif.
+
+
 - les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
 Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 
 - l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
-
+Est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
+Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique reste prioritaire.
 
 
 NON PRIORITAIRES :
@@ -27,15 +33,7 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 
 A TESTER :
-- si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, alors tester si le bouton amène bien vers le bon menu de modif.
-
-- vérifier que les ficheirs donneessamrtphones et donneeslocales.txt sont bien supprimés quand on réinitialise toutes les données. J'ai un doute.
-
-- vérifier que générer tous les dossards les considère tous imprimés. 
-Seuls ceux créés manuellement doivent être imprimés avec "imprimer les dossards non encore imprimés"
-
-- est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
-Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique reste prioritaire.
+- tester le départage du challenge par classe en cas d'ex-aequo aux points.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
