@@ -10,10 +10,6 @@ Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge 
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
 alors vérifier si le bouton amène bien vers le bon menu de modif.
 
-
-- les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
-Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
-
 - l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 Est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
@@ -21,6 +17,11 @@ Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisati
 
 
 NON PRIORITAIRES :
+- ESTHETIQUE : 
+	* les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
+	Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
+	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux.
+
 - dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
 Il est donc impossible de pré-saisir le numéro du dossard.
