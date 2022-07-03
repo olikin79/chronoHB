@@ -3135,12 +3135,14 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             retour.append(Erreur(0))
     else :
         coureur.setTemps(0)
-        print("La course ", cat, "n'est pas partie. Le coureur ", coureur.nom, " n'est pas censé avoir franchi la ligne")
+        #print("La course ", cat, "n'est pas partie. Le coureur ", coureur.nom, " n'est pas censé avoir franchi la ligne")
         # test pour afficher les erreurs dans l'interface GUI :
         #alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
         message = "La course " + cat+ " n'est pas partie. Le coureur "+ coureur.nom+ " n'est pas censé avoir franchi la ligne."
         print(message)
         retour.append(Erreur(431,message))
+        ### il faut désormais alimenter le tableau avec les coureurs qui n'ont pas passé la ligne d'arrivée.
+        alimenteTableauGUI (tableauGUI, coureur, tps , dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
     #if retour[0].numero :
     #    print("retour affecteChronoAUnCoureur",retour, retour[0].numero)
     return retour

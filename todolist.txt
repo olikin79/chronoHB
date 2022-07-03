@@ -6,6 +6,7 @@ Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
+3. quand un dossard a passé la ligne alors que la course n'a pas été lancée. Il devrait apparaître dans l'interface et occuper une ligne.
 
 
 NON PRIORITAIRES :
@@ -32,10 +33,6 @@ Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisati
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- 
-
-- mettre à jour la documentation en 1.4 : gestion des erreurs.
-
 - possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 
