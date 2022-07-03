@@ -12,8 +12,6 @@ A tester avec les catégories d'age de l'athlétisme.
 4. l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
 Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge par classe.
 
-5. les vitesses ne sont plus affichées. A voir.
-
 
 
 NON PRIORITAIRES :
