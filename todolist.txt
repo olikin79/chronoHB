@@ -3,9 +3,6 @@ PRIORITAIRES :
 - les statistiques mélangent tout : les classes et les groupements. A séparer en deux tableaux.
 A tester avec les catégories d'age de l'athlétisme.
 
-- l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
-Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge par classe.
-
 - si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
 alors vérifier si le bouton amène bien vers le bon menu de modif.

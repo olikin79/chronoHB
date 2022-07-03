@@ -3551,50 +3551,50 @@ def genereHeureDepartHTML(groupement) :
         
 
 def genereEnTetesHTML(groupement, chrono=False) :
-    if not chrono :
-        if estChallenge(groupement) :
+    if estChallenge(groupement) :
+        tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
+        tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
+        tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
+        tableau += '<th class="totalC">Total</th>'
+        #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
+        tableau += '</tr></thead> </table>'
+    else :
+        if chrono :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-            tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
-            tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
-            tableau += '<th class="totalC">Total</th>'
-            #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
-            tableau += '</tr></thead> </table>'
+            tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead> </table>'
         else :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
             tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
             if not CategorieDAge :
                 tableau += '<th class="classe">Classe</th>'
             tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
-    else :
-        tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-        tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead> </table>'
     return tableau 
 
 def genereTableauHTML(courseName, chrono = False) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
-    if not chrono :
-        if estChallenge(courseName) :
-            # challenge par classe
-            i = 0
-            while i < len(Resultats[courseName]) :
-                #moy = Resultats[courseName][i].moyenneTemps
-                score = Resultats[courseName][i].score
-                classe = Resultats[courseName][i].nom
-                liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
-                tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ "</td><th class='detailC'>"
-                tableau += '<div class="detailC"><p>' + listeNPremiers(Resultats[courseName][i].listeCF) + '</p><p>' + listeNPremiers(Resultats[courseName][i].listeCG) + '</p></div></td>'
-                tableau += "<td class='totalC'>"+str(Resultats[courseName][i].score) +"</td>"
-                #tableau += "<td class='moyC'>" + moy +"</td>"
-                tableau += "</tr>"
-                i += 1
+    if estChallenge(courseName) :
+        # challenge par classe
+        i = 0
+        while i < len(Resultats[courseName]) :
+            #moy = Resultats[courseName][i].moyenneTemps
+            score = Resultats[courseName][i].score
+            classe = Resultats[courseName][i].nom
+            liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
+            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ "</td><th class='detailC'>"
+            tableau += '<div class="detailC"><p>' + listeNPremiers(Resultats[courseName][i].listeCF) + '</p><p>' + listeNPremiers(Resultats[courseName][i].listeCG) + '</p></div></td>'
+            tableau += "<td class='totalC'>"+str(Resultats[courseName][i].score) +"</td>"
+            #tableau += "<td class='moyC'>" + moy +"</td>"
+            tableau += "</tr>"
+            i += 1
+    else :
+        if chrono :
+            tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
         else :
             Dossards = Resultats[courseName]
             for dossard in Dossards :
                 if dossard in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
                     tableau += genereLigneTableauHTML(dossard)
-    else :
-        tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
     return tableau + "</tbody> </table>"
 
 def yATIlUCoureurArrive(groupement) :
