@@ -39,7 +39,6 @@ PRIORITAIRES :
 - possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.
 
-
 	
 MOYENNEMENT PRIORITAIRE :
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.

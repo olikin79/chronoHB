@@ -1937,6 +1937,8 @@ def testTMPStats():
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
+    ContenuLignesCategories = ""
+    ContenuLignesGroupements = ""
     for DIR in [ "impressions", "impressions"+os.sep+"tex" ]:
         if not os.path.exists(DIR) :
             os.makedirs(DIR)
@@ -1948,7 +1950,13 @@ def generateImpressions() :
         enteteC = f.read()
     f.close()
     with open("./modeles/impression-en-teteS.tex", 'r') as f :
-        enteteS = f.read()#.replace("@date",dateDuJour())
+        if Parametres["CategorieDAge"] :
+            enteteS = f.read().replace("@categorie@","catégorie")
+        else :
+            enteteS = f.read().replace("@categorie@","classe")
+    f.close()
+    with open("./modeles/impression-en-teteSGpments.tex", 'r') as f :
+        enteteSGpments = f.read()#.replace("@date",dateDuJour())
     f.close()
     with open("./modeles/stats-ligne.tex", 'r') as f :
         ligneStats = f.read()
@@ -2013,15 +2021,28 @@ def generateImpressions() :
             nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
             nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
             #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-            fstats.write(ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+            if estNomDeGroupement(classe) :
+                ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
                          .replace("@GArr",GArr).replace("@FD",FD)\
                          .replace("@GD",GD).replace("@FAba",FAba)\
                          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
                          .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                         .replace("@med",mediane))
+                         .replace("@med",mediane)
+            else :
+                ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                         .replace("@GArr",GArr).replace("@FD",FD)\
+                         .replace("@GD",GD).replace("@FAba",FAba)\
+                         .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                         .replace("@med",mediane)
         ### mettre ici l'alimentation du fichier de statistiques classe par classe.
     # on ferme le fichier de statistiques des classes
+    fstats.write(ContenuLignesCategories)
     fstats.write("\n\\end{tabular}\\end{center}\n ")
+    
+    fstats.write(enteteSGpments)
+    fstats.write(ContenuLignesGroupements)
+    fstats.write("\n\\end{tabular}\\end{center}\n\n\\bigskip")
     fstats.write("\n\n\\textbf{Nombre total d'arrivées : }" + str(nbreArriveesTotal))
     fstats.write("\n\n\\textbf{Nombre total de dispensés : }" + str(nbreDispensesTotal))
     fstats.write("\n\n\\textbf{Nombre total d'abandons : }" + str(nbreAbandonsTotal))
@@ -3383,6 +3404,9 @@ def listerDonneesTerminal():
 
 def estGroupement(obj):
     return isinstance(obj,Groupement)
+    
+def estNomDeGroupement(nom):
+    return nom in listNomsGroupements()
 
 def estChallenge(obj):
     return (isinstance(obj,str) and len(obj) == 1)
