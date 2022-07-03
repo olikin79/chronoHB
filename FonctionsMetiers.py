@@ -2830,8 +2830,12 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
         return Erreur(411,message,elementConcerne=doss)
-    elif Coureurs[doss-1].absent or Coureurs[doss-1].dispense :
-        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé ou absent :\n" + infos
+    elif Coureurs[doss-1].absent :
+        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car absent :\n" + infos
+        print(message)
+        return Erreur(421,message,elementConcerne=doss)
+    elif Coureurs[doss-1].dispense :
+        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
         print(message)
         return Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
@@ -3111,7 +3115,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le dossard " + str(doss) + " aurait avec un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
+            message = "Le coureur " + coureur.nom + " " + coureur.prenom + "(" + str(doss) + ") a un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
             retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :

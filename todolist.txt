@@ -32,9 +32,9 @@ Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisati
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- mettre à jour la documentation en 1.4 : départs affichés et modifiables, menu des groupements, affichage sur un autre écran (y compris adresse IP pour autre ordinateur)
-documenter la mise en plein écran sur l'affichage secondaire (raccourcis claviers).
-Anonymer la documentation en faisant un import CSV avec des noms bidons et de nouvelles captures d'écrans.
+- 
+
+- mettre à jour la documentation en 1.4 : gestion des erreurs.
 
 - possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
 Tant pis si on perd une demi-page une fois sur deux.

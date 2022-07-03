@@ -4,7 +4,7 @@ C'est une erreur particulière qui peut se corriger seule suite à une rémonté
 Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 - esthétique : largeur de la frame erreurs corrigée.
 - suppression du menu "Réimport de toutes les données" en mode DEBUG=False. 
-- Mise à jour de la documentation : suppression du menu "réimport des données".
+- Mise à jour de la documentation : suppression du menu "réimport des données", gestion des erreurs courantes dans l'interface.
 - esthétique : 
 	* meilleure délimitation des zones à droite (bordures uniformisées)
 	* le bouton "imprimer tous les dossards non imprimés" (dans ajout manuel de coureur) ne disparait plus après le clic sur ok.
