@@ -36,7 +36,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1092,7 +1092,7 @@ class TopDepartFrame(Frame) :
             self.TopDepartLabel = Label(self.parent, text="Cocher les groupements de courses dont vous souhaitez donner le départ :")
             self.TopDepartLabel.pack(side=TOP)
             self.checkBoxBarDepart.pack(side=TOP, fill=X)
-            self.checkBoxBarDepart.config(relief=GROOVE, bd=2)
+            self.checkBoxBarDepart.config()#relief=GROOVE, bd=2)
             self.boutonPartez.pack(side=TOP)
         else :
             self.TopDepartLabel = Label(self.parent, text="Il n'y a aucune course à lancer.")
@@ -1328,6 +1328,7 @@ tempsDialog=""
 zoneTopDepartBienPlacee = Frame(Affichageframe)
 
 zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
+zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 
@@ -1642,7 +1643,7 @@ AffichageLabel = Label(zoneAffichageTV, text="Cocher les résultats de courses, 
 AffichageLabel.pack(side=TOP)
 
 checkBoxBarAffichage.pack(side=TOP,  fill=X)
-checkBoxBarAffichage.config(relief=GROOVE, bd=2)
+#checkBoxBarAffichage.config(relief=GROOVE, bd=2)
 
 ##def AffichagesAction():
 ##    listeCochee = []
@@ -2040,7 +2041,7 @@ def actualiseToutLAffichage() :
 listGroupementsCommences = []
 lblDict={}
 
-fr = Frame(zoneAffichageDeparts, relief=GROOVE, bd=2)
+fr = Frame(zoneAffichageDeparts)#, relief=GROOVE, bd=2)
 Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
 
 def onClick(grpe):

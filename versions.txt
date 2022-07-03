@@ -5,6 +5,7 @@ Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 - esthétique : largeur de la frame erreurs corrigée.
 - suppression du menu "Réimport de toutes les données" en mode DEBUG=False. 
 - Mise à jour de la documentation : suppression du menu "réimport des données".
+- esthétique : meilleure délimitation des zones à droite (bordures uniformisées)
 
 Travail du 02/07/22 :
 - correction de bug : la génération du pdf aImprimer.pdf non fonctionnelle alors que le .tex est généré correctement et que les autres compilations de dossards fonctionnent.
