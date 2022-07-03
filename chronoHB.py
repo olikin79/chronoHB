@@ -13,6 +13,10 @@ import sys, os, re
 import copy
 import socket # obtenir ip
 from idlelib.tooltip import Hovertip # tooltip
+from pprint import pprint
+
+
+
 
 
 version="1.4"
@@ -21,6 +25,16 @@ LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
             os.makedirs(LOGDIR)
 
+
+CoureursParClasse = {}
+tableauGUI = []
+ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
+
+#from chronoHBClasses import *
+from FonctionsMetiers import *
+from functools import partial
+
+
 #### DEBUG
 DEBUG = True
 
@@ -28,7 +42,7 @@ if not DEBUG :
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
     sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
 
-from pprint import pprint
+
 ##class Logger(object):
 ##    def __init__(self, filename="Default.log"):
 ##        self.terminal = sys.stdout
@@ -39,20 +53,8 @@ from pprint import pprint
 ##        self.log.write(message)
 
 
-
-CoureursParClasse = {}
-tableauGUI = []
-ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
-
-
-#from chronoHBClasses import *
-from FonctionsMetiers import *
-from functools import partial
-
 generateListCoureursPourSmartphone()
 CoureursParClasseUpdate()
-
-
 
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
@@ -1832,7 +1834,7 @@ def actualiseAffichageErreurs(listErreursEnCours):
     for bouton in lblListE :
         #print("Destruction de ",bouton)
         bouton.destroy()
-    print("Liste des erreurs en cours : ",listErreursEnCours)
+    #print("Liste des erreurs en cours : ",listErreursEnCours)
     lblListE = []
     if listErreursEnCours :
         for grp in listErreursEnCours :
@@ -1931,8 +1933,8 @@ class Clock():
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
         i = 0
         indicesASupprimer = []
-        print("self.erreursEnCours",self.erreursEnCours)
-        print("self.erreursEnCoursNumeros",self.erreursEnCoursNumeros)
+        #print("self.erreursEnCours",self.erreursEnCours)
+        #print("self.erreursEnCoursNumeros",self.erreursEnCoursNumeros)
         while i < len(self.erreursEnCoursNumeros) : # on supprime l'erreur 331 des erreurs précédentes
             if self.erreursEnCoursNumeros[i] == 331 :
                 indicesASupprimer.append(i)
@@ -2799,7 +2801,10 @@ annulDepart = Menu(editmenu, tearoff=0)
 ##affichage.add_command(label="Ajout d'un coureur", command=ajoutManuelCoureur)
 ##editmenu.add_cascade(label="Affichage", menu=affichage)
 editmenu.add_command(label="Affichage des données de courses", command=tempsDesCoureurs)
-editmenu.add_command(label="Réimporter toutes les données (amené à disparaitre)", command=rejouerToutesLesActionsMemorisees)
+print("DEBUG",DEBUG)
+if DEBUG :
+    print("MODE DEBUG")
+    editmenu.add_command(label="Réimporter toutes les données", command=rejouerToutesLesActionsMemorisees)
 construireMenuAnnulDepart()
 menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
