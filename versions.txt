@@ -14,6 +14,7 @@ Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 - les vitesses sont de nouveau affichées : elles ont disparu lors du développement des Groupements. La distance du groupement n'était pas répercuté pour chaque course de celui-ci.
 - l'affichage TV du challenge par classe ne fonctionnait plus suite à l'ajout du chronomètre dans les courses. Corrigé.
 - les statistiques séparent les classes des groupements en deux tableaux. Celui des groupements est vide.
+- les statistiques des groupements et des catégories d'age sont remplis par temps croissants.
 
 
 Travail du 02/07/22 :

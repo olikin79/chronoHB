@@ -1380,6 +1380,13 @@ def listDossardsDUneClasse(classe):
                 retour.append(coureur.dossard)
     return retour
 
+def listDossardsDUnGroupement(nom):
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if groupementAPartirDUneCategorie(coureur.categorie(CategorieDAge)).nom == nom :
+                retour.append(coureur.dossard)
+    return retour
 
 def listDossardsDUneCategorie(cat):
     retour = []
@@ -1981,10 +1988,12 @@ def generateImpressions() :
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
     for classe in Resultats :
+        #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         if Parametres["CategorieDAge"] or (not Parametres["CategorieDAge"] and len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
-            print("Création du fichier de "+classe)
-            with open(TEXDIR+classe+ ".tex", 'w') as f :
+            #print("Création du fichier de "+classe)
+            nomFichier = classe.replace(" ","-")
+            with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete)
                 f.write(contenu)
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -2035,7 +2044,7 @@ def generateImpressions() :
                          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
                          .replace("@GAbs",GAbs).replace("@moy",moyenne)\
                          .replace("@med",mediane)
-        ### mettre ici l'alimentation du fichier de statistiques classe par classe.
+
     # on ferme le fichier de statistiques des classes
     fstats.write(ContenuLignesCategories)
     fstats.write("\n\\end{tabular}\\end{center}\n ")
@@ -2083,7 +2092,7 @@ def generateImpressions() :
     for file in liste_fichiers_tex_complete :
         # il faut compiler tous les fichiers de la liste.
         fichierACompiler = os.path.basename(file)
-        print("on compile",fichierACompiler)
+        #print("on compile",fichierACompiler)
         print(compiler(compilateur, "impressions", fichierACompiler , 1))
     #os.chdir(osCWD)
     return "Tous les PDF des résultats ont été générés."
@@ -2410,21 +2419,27 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
-        ### ajout du coureur au groupement.
+        ### ajout du coureur au groupement pour résultat du groupement.
         if groupement.nom not in Resultats :
             Resultats[groupement.nom] = []
         if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
             Resultats[groupement.nom].append(doss)
         else :
             coureur.setRang(0)
-        ### ajout du coureur dans sa classe
+            
+        ### ajout du coureur dans sa classe ou sa catégorie d'age.
         if not Parametres["CategorieDAge"] :
             if classe not in Resultats :
                 Resultats[classe] = []
-            if classe not in listeDesClasses :
+            if classe not in listeDesClasses : ### raison d'être de cette liste à trouver ! Encore utile ?
                 listeDesClasses.append(classe)
             if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
                 Resultats[classe].append(doss)
+        else :
+            if cat not in Resultats :
+                Resultats[cat] = []
+            if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+                Resultats[cat].append(doss)
             # déjà fait 9 lignes plus haut 
             #else :
             #    coureur.setRang(0)
@@ -2439,6 +2454,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         # on affecte son rang à chaque coureur dans sa Course.
         #print("course ",nom,":",Resultats[nom])
         if estUneCourseOuUnGroupement(nom) :
+            #print(nom, "est une course ou un groupement",Resultats[nom])
             i = 0
             while i < len(Resultats[nom]) :
                 doss = Resultats[nom][i]
@@ -3692,8 +3708,8 @@ def creerFichierCategories(groupement, entete):
     return entete + "\n\n" + titre + "\n\n" + tableau
 
 
-def creerFichierClasse(classe, entete):
-    titre = "{\\Large {} \\hfill \\textbf{CLASSE " + classe + "} \\hfill {}}"
+def creerFichierClasse(nom, entete):
+    titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     tableau = """
 \\begin{center}
 \\begin{longtable}{| p{8cm} | p{1.7cm} | p{3.2cm} | p{4.3cm} |}
@@ -3703,18 +3719,24 @@ def creerFichierClasse(classe, entete):
 \\hline
 \\endhead
 \n"""
-    ### il faut tous les dossards d'une classe et non seulement ceux arrivés : Dossards = Resultats[classe]
-    if Parametres["CategorieDAge"] :
-        Dossards = listDossardsDUneCategorie(classe)
+    ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
+    if estNomDeGroupement(nom) :
+        denomination = "Course " + nom
+        Dossards = Resultats[nom]# on perd les absents, dispensés, abandons. triParTemps(listDossardsDUnGroupement(nom))
+    elif Parametres["CategorieDAge"] :
+        denomination = "Catégorie " + nom
+        Dossards = triParTemps(listDossardsDUneCategorie(nom)) ## Resultats[nom] => on perd les absents, dispensés, abandons mais on gagnerait du temps.
     else :
-        Dossards = listDossardsDUneClasse(classe)
+        denomination = "Classe " + nom
+        Dossards = listDossardsDUneClasse(nom) 
+        # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha pour les collègues d'EPS
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
-    for dossard in sorted(Dossards) :
+    for dossard in Dossards :
         #if dossard in ArriveeDossards :
         newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband)
         tableau += newline
-    return entete + "\n\n" + titre + "\n\n" + tableau, ArrDispAbsAband
+    return entete + "\n\n" + titre.replace("@nom@",denomination) + "\n\n" + tableau, ArrDispAbsAband
 
 
 def yATIlUneVMA(listeDeDossards) :

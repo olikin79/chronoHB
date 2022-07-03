@@ -36,7 +36,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")

@@ -1,7 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- les statistiques des groupements sont vides. A remplir.
-A tester avec les catégories d'age de l'athlétisme.
+- vitesse absente des pdf.
 
 - si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
@@ -34,6 +33,7 @@ A TESTER :
 - tester le départage du challenge par classe en cas d'ex-aequo aux points.
 
 - tester statistiques avec les catégories d'age de l'athlétisme.
+raison d'être de listeDesClasses dans genereResultatsCoursesEtClasses() à élucider en cas de bug avec les résultats des catégories d'age.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
