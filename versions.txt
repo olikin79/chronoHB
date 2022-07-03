@@ -9,6 +9,9 @@ Il faut donc contrôler si celle-ci a disparu ou non à chaque fois.
 	* meilleure délimitation des zones à droite (bordures uniformisées)
 	* le bouton "imprimer tous les dossards non imprimés" (dans ajout manuel de coureur) ne disparait plus après le clic sur ok.
 	* les boutons "ok" et "annuler" (dans modif de coureur) n'apparaissent que s'il y a une modification.
+- modification de addArriveeDossard pour ajouter les dossards en erreur (absent, disp, course non lancée) dans arriveeDossards (et permettre leur apparition dans l'interface GUI)
+=> si le coureur est absent, dispensé ou que la course n'a pas été lancée, le coureur n'apparaît plus dans les tableaux de résultats affichés et imprimés.
+- les vitesses sont de nouveau affichées : elles ont disparu lors du développement des Groupements. La distance du groupement n'était pas répercuté pour chaque course de celui-ci.
 
 
 Travail du 02/07/22 :

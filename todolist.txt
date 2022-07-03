@@ -6,7 +6,14 @@ Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 2. l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 
-3. quand un dossard a passé la ligne alors que la course n'a pas été lancée. Il devrait apparaître dans l'interface et occuper une ligne.
+3. les statistiques mélangent tout : les classes et les groupements. A séparer en deux tableaux.
+A tester avec les catégories d'age de l'athlétisme.
+
+4. l'affichage TV du challenge par classe ne fonctionne plus alors que le pdf est correct... A voir pourquoi.
+Il ne devrait pas y avoir le "chronomètre actuel" sur l'affichage du challenge par classe.
+
+5. les vitesses ne sont plus affichées. A voir.
+
 
 
 NON PRIORITAIRES :
@@ -22,6 +29,8 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 
 A TESTER :
+- si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, alors tester si le bouton amène bien vers le bon menu de modif.
+
 - vérifier que les ficheirs donneessamrtphones et donneeslocales.txt sont bien supprimés quand on réinitialise toutes les données. J'ai un doute.
 
 - vérifier que générer tous les dossards les considère tous imprimés. 

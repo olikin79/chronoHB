@@ -36,7 +36,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -105,6 +105,8 @@ class MonTableau(Frame):
                 self.colonneRang = i
             elif el == "Heure Arrivée" :
                 self.colonneTemps = i
+            elif el == "Chrono" :
+                self.colonneChrono = i
             i += 1
         #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
@@ -404,7 +406,10 @@ class MonTableau(Frame):
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = int(donnee[self.colonneDossard])
         ligneAAjouter = list(donnee)
-        ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+        if Coureurs[doss-1].rang :
+            ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+        else :
+            ligneAAjouter[self.colonneRang] = "?"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         if doss == 0:
             ligneAAjouter[self.colonneDossard] = '-'
@@ -1820,7 +1825,10 @@ def onClickE(err):
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
-        saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
+        if CategorieDAge :
+            saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
+        else :
+            saisieAbsDisp(Coureurs[err.dossard-1].classe)
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)

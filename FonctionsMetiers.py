@@ -341,7 +341,10 @@ class Coureur():#persistent.Persistent):
         else :
             self.dispense = False
     def setTemps(self, temps=0, distance=0):
-        self.temps = float(temps) # type non vérifié => raise exception à construire.
+        try : 
+            self.temps = float(temps)
+        except : 
+            self.temps = 0
         if self.temps >  0:
             self.vitesse = distance *3600 / self.temps
         else :
@@ -519,6 +522,10 @@ class Groupement():
         self.manuel = True
     def setDistance(self, distance):
         self.distance = float(distance)
+        ### il faut actualiser les distances de toutes les courses du groupement. Sinon, les calculs de vitesse tombent à l'eau.
+        for nomCourse in self.listeDesCourses :
+            Courses[nomCourse].setDistance(distance)
+            #print(nomCourse,"se voit affecté la distance", distance)
     def actualiseNom(self) :
         self.nomStandard = ""
         if self.listeDesCourses :
@@ -606,28 +613,31 @@ def formaterTemps(tps, HMS=True) :
     if len(partieDecimale) == 1 :
         partieDecimale = "0" + partieDecimale
     #if int(time.strftime("%j",time.gmtime(tps))) == 1 : # pas de jour à afficher. "Premier de l'année"
-    if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
-        #print(time.strftime("%M",time.gmtime(tps)))
-        if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
-            if HMS : 
-                ch = time.strftime("%S s ",time.localtime(tps)) + partieDecimale + "''"
-            else :
-                ch = time.strftime("%S:",time.localtime(tps)) + partieDecimale
-        else :
-            if HMS :
-                ch = time.strftime("%M min %S s ",time.localtime(tps)) + partieDecimale + "''"
-            else :
-                ch = time.strftime("%M:%S:",time.localtime(tps)) + partieDecimale
+    if tps <= 0 :
+        ch = "-"
     else :
-        if HMS : 
-            ch = time.strftime("%H h %M min %S s",time.localtime(tps)) # + partieDecimale
+        if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
+            #print(time.strftime("%M",time.gmtime(tps)))
+            if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
+                if HMS : 
+                    ch = time.strftime("%S s ",time.localtime(tps)) + partieDecimale + "''"
+                else :
+                    ch = time.strftime("%S:",time.localtime(tps)) + partieDecimale
+            else :
+                if HMS :
+                    ch = time.strftime("%M min %S s ",time.localtime(tps)) + partieDecimale + "''"
+                else :
+                    ch = time.strftime("%M:%S:",time.localtime(tps)) + partieDecimale
         else :
-            ch = time.strftime("%H:%M:%S:",time.localtime(tps)) + partieDecimale
-##    else :
-##        if HMS :
-##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H h %M min %S s",time.gmtime(tps))# + partieDecimale
-##        else :
-##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
+            if HMS : 
+                ch = time.strftime("%H h %M min %S s",time.localtime(tps)) # + partieDecimale
+            else :
+                ch = time.strftime("%H:%M:%S:",time.localtime(tps)) + partieDecimale
+    ##    else :
+    ##        if HMS :
+    ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H h %M min %S s",time.gmtime(tps))# + partieDecimale
+    ##        else :
+    ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
 
@@ -1064,7 +1074,10 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
     if categorie == None :
         categorie = "-"
     if coureur.temps :
-        tempsDuCoureur = coureur.tempsFormate()
+        if coureur.temps == -1 :
+            tempsDuCoureur = "Course non partie"
+        else :
+            tempsDuCoureur = coureur.tempsFormate()
     else :
         if coureur.nom == "" :
             tempsDuCoureur = "-"
@@ -2033,15 +2046,16 @@ def generateImpressions() :
         # ajout d'une sécurité si aucune arrivée dans une course
         aCreer = False
         groupement = groupementAPartirDeSonNom(nomGroupement) 
-        for nomCategorie in groupement.listeDesCourses :
-            if nomCategorie in Resultats.keys() :
-                aCreer = True
-                break
-        if aCreer :
-            with open(TEXDIR+groupement.nom+ ".tex", 'w') as f :
-                f.write(creerFichierCategories(groupement,entete))
-                f.write("\n\\end{longtable}\\end{center}\\end{document}")
-            f.close()
+        if groupement :
+            for nomCategorie in groupement.listeDesCourses :
+                if nomCategorie in Resultats.keys() :
+                    aCreer = True
+                    break
+            if aCreer :
+                with open(TEXDIR+groupement.nom+ ".tex", 'w') as f :
+                    f.write(creerFichierCategories(groupement,entete))
+                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                f.close()
     
     # pour chaque fichier dans impressions , compiler.
     liste_fichiers_tex_complete=glob.glob(TEXDIR+'*.tex',recursive = True)
@@ -2123,13 +2137,13 @@ def absentsDispensesAbandonsEnTex() :
     for c in Coureurs :
         if c.absent :
             Labs.append(c)
-            print(c.nom, c.prenom, "était absent.")
+            #print(c.nom, c.prenom, "était absent.")
         elif c.dispense :
             Ldisp.append(c)
-            print(c.nom, c.prenom, "est dispensé")
+            #print(c.nom, c.prenom, "est dispensé")
         elif c.rang == 0 and c.categorie() in Resultats.keys() :
             Labandon.append(c)
-            print(c.nom, c.prenom, "a abandonné")
+            #print(c.nom, c.prenom, "a abandonné")
     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
     retour = """\n\n\\newpage\n
 {} \\hfill  {\LARGE ABSENTS}  \\hfill {}\n
@@ -2375,16 +2389,24 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
+        ### ajout du coureur au groupement.
         if groupement.nom not in Resultats :
             Resultats[groupement.nom] = []
-        Resultats[groupement.nom].append(doss)
-        #print("ajout du dossard",doss, "dans le dictionnaire",Resultats)
+        if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+            Resultats[groupement.nom].append(doss)
+        else :
+            coureur.setRang(0)
+        ### ajout du coureur dans sa classe
         if not Parametres["CategorieDAge"] :
             if classe not in Resultats :
                 Resultats[classe] = []
             if classe not in listeDesClasses :
                 listeDesClasses.append(classe)
-            Resultats[classe].append(doss)
+            if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+                Resultats[classe].append(doss)
+            # déjà fait 9 lignes plus haut 
+            #else :
+            #    coureur.setRang(0)
 ##    # on trie les performances d'une classe : les filles et garçons n'ont pas forcméent couru en même temps et ne sont donc pas ordonnés.
 ##    for classe in listeDesClasses :
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
@@ -2401,9 +2423,11 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 doss = Resultats[nom][i]
                 coureur = Coureurs[doss-1]
                 #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-                if coureur.temps != 0 :
+                if coureur.temps > 0 : 
+                ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
                     coureur.setRang(i+1)
-                else :
+                else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+                # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                     coureur.setRang(0)
                 #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
                 i += 1
@@ -2449,10 +2473,10 @@ def estUneClasse(nom):
     return len(nom) > 1 and (not estUneCourseOuUnGroupement(nom))
 
 def estSuperieur(d1, d2):
-    if Coureurs[d1-1].temps == 0 :
+    if Coureurs[d1-1].temps == 0 or Coureurs[d1-1].temps == -1 :
         # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie.
         return True
-    elif Coureurs[d2-1].temps == 0 :
+    elif Coureurs[d2-1].temps == 0 or Coureurs[d2-1].temps == -1:
         return False
     else :
         return Coureurs[d1-1].temps > Coureurs[d2-1].temps
@@ -2814,14 +2838,17 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     dossPrecedent = int(dossardPrecedent)
     coureur = Coureurs[doss-1]
     infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+    message = ""
+    retour = Erreur(0)
     if doss in ArriveeDossards :
         if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
-            print("Dossard",doss,"envoyé deux fois successivement par le smartphone : problème de communication wifi.")
-            return Erreur(0,elementConcerne=doss)
+            message = "Dossard" + str(doss) + "envoyé deux fois successivement par le smartphone : problème de communication wifi."
+            print(message)
+            retour=Erreur(0,message,elementConcerne=doss)
         else :
             message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
             print(message)
-            return Erreur(401,message,elementConcerne=doss)
+            retour=Erreur(401,message,elementConcerne=doss)
             # en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
@@ -2829,49 +2856,43 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     elif doss > len(Coureurs) or doss < 1 :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
-        return Erreur(411,message,elementConcerne=doss)
+        retour=Erreur(411,message,elementConcerne=doss)
     elif Coureurs[doss-1].absent :
         message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car absent :\n" + infos
         print(message)
-        return Erreur(421,message,elementConcerne=doss)
+        retour=Erreur(421,message,elementConcerne=doss)
     elif Coureurs[doss-1].dispense :
         message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
         print(message)
-        return Erreur(421,message,elementConcerne=doss)
+        retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
         message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
-        return Erreur(431,message,elementConcerne=doss)
+        retour=Erreur(431,message,elementConcerne=doss)
+    ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
+    if dossPrecedent == -1 : # CAS COURANT : ajoute à la suite
+        #position = len(ArriveeDossards)
+        ArriveeDossards.append(doss)
+        #print("Dossard arrivé :",doss)
+    elif dossPrecedent == 0 : # insère au début de liste
+        #print("insertion en début de liste d'arrivée")
+        #position = 0
+        ArriveeDossards.insert(0 , doss)
+        Parametres["calculateAll"] = True
+        #DonneesAAfficher.reinit() # on regénère le tableau GUI
     else :
-        if dossPrecedent == -1 : # ajoute à la suite
-            #position = len(ArriveeDossards)
-            ArriveeDossards.append(doss)
-            #print("Dossard arrivé :",doss)
-            return Erreur(0)
-        elif dossPrecedent == 0 : # insère au début de liste
-            #print("insertion en début de liste d'arrivée")
-            #position = 0
-            ArriveeDossards.insert(0 , doss)
+        # insère juste après le dossard dossardPrecedent , si on le trouve.
+        try :
+            n = ArriveeDossards.index(dossPrecedent)
+            #position = n+1
+            ArriveeDossards.insert(n+1 , doss)
             Parametres["calculateAll"] = True
             #DonneesAAfficher.reinit() # on regénère le tableau GUI
-            return Erreur(0)
-        else :
-            # insère juste après le dossard dossardPrecedent , si on le trouve.
-            try :
-                n = ArriveeDossards.index(dossPrecedent)
-                #position = n+1
-                ArriveeDossards.insert(n+1 , doss)
-                Parametres["calculateAll"] = True
-                #DonneesAAfficher.reinit() # on regénère le tableau GUI
-                return Erreur(0)
-            except ValueError :
-                message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
-                print(message)
-                return Erreur(499,message, elementConcerne=doss)
-    ##transaction.commit()
-        #calculeTousLesTemps(True)
-##    except :
-##        recupererSauvegardeGUI()
+        except ValueError :
+            message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
+            print(message)
+            retour=Erreur(499,message, elementConcerne=doss)
+    return retour
 
 def imprimePDF(pdf_file_name) :
     if os.path.exists(pdf_file_name) :
@@ -3134,13 +3155,16 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             #print(message)
             retour.append(Erreur(0))
     else :
-        coureur.setTemps(0)
+        coureur.setTemps(-1) # le chrono -1 signifie que la course n'est pas lancée.
         #print("La course ", cat, "n'est pas partie. Le coureur ", coureur.nom, " n'est pas censé avoir franchi la ligne")
         # test pour afficher les erreurs dans l'interface GUI :
         #alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
         message = "La course " + cat+ " n'est pas partie. Le coureur "+ coureur.nom+ " n'est pas censé avoir franchi la ligne."
         print(message)
-        retour.append(Erreur(431,message))
+        ### cette erreur est déjà signalée par addArriveeDossard : on ne fait pas un 2ème signalement. retour.append(Erreur(431,message))
+        #print("-----------------------------")
+        #print("Erreur : le coureur", coureur.dossard, "est dans une catégorie non partie")
+        #print("-----------------------------")
         ### il faut désormais alimenter le tableau avec les coureurs qui n'ont pas passé la ligne d'arrivée.
         alimenteTableauGUI (tableauGUI, coureur, tps , dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
     #if retour[0].numero :
