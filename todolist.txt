@@ -1,5 +1,10 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+- tester statistiques avec les catégories d'age de l'athlétisme. Ne fonctionne pas si on a des catégories de même nom que les groupements.
+Les tableaux des catégories sont vides et ceux des groupements contiennent tous les noms en double.
+Réfléchir comment différencier les catégories des groupements : ne pas transmettre uniquement leurs noms mais les instances des objects elles-même !
+Cela risque de résoudre le bug décrit ci-avant automatiquement.
+
 - l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 Est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
@@ -24,10 +29,7 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 
 A TESTER :
-- tester le départage du challenge par classe en cas d'ex-aequo aux points.
 
-- tester statistiques avec les catégories d'age de l'athlétisme.
-raison d'être de listeDesClasses dans genereResultatsCoursesEtClasses() à élucider en cas de bug avec les résultats des catégories d'age.
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
