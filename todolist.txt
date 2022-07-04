@@ -1,9 +1,5 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
-A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
-alors vérifier si le bouton amène bien vers le bon menu de modif.
-
 - l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
 Est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 

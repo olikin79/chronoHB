@@ -3,7 +3,7 @@ Travail du 04/07/22 :
 - sur l'affichage TV uniquement, la classe n'apparaissait pas dans le challenge. Corrigé.
 - remise au propre de la classe CoureurFrame pour fonctionnement correct des boutons.
 - l'affichage TV n'est pas réinitialisé à la fermeture du logiciel. Uniquement si on réinitialise les données de course.
-
+- si on changeait de type de catégories (par age ou par classe), le menu absents et dispensés était organisé selon l'ancien type. Corrigé
 
 Travail du 03/07/22 :
 - gestion correcte de l'erreur 331 : cas où il n'y aurait pas assez de temps par rapport au nombre de dossards. 

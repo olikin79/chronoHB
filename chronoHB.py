@@ -16,9 +16,6 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-
-
-
 version="1.4"
 
 LOGDIR="logs"
@@ -36,7 +33,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -56,22 +53,62 @@ if not DEBUG :
 generateListCoureursPourSmartphone()
 CoureursParClasseUpdate()
 
-class ScrollableFrame(ttk.Frame):
-    def __init__(self, container, *args, **kwargs):
-        super().__init__(container, *args, **kwargs)
-        canvas = Canvas(self)
-        scrollbar = Scrollbar(self, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = Frame(canvas)
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
-        )
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+class ScrollFrame(Frame):
+    def __init__(self, parent):
+        super().__init__(parent) # create a frame (self)
+
+        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")          #place canvas on self
+        self.viewPort = Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets 
+        self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview) #place a scrollbar on self 
+        self.canvas.configure(yscrollcommand=self.vsb.set)                          #attach scrollbar action to scroll of canvas
+
+        self.vsb.pack(side="right", fill="y")                                       #pack scrollbar to right of self
+        self.canvas.pack(side="left", fill="both", expand=True)                     #pack canvas to left of self and expand to fil
+        self.canvas_window = self.canvas.create_window((4,4), window=self.viewPort, anchor="nw",            #add view port frame to canvas
+                                  tags="self.viewPort")
+
+        self.viewPort.bind("<Configure>", self.onFrameConfigure)                       #bind an event whenever the size of the viewPort frame changes.
+        self.canvas.bind("<Configure>", self.onCanvasConfigure)                       #bind an event whenever the size of the canvas frame changes.
+            
+        self.viewPort.bind('<Enter>', self.onEnter)                                 # bind wheel events when the cursor enters the control
+        self.viewPort.bind('<Leave>', self.onLeave)                                 # unbind wheel events when the cursorl leaves the control
+
+        self.onFrameConfigure(None)                                                 #perform an initial stretch on render, otherwise the scroll region has a tiny border until the first resize
+
+    def onFrameConfigure(self, event):                                              
+        '''Reset the scroll region to encompass the inner frame'''
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))                 #whenever the size of the frame changes, alter the scroll region respectively.
+
+    def onCanvasConfigure(self, event):
+        '''Reset the canvas window to encompass inner frame when required'''
+        canvas_width = event.width
+        self.canvas.itemconfig(self.canvas_window, width = canvas_width)            #whenever the size of the canvas changes alter the window region respectively.
+
+    def onMouseWheel(self, event):                                                  # cross platform scroll wheel event
+        if platform.system() == 'Windows':
+            self.canvas.yview_scroll(int(-1* (event.delta/120)), "units")
+        elif platform.system() == 'Darwin':
+            self.canvas.yview_scroll(int(-1 * event.delta), "units")
+        else:
+            if event.num == 4:
+                self.canvas.yview_scroll( -1, "units" )
+            elif event.num == 5:
+                self.canvas.yview_scroll( 1, "units" )
+    
+    def onEnter(self, event):                                                       # bind wheel events when the cursor enters the control
+        if platform.system() == 'Linux':
+            self.canvas.bind_all("<Button-4>", self.onMouseWheel)
+            self.canvas.bind_all("<Button-5>", self.onMouseWheel)
+        else:
+            self.canvas.bind_all("<MouseWheel>", self.onMouseWheel)
+
+    def onLeave(self, event):                                                       # unbind wheel events when the cursorl leaves the control
+        if platform.system() == 'Linux':
+            self.canvas.unbind_all("<Button-4>")
+            self.canvas.unbind_all("<Button-5>")
+        else:
+            self.canvas.unbind_all("<MouseWheel>")
+            
 
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
@@ -916,14 +953,6 @@ class Combobar(Frame):
             m=0
             k=0
         IndicesDesChangementsDeColonne = [quotientParTrois + m, 2*quotientParTrois + k ]
-##        if len(picks) > 7 :
-##            # coupe en deux à partir de 8
-##            if len(picks)%2 == 0 :
-##                moitie = len(picks)//2 -1
-##            else :
-##                moitie = len(picks)//2 
-##        else :
-##            moitie = -1 # on ne coupe pas !
         i = 1
         for pick in picks:
             var = StringVar()
@@ -932,42 +961,8 @@ class Combobar(Frame):
             chk = self.combos[-1]
             chk.pack()
             frm.pack(side=TOP, anchor=W, padx=3, pady=3)
-##            def memoriseValeurBind(event) :
-##                coureur = pick
-##                print("coureur : ", coureur.nom)
-##                print("event", event)
-##                print("chk.get() :" , chk.get())
-##                if var == "Abs" :
-##                    coureur.setAbsent(True)
-##                    print(coureur.nom + "absent")
-##                elif chk.get() == "Disp" :
-##                    coureur.setDispense(True)
-##                    print(coureur.nom + "dispense")
-##                else :
-##                    coureur.setAbsent(False)
-##                    coureur.setDispense(False)
-##                    print(coureur.nom + "présent")
-##            chk.bind("<<ComboboxSelected>>", memoriseValeurBind)
-##            nomAffiche = pick.nom + " " + pick.prenom
-##            if pick.absent :
-##                chk.current('Abs')
-##            elif pick.dispense :
-##                chk.current('Disp')
-##            lbl = Label(frm, text=nomAffiche)
-##            self.checkbuttons.append(chk)
-##            if self.vertical :
-##                chk.pack(side=LEFT) # à la verticale
-##                lbl.pack(side=LEFT)
-##                frm.pack(side=TOP, anchor=W, padx=3, pady=3)
-#            if i == moitie :
             if i in IndicesDesChangementsDeColonne :
                 self.fr.append(Frame(self))
-##            else :
-##                chk.pack(side=LEFT)# côte à côte
-##                lbl.pack(side=LEFT)
-##                frm.pack(side=LEFT, anchor=N)
-##                if i == moitie :
-##                    self.fr.append(Frame(self))
             self.vars.append(var)
             i+=1
         for fr in self.fr :
@@ -1055,7 +1050,7 @@ def extract_ip():
 root = Tk() # initial box declaration
 root.title("Cross HB")
 
-DroiteFrame = Frame(root)# non fonctionnel ScrollableFrame(root)
+DroiteFrame = Frame(root)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(root)
 
 GaucheFrameCoureur = Frame(root)
@@ -1210,7 +1205,7 @@ class DossardsFrame(Frame) :
 class AbsDispFrame(Frame) :
     def __init__(self, parent):
         self.parent = parent
-        if CategorieDAge :
+        if Parametres["CategorieDAge"] :
             self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
@@ -1224,10 +1219,11 @@ class AbsDispFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        if CategorieDAge :
+        if Parametres["CategorieDAge"] :
             self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
+        #print("liste Catégories",self.tupleClasses)
         self.choixClasseCombo['values']=self.tupleClasses
         self.actualiseAffichage()
         if self.tupleClasses :
@@ -1240,18 +1236,22 @@ class AbsDispFrame(Frame) :
     def actualiseAffichage(self) :
         if self.tupleClasses :
             self.choixClasseCombo.pack(side=TOP)
-            self.TopDepartLabel.configure(text="Absents et dispensés par classe : sélectionner une classe dans le menu déroulant. Compléter les absents ou dispensés (enregistrement automatique).")
+            if Parametres["CategorieDAge"] :
+                cat = "catégorie"
+            else :
+                cat = "classe"
+            self.TopDepartLabel.configure(text="Absents et dispensés par " + cat + " : sélectionner une classe dans le menu déroulant. Compléter les absents ou dispensés (enregistrement automatique).")
             self.comboBoxBarClasse.pack(side=TOP, expand=0)#fill=X)
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            if CategorieDAge :
+            if Parametres["CategorieDAge"] :
                 self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
             self.choixClasseCombo.forget()
-            self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données de SIECLE.")
+            self.TopDepartLabel.configure(text="Il n'y a aucune classe ou catégorie à afficher. Importer d'abord des données de SIECLE.")
             self.comboBoxBarClasse.forget()
         #print(self.listeCoureursDeLaClasse[0])
 ##        self.listeAffichee = []
@@ -2259,7 +2259,7 @@ def saisieAbsDisp(classeOuCategorie="") :
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
-    absDispZone.actualiseAffichage()
+    absDispZone.actualiseListeDesClasses() # si on change de type de catégorie, il faut actualiser la combobox qui actualise l'affichage.
     GaucheFrameAbsDisp.pack(side=TOP,fill=X)
     if classeOuCategorie :
         absDispZone.set(classeOuCategorie)
