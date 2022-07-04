@@ -2536,107 +2536,20 @@ class CoureurFrame(Frame) :
         self.commentaireArriveeE.bind("<KeyRelease>", self.reactiverBoutons)
         self.boutonsFrame = Frame(self.parent)
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
-        self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.reinitialiserChamps)
+        self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.annulAction)
         self.coureurBimprimer = Button(self.boutonsFrame, text="Imprimer les dossards non imprimés", command=self.imprimerNonImprimes)
         #self.coureurBok = Button(self.boutonsFrame, text="OK", command=self.okButtonCoureur)
         self.actualiseAffichage()
 
-    def reactiverBoutons(self,event) :
-        ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
-        resultat = self.categorieEstCorrecte()
-        #print(resultat , self.nomE.get() , self.prenomE.get())
-        if resultat and self.nomE.get() and self.prenomE.get() :
-            self.lblCat.configure(text="Catégorie : " + resultat)
-            self.coureurBannul.pack(side=LEFT)
-            self.coureurBoksuivant.pack(side=LEFT)
-            self.boutonsFrame.pack()
+    def setAjout(self,valeur):
+        if valeur :
+            self.ajoutCoureur = True
         else :
-            self.lblCat.configure(text="Catégorie : inconnue")
-            #self.boutonsFrame.forget()
-            self.coureurBannul.forget()
-            self.coureurBoksuivant.forget()
-
-    def afficheCoureur(self,dossard) :
-        self.choixDossardCombo.set(dossard)
-        self.reinitialiserChamps() 
-
-    def categorieEstCorrecte(self):
-        resultat = ""
-        s = self.sexeE.get()
-        #print("sexe",s)
-        if s ==  "G" or s == "F" :
-            if Parametres["CategorieDAge"] :
-                anneeNaissance = self.classeE.get()[6:]
-                if len(anneeNaissance) == 4 :
-                    c = categorieAthletisme(anneeNaissance)
-                    if c :
-                        resultat = c + "-" + s
-            else :
-                if self.classeE.get() :
-                    resultat = self.classeE.get()[0] + s
-        return resultat
-
-    def actualiseAffichageBind(self,event) :
-        self.reinitialiserChamps()
-        
-    def actualiseAffichage(self) :
-        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
-        if self.ajoutCoureur :
-            # cas où l'on ajoute manuellement un coureur
-            self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
-            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
-            self.choixDossardCombo.forget()
-            self.reinitialiserChamps()
-            self.reconstruireLesChamps()
-            self.boutonsFrame.pack()
-        else :
-            # cas où on modifie un coureur existant
-            self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
-            self.coureurBoksuivant.configure(text="Valider")
-            # afficher le menu déroulant ici.
-            self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
-            self.choixDossardCombo['values']=self.tupleDesDossards
-            if self.tupleDesDossards :
-                self.choixDossardCombo.current(0)
-                self.reinitialiserChamps()
-            self.choixDossardCombo.pack()
-            self.cacherLesChamps()
-            self.reconstruireLesChamps()
-            self.coureurBimprimer.forget()
-            
-            
-    def reconstruireLesChamps(self) :
-        self.lblNom.pack()
-        self.nomE.pack()
-        self.lblprenom.pack()
-        self.prenomE.pack()
-        self.lblSexe.pack()
-        self.sexeE.pack()
-        if Parametres["CategorieDAge"] :
-            self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
-        else :
-            self.lblClasse.configure(text="Classe :")
-        self.lblClasse.pack()
-        self.classeE.pack()
-        if self.ajoutCoureur :
-            self.lblCat.forget()
-        else :
-            self.lblCat.pack()
-            #self.lblCat.configure(fg="black")
-        self.lblCat.pack()
-        self.lblVMA.pack()
-        self.vmaE.pack()
-        self.lblCommentaire.pack()
-        self.commentaireArriveeE.pack()
-        #self.coureurBannul.pack(side = LEFT)
-        ### INUTILE ? coureurBok.pack(side = LEFT)
-        #self.coureurBoksuivant.pack(side = LEFT)
-        self.coureurBimprimer.pack(side = LEFT)
-        
+            self.ajoutCoureur = False
+        self.actualiseAffichage()
 
     def cacherLesChamps(self) :
+        self.choixDossardCombo.forget()
         self.lblNom.forget()
         self.nomE.forget()
         self.lblprenom.forget()
@@ -2655,34 +2568,30 @@ class CoureurFrame(Frame) :
         self.coureurBimprimer.forget()
         self.boutonsFrame.forget()
 
-    def setAjout(self,valeur):
-        if valeur :
-            self.ajoutCoureur = True
-        else :
-            self.ajoutCoureur = False
-        self.actualiseAffichage()
-
-    def okButtonCoureurPuisSaisie(self) :
-        try :
-            self.vma = float(self.vmaE.get())
-        except :
-            self.vma = 0
-        if self.ajoutCoureur :
-            if Parametres['CategorieDAge'] :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+    def categorieEstCorrecte(self):
+        resultat = ""
+        s = self.sexeE.get()
+        #print("sexe",s)
+        if s ==  "G" or s == "F" :
+            if Parametres["CategorieDAge"] :
+                anneeNaissance = self.classeE.get()[6:]
+                if len(anneeNaissance) == 4 :
+                    c = categorieAthletisme(anneeNaissance)
+                    if c :
+                        resultat = c + "-" + s
             else :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
-            self.reinitialiserChamps()
-        else :
-            self.boutonsFrame.forget()
-            doss = int(self.choixDossardCombo.get())
-            if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
-            else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
-        generateListCoureursPourSmartphone()
-        CoureursParClasseUpdate()
+                if self.classeE.get() :
+                    resultat = self.classeE.get()[0] + s
+        return resultat
 
+    def afficheCoureur(self,dossard) :
+        self.choixDossardCombo.set(dossard)
+        self.reinitialiserChamps()
+
+    def annulAction(self) :
+        self.reinitialiserChamps()
+        self.activerBoutons(None)
+    
     def reinitialiserChamps(self):
         # ménage
         self.nomE.delete(0, END)
@@ -2705,18 +2614,163 @@ class CoureurFrame(Frame) :
             self.sexeE.insert(0, coureur.sexe)
             self.vmaE.insert(0, coureur.VMA)
             self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
-        self.boutonsFrame.forget()
+        # pas de modif récent puisque les champs sont idem à la base.
+        self.modif = False
+            
+    def actualiseAffichage(self) :
+        ### on desactive tout
+        self.cacherLesChamps()
+        ### on active ou non la combobox
+        if not self.ajoutCoureur :
+            self.choixDossardCombo.pack()
+        ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
+        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
+        if self.ajoutCoureur :
+            # cas où l'on ajoute manuellement un coureur
+            self.lblCommentaireInfoAddCoureur.configure(text=\
+                                     "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
+            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+        else :
+            # cas où on modifie un coureur existant
+            self.lblCommentaireInfoAddCoureur.configure(text=\
+                                     "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+            self.coureurBoksuivant.configure(text="Valider")
+            # afficher le menu déroulant ici.
+            self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+            self.choixDossardCombo['values']=self.tupleDesDossards
+            if self.tupleDesDossards :
+                self.choixDossardCombo.current(0)
+        #### on place les champs sans modif ultérieure.
+        self.lblNom.pack()
+        self.nomE.pack()
+        self.lblprenom.pack()
+        self.prenomE.pack()
+        self.lblSexe.pack()
+        self.sexeE.pack()
+        if Parametres["CategorieDAge"] :
+            self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
+        else :
+            self.lblClasse.configure(text="Classe :")
+        self.lblClasse.pack()
+        self.classeE.pack()
+        self.lblCat.pack()
+        self.lblVMA.pack()
+        self.vmaE.pack()
+        self.lblCommentaire.pack()
+        self.commentaireArriveeE.pack()
+        ### on fixe la valeur des champs si besoin.
+        self.reinitialiserChamps()
+        ### on active ou non les boutons en bas en fonction du cas.
+        self.activerBoutons(None)
         
-        absDispZone.actualiseListeDesClasses()
-        dossardsZone.actualiseListeDesClasses()
-        CoureursParClasseUpdate()                                      
-
-    def okButtonCoureur(self) :
-        okButtonCoureurPuisSaisie()
-        tempsDesCoureurs()
+    def actualiseBoutonImpression(self) :
+        if self.ajoutCoureur :
+            self.coureurBimprimer.pack(side=LEFT)
+        else :
+            self.coureurBimprimer.forget()
+            
+    def reactiverBoutons(self,event) :
+        self.modif = True
+        self.activerBoutons(event)
+        
+    def activerBoutons(self,event) :
+        """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
+        ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
+        resultat = self.categorieEstCorrecte()
+        # on affiche la catégorie en fonction des contenus.
+        if resultat :
+            self.lblCat.configure(text="Catégorie : " + resultat)
+            self.actualiseBoutonImpression()
+            if self.ajoutCoureur :
+                ## on autorise la validation uniquement si la catégorie est correcte et si le nom et le prénom sont saisis
+                if self.nomE.get() and self.prenomE.get() :
+                    self.coureurBannul.pack(side=LEFT)
+                    self.coureurBoksuivant.pack(side=LEFT)
+            else :
+                if self.modif :
+                    self.coureurBannul.pack(side=LEFT)
+                    self.coureurBoksuivant.pack(side=LEFT)
+        else :
+            self.lblCat.configure(text="Catégorie : inconnue")
+            self.actualiseBoutonImpression()
+            self.coureurBannul.forget()
+            self.coureurBoksuivant.forget()
+        self.boutonsFrame.pack()
 
     def imprimerNonImprimes(self) :
         imprimerDossardsNonImprimes()
+        
+    def okButtonCoureurPuisSaisie(self) :
+        try :
+            self.vma = float(self.vmaE.get())
+        except :
+            self.vma = 0
+        if self.ajoutCoureur :
+            if Parametres['CategorieDAge'] :
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            else :
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            self.reinitialiserChamps()
+        else :
+            #self.boutonsFrame.forget()
+            doss = int(self.choixDossardCombo.get())
+            if Parametres['CategorieDAge'] :
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            else :
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+        generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
+        self.activerBoutons(None)
+        self.modif = False
+
+    def actualiseAffichageBind(self,event) :
+        self.reinitialiserChamps()
+        self.activerBoutons(event)
+        
+##
+##    def reconstruireLesChamps(self) :
+##        self.lblNom.pack()
+##        self.nomE.pack()
+##        self.lblprenom.pack()
+##        self.prenomE.pack()
+##        self.lblSexe.pack()
+##        self.sexeE.pack()
+##        if Parametres["CategorieDAge"] :
+##            self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
+##        else :
+##            self.lblClasse.configure(text="Classe :")
+##        self.lblClasse.pack()
+##        self.classeE.pack()
+##        if self.ajoutCoureur :
+##            self.lblCat.forget()
+##        else :
+##            self.lblCat.pack()
+##            #self.lblCat.configure(fg="black")
+##        self.lblCat.pack()
+##        self.lblVMA.pack()
+##        self.vmaE.pack()
+##        self.lblCommentaire.pack()
+##        self.commentaireArriveeE.pack()
+##        #self.coureurBannul.pack(side = LEFT)
+##        ### INUTILE ? coureurBok.pack(side = LEFT)
+##        #self.coureurBoksuivant.pack(side = LEFT)
+##        self.coureurBimprimer.pack(side = LEFT)       
+##
+##        self.coureurBimprimer.pack()
+##        self.coureurBannul.forget()
+##        self.coureurBoksuivant.forget()
+####        self.boutonsFrame.pack()
+##        
+##        absDispZone.actualiseListeDesClasses()
+##        dossardsZone.actualiseListeDesClasses()
+##        CoureursParClasseUpdate()
+##        
+##
+##    def okButtonCoureur(self) :
+##        okButtonCoureurPuisSaisie()
+##        tempsDesCoureurs()
+
+
 
 zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 

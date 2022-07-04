@@ -1,6 +1,7 @@
 Travail du 04/07/22 :
 - les challenges sont classés dans le bon ordre. Bug corrigé.
 - sur l'affichage TV uniquement, la classe n'apparaissait pas dans le challenge. Corrigé.
+- remise au propre de la classe CoureurFrame pour fonctionnement correct des boutons.
 
 
 Travail du 03/07/22 :

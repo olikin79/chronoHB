@@ -3619,7 +3619,7 @@ def genereTableauHTML(courseName, chrono = False) :
         while i < len(Resultats[courseName]) :
             #moy = Resultats[courseName][i].moyenneTemps
             score = Resultats[courseName][i].score
-            print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
+            #print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
             classe = Resultats[courseName][i].nom
             liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
             tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ classe+"</td><th class='detailC'>"
