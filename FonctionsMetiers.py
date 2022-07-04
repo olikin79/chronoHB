@@ -2511,7 +2511,7 @@ def estUneClasse(nom):
 
 def estSuperieur(d1, d2):
     if Coureurs[d1-1].temps == 0 or Coureurs[d1-1].temps == -1 :
-        # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie.
+        # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie. si -1 c'est que le départ n'a pas été donné
         return True
     elif Coureurs[d2-1].temps == 0 or Coureurs[d2-1].temps == -1:
         return False
@@ -2520,15 +2520,15 @@ def estSuperieur(d1, d2):
 
 def estSuperieurS(E1, E2):
     if E1.score == 0 :
-        # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie.
+        # si le score est nul, c'est que le challenge n'est pas jouable pour cette équipe.
         return True
     elif E2.score == 0 :
         return False
     else :
         if E1.score == E2.score :
-            E1.listeDesRangs > E2.listeDesRangs
+            return E1.listeDesRangs > E2.listeDesRangs
         else :
-            E1.score > E2.score
+            return E1.score > E2.score
 
 def triParTemps(listeDeDossard):
     return trifusion(listeDeDossard)
@@ -3619,9 +3619,10 @@ def genereTableauHTML(courseName, chrono = False) :
         while i < len(Resultats[courseName]) :
             #moy = Resultats[courseName][i].moyenneTemps
             score = Resultats[courseName][i].score
+            print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
             classe = Resultats[courseName][i].nom
             liste = Resultats[courseName][i].listeCF + Resultats[courseName][i].listeCG
-            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ "</td><th class='detailC'>"
+            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ classe+"</td><th class='detailC'>"
             tableau += '<div class="detailC"><p>' + listeNPremiers(Resultats[courseName][i].listeCF) + '</p><p>' + listeNPremiers(Resultats[courseName][i].listeCG) + '</p></div></td>'
             tableau += "<td class='totalC'>"+str(Resultats[courseName][i].score) +"</td>"
             #tableau += "<td class='moyC'>" + moy +"</td>"

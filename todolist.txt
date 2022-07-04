@@ -1,6 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- les challenges sont classés dans le mauvais ordre.
+- quand on ajoute un dossard dans l'interface, l'affichage TV est réinitialisé. Pas normal.
 
 - si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
@@ -43,6 +43,7 @@ Tant pis si on perd une demi-page une fois sur deux.
 
 	
 MOYENNEMENT PRIORITAIRE :
+- accepter la pondération pour les challenges par classe.
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 - trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
 Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.

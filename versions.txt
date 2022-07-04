@@ -1,3 +1,8 @@
+Travail du 04/07/22 :
+- les challenges sont classés dans le bon ordre. Bug corrigé.
+- sur l'affichage TV uniquement, la classe n'apparaissait pas dans le challenge. Corrigé.
+
+
 Travail du 03/07/22 :
 - gestion correcte de l'erreur 331 : cas où il n'y aurait pas assez de temps par rapport au nombre de dossards. 
 C'est une erreur particulière qui peut se corriger seule suite à une rémontée d'infos du smartphone n°1.
