@@ -941,18 +941,46 @@ class Combobar(Frame):
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
         n=len(picks)
-        quotientParTrois = n//3
-        resteModuloTrois = n%3
-        if resteModuloTrois == 1 :
+        N = 6 # on organise sur N colonnes
+        quotientParN = n//N
+        resteModuloN = n%N
+        if resteModuloN == 1 : ### on pourrait créer un truc générique pour organiser sur N colonnes. A voir plus tard.
             m=1
             k=1
-        elif resteModuloTrois == 2 :
+            l=1
+            j=1
+            i=1
+        elif resteModuloN == 2 :
             m=1
             k=2
+            l=2
+            j=2
+            i=2
+        elif resteModuloN == 3 :
+            m=1
+            k=2
+            l=3
+            j=3
+            i=3
+        elif resteModuloN == 4 :
+            m=1
+            k=2
+            l=3
+            j=4
+            i=4
+        elif resteModuloN == 5 :
+            m=1
+            k=2
+            l=3
+            j=4
+            i=5
         else :
             m=0
             k=0
-        IndicesDesChangementsDeColonne = [quotientParTrois + m, 2*quotientParTrois + k ]
+            l=0
+            j=0
+            i=0
+        IndicesDesChangementsDeColonne = [quotientParN + m, 2*quotientParN + k , 3*quotientParN + l, 4*quotientParN + j, 5*quotientParN + i ]
         i = 1
         for pick in picks:
             var = StringVar()

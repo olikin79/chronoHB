@@ -4,6 +4,8 @@ Travail du 04/07/22 :
 - remise au propre de la classe CoureurFrame pour fonctionnement correct des boutons.
 - l'affichage TV n'est pas réinitialisé à la fermeture du logiciel. Uniquement si on réinitialise les données de course.
 - si on changeait de type de catégories (par age ou par classe), le menu absents et dispensés était organisé selon l'ancien type. Corrigé
+- on organise les absents et dispensés sur 6 colonnes au lieu de 3 pour gérer les gros effectifs éventuels sur une course.
+
 
 Travail du 03/07/22 :
 - gestion correcte de l'erreur 331 : cas où il n'y aurait pas assez de temps par rapport au nombre de dossards. 
