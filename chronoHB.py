@@ -2521,8 +2521,12 @@ class CoureurFrame(Frame) :
         self.prenomE = Entry(self.parent)
         self.prenomE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblSexe = Label(self.parent, text="Sexe (G ou F) :")
-        self.sexeE = Entry(self.parent)
-        self.sexeE.bind("<KeyRelease>", self.reactiverBoutons)
+        #self.sexeE = Entry(self.parent)
+        self.sexeC = Combobox(self.parent, width=15, justify="center", state='readonly')
+        self.sexeC['values'] = ('G','F')
+        self.sexeC.set("G")
+        #self.sexeE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.sexeC.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
         self.classeE.bind("<KeyRelease>", self.reactiverBoutons)
@@ -2555,7 +2559,7 @@ class CoureurFrame(Frame) :
         self.lblprenom.forget()
         self.prenomE.forget()
         self.lblSexe.forget()
-        self.sexeE.forget()
+        self.sexeC.forget()
         self.lblClasse.forget()
         self.classeE.forget()
         self.lblCat.forget()
@@ -2570,7 +2574,7 @@ class CoureurFrame(Frame) :
 
     def categorieEstCorrecte(self):
         resultat = ""
-        s = self.sexeE.get()
+        s = self.sexeC.get()
         #print("sexe",s)
         if s ==  "G" or s == "F" :
             if Parametres["CategorieDAge"] :
@@ -2597,7 +2601,7 @@ class CoureurFrame(Frame) :
         self.nomE.delete(0, END)
         self.prenomE.delete(0, END)
         self.classeE.delete(0, END)
-        self.sexeE.delete(0, END)
+        #self.sexeE.delete(0, END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
         if not self.ajoutCoureur :
@@ -2611,7 +2615,8 @@ class CoureurFrame(Frame) :
             else :
                 self.classeE.insert(0, coureur.classe)
             self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
-            self.sexeE.insert(0, coureur.sexe)
+            self.sexeC.set(coureur.sexe)
+            #self.sexeE.insert(0, coureur.sexe)
             self.vmaE.insert(0, coureur.VMA)
             self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
         # pas de modif récent puisque les champs sont idem à la base.
@@ -2646,7 +2651,7 @@ class CoureurFrame(Frame) :
         self.lblprenom.pack()
         self.prenomE.pack()
         self.lblSexe.pack()
-        self.sexeE.pack()
+        self.sexeC.pack()
         if Parametres["CategorieDAge"] :
             self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
         else :
@@ -2690,6 +2695,9 @@ class CoureurFrame(Frame) :
                 if self.modif :
                     self.coureurBannul.pack(side=LEFT)
                     self.coureurBoksuivant.pack(side=LEFT)
+                else :
+                    self.coureurBannul.forget()
+                    self.coureurBoksuivant.forget()
         else :
             self.lblCat.configure(text="Catégorie : inconnue")
             self.actualiseBoutonImpression()
@@ -2707,21 +2715,22 @@ class CoureurFrame(Frame) :
             self.vma = 0
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
             else :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
             doss = int(self.choixDossardCombo.get())
             if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
             else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeE.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
-        self.activerBoutons(None)
         self.modif = False
+        self.activerBoutons(None)
+        
 
     def actualiseAffichageBind(self,event) :
         self.reinitialiserChamps()
