@@ -3294,6 +3294,7 @@ def delDossardsEtTemps():
     delTousLesTempsDesCoureurs()
     effacerFichierDonnneesSmartphone()
     effacerFichierDonnneesLocales()
+    genereAffichageTV([])# on vide le fichier Affichage.html pour qu'il ne contienne pas de vieilles données de course.
     root["LignesIgnoreesSmartphone"] = []
     root["LignesIgnoreesLocal"] = []
     ligneTableauGUI = [1,0]

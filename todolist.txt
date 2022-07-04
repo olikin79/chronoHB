@@ -1,7 +1,5 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- quand on ajoute un dossard dans l'interface, l'affichage TV est réinitialisé. Pas normal.
-
 - si catégories par age, le menu absents et dispensés est organisé par classe. Pas normal.
 A tester ensuite : si un absent ou un dispensé passe la ligne avec les catégories d'age d'athlétisme, 
 alors vérifier si le bouton amène bien vers le bon menu de modif.

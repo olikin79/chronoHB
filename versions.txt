@@ -2,6 +2,7 @@ Travail du 04/07/22 :
 - les challenges sont classés dans le bon ordre. Bug corrigé.
 - sur l'affichage TV uniquement, la classe n'apparaissait pas dans le challenge. Corrigé.
 - remise au propre de la classe CoureurFrame pour fonctionnement correct des boutons.
+- l'affichage TV n'est pas réinitialisé à la fermeture du logiciel. Uniquement si on réinitialise les données de course.
 
 
 Travail du 03/07/22 :

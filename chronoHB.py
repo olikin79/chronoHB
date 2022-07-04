@@ -36,7 +36,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -55,6 +55,23 @@ if not DEBUG :
 
 generateListCoureursPourSmartphone()
 CoureursParClasseUpdate()
+
+class ScrollableFrame(ttk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        canvas = Canvas(self)
+        scrollbar = Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = Frame(canvas)
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
@@ -1038,7 +1055,7 @@ def extract_ip():
 root = Tk() # initial box declaration
 root.title("Cross HB")
 
-DroiteFrame = Frame(root)
+DroiteFrame = Frame(root)# non fonctionnel ScrollableFrame(root)
 GaucheFrame = Frame(root)
 
 GaucheFrameCoureur = Frame(root)
@@ -1124,7 +1141,7 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
         actualiseAffichageDeparts()
-        ActualiseAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
+        ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
     def actualise(self) :
         self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
@@ -1911,8 +1928,9 @@ class Clock():
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
 
-        # même s'il y a des erreurs, on actualise les résultats, le tableau à l'écran et la page web affichée sur la TV.
-        ActualiseAffichageTV() # pour mise à jour de l'affichage TV +  menu annulDepart
+        # on n'actualise l'affichageTV que lors du clic sur le bouton ou en cas de réinitialisation des données de courses
+        # ActualiseAffichageTV()
+        
         ip = extract_ip()
         if ip != self.ipActuelle :
             self.ouvrirBoutonMessage = "Cliquer ici pour afficher les informations sur un 2ème écran relié\nà cet ordinateur (touche WIN+P pour 'étendre l'affichage').\nSur le même réseau wifi, saisir l'adresse suivante pour afficher\nles résultats sur un autre ordinateur :\nhttp://"+ ip +":8888/Affichage.html "
@@ -2039,7 +2057,7 @@ def actualiseToutLAffichage() :
     actualiseAffichageDeparts()  
     actualiserDistanceDesCourses()
     #listeDeCourses = listCourses() # encore utile ?
-    actualiseAffichageTV()
+    actualiseZoneAffichageTV()
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
@@ -2109,7 +2127,7 @@ def actualiseTempsAffichageDeparts():
 
 
 
-def actualiseAffichageTV() :
+def actualiseZoneAffichageTV() :
     listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
     checkBoxBarAffichage.actualise(listeDeGroupementsEtChallenge)
     if Courses :
@@ -2914,13 +2932,16 @@ ModifDonneesFrame.pack(side = TOP)
 Affichageframe.pack(fill=BOTH, expand=1)
 #LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1)
 
-GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
-DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
-
 
 CoureursParClasseUpdate()
 
 actualiseToutLAffichage()
+
+GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
+DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+
+
+
 
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
