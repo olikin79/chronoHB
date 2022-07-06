@@ -734,7 +734,7 @@ def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
-           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, listeUIDPrecedents
+           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -787,9 +787,10 @@ def chargerDonnees() :
     if not "LignesIgnoreesLocal" in root :
         root["LignesIgnoreesLocal"] = []
     LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
-    if not "listeUIDPrecedents" in root :
-        root["listeUIDPrecedents"] = []
-    listeUIDPrecedents=root["listeUIDPrecedents"]
+    if not "dictUIDPrecedents" in root :
+        root["dictUIDPrecedents"] = {}
+    dictUIDPrecedents=root["dictUIDPrecedents"]
+
     ### paramètres par défaut
     if not "Parametres" in root :
         root["Parametres"] = {}
@@ -1162,7 +1163,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
             print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = listeUIDPrecedents)
+                codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents)
                 if codeErreur.numero :
                     # une erreur s'est produite
                     print("Code erreur :", codeErreur.numero)
@@ -1217,7 +1218,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
             print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, local=True, UIDPrecedents = listeUIDPrecedents)
+                codeErreur = decodeActionsRecupSmartphone(ligne, local=True, UIDPrecedents = dictUIDPrecedents)
                 if codeErreur.numero :
                     # une erreur s'est produite
                     print("Code erreur : ", codeErreur.numero)
@@ -1245,7 +1246,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
     return retour
         
 
-def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
+def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
@@ -1259,7 +1260,13 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
             uid = int(listeAction[6])
         except : 
             uid = 0
-        if not uid in UIDPrecedents :
+        try :
+            noTransmission = int(listeAction[7])
+        except : 
+            noTransmission = 0
+        if uid not in UIDPrecedents :
+            UIDPrecedents[uid]=[]
+        if not noTransmission in UIDPrecedents[uid] :
             if action == "add" :
                 retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
             elif action =="del" :
@@ -1288,10 +1295,10 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
             else :
                 print("Action venant du smartphone incorrecte", ligne)
                 retour = Erreur(301)
-            if uid : 
-                UIDPrecedents.append(uid)
+            if uid and noTransmission : 
+                UIDPrecedents[uid].append(noTransmission)
         else :
-            print("UID déjà utilisé : entrée ignorée. Ligne = ",ligne)
+            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)
     elif listeAction[0] =="dossard" :
         dossardPrecedent = int(listeAction[3])
@@ -1299,7 +1306,13 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
             uid = int(listeAction[4])
         except : 
             uid = 0
-        if not uid in UIDPrecedents :
+        try :
+            noTransmission = int(listeAction[5])
+        except : 
+            noTransmission = 0
+        if uid not in UIDPrecedents :
+            UIDPrecedents[uid]=[]
+        if not noTransmission in UIDPrecedents[uid] :
             if action == "add" :
                 retour = addArriveeDossard(dossard, dossardPrecedent)
             elif action =="del" :
@@ -1307,10 +1320,10 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = []) :
             else :
                 print("Action venant du smartphone incorrecte", ligne)
                 retour = Erreur(301)
-            if uid :
-                UIDPrecedents.append(uid)
+            if uid and noTransmission : 
+                UIDPrecedents[uid].append(noTransmission)
         else :
-            print("UID déjà utilisé : entrée ignorée. Ligne = ",ligne)
+            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)       
     else :
         print("Type d'action venant du smartphone incorrecte", ligne)
@@ -1398,7 +1411,7 @@ def listDossardsDUnGroupement(nom):
     retour = []
     if len(Coureurs)!=0:
         for coureur in Coureurs :
-            if groupementAPartirDUneCategorie(coureur.categorie(CategorieDAge)).nom == nom :
+            if nomGroupementAPartirDUneCategorie(coureur.categorie(CategorieDAge)) == nom :
                 retour.append(coureur.dossard)
     return retour
 
@@ -1640,14 +1653,14 @@ def generateDossardsNG() :
         for coureur in Coureurs :
             if not coureur.dispense :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
-                groupementNom = groupementAPartirDUneCategorie(cat).nom
+                groupementNom = nomGroupementAPartirDUneCategorie(cat)
                 #print("cat =",cat, "   groupementNom=",groupementNom)
                 if cat != groupementNom :
                     groupement = "Course : " + groupementNom
                 else :
                     groupement = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe).replace("@categorie@",cat)\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1775,7 +1788,7 @@ def generateDossardsAImprimer() :
                 retour.append(coureur.dossard)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                                 .replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
                 f.write(chaineComplete + "\n\n")
                 generateQRcode(coureur.dossard)
         ## f.write(chaineComplete+ "\n\n")
@@ -1814,7 +1827,7 @@ def generateDossard(coureur) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
             .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+            .replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -2249,6 +2262,14 @@ def ancienGroupementAPartirDUneCategorie(categorie):
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     return retour
 
+def nomGroupementAPartirDUneCategorie(categorie):
+    """ retourne un str nom du groupement à partir d'un nom de catégorie"""
+    try :
+        retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+    except :
+        retour = Courses[categorie].initNomGroupement(categorie)
+    return retour
+
 def groupementAPartirDUneCategorie(categorie):
     """ retourne un objet groupement à partir d'un nom de catégorie"""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
@@ -2262,9 +2283,9 @@ def groupementAPartirDUneCategorie(categorie):
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
-        retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+        retour = Groupements[Groupements.index(Courses[categorie].nomGroupement)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
-        retour = Courses[categorie].initNomGroupement(categorie)
+        retour = Groupements[Groupements.index(Courses[categorie].initNomGroupement(categorie))]# Courses[categorie].initNomGroupement(categorie)
     return retour
 
 def nettoieGroupements() :
@@ -2541,10 +2562,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
         ### ajout du coureur au groupement pour résultat du groupement.
-        if groupement.nom not in ResultatsGroupements :
-            ResultatsGroupements[groupement.nom] = []
+        if groupement not in ResultatsGroupements :
+            ResultatsGroupements[groupement] = []
         if coureur.temps != -1  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
-            ResultatsGroupements[groupement.nom].append(doss)
+            ResultatsGroupements[groupement].append(doss)
         else :
             coureur.setRang(0)
             
@@ -3025,14 +3046,16 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     message = ""
     retour = Erreur(0)
     if doss in ArriveeDossards :
-        if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
-            message = "Dossard" + str(doss) + "envoyé deux fois successivement par le smartphone : problème de communication wifi."
-            print(message)
-            retour=Erreur(0,message,elementConcerne=doss)
-        else :
-            message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
-            print(message)
-            retour=Erreur(401,message,elementConcerne=doss)
+        ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise. 
+        ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, etc...
+        # if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
+            # message = "Dossard" + str(doss) + "envoyé deux fois successivement par le smartphone : problème de communication wifi."
+            # print(message)
+            # retour=Erreur(0,message,elementConcerne=doss)
+        # else :
+        message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+        print(message)
+        retour=Erreur(401,message,elementConcerne=doss)
             # en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.

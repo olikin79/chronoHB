@@ -1489,8 +1489,8 @@ def supprimerTempsAction() :
     if test :
         tempsReel = test.tempsReelFormateDateHeure()
         print("suppression du temps", tempsReel)
-        print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
         if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
+            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
             r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
             regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()

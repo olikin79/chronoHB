@@ -4,6 +4,9 @@ Corrigé par utilisation de formaterDuree() à la place de formaterTemps()
 - différenciation des Resultats des catégories de ceux des groupements.
 - optimisation de groupementAPartirDUneCategorie() car exécuté de très nombreuses fois : création de la propriété nomGroupement de l'object Courses. 
 Compatibilité ascendante assurée avec les sauvegardes n'ayant pas cette propriété : créée à la volée par l'ancien processus.
+- l'uid unique décimal est découpé en uid (réinitialisé à la suppression de données sur le smartphone) et noTransmission qui est incrémenté à chaque nouvelle donnée envoyée. 
+Si la même donnée est envoyée, il n'est pas incrémenté.
+Objectif : ne pas avoir de doublon dans DonneesSmartphone.txt, notamment pour les temps, pour lesquels il est impossible de savoir s'il s'agit d'une erreur de transmission ou d'une duplication de temps, les deux étant rarissimes.
 
 
 Travail du 04/07/22 :

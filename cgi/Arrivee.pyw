@@ -25,8 +25,8 @@ from os import path
 import cgi
 form = cgi.FieldStorage()
 
-##import sys
-##sys.stderr = sys.stdout
+import sys
+sys.stderr = sys.stdout
 
 def addInstruction(liste) :
     global local
@@ -34,6 +34,7 @@ def addInstruction(liste) :
         fichierDonneesSmartphone = "donneesModifLocale.txt"
     else:
         fichierDonneesSmartphone = "donneesSmartphone.txt"
+    print(liste)
     with open(fichierDonneesSmartphone, 'a') as f :
         result = ""
         for el in liste :
@@ -121,7 +122,7 @@ def formateClasse(classe) :
         retour = ""
     return retour
 
-def generateMessage(dossard, nature, action, uid):     
+def generateMessage(dossard, nature, action, uid, noTransmission):     
     global local
     donnees = "Coureurs.txt"
     if nature == "tps" :
@@ -166,7 +167,7 @@ def generateMessage(dossard, nature, action, uid):
             else :
                 dossard = 0
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
-        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid])
+        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
@@ -194,10 +195,10 @@ def generateMessage(dossard, nature, action, uid):
                         else :
                             messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                        addInstruction([nature,action,dossard, dossardPrecedent,uid])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
                     elif action == "del" :
                         print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
-                        addInstruction([nature,action,dossard, dossardPrecedent,uid])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
                     else :
                         print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
             elif action == "recherche" :
@@ -256,12 +257,16 @@ except:
 try :
     uid = int(form.getvalue("UID"))
 except:
-    uid = 0 # cas d'un QRcode scanné par erreur non numérique.
-
+    uid = 0 # cas de la vieille application pour smartphone, pré-06/07/22. Compatibilité ascendante assurée.
+try :
+    noTransmission = int(form.getvalue("noTransmission"))
+except:
+    noTransmission = 0
+    
 # retour au client : erreurs à gérer.
 print("Content-type: text/html; charset=utf-8\n")
 
-generateMessage(dossard,nature,action,uid)
+generateMessage(dossard,nature,action,uid,noTransmission)
     
         
 #print("coucou")

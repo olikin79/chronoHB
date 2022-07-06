@@ -1,20 +1,13 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- optimiser avec une liste mémoire groupementAPartirDUneCategorie() car exécuté de très nombreuses fois.
-
-- faire en sorte que triParTemps() ait comme critère secondaire (abandon > dispensé > absent).
-
-- l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
-Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
-Est ce qu'un temps dupliqué dans DonneesSmartphone.txt provoque un doublon dans la base ou est ignoré par les fonctions métiers ? 
-Il n'est pas ignoré mais ajoute une centième de seconde en plus, la finalisation du développement de l'UID unique reste prioritaire.
 
 
 NON PRIORITAIRES :
 - ESTHETIQUE : 
 	* les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
 	Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
-	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux.
+	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
+	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
 
 - dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
 Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
@@ -28,7 +21,7 @@ Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retro
 
 
 A TESTER :
-
+- comment gérer l'erreur 401 : dossard ayant déjà passé la ligne d'arrivée : ajouté avec le smartphone et l'interface... Comment faire pour supprimer cette erreur ? Doit-elle être signalée en attendant de trouver comment ?
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
