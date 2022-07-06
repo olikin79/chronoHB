@@ -262,6 +262,7 @@ class Coureur():#persistent.Persistent):
         self.VMA = float(VMA)
         self.vitesse = 0
         self.rang = 0
+        self.rangCourse = 0
         self.commentaireArrivee = commentaireArrivee
         self.aImprimer = aImprimer
         self.categorieAuto = True
@@ -399,6 +400,8 @@ class Coureur():#persistent.Persistent):
         return self.vitesseFormateeAvecVMA().replace("%","\%")
     def setRang(self, rang) :
         self.rang = int(rang)
+    def setRangCourse(self, rang) :
+        self.rangCourse = int(rang)
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
     def setNom(self, valeur) :
@@ -422,11 +425,18 @@ class Course():#persistent.Persistent):
         self.resultats = []
         self.distance = 0
         self.tempsAuto = 0
+        self.nomGroupement = categorie
 ##        self.equipesClasses = []
     def reset(self) :
         print("On annule le départ de",self.categorie,".")
         self.temps = 0
         self.depart = False
+    def initNomGroupement(self, cat) :
+        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat)
+        return self.nomGroupement
+    def setNomGroupement(self, nomDonne) :
+        if nomDonne : 
+            self.nomGroupement = nomDonne
     def setTemps(self, temps=0, tempsAuto=False):
         if temps == 0 :
             self.temps = time.time()
@@ -535,10 +545,13 @@ class Groupement():
         if not self.manuel :
             self.nom = self.nomStandard
     def addCourse(self, nomCourse):
+        # on ajoute le nom de la course dans le groupement
         self.listeDesCourses.append(nomCourse)
         if not self.manuel :
             self.nom = self.nom + " / " + str(nomCourse)
         self.actualiseNom()
+        # on ajoute le nom du groupement dans la course (pour éviter des centaines de parcours de listes toutes les 2 secondes)
+        Courses[nomCourse].setNomGroupement(self.nom)
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
@@ -1110,6 +1123,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
 
 
 Resultats = {} # dictionnaire des résultats calculés qui sera regénéré à chaque lancement en fonction des données de root
+ResultatsGroupements = {} # dictionnaire des résultats calculés qui sera regénéré à chaque lancement en fonction des données de root
 # chaque entrée est :
 # 1. un nom de course (key = "6-F", ...) : la valeur est une liste de coureurs dans l'ordre
 # 2. un nom de classe (key = "65",...) : la valeur est une liste de coureurs dans l'ordre (à la fin, on aura ajouté les abandons, absents, dispensés.
@@ -1902,10 +1916,11 @@ def CoureursParClasseUpdate():
 def moyenneDesTemps(listeDesTemps) :
     """A coder : argument une liste de temps en secondes
     retour : un temps moyen en secondes."""
+    #print("Liste des temps",listeDesTemps)
     if listeDesTemps :
         tpsEnSecondes = sum(listeDesTemps)/len(listeDesTemps)
-        tps = Temps(tpsEnSecondes,0,0)
-        retour = tps.tempsReelFormate()
+        #tps = Temps(tpsEnSecondes,0,0)
+        retour = formaterDuree(tpsEnSecondes)
     else :
         retour = ""
     return retour
@@ -1922,8 +1937,8 @@ def medianeDesTemps(listeDesTemps) :
             # impair
             i = len(listeDesTemps)//2
             tpsEnSecondes = listeDesTemps[i]
-        tps = Temps(tpsEnSecondes,0,0)
-        retour = tps.tempsReelFormate()
+        #tps = Temps(tpsEnSecondes,0,0)
+        retour = formaterDuree(tpsEnSecondes)#tps.tempsReelFormate()
     else :
         retour = ""
     return retour
@@ -1944,6 +1959,8 @@ def testTMPStats():
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
+    StatsEffectifs = True ## à basculer dans les paramètres
+    
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
     for DIR in [ "impressions", "impressions"+os.sep+"tex" ]:
@@ -1990,11 +2007,11 @@ def generateImpressions() :
     for classe in Resultats :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
-        if Parametres["CategorieDAge"] or (not Parametres["CategorieDAge"] and len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
+        if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
             #print("Création du fichier de "+classe)
             nomFichier = classe.replace(" ","-")
             with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
-                contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete)
+                contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
                 f.write(contenu)
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
@@ -2006,16 +2023,39 @@ def generateImpressions() :
             moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
             mediane = medianeDesTemps(listeDesTempsDeLaClasse)
             ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
-            StatsEffectifs = True
             if StatsEffectifs :
-                FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
-                GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
-                FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
-                GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
-                FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
-                GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
-                FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
-                GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+                if effTotF :
+                    FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+                else :
+                    FArr = "{-}"
+                if effTotG :
+                    GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+                else :
+                    GArr = "{-}"
+                if effTotF :
+                    FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FD = "{-}"
+                if effTotG :
+                    GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GD = "{-}"
+                if effTotF :
+                    FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FAba = "{-}"
+                if effTotG :
+                    GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GAba = "{-}"
+                if effTotF :
+                    FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FAbs = "{-}"
+                if effTotG :
+                    GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GAbs = "{-}"
             else :
                 FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
                 GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
@@ -2025,25 +2065,97 @@ def generateImpressions() :
                 GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
                 FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
                 GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
-            nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
-            nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
-            nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
-            nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+            # nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+            # nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+            # nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+            # nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
             #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-            if estNomDeGroupement(classe) :
-                ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+            ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
                          .replace("@GArr",GArr).replace("@FD",FD)\
                          .replace("@GD",GD).replace("@FAba",FAba)\
                          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
                          .replace("@GAbs",GAbs).replace("@moy",moyenne)\
                          .replace("@med",mediane)
+    for classe in ResultatsGroupements :
+        #print(classe,"est traité pour création tex", Resultats[classe])
+        # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
+        #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
+        #print("Création du fichier de "+classe)
+        nomFichier = classe.replace(" ","-")
+        with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
+            contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
+            f.write(contenu)
+            f.write("\n\\end{longtable}\\end{center}\\end{document}")
+        f.close()
+        # alimentation des statistiques
+        listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+        effTot = sum(ArrDispAbsAbandon[:-1])
+        effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+        effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+        moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+        mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+        ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+        if StatsEffectifs :
+            if effTotF :
+                FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
             else :
-                ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-                         .replace("@GArr",GArr).replace("@FD",FD)\
-                         .replace("@GD",GD).replace("@FAba",FAba)\
-                         .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-                         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                         .replace("@med",mediane)
+                FArr = "{-}"
+            if effTotG :
+                GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+            else :
+                GArr = "{-}"
+            if effTotF :
+                FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+            else :
+                FD = "{-}"
+            if effTotG :
+                GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+            else :
+                GD = "{-}"
+            if effTotF :
+                FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+            else :
+                FAba = "{-}"
+            if effTotG :
+                GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+            else :
+                GAba = "{-}"
+            if effTotF :
+                FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+            else :
+                FAbs = "{-}"
+            if effTotG :
+                GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+            else :
+                GAbs = "{-}"
+        else :
+            FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+            GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+            FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+            GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+            FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+            GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+            FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+            GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+        nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+        nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+        nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+        nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+        #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+        #if estNomDeGroupement(classe) :
+        ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                     .replace("@GArr",GArr).replace("@FD",FD)\
+                     .replace("@GD",GD).replace("@FAba",FAba)\
+                     .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                     .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                     .replace("@med",mediane)
+        #else :
+        #    ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+         #            .replace("@GArr",GArr).replace("@FD",FD)\
+          #           .replace("@GD",GD).replace("@FAba",FAba)\
+           #          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+            #         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+             #        .replace("@med",mediane)
 
     # on ferme le fichier de statistiques des classes
     fstats.write(ContenuLignesCategories)
@@ -2070,7 +2182,7 @@ def generateImpressions() :
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
         
-    ### générer les tex pour chaque catégorie.
+    ### générer les tex pour chaque groupement.
     listeGroupements = listGroupementsCommences()
     for nomGroupement  in listeGroupements :
         # ajout d'une sécurité si aucune arrivée dans une course
@@ -2078,7 +2190,7 @@ def generateImpressions() :
         groupement = groupementAPartirDeSonNom(nomGroupement) 
         if groupement :
             for nomCategorie in groupement.listeDesCourses :
-                if nomCategorie in Resultats.keys() :
+                if nomCategorie in ResultatsGroupements.keys() :
                     aCreer = True
                     break
             if aCreer :
@@ -2108,6 +2220,8 @@ def listeDesCategoriesDUnGroupement(nomGroupement):
 def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     """ retourne un objet groupement à partir de son nom"""
     retour = None
+    ### j'aurais dû choisir un dictionnaire mais, en l'état, je ne change pas un ensemble qui fonctionne.
+    ### il me faudrait changer tous les appels aux groupements partout dans le code pour optimiser.
     for groupement in Groupements :
         if nomStandard :
             if groupement.nomStandard == nomGroupement :
@@ -2119,9 +2233,11 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
                 break
     return retour
     
-
-def groupementAPartirDUneCategorie(categorie):
-    """ retourne un objet groupement à partir d'un nom de catégorie"""
+def ancienGroupementAPartirDUneCategorie(categorie):
+    """ retourne un objet groupement à partir d'un nom de catégorie
+    Non optimisé. Cette version est maintenu pour permettre l'import d'anciennes sauvegardes 
+    où les Courses n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
+    ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     retour = None
     for groupement in Groupements :
         for cat in groupement.listeDesCourses : 
@@ -2131,6 +2247,24 @@ def groupementAPartirDUneCategorie(categorie):
     #print("categorie cherchée :", categorie)
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
+    return retour
+
+def groupementAPartirDUneCategorie(categorie):
+    """ retourne un objet groupement à partir d'un nom de catégorie"""
+    ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
+    # retour = None
+    # for groupement in Groupements :
+        # for cat in groupement.listeDesCourses : 
+            # if cat == categorie :
+                # retour = groupement
+                # break
+    #print("categorie cherchée :", categorie)
+    #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
+    #print(categorie, "est dans",retour.affichageInfoTerminal())
+    try :
+        retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+    except :
+        retour = Courses[categorie].initNomGroupement(categorie)
     return retour
 
 def nettoieGroupements() :
@@ -2146,18 +2280,18 @@ def updateNomGroupement(nomStandard, nomChoisi) :
 
 def updateGroupements(categorie, placeInitiale, placeFinale):
     print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
-    print("Groupements initial :")
-    for grp in Groupements :
-        print(grp.listeDesCourses)
-        print(grp.nom)
+    # print("Groupements initial :")
+    # for grp in Groupements :
+        # print(grp.listeDesCourses)
+        # print(grp.nom)
     if placeInitiale != placeFinale :
         Groupements[placeInitiale-1].removeCourse(categorie)    
         Groupements[placeFinale-1].addCourse(categorie)
         nettoieGroupements()
-    print("Groupements final :")
-    for grp in Groupements :
-        print(grp.listeDesCourses)
-        print(grp.nom)
+        print("Groupements final :")
+        for grp in Groupements :
+            print(grp.listeDesCourses)
+            print(grp.nom)
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
@@ -2398,21 +2532,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     retour = calculeTousLesTemps(premiereExecution)
     #print("calculeTousLesTemps : ",retour)
     Resultats.clear()
+    ResultatsGroupements.clear()
     listeDesClasses = []
-    # ajout des coureurs ayant terminé la course dans le bon ordre.
-##    for doss in ArriveeDossards :
-##        #print("Ajout du dossard", doss)
-##        coureur = Coureurs[doss-1]
-##        cat = coureur.categorie(CategorieDAge)
-##        classe = coureur.classe
-##        if cat not in Resultats :
-##            Resultats[cat] = []
-##        if classe not in Resultats :
-##            Resultats[classe] = []
-##        if classe not in listeDesClasses :
-##            listeDesClasses.append(classe)
-##        Resultats[cat].append(doss)
-##        Resultats[classe].append(doss)
     # on complète avec les absents, dispensés et abandons
     for coureur in Coureurs :
         doss = coureur.dossard
@@ -2420,10 +2541,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         groupement = groupementAPartirDUneCategorie(cat)
         classe = coureur.classe
         ### ajout du coureur au groupement pour résultat du groupement.
-        if groupement.nom not in Resultats :
-            Resultats[groupement.nom] = []
-        if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
-            Resultats[groupement.nom].append(doss)
+        if groupement.nom not in ResultatsGroupements :
+            ResultatsGroupements[groupement.nom] = []
+        if coureur.temps != -1  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+            ResultatsGroupements[groupement.nom].append(doss)
         else :
             coureur.setRang(0)
             
@@ -2433,66 +2554,78 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 Resultats[classe] = []
             if classe not in listeDesClasses : ### raison d'être de cette liste à trouver ! Encore utile ?
                 listeDesClasses.append(classe)
-            if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+            if coureur.temps != -1 :  # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
                 Resultats[classe].append(doss)
         else :
             if cat not in Resultats :
                 Resultats[cat] = []
-            if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+            if coureur.temps != -1 : # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
                 Resultats[cat].append(doss)
-            # déjà fait 9 lignes plus haut 
-            #else :
-            #    coureur.setRang(0)
-##    # on trie les performances d'une classe : les filles et garçons n'ont pas forcméent couru en même temps et ne sont donc pas ordonnés.
-##    for classe in listeDesClasses :
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
+    ### on traite les rangs dans les Groupements
+    keyList = []
+    for nom in ResultatsGroupements :
+        keyList.append(nom)
+        ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
+        # on affecte son rang à chaque coureur dans sa Course.
+        #print("course ",nom,":",Resultats[nom])
+        ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
+            #print(nom, "est une course ou un groupement",Resultats[nom])
+        i = 0
+        while i < len(ResultatsGroupements[nom]) :
+            doss = ResultatsGroupements[nom][i]
+            coureur = Coureurs[doss-1]
+            #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
+            if coureur.temps > 0 : 
+            ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
+                coureur.setRang(i+1)
+            else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+            # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
+                coureur.setRang(0)
+            #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+            i += 1
+    ### On traite les rangs dans les courses
     keyList = []
     for nom in Resultats :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
         # on affecte son rang à chaque coureur dans sa Course.
         #print("course ",nom,":",Resultats[nom])
-        if estUneCourseOuUnGroupement(nom) :
-            #print(nom, "est une course ou un groupement",Resultats[nom])
-            i = 0
-            while i < len(Resultats[nom]) :
-                doss = Resultats[nom][i]
-                coureur = Coureurs[doss-1]
-                #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-                if coureur.temps > 0 : 
-                ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
-                    coureur.setRang(i+1)
-                else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
-                # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
-                    coureur.setRang(0)
-                #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
-                i += 1
+        ### inutile car obligatoire vu ce qui précède : if estUneCourse(nom) :
+        i = 0
+        while i < len(Resultats[nom]) :
+            doss = Resultats[nom][i]
+            coureur = Coureurs[doss-1]
+            #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
+            if coureur.temps > 0 : 
+            ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
+                coureur.setRangCourse(i+1)
+            else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+            # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
+                coureur.setRangCourse(0)
+            #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+            i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
     if not Parametres["CategorieDAge"] : # challenge uniquement pour le cross du collège
         L = []
         for nom in keyList :
-            if estUneClasse(nom) :
-                challenge = nom[0]
-                # création du challenge pour ce niveau, si inexistant
-                if challenge not in Resultats :
-                    Resultats[challenge] = []
-                    L.append(challenge)
-                # on alimente le challenge avec une EquipeClasse
-                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
-                if Parametres["ponderationAcceptee"] :
-                    Resultats[challenge].append(equ)
-                elif equ.complet :
-                    Resultats[challenge].append(equ)
-                #print("Ajout au challenge:", challenge, "de l'équipe",nom, Resultats[nom], Coureurs, Parametres["nbreDeCoureursPrisEnCompte"])
+            ### inutile car obligatoire désormais : if estUneClasse(nom) :
+            challenge = nom[0]
+            # création du challenge pour ce niveau, si inexistant
+            if challenge not in Resultats :
+                Resultats[challenge] = []
+                L.append(challenge)
+            # on alimente le challenge avec une EquipeClasse
+            equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+            if Parametres["ponderationAcceptee"] :
+                Resultats[challenge].append(equ)
+            elif equ.complet :
+                Resultats[challenge].append(equ)
         # on trie chaque challenge par score.
         for challenge in L :
             Resultats[challenge]=triParScore(Resultats[challenge])
-    # calculeTousLesTemps(premiereExecution)
-    #Tfin = time.time()
-    ### print("Temps d'exécution pour générer tous les résultats de la BDD:",formateTemps(Tfin - Tdebut))
-    #print("fin de genereResultatsCoursesEtClasses",retour)
     return retour
                 
 def estUneCourseOuUnGroupement(nom):
@@ -2503,6 +2636,20 @@ def estUneCourseOuUnGroupement(nom):
     else :
         retour = False
     #print(nom,retour)
+    return retour
+
+def estUneCourse(nom):
+    if nom in Courses :
+        retour = True
+    else :
+        retour = False
+    return retour
+    
+def estUnGroupement(nom):
+    if groupementAPartirDeSonNom(nom, nomStandard=False) != None :
+        retour = True
+    else :
+        retour = False
     return retour
 
 def estUneClasse(nom):
@@ -3674,22 +3821,22 @@ def creerFichierChallenge(challenge, entete):
         i += 1
     return entete + "\n\n" + titre + "\n\n" + tableau
 
-def creerFichierCategorie(cat, entete):
-    titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + cat + "} \\hfill {}}"
-    tableau = """
-\\begin{center}
-\\begin{longtable}{| p{1.7cm} | p{6cm} | p{1.5cm} | p{4cm} | p{4.3cm} |}
-%\\begin{tabular}{|*{5}{c|}}
-\\hline
-{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{Prénom Nom} \\hfill {} & {}\\hfill \\textbf{Classe} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
-\\hline
-\\endhead
-\n"""
-    Dossards = Resultats[cat]
-    for dossard in Dossards :
-        if dossard in ArriveeDossards :
-            tableau += genereLigneTableauTEX(dossard)
-    return entete + "\n\n" + titre + "\n\n" + tableau
+# def creerFichierCategorie(cat, entete):
+    # titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + cat + "} \\hfill {}}"
+    # tableau = """
+# \\begin{center}
+# \\begin{longtable}{| p{1.7cm} | p{6cm} | p{1.5cm} | p{4cm} | p{4.3cm} |}
+# %\\begin{tabular}{|*{5}{c|}}
+# \\hline
+# {}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{Prénom Nom} \\hfill {} & {}\\hfill \\textbf{Classe} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
+# \\hline
+# \\endhead
+# \n"""
+    # Dossards = Resultats[cat]
+    # for dossard in Dossards :
+        # if dossard in ArriveeDossards :
+            # tableau += genereLigneTableauTEX(dossard)
+    # return entete + "\n\n" + titre + "\n\n" + tableau
 
 
 def creerFichierCategories(groupement, entete):
@@ -3703,14 +3850,14 @@ def creerFichierCategories(groupement, entete):
 \\hline
 \\endhead
 \n"""
-    Dossards = Resultats[groupement.nom]
+    Dossards = ResultatsGroupements[groupement.nom]
     for dossard in Dossards :
         if dossard in ArriveeDossards :
             tableau += genereLigneTableauTEX(dossard)
     return entete + "\n\n" + titre + "\n\n" + tableau
 
 
-def creerFichierClasse(nom, entete):
+def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     tableau = """
 \\begin{center}
@@ -3722,22 +3869,35 @@ def creerFichierClasse(nom, entete):
 \\endhead
 \n"""
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
-    if estNomDeGroupement(nom) :
+    if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Course " + nom
-        Dossards = Resultats[nom]# on perd les absents, dispensés, abandons. triParTemps(listDossardsDUnGroupement(nom))
-    elif Parametres["CategorieDAge"] :
-        denomination = "Catégorie " + nom
-        Dossards = triParTemps(listDossardsDUneCategorie(nom)) ## Resultats[nom] => on perd les absents, dispensés, abandons mais on gagnerait du temps.
+        Dossards = ResultatsGroupements[nom]
+        rangCourse = False
+        if Parametres["CategorieDAge"] :
+            garderAbandons = True
+            garderAbsDispAbandons = False
+        else :
+            garderAbandons = False
+            garderAbsDispAbandons = False
     else :
-        denomination = "Classe " + nom
-        Dossards = listDossardsDUneClasse(nom) 
-        # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha pour les collègues d'EPS
+        garderAbandons = False
+        garderAbsDispAbandons = False
+        rangCourse = True
+        if Parametres["CategorieDAge"] :
+            denomination = "Catégorie " + nom
+            Dossards = triParTemps(Resultats[nom])### listDossardsDUneCategorie(nom))
+        else :
+            denomination = "Classe " + nom
+            Dossards = Resultats[nom] # on devrait trier par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
+            # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in Dossards :
-        #if dossard in ArriveeDossards :
-        newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband)
-        tableau += newline
+        if Coureurs[dossard - 1].temps >= 0 :
+            newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband, rangCourse)
+            if Coureurs[dossard - 1].temps > 0 or garderAbsDispAbandons or (not Coureurs[dossard - 1].absent and not Coureurs[dossard - 1].dispense and garderAbandons) :
+            # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
+                tableau += newline
     return entete + "\n\n" + titre.replace("@nom@",denomination) + "\n\n" + tableau, ArrDispAbsAband
 
 
@@ -3752,7 +3912,7 @@ def yATIlUneVMA(listeDeDossards) :
     return not pasTrouveDeVMA
 
 
-def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon) :
+def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
     coureur = Coureurs[dossard - 1]
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
@@ -3762,7 +3922,10 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon) :
 ##        else :
 ##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex()# + supplVMA
-        contenuRang = str(coureur.rang)
+        if rangCourse :
+            contenuRang = str(coureur.rang)
+        else :
+            contenuRang = str(coureur.rangCourse)
         if coureur.sexe == "F" :
             ArrDispAbsAbandon[0] = ArrDispAbsAbandon[0] + 1
         else :

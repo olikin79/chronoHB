@@ -1,3 +1,11 @@
+Travail du 06/07/22 :
+- les moyennes et médianes des statistiques sont fausses. 1H d'ajout dû à un horaire GMT au lieu de Paris.
+Corrigé par utilisation de formaterDuree() à la place de formaterTemps()
+- différenciation des Resultats des catégories de ceux des groupements.
+- optimisation de groupementAPartirDUneCategorie() car exécuté de très nombreuses fois : création de la propriété nomGroupement de l'object Courses. 
+Compatibilité ascendante assurée avec les sauvegardes n'ayant pas cette propriété : créée à la volée par l'ancien processus.
+
+
 Travail du 04/07/22 :
 - les challenges sont classés dans le bon ordre. Bug corrigé.
 - sur l'affichage TV uniquement, la classe n'apparaissait pas dans le challenge. Corrigé.

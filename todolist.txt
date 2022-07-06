@@ -1,9 +1,8 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- tester statistiques avec les catégories d'age de l'athlétisme. Ne fonctionne pas si on a des catégories de même nom que les groupements.
-Les tableaux des catégories sont vides et ceux des groupements contiennent tous les noms en double.
-Réfléchir comment différencier les catégories des groupements : ne pas transmettre uniquement leurs noms mais les instances des objects elles-même !
-Cela risque de résoudre le bug décrit ci-avant automatiquement.
+- optimiser avec une liste mémoire groupementAPartirDUneCategorie() car exécuté de très nombreuses fois.
+
+- faire en sorte que triParTemps() ait comme critère secondaire (abandon > dispensé > absent).
 
 - l'uid unique n'est pas correctement envoyé par le smartphone ou mal traité par Arrivee.pyw (à creuser). Ce développement n'est pas fonctionnel en l'état.
 Cela pourrait être problématique pour des temps envoyés dupliqués alors que pour les dossards, c'est géré en aval désormais.
@@ -39,6 +38,8 @@ Tant pis si on perd une demi-page une fois sur deux.
 
 	
 MOYENNEMENT PRIORITAIRE :
+- mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
+Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
 - accepter la pondération pour les challenges par classe.
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
 - trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
