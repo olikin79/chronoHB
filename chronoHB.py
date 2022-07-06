@@ -2029,6 +2029,7 @@ def rejouerToutesLesActionsMemorisees() :
     Parametres["ligneDerniereRecuperationSmartphone"]=1
     Parametres["tempsDerniereRecuperationLocale"]=0
     Parametres["ligneDerniereRecuperationLocale"]=1
+    dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
     ligneTableauGUI = [1,0]

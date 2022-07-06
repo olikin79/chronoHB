@@ -1152,6 +1152,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         Parametres["ligneDerniereRecuperationSmartphone"] = 1
         Parametres["tempsDerniereRecuperationSmartphone"] = 0
         Parametres["calculateAll"] = True
+        dictUIDPrecedents.clear()
     retour = [] # si aucune ligne à traiter, on retourne []
     # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
     if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone) :
@@ -1207,6 +1208,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
         Parametres["ligneDerniereRecuperationLocale"] = 1
         Parametres["tempsDerniereRecuperationLocale"] = 0
         Parametres["calculateAll"] = True
+        dictUIDPrecedents.clear()
     retour = []
     # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
     if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesLocalesRecente(fichierDonneesSmartphone) :
@@ -3484,6 +3486,7 @@ def delCoureurs():
 
 def delCourses():
 ##    if not Parametres["CourseCommencee"] :
+    dictUIDPrecedents.clear()
     root['Courses'].clear()
     root['Groupements'].clear()
     ##transaction.commit()
