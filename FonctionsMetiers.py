@@ -2270,6 +2270,7 @@ def nomGroupementAPartirDUneCategorie(categorie):
         retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         retour = Courses[categorie].initNomGroupement(categorie)
+    #print("categorie",Courses[categorie].categorie ,retour)
     return retour
 
 def groupementAPartirDUneCategorie(categorie):
@@ -2557,11 +2558,13 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     Resultats.clear()
     ResultatsGroupements.clear()
     listeDesClasses = []
+    #print(Courses["3-G"].categorie)
     # on complète avec les absents, dispensés et abandons
     for coureur in Coureurs :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
-        groupement = groupementAPartirDUneCategorie(cat)
+        groupement = nomGroupementAPartirDUneCategorie(cat)
+        #print(groupement)
         classe = coureur.classe
         ### ajout du coureur au groupement pour résultat du groupement.
         if groupement not in ResultatsGroupements :
@@ -3034,6 +3037,7 @@ def addCourse(categorie) :
         print("Création de la course", categorie)
         c = Course(categorie)
         Courses.update({categorie : c})
+    #print("cat",Courses[categorie].categorie)
 
 
     
@@ -3806,7 +3810,7 @@ def genereTableauHTML(courseName, chrono = False) :
         if chrono :
             tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
         else :
-            Dossards = Resultats[courseName]
+            Dossards = ResultatsGroupements[courseName]
             for dossard in Dossards :
                 if dossard in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
                     tableau += genereLigneTableauHTML(dossard)
@@ -3814,7 +3818,8 @@ def genereTableauHTML(courseName, chrono = False) :
 
 def yATIlUCoureurArrive(groupement) :
     retour = False
-    Dossards = Resultats[groupement]
+    #print(ResultatsGroupements)
+    Dossards = ResultatsGroupements[groupement]
     for dossard in Dossards :
         if dossard in ArriveeDossards :
             retour = True
