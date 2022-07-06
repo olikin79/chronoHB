@@ -34,7 +34,6 @@ def addInstruction(liste) :
         fichierDonneesSmartphone = "donneesModifLocale.txt"
     else:
         fichierDonneesSmartphone = "donneesSmartphone.txt"
-    print(liste)
     with open(fichierDonneesSmartphone, 'a') as f :
         result = ""
         for el in liste :
