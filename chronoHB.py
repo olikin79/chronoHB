@@ -33,7 +33,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -460,6 +460,7 @@ class MonTableau(Frame):
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = int(donnee[self.colonneDossard])
         ligneAAjouter = list(donnee)
+        ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
         if Coureurs[doss-1].rang :
             ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
         else :
@@ -482,6 +483,15 @@ class MonTableau(Frame):
             #print("ajout en ligne", self.effectif +1 , "avec", donnee)
             self.treeview.insert('', self.effectif, values=tuple(ligneAAjouter))
             self.effectif += 1
+            
+    def formateSurNChiffres(self,nbre,nbreChiffres) :
+        retour = str(nbre)
+        N = len(retour)
+        nbreAAjouter = nbreChiffres - N
+        while nbreAAjouter > 0 :
+            retour = "0" + retour
+            nbreAAjouter -= 1
+        return retour
 
     def getTemps(self) :
         item_text = "-"
@@ -1881,12 +1891,12 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-                Pour retrouver rapidement les multiples passages, cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
-                ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
-                Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
-                puis 'ajouter un dossard' après.\n\
-                La correction de ce cas rarissime n'a pas été implémentée simplement. De plus, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
-                Cela ne doit donc pas survenir !"
+Pour retrouver rapidement les multiples passages, cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
+ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
+Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
+ puis utiliser le bouton 'ajouter un dossard' pour remettre le passage n°1 en place.\n\
+La correction de ce cas rarissime n'a pas été implémentée simplement. De plus, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
+Cela ne doit donc pas survenir !"
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")

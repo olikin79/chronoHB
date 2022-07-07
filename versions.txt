@@ -1,3 +1,9 @@
+Travail du 07/07/22 :
+- gestion de l'erreur 401 : dossard ayant déjà passé la ligne d'arrivée : ajouté avec le smartphone et l'interface... Signalée une fois avec proposition pour correctif (peu pratique).
+- affichage des numéros de lignes sur 3 chiffres pour permettre un tri aisé.
+
+
+
 Travail du 06/07/22 :
 - les moyennes et médianes des statistiques sont fausses. 1H d'ajout dû à un horaire GMT au lieu de Paris.
 Corrigé par utilisation de formaterDuree() à la place de formaterTemps()

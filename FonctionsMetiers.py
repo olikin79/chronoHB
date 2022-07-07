@@ -3234,7 +3234,7 @@ def calculeTousLesTemps(reinitialise = False):
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
-    print("A la fin",retour)
+    #print("A la fin",retour)
     return retour
 
 ##def calculeTousLesTemps(reinitialise = False):

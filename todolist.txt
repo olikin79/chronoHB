@@ -2,6 +2,7 @@ BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
 
 
+
 NON PRIORITAIRES :
 - ESTHETIQUE : 
 	* les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
@@ -15,13 +16,12 @@ Il est donc impossible de pré-saisir le numéro du dossard.
 
 	
 ESTHETIQUE :
-- faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
-(interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
-Ainsi, quand on effectue un tri par colonne, actuellement, on ne peut plus retrouver l'affichage initial par ordre d'arrivée. C'est gênant.
+
 
 
 A TESTER :
-- comment gérer l'erreur 401 : dossard ayant déjà passé la ligne d'arrivée : ajouté avec le smartphone et l'interface... Comment faire pour supprimer cette erreur ? Doit-elle être signalée en attendant de trouver comment ?
+
+
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
@@ -59,6 +59,10 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une b
 
 
 A PLUS LONG TERME :
+- faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
+(interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
+Ainsi, quand on effectue un tri par colonne, actuellement, j'ai mis 3 chiffres tout le temps. Développement court qui devra se baser sur la méthode formateSurNChiffres() 
+en déterminant le nombre total de lignes et on l'appliquant à posteriori à tout le tableau quand ce total dépassera 100, 1000, etc...
 - dans ajout manuel de coureur, le sexe devrait être une liste déroulante avec G ou F
   et la classe devrait aussi être une liste avec les classes précédentes mais permettant de saisir une nouvelle classe.
 - pouvoir choisir l'imprimante vers laquelle on imprime dans les paramètres.
