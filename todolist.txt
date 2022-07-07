@@ -10,10 +10,6 @@ NON PRIORITAIRES :
 	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
 	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
 
-- dans l'application android : si ajout multiple + affectation sur smartphone => dossard affecté au dernier et non au premier.
-Très peu probable en condition réelle car, avec un groupe, on ne peut anticiper qui sera le premier du groupe.
-Il est donc impossible de pré-saisir le numéro du dossard.
-
 	
 ESTHETIQUE :
 
