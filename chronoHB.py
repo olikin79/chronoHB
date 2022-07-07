@@ -33,7 +33,7 @@ from functools import partial
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1879,6 +1879,15 @@ def onClickE(err):
         modifManuelleCoureur(err.dossard)
     elif err.numero == 331 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         tableau.corrigeTempsManquants()
+    elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
+        message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
+                Pour retrouver rapidement les multiples passages, cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
+                ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
+                Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
+                puis 'ajouter un dossard' après.\n\
+                La correction de ce cas rarissime n'a pas été implémentée simplement. De plus, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
+                Cela ne doit donc pas survenir !"
+        showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
 
@@ -1983,35 +1992,34 @@ class Clock():
     def reinitErreursATraiter(self):
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
+        self.premiereExecution = True
         
     def erreursATraiter(self,listeNouvellesErreursATraiter):
-        # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
-        # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
-        i = 0
-        indicesASupprimer = []
-        #print("self.erreursEnCours",self.erreursEnCours)
-        #print("self.erreursEnCoursNumeros",self.erreursEnCoursNumeros)
-        while i < len(self.erreursEnCoursNumeros) : # on supprime l'erreur 331 des erreurs précédentes
-            if self.erreursEnCoursNumeros[i] == 331 :
-                indicesASupprimer.append(i)
-            i += 1
-        for i in indicesASupprimer:
-            del self.erreursEnCoursNumeros[i]
-            del self.erreursEnCours[i]
         if listeNouvellesErreursATraiter : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
             self.auMoinsUnImport = True
+        # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
+        # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
+        i = len(self.erreursEnCoursNumeros) - 1
+        while i >= 0 : # on supprime l'erreur 331 des erreurs précédentes
+            if self.erreursEnCoursNumeros[i] in [331] :
+                del self.erreursEnCoursNumeros[i]
+                del self.erreursEnCours[i]
+            i -= 1
+
         for erreur in listeNouvellesErreursATraiter :
-            if not erreur.numero in [0, 311, 312, 321]:#, 331] : ### "erreurs" internes qui doivent être ignorées par l'interface graphique
-                ######## Les ligns suivantes sont devenues inutiles.
-                ######## L'erreur 331 ne survient qu'une seule fois par traitement et elle est supprimée en début de erreursATraiter()
-##                if erreur.numero in [331]: ### numeros d'erreurs à ne lister qu'une seule fois. Les autres seront donc ignorées : erreurs "internes"
-##                    if not erreur.numero in self.erreursEnCoursNumeros :
-##                        self.erreursEnCours.append(erreur)
-##                        self.erreursEnCoursNumeros.append(erreur.numero)
-##                        #print("ajout unique",erreur.numero)
-##            else : #les erreurs autres sont à indiquer
+            ajout = False
+            if not erreur.numero in [0, 311, 312, 321, 401, 441, 451]: ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
+                ajout = True
+            ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
+            ### Le traitement strictement chronologique des fichiers de donnéesimpose ce post-traitement dans ce seul cas.
+                #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
+            elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
+                ajout = True
+            if ajout :
+                #print("ajout",erreur.numero,erreur.dossard)
                 self.erreursEnCours.append(erreur)
                 self.erreursEnCoursNumeros.append(erreur.numero)
+        #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
         

@@ -1176,7 +1176,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                     #else :
                         #pasDErreur = False
 ##                else :
-                    print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
+                    print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
                 ### désormais, même s'il y a une erreur, on poursuit les imports.
                 Parametres["ligneDerniereRecuperationSmartphone"] += 1
                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
@@ -2558,7 +2558,6 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     Resultats.clear()
     ResultatsGroupements.clear()
     listeDesClasses = []
-    #print(Courses["3-G"].categorie)
     # on complète avec les absents, dispensés et abandons
     for coureur in Coureurs :
         doss = coureur.dossard
@@ -3128,7 +3127,7 @@ def calculeTousLesTemps(reinitialise = False):
     """ associe un temps à chaque dossard ayant passé la ligne d'arrivée permet les décalages positifs et négatifs.
     Si l'argument est True, recalcule tout depuis le début.
     Retourne une liste d'instances de la class Erreur pour traitement par l'interface GUI."""
-    #print("Début de CalculeTousLesTemps()")
+    #print("Début de CalculeTousLesTemps(",reinitialise,")")
     global ligneTableauGUI,TableauGUI
     retour = []
     reinitTableauGUI()
@@ -3137,8 +3136,11 @@ def calculeTousLesTemps(reinitialise = False):
         Parametres["positionDansArriveeTemps"] = 0
         Parametres["positionDansArriveeDossards"] = 0
         ligneTableauGUI = [1,0]
-    if 'tableau' in globals() :
-        tableau.delTreeviewFrom(ligneTableauGUI[0])
+        print("on REINITIALISE")
+        # print(globals())
+        if 'tableau' in globals() :
+            tableau.delTreeviewFrom(ligneTableauGUI[0])
+            print("on efface treeview jusqu'à la ligne",ligneTableauGUI[0])
     i = Parametres["positionDansArriveeTemps"]
     j = Parametres["positionDansArriveeDossards"]
     chronosInutilesAvantLeDossard = 0
@@ -3232,7 +3234,7 @@ def calculeTousLesTemps(reinitialise = False):
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
-    #print("A la fin",retour)
+    print("A la fin",retour)
     return retour
 
 ##def calculeTousLesTemps(reinitialise = False):
@@ -3349,7 +3351,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le coureur " + coureur.nom + " " + coureur.prenom + "(" + str(doss) + ") a un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
+            message = "Le coureur " + coureur.nom + " " + coureur.prenom + " (" + str(doss) + ") a un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
             retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :
