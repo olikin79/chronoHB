@@ -22,9 +22,7 @@ A TESTER :
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- Compiler les dossards de chaque groupement et non de chaque catégorie séparément.
 
-- dans l'apk, faire en sorte que ka sauvegarde des données soit effectuée régulièrement pour prévenir une fermeture violente de l'application.
 
 
 	
@@ -32,10 +30,10 @@ MOYENNEMENT PRIORITAIRE :
 - mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
 Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
 - accepter la pondération pour les challenges par classe.
+- Compiler les dossards de chaque groupement et non de chaque catégorie séparément.
 - le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
-- trouver les différentes fonctions d'actualsation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
+- trouver les différentes fonctions d'actualisation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
 Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.
-- permettre l'export de données via un menu (idem à la récupération).
 - prévoir une procédure en cas de plantage au démarrage lié à une base de données incorrecte.
 try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
 Traceback (most recent call last):

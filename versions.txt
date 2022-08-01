@@ -1,3 +1,10 @@
+Travail du 01/08/22 : 
+- dans l'apk android, la sauvegarde des données est désormais effectuée à chaque modification.
+Cela permet d'être certain de conserver les données, même en cas de fermeture violente de l'application.
+Auparavant, les données n'étaient sauvegardées qu'à la fermeture (bouton back-triangle) de la fenêtre chronoHB.
+C'était prendre le risque d'une fermeture accidentelle de l'appli qui effacerait les données en plein course. Problème verrouillé.
+
+
 Travail du 07/07/22 :
 - gestion de l'erreur 401 : dossard ayant déjà passé la ligne d'arrivée : ajouté avec le smartphone et l'interface... Signalée une fois avec proposition pour correctif (peu pratique).
 - affichage des numéros de lignes sur 3 chiffres pour permettre un tri aisé.
