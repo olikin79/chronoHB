@@ -22,8 +22,10 @@ A TESTER :
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- possibilité de compiler les dossards de chaque catégorie séparément: utile finalement après massicot de ce jour ! 
-Tant pis si on perd une demi-page une fois sur deux.
+- Compiler les dossards de chaque groupement et non de chaque catégorie séparément.
+
+- dans l'apk, faire en sorte que ka sauvegarde des données soit effectuée régulièrement pour prévenir une fermeture violente de l'application.
+
 
 	
 MOYENNEMENT PRIORITAIRE :
