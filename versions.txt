@@ -64,7 +64,7 @@ Travail du 01/07/22 :
 - bug résolu : réimport de sauvegarde non fonctionnel sans redémarrage de l'application + changement de catégorie à destination des smartphones corrigé.
 	+ changement de la catégorie affichée sur les boutons radio dans le menu paramètres + zone d'affichage des erreurs actualisée.
 - création du fichiers DonneesSmartphones.txt dans la sauvegarde si vide (pour une cohérence des sauvegardes qui contiendront toutes 3 fichiers).
-- limite maximale sur le nom automatique des Groupements dans l'interface (cas où il y aurait énorméménent de catégories dans un groupement) => esthétique de l'interface.
+- limite maximale sur le nom automatique des Groupements dans l'interface (cas où il y aurait énormément de catégories dans un groupement) => esthétique de l'interface.
 Pas de modif du nom du groupement affiché dans les résultats si nom par défaut conservé.
 - meilleure implémentation des dossards non encore imprimés
 - modification de l'apk android avec un bip plus court (1/10 de seconde) pour pouvoir en entendre plusieurs dans un court laps de temps.
