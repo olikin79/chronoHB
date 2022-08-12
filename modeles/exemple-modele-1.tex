@@ -1,0 +1,80 @@
+\documentclass[a4paper,11pt,fleqn]{article}
+\usepackage{etex}
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+%\input{preambule}
+%\usepackage{graphicx}
+\usepackage{qrcode}
+\usepackage{fix-cm}
+\pagestyle{empty} 
+
+\usepackage[a4paper]{geometry}
+\geometry{right=1cm,left=1cm,top=1cm,bottom=1cm}
+
+% Permet de ne pas séparer des blocs de lignes (énoncé de chaque élève sur une seule et même page)
+\def\block{\begingroup%
+\def\endblock{\egroup\endgroup}%
+\vbox\bgroup}%	
+
+\begin{document}
+
+
+
+\Huge
+
+\begin{block} % permet d'éviter de couper un sujet sur deux pages
+{}\hfill {}
+\fcolorbox{black}{gray!30}{\begin{minipage}{0.95\textwidth}
+{}\hfill {}
+\textbf{Cross du collège H. Bourrillon}
+{}\hfill {}
+
+{}\hfill {}
+Stade Mirandol
+{}\hfill {}
+\end{minipage}}
+
+
+
+\vspace{1cm}
+
+
+\begin{minipage}{0.3\linewidth}
+%\qrcode[height=8cm]{@dossard@}
+\includegraphics[width=\linewidth]{./1.pdf}
+\end{minipage}
+{}\hfill {}
+\begin{minipage}{0.33\linewidth}
+{}\hfill {}
+\resizebox{!}{90pt}{1}
+{}\hfill {}
+
+%\vspace{0.5cm}
+
+%{} \hfill {}
+%\begin{minipage}{\linewidth}
+\begin{center}
+	Lacroix Olivier\\
+	Profs
+\end{center}
+%\end{minipage}
+%{} \hfill {}
+
+%{} \hfill {}
+%\begin{minipage}{\linewidth}
+	
+%\end{minipage}
+%{} \hfill {}
+
+\end{minipage}
+{}\hfill {}
+\begin{minipage}{0.2\linewidth}
+	\includegraphics[width=\textwidth]{../logo-HB.png}
+\end{minipage}
+{}\hfill {}
+
+
+
+\end{block}
+
+\end{document}
