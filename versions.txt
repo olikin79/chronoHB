@@ -1,3 +1,8 @@
+Travail du 12/08/22 : version 1.42
+- amélioration de la documentation : sommaire, etc... Ajout de la fonctionnalité implémentée ci-dessous.
+- modèle de dossards à choisir dans les paramètres.
+
+
 Travail du 01/08/22 : 
 - dans l'apk android, la sauvegarde des données est désormais effectuée à chaque modification.
 Cela permet d'être certain de conserver les données, même en cas de fermeture violente de l'application.
