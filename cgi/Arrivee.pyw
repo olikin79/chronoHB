@@ -12,10 +12,26 @@ tpsServeur = time.time()
 # ce qui de toute façon moins que l'erreur commise par l'opérateur sur la ligne d'arrivée.
 
 
-## exemples de requêtes traitées :
+## Exemples de requêtes traitées :
 ## http://127.0.0.1:8888/Arrivee.py?nature=tps&action=add&tpsCoureur=10/07/2020-14:12:32&tpsClient=10/07/2020-14:14:28&dossard=0
+## Dans cette requête, tpsClient correspond à l'heure du client android juste avant l'envoi de la requête.
+## Elle peut différer de l'heure de passage du coureur tpsCoureur.
+## la variable dossard correspond au numéro de dossard qui se voit affecter cette heure de passage.
 
 ## http://127.0.0.1:8888/Arrivee.py?nature=dossard&action=add&dossard=23&dossardPrecedent=-1
+## Cette requête ajoute un dossard à la liste des dossards ayant franchi la ligne.
+## La variable dossardPrecedent est à -1 quand on ajoute le dossard à la pile (dans l'ordre).
+## Elle comporte un numéro de dossard valide quand on ajoute ce dossard après un autre dossard ayant déjà franchi la ligne.
+
+## http://127.0.0.1:8888/Arrivee.py?nature=dossard&action=recherche&nom=La&prenom=&classe=63&categorie=
+## Cette requête a pour vocation de rechercher, depuis le smartphone, un coureur dont le nom contient "la", la classe contient "63", le prénom et la catégorie sont indifférents.
+
+## http://127.0.0.1:8888/Arrivee.py?nature=identite&action=info&dossard=23
+## Cette requête a pour vocation de rechercher, depuis le smartphone, l'identité du dossard n°23.
+
+## Le retour de l'ensemble des requêtes est formaté par la fonction generateMessage(...) ci-dessous sous forme d'une chaine avec la virgule comme séparateur.
+
+
 from os import path
 
 ## Les commentaires personnalisés par coureur sont possibles dans les données CSV à importer. Il restera à implémenter leur modification dans l'interface.
