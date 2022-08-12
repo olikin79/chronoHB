@@ -21,23 +21,8 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.4"
+version = "1.42"
 
-# A tester :
-# interface smartphone :
-
-# A faire :
-# 2. interface tkinter d'affichage puis de modif de certaines données d'arrivées arrivant des smartphones.
-# 3. FAIT dans la tableau tkinter, ajouter la classe de l'élève et supprimer ou cacher le temps serveur (maintenant que cela fonctionne => inutile)
-# 5. faire en sorte que les nouvelles coches qui apparaissent ne soient pas en bas.
-# 6. FAIT régler correctement la largeur des colonnes (vit lisible, etc...)
-
-# FACULTATIF : génération des pages d'affichage : dans l'affichage des challenges, il faudrait un départage par moyenne des temps (non implémenté dans le generateResultatsChallenge)
-# génération des pages d'impression des résultats (par classe, par catégorie, par challenge)
-# INUTILE ? A faire avec libreoffice si urgence : générer un tableau sur quelques pages (latex) avec tous les dossards, noms, prénoms, classes... Ainsi, pour les étourdis, on aura le numéro...
-# FAIT : import csv de siecle.
-# génération des stats (en dernier)
-# Idée abandonnée : génération des dossards latex : ajouter un fichier par classe et sexe... Cela permettrait une distribution aisée MAIS UNE IMPRESSION GALERE !
 
 def windows():
     if os.sep == "\\" :
@@ -734,7 +719,8 @@ def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
-           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission
+           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
+           dossardModele
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -846,6 +832,9 @@ def chargerDonnees() :
     if not "tempsPause" in Parametres :
         Parametres["tempsPause"]= "5"
     tempsPause=Parametres["tempsPause"]
+    if not "dossardModele" in Parametres :
+        Parametres["dossardModele"]= "dossard-modele-1.tex"
+    dossardModele=Parametres["dossardModele"]
     ##transaction.commit()
     return globals()
 
@@ -1631,10 +1620,11 @@ def generateDossardsNG() :
     for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
         os.remove(file)
     # utilisation du modèle de dossard.
-    if Parametres["CategorieDAge"] :
-        modeleDosssard = "./modeles/dossard-modele.tex"
-    else :
-        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+##    if Parametres["CategorieDAge"] :
+##        modeleDosssard = "./modeles/dossard-modele.tex"
+##    else :
+##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    modeleDosssard = "./modeles/" + dossardModele
     with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
@@ -1661,7 +1651,11 @@ def generateDossardsNG() :
                     groupement = "Course : " + groupementNom
                 else :
                     groupement = ""
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe).replace("@categorie@",cat)\
+                if coureur.classe :
+                    cl = "Classe : " + coureur.classe
+                else :
+                    cl = ""
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a') as fileCat :
@@ -1773,10 +1767,11 @@ def generateDossardsAImprimer() :
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    if Parametres["CategorieDAge"] :
-        modeleDosssard = "./modeles/dossard-modele.tex"
-    else :
-        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+##    if Parametres["CategorieDAge"] :
+##        modeleDosssard = "./modeles/dossard-modele.tex"
+##    else :
+##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    modeleDosssard = "./modeles/" + dossardModele
     with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
@@ -1813,10 +1808,11 @@ def generateDossard(coureur) :
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-    if Parametres["CategorieDAge"] :
-        modeleDosssard = "./modeles/dossard-modele.tex"
-    else :
-        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+##    if Parametres["CategorieDAge"] :
+##        modeleDosssard = "./modeles/dossard-modele.tex"
+##    else :
+##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
+    modeleDosssard = "./modeles/" + dossardModele
     with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()

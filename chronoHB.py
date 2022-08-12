@@ -16,7 +16,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.4"
+version="1.42"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -31,6 +31,7 @@ ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pa
 from FonctionsMetiers import *
 from functools import partial
 
+# from PIL import ImageTk,Image 
 
 #### DEBUG
 DEBUG = False
@@ -2876,6 +2877,10 @@ def packAutresWidgets():
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
     SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
     lblCommentaire.pack(side=TOP)
+    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
+    ModeleDeDossardsLbl.pack(side=LEFT)
+    ModeleDeDossardsCombo.pack(side=LEFT)
+    ModeleDeDossardsCanvas.pack(side=TOP)
     setParametres()
     
 def forgetAutresWidgets():
@@ -2884,6 +2889,7 @@ def forgetAutresWidgets():
     SauvegardeUSBFrameL.pack_forget()
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
+    ModeleDeDossardsFrame.pack_forget()
 
 
 IntituleFrameL = Frame(GaucheFrameParametresCourses)
@@ -2913,6 +2919,36 @@ SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
 SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
 lblCommentaire = Label(GaucheFrameDistanceCourses)
 
+def actualiseCanvasModeleDossards(event):
+    global canvas_image,ModeleDeDossardsCanvas
+    fichierChoisi = ModeleDeDossardsCombo.get()
+    Parametres["dossardModele"] = fichierChoisi
+    imageFile = fichierChoisi[:-3] + "png"
+    if event == "" :
+        print("Initialisation du choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    else :
+        print("Changement de choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    canvas_image = PhotoImage(file = "./modeles/"+imageFile)
+    h = canvas_image.height()
+    w = canvas_image.width()
+    rappH = h // int(ModeleDeDossardsCanvas['height']) + 1
+    rappW = w // int(ModeleDeDossardsCanvas['width']) + 1
+    ModeleDeDossardsCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
+    ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
+    
+
+ModeleDeDossardsFrame = Frame(GaucheFrameParametresCourses)
+ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
+files = tuple(map(os.path.basename,glob.glob('./modeles/dossard-modele-*.tex', recursive = False)))
+ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files)
+ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
+ModeleDeDossardsCombo.set(dossardModele)
+ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=600,height=350)
+actualiseCanvasModeleDossards("")
+
+## tests
+##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
+##ModeleDeDossardsCanvas.create_image(0, 0, image = canvas_image, anchor = NW)
 
 
 IntituleFrameL.pack(side=TOP,anchor="w")
