@@ -43,6 +43,8 @@ class MotionDetection(object):
         self.show_camera = show_camera
         self.show_mask = show_mask
         self.debug = debug
+        self.record = True # ajout d'une propriété afin de bloquer temporairement tout enregistrement.
+        self.arretProgramme = False # ajout d'un propriété afin de demander l'extinction dans un thread, sans l'appui sur une touche.
 
         # Initializing components
         self.cap = cv2.VideoCapture(video_source)
@@ -73,33 +75,53 @@ class MotionDetection(object):
             ret, frame = self.cap.read()
             if self.show_camera:
                 cv2.imshow("Motion Detection", frame)
+            else :
+                try :
+                    cv2.destroyWindow("Motion Detection")
+                except :
+                    True
 
-            # Creating the mask
-            blur = cv2.GaussianBlur(frame, (19, 19), 0)
-            mask = self.sub.apply(blur)
-            if self.show_mask:
-                cv2.imshow("Motion Mask",mask)
+            # optimisation si seul l'affichage est souhaitée et aucune détection de mouvement
+            if self.record :
+                # Creating the mask
+                blur = cv2.GaussianBlur(frame, (19, 19), 0)
+                mask = self.sub.apply(blur)
+                if self.show_mask:
+                    cv2.imshow("Motion Mask",mask)
 
-            # Creating numpy histogram to analyse the noise of the pixels
-            img_temp = np.ones(frame.shape, dtype="uint8") * 255
-            img_temp_and = cv2.bitwise_and(img_temp, img_temp, mask=mask)
-            img_temp_and_bgr = cv2.cvtColor(img_temp_and, cv2.COLOR_BGR2GRAY)
-            hist, bins = np.histogram(img_temp_and_bgr.ravel(), 256, [0, 256])
-            if self.debug:
-                print("Threshold =", self.threshold, ", Noise = ", hist[255], )
+                # Creating numpy histogram to analyse the noise of the pixels
+                img_temp = np.ones(frame.shape, dtype="uint8") * 255
+                img_temp_and = cv2.bitwise_and(img_temp, img_temp, mask=mask)
+                img_temp_and_bgr = cv2.cvtColor(img_temp_and, cv2.COLOR_BGR2GRAY)
+                hist, bins = np.histogram(img_temp_and_bgr.ravel(), 256, [0, 256])
+                if self.debug:
+                    print("Threshold =", self.threshold, ", Noise = ", hist[255], )
 
-            # Testing if the histogram is greater than the threshold configured
-            # Launching the recording thread
-            if hist[255] > self.threshold and not self.is_recording and time.time() - self.time_counter > self.time_interval:
-                print("Motion detected! Recording video...")
-                self.is_recording = True
-                if not self.show_mask and not self.show_camera:
-                    self.record_video()
-                else:
-                    record_thread = Thread(target=self.record_video)
-                    record_thread.start()
-            if cv2.waitKey(100) == 13:
+                # Testing if the histogram is greater than the threshold configured
+                # Launching the recording thread
+                if hist[255] > self.threshold and not self.is_recording and time.time() - self.time_counter > self.time_interval :
+                    print("Motion detected! Recording video...")
+                    self.is_recording = True
+                    if not self.show_mask and not self.show_camera:
+                        self.record_video()
+                    else:
+                        record_thread = Thread(target=self.record_video)
+                        record_thread.start()
+            if self.arretProgramme or cv2.waitKey(100) == 13:
                 break
+        try :
+            record_thread.join()
+            print("record thread finish")
+        except :
+            True
+        self.cap.release()
+        cv2.destroyAllWindows()
+
+    def see(self,boolean):
+        self.show_camera = bool(boolean)
+
+    def recordOrNot(self,boolean) :
+        self.record = bool(boolean)
 
     # Recording thread
     def record_video(self):
@@ -119,8 +141,9 @@ class MotionDetection(object):
         self.is_recording = False
 
     def end(self):
-        self.cap.release()
-        cv2.destroyAllWindows()
+        self.arretProgramme = True
+        print("Fin programmée")
+        
 
 if __name__ == "__main__" :
     ### variables : (path, video_source, video_size, frame_rate, threshold, time_interval, recording_time, show_camera, show_mask, debug)

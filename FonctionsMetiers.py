@@ -1,3 +1,5 @@
+# Auteur : Olivier Lacroix, olacroix@ac-montpellier.fr
+
 #from ZODB import DB
 #from ZODB.FileStorage import FileStorage
 #from ZODB.PersistentMapping import PersistentMapping

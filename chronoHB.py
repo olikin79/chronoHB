@@ -1,3 +1,10 @@
+# Auteur : Olivier Lacroix, olacroix@ac-montpellier.fr
+
+# Bibliothèques utilisées :
+# CameraMotionDetection by julienlammens : https://github.com/julienlammens/CameraMotionDetection
+# TkVideoPlayer by PaulleDemon : https://github.com/PaulleDemon/tkVideoPlayer
+
+
 from tkinter import ttk
 from tkinter import *
 from tkinter.filedialog import *
@@ -16,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.42"
+version="1.5"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -27,14 +34,14 @@ CoureursParClasse = {}
 tableauGUI = []
 ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
 
-#from chronoHBClasses import *
 from FonctionsMetiers import *
+from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1762,6 +1769,48 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+def activerDesactiverLEnregistrement():
+    global time_counter, enregistrementVideo
+    if time.time() - time_counter > 3 :
+        activerDesactiverLaVideo()
+        time_counter = time.time()
+    else :
+        print("Laisse le temps à la webcam de s'initialiser : arrête de cliquer comme un malade")
+        enregistrementVideo.set(1 - enregistrementVideo.get())
+        
+def activerDesactiverLaVideo():
+    global MD
+    if voirVideo.get() or enregistrementVideo.get() :
+        try :
+            MD.recordOrNot(enregistrementVideo.get())
+            MD.see(voirVideo.get())
+            print("Motion Detection déjà actif : on modifie le réglage comme coché sur l'interface :",voirVideo.get(), enregistrementVideo.get())
+        except :
+            print("Motion Detection inactif")
+            recoderT = threading.Thread(name='recorder_thread', target=enregistrerLaVideo)
+            recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+            recoderT.start()
+    else :
+        MD.end()
+        del MD
+        print("on stoppe le module motion detection")
+
+def enregistrerLaVideo():
+    global MD
+    MD = MotionDetection("videos", 1, '480p', 24.0, 20000, 0, 4, bool(voirVideo.get()), False, False)
+    MD.recordOrNot(enregistrementVideo.get())
+    MD.start()
+
+def voirLaVideo():
+    global time_counter, voirVideo
+    if time.time() - time_counter > 3 :
+        activerDesactiverLaVideo()
+        time_counter = time.time()
+    else :
+        print("Laisse le temps à la webcam de s'initialiser : arrête de cliquer comme un malade")
+        voirVideo.set(1 - voirVideo.get())
+
+
 ### zone en haut avec défilement et heure actuelle
 defilementEtHeureFrame = Frame(topframe)
 defilementEtHeureFrame.pack(side=TOP)#, fill='both', expand=True)
@@ -1773,6 +1822,18 @@ defilement = IntVar()
 defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement automatique',
     variable=defilement, command=parametreTableau)
 defilementAutoCB.pack(side=LEFT)
+
+time_counter = 0
+
+enregistrementVideo = IntVar()
+enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement mouvements',
+    variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
+enregistrementVideoCB.pack(side=LEFT)
+
+voirVideo = IntVar()
+voirVideoCB  = Checkbutton(defilementFrame, text='Voir webcam',
+    variable=voirVideo, command=voirLaVideo)
+voirVideoCB.pack(side=LEFT)
 
 lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
 lblHeureActuelle.pack(side=RIGHT)
@@ -3035,6 +3096,11 @@ root.mainloop() # enter the message loop
 print("Fermeture de la BDD")
 ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
 
+try :
+    MD.end()
+    print("Extinction de l'enregistreur de webcam")
+except :
+    print("Webcam non enregistrée à cet instant")
 
 #fLOG.close()
 
