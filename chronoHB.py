@@ -41,7 +41,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -158,6 +158,7 @@ class MonTableau(Frame):
         self.treeview.configure(yscrollcommand=self.vsb.set, xscrollcommand=self.hsb.set)
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
 
+        self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
         #mémorisation des colonnes utiles
         i = 0
         for el in self.enTetes :
@@ -187,31 +188,31 @@ class MonTableau(Frame):
             for index, (val, k) in enumerate(l): # based on sorted index movement
                 tv.move(k, '', index)
             tv.heading(col, command=lambda: treeview_sort_column(tv, col, not reverse)) # Rewrite the title to make it the title of the reverse order
-        def conv_Hexa_vers_Dec(chaine) :
-            ch = chaine
-            retour = 0
-            for i in range(len(ch)) :
-                dernierCaractere = ch[-1:]
-                retour +=  valeurChiffre(dernierCaractere) * 16**i
-                ch = ch[:-1]
-            return retour
-        def valeurChiffre(chiffreHexa) :
-            try :
-                retour = int(chiffreHexa)
-            except :
-                if chiffreHexa == 'A' :
-                    retour = 10
-                elif chiffreHexa == 'B' :
-                    retour = 11
-                elif chiffreHexa == 'C' :
-                    retour = 12
-                elif chiffreHexa == 'D' :
-                    retour = 13
-                elif chiffreHexa == 'E' :
-                    retour = 14
-                elif chiffreHexa == 'F' :
-                    retour = 15
-            return retour
+##        def conv_Hexa_vers_Dec(chaine) :
+##            ch = chaine
+##            retour = 0
+##            for i in range(len(ch)) :
+##                dernierCaractere = ch[-1:]
+##                retour +=  valeurChiffre(dernierCaractere) * 16**i
+##                ch = ch[:-1]
+##            return retour
+##        def valeurChiffre(chiffreHexa) :
+##            try :
+##                retour = int(chiffreHexa)
+##            except :
+##                if chiffreHexa == 'A' :
+##                    retour = 10
+##                elif chiffreHexa == 'B' :
+##                    retour = 11
+##                elif chiffreHexa == 'C' :
+##                    retour = 12
+##                elif chiffreHexa == 'D' :
+##                    retour = 13
+##                elif chiffreHexa == 'E' :
+##                    retour = 14
+##                elif chiffreHexa == 'F' :
+##                    retour = 15
+##            return retour
         def testVal(content,acttyp, column):
             #print("column pour tester le contenu", column)
             if acttyp == '1' or acttyp == '0' : #input
@@ -225,6 +226,7 @@ class MonTableau(Frame):
             else :
                 print("action non prévue :", acttyp,"saisie :",inStr)
             return True
+                       
         def set_cell_value(event): # Double click to enter the edit state
             for item in self.treeview.selection():
                 #item = I001
@@ -233,8 +235,8 @@ class MonTableau(Frame):
                 column= self.treeview.identify_column(event.x)# column
                 row = self.treeview.identify_row(event.y) #row
                 #print("row=",row, " column=", column)
-            cn = conv_Hexa_vers_Dec(str(column).replace('#',''))
-            rn = conv_Hexa_vers_Dec(str(row).replace('I',''))
+            cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
+            rn = self.conv_Hexa_vers_Dec(str(row).replace('I',''))
             if self.enTetes[cn-1] in self.donneesEditables :
                 #print("ligne=",rn, ", colonne=", cn)
                 entryedit = Entry(self,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
@@ -332,6 +334,53 @@ class MonTableau(Frame):
                 #print(self.vsb.get())
         self.treeview.bind('<Double-1>', set_cell_value) # Double-click the left button to enter the edit
 
+    def conv_Hexa_vers_Dec(self,chaine) :
+        ch = chaine
+        retour = 0
+        for i in range(len(ch)) :
+            dernierCaractere = ch[-1:]
+            retour +=  self.valeurChiffre(dernierCaractere) * 16**i
+            ch = ch[:-1]
+        return retour
+    
+    def valeurChiffre(self,chiffreHexa) :
+        try :
+            retour = int(chiffreHexa)
+        except :
+            if chiffreHexa == 'A' :
+                retour = 10
+            elif chiffreHexa == 'B' :
+                retour = 11
+            elif chiffreHexa == 'C' :
+                retour = 12
+            elif chiffreHexa == 'D' :
+                retour = 13
+            elif chiffreHexa == 'E' :
+                retour = 14
+            elif chiffreHexa == 'F' :
+                retour = 15
+        return retour
+
+    def afficheBoutonVideo(self,event): # select ligne pour afficher le bouton vidéo éventuel
+        for item in self.treeview.selection():
+            #item = I001
+            item_text = self.treeview.item(item, "values")
+            #print("Ligne sélectionnée:",item_text) # Output the value of the selected row
+            column= self.treeview.identify_column(event.x)# column
+            row = self.treeview.identify_row(event.y) #row
+            #print("row=",row, " column=", column)
+        cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
+        rn = self.conv_Hexa_vers_Dec(str(row).replace('I',''))
+        ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
+        if True : # si une heure est proche (la webcam a enregistré quelque chose (à 10 s près ?)
+            try :
+                self.buttonVideo.destroy()
+            except :
+                True # rien à détruire.
+            self.buttonVideo = Button(self,text='Vidéo')###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+            premierNomVisible = self.vsb.get()[0]*self.effectif+1
+            self.buttonVideo.place(x=0, y=(rn-premierNomVisible)*20.01+25)
+                
     def setLargeurColonnesAuto(self):
         largeurFrame = self.treeview.winfo_width()
         if self.AncienneLargeurFrame != largeurFrame :
