@@ -41,7 +41,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
