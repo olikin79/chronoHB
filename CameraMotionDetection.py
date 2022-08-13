@@ -16,6 +16,9 @@ MotionDetection Class, allows to detect camera motions:
     show_mask: boolean to show the movement mask
     debug: boolean to show if you want to print the values of the noise
 """
+
+### on quitte avec la touche Entrée.
+
 class MotionDetection(object):
     is_recording = False
     time_counter = 0
@@ -119,7 +122,8 @@ class MotionDetection(object):
         self.cap.release()
         cv2.destroyAllWindows()
 
-if __name__ == "__main__" :    
-    MD = MotionDetection("test", 0, '720p', 24.0, 20000, 5, 5, False, False, False)
+if __name__ == "__main__" :
+    ### variables : (path, video_source, video_size, frame_rate, threshold, time_interval, recording_time, show_camera, show_mask, debug)
+    MD = MotionDetection("test", 1, '480p', 24.0, 20000, 0, 15, True, False, False)
     MD.start()
     MD.end()
