@@ -1,3 +1,7 @@
+Travail du 14/08/22 :
+- implémentation de la détection de mouvement et de l'affichage de la webcam dans l'interface.
+
+
 Travail du 12/08/22 : version 1.42
 - amélioration de la documentation : sommaire, etc... Ajout de la fonctionnalité implémentée ci-dessous.
 - modèle de dossards à choisir dans les paramètres.
