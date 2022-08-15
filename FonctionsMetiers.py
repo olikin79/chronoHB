@@ -70,41 +70,42 @@ def creerDir(path) :
 
 # enregistre les données de sauvegarde 
 # récupère les données de sauvegarde 
-def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False) :
+def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
     #global noSauvegarde
     #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
     #d = shelve.open(sauvegarde)
     #creerDir(sauvegarde)
-    d = open(sauvegarde+".db","wb")
-    pickle.dump(root, d)
-    #d['root'] = root
-    d.close()
-    if os.path.exists(sauvegarde+".db") :
+    if avecVideos :
+        destination = sauvegarde
+        sauvegarde = os.path.basename(sauvegarde) # dans ce cas sauvegarde est un dossier et non un fichier. La flemme de refaire plus propre.
+    else :
         if surCle :
             # ajout d'une sauvegarde sur clé très régulière
             destination = Parametres["cheminSauvegardeUSB"]
         else :
             destination = "db"
+    date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+    nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire 
+    d = open(nomFichierCopie + ".db","wb")
+    pickle.dump(root, d)
+    d.close()
+    if os.path.exists(nomFichierCopie + ".db") :
+        print("La sauvegarde", nomFichierCopie , "est créée.")
         if destination != "" and creerDir(destination) :
-            date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-            nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire + ".db"
-            nomFichierCopie = nomFichierCopie# .replace("_","-") # protection contre le bug de os.path.basename qui gère mal les _
-            if not os.path.exists(nomFichierCopie) :
-                if os.path.exists(sauvegarde+".db") :
-                    shutil.copy2(sauvegarde+".db",  nomFichierCopie)
-                print("La sauvegarde", nomFichierCopie, "est créée.")
-                if os.path.exists("donneesModifLocale.txt"):
-                    shutil.copy2("donneesModifLocale.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_ML.txt")
-                else :
-                    print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-                    open("donneesModifLocale.txt", 'a').close()
-                if os.path.exists("donneesSmartphone.txt"):
-                    shutil.copy2("donneesSmartphone.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
-                else :
-                    print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-                    open("donneesSmartphone.txt", 'a').close()
+##          if os.path.exists(sauvegarde+".db") :
+##              shutil.copy2(sauvegarde+".db",  nomFichierCopie + ".db")
+            if os.path.exists("donneesModifLocale.txt"):
+                shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
             else :
-                print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
+                print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                open("donneesModifLocale.txt", 'a').close()
+            if os.path.exists("donneesSmartphone.txt"):
+                shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
+            else :
+                print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                open("donneesSmartphone.txt", 'a').close()
+            if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegarde pas les vidéos. Seulement à vocation d'archivage.
+                shutil.copytree("videos", nomFichierCopie + "_videos")
         elif destination != "" :
             print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
             nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
@@ -127,6 +128,7 @@ def recupere_sauvegarde(sauvegardeChoisie) :
     #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
     fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
     fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+    dossierVideos = sauvegardeChoisie[:-3] + "_videos"
     tousPresents = True
     ### tester si les trois fichiers existent.
     for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
@@ -146,6 +148,11 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
         shutil.copy2(fichierML, "donneesModifLocale.txt")
         shutil.copy2(fichierDS, "donneesSmartphone.txt")
+        # restauration des vidéos sauvegardées
+        if os.path.exists("videos") :
+            shutil.rmtree("videos")
+        if os.path.exists(dossierVideos) :
+            shutil.copytree(dossierVideos,"videos")
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
         retour = chargerDonnees()
         setParametres() # fichier à destination du smartphone à regéréner.
@@ -572,12 +579,14 @@ class Temps():#persistent.Persistent):
         else :
             ch = "-"
         return ch
-    def tempsReelFormateDateHeure(self) :
+    def tempsReelFormateDateHeure(self, sansCentieme = False) :
         if self.tempsReel :
             partieDecimale = str(round(((self.tempsReel - int(self.tempsReel))*100)))
             if len(partieDecimale) == 1 :
                 partieDecimale = "0" + partieDecimale
-            ch = time.strftime("%m/%d/%y-%H:%M:%S:",time.localtime(self.tempsReel)) + str(partieDecimale)
+            ch = time.strftime("%m/%d/%y-%H:%M:%S",time.localtime(self.tempsReel))
+            if not sansCentieme :
+                ch += ":" + str(partieDecimale)
         else :
             ch = "-"
         return ch
@@ -722,7 +731,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele
+           dossardModele,webcam,webcamSensibility
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -837,6 +846,12 @@ def chargerDonnees() :
     if not "dossardModele" in Parametres :
         Parametres["dossardModele"]= "dossard-modele-1.tex"
     dossardModele=Parametres["dossardModele"]
+    if not "webcam" in Parametres :
+        Parametres["webcam"]= 0
+    webcam=Parametres["webcam"]
+    if not "webcamSensibility" in Parametres :
+        Parametres["webcamSensibility"]= 20000
+    webcamSensibility=Parametres["webcamSensibility"]
     ##transaction.commit()
     return globals()
 
@@ -3474,6 +3489,8 @@ def delDossardsEtTemps():
     root["LignesIgnoreesSmartphone"] = []
     root["LignesIgnoreesLocal"] = []
     ligneTableauGUI = [1,0]
+    if os.path.exists("./videos") :
+        shutil.rmtree("./videos")
 ##    else :
 ##        print("Course commencée : impossible d'effacer le listing des coureurs")
 

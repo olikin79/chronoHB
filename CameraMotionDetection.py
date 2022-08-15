@@ -83,30 +83,33 @@ class MotionDetection(object):
 
             # optimisation si seul l'affichage est souhaitée et aucune détection de mouvement
             if self.record :
-                # Creating the mask
-                blur = cv2.GaussianBlur(frame, (19, 19), 0)
-                mask = self.sub.apply(blur)
-                if self.show_mask:
-                    cv2.imshow("Motion Mask",mask)
+                try :
+                    # Creating the mask
+                    blur = cv2.GaussianBlur(frame, (19, 19), 0)
+                    mask = self.sub.apply(blur)
+                    if self.show_mask:
+                        cv2.imshow("Motion Mask",mask)
 
-                # Creating numpy histogram to analyse the noise of the pixels
-                img_temp = np.ones(frame.shape, dtype="uint8") * 255
-                img_temp_and = cv2.bitwise_and(img_temp, img_temp, mask=mask)
-                img_temp_and_bgr = cv2.cvtColor(img_temp_and, cv2.COLOR_BGR2GRAY)
-                hist, bins = np.histogram(img_temp_and_bgr.ravel(), 256, [0, 256])
-                if self.debug:
-                    print("Threshold =", self.threshold, ", Noise = ", hist[255], )
+                    # Creating numpy histogram to analyse the noise of the pixels
+                    img_temp = np.ones(frame.shape, dtype="uint8") * 255
+                    img_temp_and = cv2.bitwise_and(img_temp, img_temp, mask=mask)
+                    img_temp_and_bgr = cv2.cvtColor(img_temp_and, cv2.COLOR_BGR2GRAY)
+                    hist, bins = np.histogram(img_temp_and_bgr.ravel(), 256, [0, 256])
+                    if self.debug:
+                        print("Threshold =", self.threshold, ", Noise = ", hist[255], )
 
-                # Testing if the histogram is greater than the threshold configured
-                # Launching the recording thread
-                if hist[255] > self.threshold and not self.is_recording and time.time() - self.time_counter > self.time_interval :
-                    print("Motion detected! Recording video...")
-                    self.is_recording = True
-                    if not self.show_mask and not self.show_camera:
-                        self.record_video()
-                    else:
-                        record_thread = Thread(target=self.record_video)
-                        record_thread.start()
+                    # Testing if the histogram is greater than the threshold configured
+                    # Launching the recording thread
+                    if hist[255] > self.threshold and not self.is_recording and time.time() - self.time_counter > self.time_interval :
+                        print("Motion detected! Recording video...")
+                        self.is_recording = True
+                        if not self.show_mask and not self.show_camera:
+                            self.record_video()
+                        else:
+                            record_thread = Thread(target=self.record_video)
+                            record_thread.start()
+                except :
+                    print("Image is not loaded correctly")
             if self.arretProgramme or cv2.waitKey(100) == 13:
                 break
         try :

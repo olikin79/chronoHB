@@ -3,12 +3,16 @@ PRIORITAIRES :
 
 
 
+
 NON PRIORITAIRES :
 - ESTHETIQUE : 
 	* les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
 	Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
 	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
+	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
+	Impact graphique uniquement ?
+	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
 
 	
 ESTHETIQUE :
@@ -20,8 +24,13 @@ A TESTER :
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
+- voir comment gérer les sauvegardes et les vidéos : une sauvegarde manuelle permettrait de sauvegarder les vidéos ?
+pas celles automatiques. Une réinitialisation effacerait toutes les vidéos existantes.
 
-
+- permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
+les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
+Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
+de vérification et de laisser les coureurs concernés loin des installations.
 
 	
 MOYENNEMENT PRIORITAIRE :
@@ -66,9 +75,8 @@ en déterminant le nombre total de lignes et on l'appliquant à posteriori à to
   Actuellement, cela semble bien car sexe, naissance, classe, absent, dispensé, commentaire sont modifiés. 
   Seuls nom et prénom, s'ils sont différents, imposent la création d'un autre coureur (nouveau numéro de dossard). Du coup, l'autre dossard devient inutile.
 - l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
-Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain, pourrait afficher les résultats.
+Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain (sans wifi), pourrait afficher les résultats.
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
-- photo finish à l'arrivée automatique et accessible depuis l'interface GUI
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
 - possibilité de configurer les dossards générés : possibilité de trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)

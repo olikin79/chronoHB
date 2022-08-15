@@ -150,12 +150,26 @@ class MonTableau(Frame):
             self.treeview.column('#' + str(i+1), width=self.largeursColonnes[i], anchor='center') # indicates column, not displayed
             self.treeview.heading('#' + str(i+1), text=enTete) # Show header
             self.treeview.column('#' + str(i+1), minwidth=self.largeursColonnes[i], stretch=0)
+
+        def treeviewYscrollCompl (x1,x2) :
+            try :
+                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+            except :
+                True # rien à détruire.
+            self.treeview.yview(x1,x2)
+
+        def YscrollCompl (x1,x2) :
+            try :
+                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+            except :
+                True # rien à détruire.
+            self.vsb.set(x1,x2)
         
-        self.vsb = ttk.Scrollbar(parent, orient="vertical", command=self.treeview.yview)
+        self.vsb = ttk.Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
         self.hsb = ttk.Scrollbar(parent, orient="horizontal", command=self.treeview.xview)
         self.hsb.pack(side='bottom', fill='y')
-        self.treeview.configure(yscrollcommand=self.vsb.set, xscrollcommand=self.hsb.set)
+        self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
 
         self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
@@ -301,7 +315,7 @@ class MonTableau(Frame):
                                         print("Temps modifié ajouté (sans report du dossard affecté pour éviter tout risque) :", requete)
                                         r = requests.get(requete)
         ##                                self.change = True
-        ##                                self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
+                                        self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
         ##                                traiterDonneesLocales()
         ##                                genereResultatsCoursesEtClasses()
         ##                                self.maj(tableauGUI)
@@ -334,6 +348,7 @@ class MonTableau(Frame):
                 #print(self.vsb.get())
         self.treeview.bind('<Double-1>', set_cell_value) # Double-click the left button to enter the edit
 
+            
     def conv_Hexa_vers_Dec(self,chaine) :
         ch = chaine
         retour = 0
@@ -362,6 +377,10 @@ class MonTableau(Frame):
         return retour
 
     def afficheBoutonVideo(self,event): # select ligne pour afficher le bouton vidéo éventuel
+        try :
+            self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+        except :
+            True # rien à détruire.
         for item in self.treeview.selection():
             #item = I001
             item_text = self.treeview.item(item, "values")
@@ -372,14 +391,16 @@ class MonTableau(Frame):
         cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
         rn = self.conv_Hexa_vers_Dec(str(row).replace('I',''))
         ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
-        if True : # si une heure est proche (la webcam a enregistré quelque chose (à 10 s près ?)
-            try :
-                self.buttonVideo.destroy()
-            except :
-                True # rien à détruire.
-            self.buttonVideo = Button(self,text='Vidéo')###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+        # print("temps sélectionné",self.listeDesTemps[rn-1].tempsReelFormateDateHeure(sansCentieme = True))
+        fichier = rechercheVideoProcheDe(self.listeDesTemps[rn-1].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
+        if fichier : # si une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 10 s près par exempl)
+            self.buttonVideo = Button(self,text='Vidéo',command=lambda f=fichier : ouvrirVideo(f))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+            self.buttonVideo['font'] = font.Font(size=7)
             premierNomVisible = self.vsb.get()[0]*self.effectif+1
-            self.buttonVideo.place(x=0, y=(rn-premierNomVisible)*20.01+25)
+            sommeLargeurColonnes = 0
+            for i in range(2) :
+                sommeLargeurColonnes += self.largeursColonnes[i]
+            self.buttonVideo.place(x=sommeLargeurColonnes, y=(rn-premierNomVisible)*20.01+25)
                 
     def setLargeurColonnesAuto(self):
         largeurFrame = self.treeview.winfo_width()
@@ -577,6 +598,69 @@ class MonTableau(Frame):
         else :
             return item_text[5]
 
+def ouvrirVideo(fichier) :
+    print("Ouverture du fichier", fichier)
+    #subprocess.run(['open', fichier], check=True)
+    os.system(fichier)
+    #subprocess.Popen(fichier,shell=True)
+    
+def formateSurDeuxChiffres(entier):
+    """ formate sur deux chiffres un entier inférieur à 100. Retourne un objet str"""
+    if len(str(entier)) < 2 :
+        entier = "0" + str(entier)
+    return str(entier)
+
+def rechercheVideoProcheDe(horaire) :
+    ecartTolere = 10 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
+    print(horaire, "%m/%d/%y-%H:%M:%S")
+    heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
+    annee=time.strftime("%Y",heurePassage)
+    mois=time.strftime("%m",heurePassage)
+    jour=time.strftime("%d",heurePassage)
+    heure=time.strftime("%H",heurePassage)
+    minute=time.strftime("%M",heurePassage)
+    seconde=time.strftime("%S",heurePassage)
+    #print(horaire)
+    tpsSelectionne = time.mktime(heurePassage)
+    #print("Temps sélectionné en secondes depuis epoch :",tpsSelectionne)
+    ## optimisation pour limiter le nombre de fichiers : l'heure du début de la vidéo précède forcément l'heure de passage car le champ est large
+    if int(seconde) >= 10 :
+        files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.avi"))
+    else :
+        if int(minute) > 0 :
+            # si seconde < 10 , on prend tous les fichiers qui sont dans la minute qui précède et la minute courante
+            files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + formateSurDeuxChiffres(int(minute)-1) +"-*.avi")+\
+                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.avi"))
+        else :
+            if int(heure) > 0 :
+                # on doit aussi prendre les fichiers de la 59ème minute de l'heure précédente
+                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + formateSurDeuxChiffres(int(heure)-1) + "-59-*.avi")+\
+                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-00-*.avi"))
+            else :
+                # aucune optimisation : cas improbable car on ne coure pas à minuit !
+                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour+"-*.avi"))
+    #files.sort(key=os.path.getmtime) # finalement, on trie en fonction du nom, qui contient l'heure. Plus fiable en cas de copies-restaurations de fichiers ultérieures.
+    #print("\n".join(files))
+    ecart = 4000000000 # durée d'une vie humaine : 4.10^9 secondes
+    # on recherche le fichier avec le plus faible ecart : si l'écart augmente, on arrête le parcours, on s'éloigne. On a trouvé le minimum.
+    # on pourrait imaginer une dichotomie pour se rapprocher plus vite de la meilleure vidéo
+    # mais peu utile vu le filtre sur les heures des vidéos ci-dessus.
+    for file in files :
+        nom = os.path.basename(file[:-4])
+        tpsFile = time.mktime(time.strptime(nom, "%Y-%m-%d-%H-%M-%S"))
+        nouvelEcart = abs(tpsSelectionne - tpsFile)
+        #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
+        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
+            break
+        else :
+            fichierChoisi = file
+            ecart = nouvelEcart
+    if ecart < ecartTolere : # tolérance choisie en début de fonction
+        retour = fichierChoisi
+        print("Affichage de la vidéo",retour)
+    else :
+        retour = ""
+    return retour
 
 class ValidatingEntry(Entry):
     # base class for validating entry widgets
@@ -1846,7 +1930,7 @@ def activerDesactiverLaVideo():
 
 def enregistrerLaVideo():
     global MD
-    MD = MotionDetection("videos", 1, '480p', 24.0, 20000, 0, 4, bool(voirVideo.get()), False, False)
+    MD = MotionDetection("videos", Parametres['webcam'], '480p', 24.0, Parametres['webcamSensibility'], 0, 4, bool(voirVideo.get()), False, False)
     MD.recordOrNot(enregistrementVideo.get())
     MD.start()
 
@@ -2297,7 +2381,7 @@ def actualiseZoneAffichageTV() :
         
 def effaceDonneesCoursesGUI ():
     global tableau
-    reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs) ?")
+    reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs, vidéos enregistrées) ?")
     if reponse :
         fichier = ecrire_sauvegarde(sauvegarde, "-avant-donnees-courses-effacees")
         delDossardsEtTemps()
@@ -2987,6 +3071,11 @@ def packAutresWidgets():
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
     SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
     lblCommentaire.pack(side=TOP)
+    webcamComboL.pack(side=LEFT)
+    webcamCombo.pack(side=LEFT)
+    webcamComboFVide.pack(side=LEFT)
+    webcamScale.pack(side=LEFT)
+    webcamF.pack(side=TOP,anchor="w")
     ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
     ModeleDeDossardsLbl.pack(side=LEFT)
     ModeleDeDossardsCombo.pack(side=LEFT)
@@ -3000,12 +3089,14 @@ def forgetAutresWidgets():
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
     ModeleDeDossardsFrame.pack_forget()
+    webcamF.pack_forget()
 
 
-IntituleFrameL = Frame(GaucheFrameParametresCourses)
-IntituleFrame = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=IntituleFrameL)
-LieuFrameL = Frame(GaucheFrameParametresCourses)
-LieuFrame = EntryParam("lieu", "Lieu", largeur=15, parent=LieuFrameL)
+titresCourseF = Frame(GaucheFrameParametresCourses)
+#IntituleFrameL = Frame(GaucheFrameParametresCourses)
+IntituleEntry = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=titresCourseF)
+#LieuFrameL = Frame(GaucheFrameParametresCourses)
+LieuEntry = EntryParam("lieu", "Lieu", largeur=15, parent=titresCourseF)
 
   
 svRadio  = StringVar()
@@ -3028,6 +3119,26 @@ MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut l
 SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
 SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
 lblCommentaire = Label(GaucheFrameDistanceCourses)
+
+def actualiseWebcamParametre(event) :
+    print("Modification du choix de webcam")
+    Parametres['webcam'] = int(webcamCombo.get())
+
+def actualiseWebcamSensibiliteParametre(event) :
+    print("Modification du seuil de détection de la webcam")
+    Parametres['webcamSensibility'] = int(webcamScale.get())
+
+webcamF = Frame(GaucheFrameParametresCourses)
+webcamComboL = Label(webcamF, text="Choix de la webcam")
+webcamCombo = Combobox(webcamF, width="2", state="readonly", values=(0,1,2)) # max 3 webcam pour un ordinateur semble raisonnable
+webcamCombo.set(Parametres['webcam'])
+webcamCombo.bind("<<ComboboxSelected>>", actualiseWebcamParametre)
+webcamComboFVide = Frame(webcamF,width=100) # une Frame vide pour utiliser pack() et laisser un peu de place
+webcamScale = Scale(webcamF, orient='horizontal', from_=0, to=100000,
+      resolution=1000, tickinterval=20000, length=450,
+      label='Seuil pour la détection de mouvement (0 : très sensible / 100000 : pas sensible)')
+webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
+webcamScale.set(Parametres['webcamSensibility'])
 
 def actualiseCanvasModeleDossards(event):
     global canvas_image,ModeleDeDossardsCanvas
@@ -3060,11 +3171,11 @@ actualiseCanvasModeleDossards("")
 ##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
 ##ModeleDeDossardsCanvas.create_image(0, 0, image = canvas_image, anchor = NW)
 
-
-IntituleFrameL.pack(side=TOP,anchor="w")
-IntituleFrame.pack(side=LEFT,anchor="w")
-LieuFrameL.pack(side=TOP,anchor="w")
-LieuFrame.pack(side=LEFT,anchor="w")
+titresCourseF.pack(side=TOP,anchor="w")
+#IntituleFrameL.pack(side=TOP,anchor="w")
+IntituleEntry.pack(side=LEFT,anchor="w")
+#LieuFrameL.pack(side=LEFT,anchor="w")
+LieuEntry.pack(side=LEFT,anchor="w")
 
 rb1.pack(side=LEFT,anchor="w")
 rb2.pack(side=LEFT,anchor="w")
@@ -3078,7 +3189,14 @@ else :
     choixCC()
 
 
-
+def exportCourse():
+    # selectionner un dossier contenant
+    dossierChoisi = askdirectory()
+    if dossierChoisi :
+        ecrire_sauvegarde(dossierChoisi, commentaire="", surCle=False, avecVideos=True)
+        reponse = showinfo("INFORMATION","Sauvegarde effectuée dans le dossier " + dossierChoisi)
+    else :
+        reponse = showinfo("ATTENTION","Pas de sauvegarde effectuée. Sélectionner un dossier pour archivage de la course.")
 
 
 ####################### MENUS ################################
@@ -3102,6 +3220,7 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 postcoursemenu = Menu(menubar, tearoff=0)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
+postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)
 #postcoursemenu.add_cascade(label="Gestion d'après course", menu=editmenu)
 menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 

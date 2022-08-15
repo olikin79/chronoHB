@@ -1,5 +1,12 @@
-Travail du 14/08/22 :
+Travail du 14/08/22 : version 1.5
 - implémentation de la détection de mouvement et de l'affichage de la webcam dans l'interface.
+Le menu paramètres contient deux paramètres liés à la webcam : le numéro de celle à utiliser, la sensibilité de la détection.
+Des cases à cocher permettent d'activer l'enregistrement par détection de mouvement ET-OU l'affichage de la webcam.
+Un bouton apparaît pour visualiser rapidement la vidéo dont l'enregistrement précède immédiatement l'heure de passage sélectionnée.
+La documentation a été actualisée par rapport à cela.
+- implémentation d'un archivage manuel en fin de course. Celui-ci comportera toutes les vidéos enregistrées. 
+Modification des fonctions de sauvegarde et de restauration pour prendre en compte les vidéos.
+- correctif esthétique : la modification d'un horaire de passage dans l'interface modifie le treeview instantanément. Ce n'est le cas que pour le dossard affecté.
 
 
 Travail du 12/08/22 : version 1.42
