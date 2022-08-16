@@ -99,7 +99,7 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
     if os.path.exists("Courses.db") :
         if destination != "" and creerDir(destination) :
             print("Création de la sauvegarde", nomFichierCopie)
-            if os.path.exists(sauvegarde+".db") :
+            if os.path.exists("Courses.db") :
                 shutil.copy2("Courses.db",  nomFichierCopie + ".db")
             if os.path.exists("donneesModifLocale.txt"):
                 shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
@@ -111,8 +111,16 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
             else :
                 print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
                 open("donneesSmartphone.txt", 'a').close()
-            if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegarde pas les vidéos. Seulement à vocation d'archivage.
-                shutil.copytree("videos", nomFichierCopie + "_videos")
+            creerDir("videos")
+            creerDir(destination + os.sep + "chronoHBvideos")
+            files = glob.glob("videos/*.avi")
+            for file in files :
+                dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
+                if not os.path.exists(dest) :
+                    shutil.copy2(file, dest)
+            #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
+            # désormais, on sauvegarde snas overwrite pour limiter les les flux
+                #shutil.copytree("videos", "chronoHBvideos")
         elif destination != "" :
             print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
             nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
@@ -135,7 +143,7 @@ def recupere_sauvegarde(sauvegardeChoisie) :
     #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
     fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
     fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
-    dossierVideos = sauvegardeChoisie[:-3] + "_videos"
+    dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
     tousPresents = True
     ### tester si les trois fichiers existent.
     for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
