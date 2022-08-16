@@ -150,6 +150,9 @@ class MonTableau(Frame):
             self.treeview.column('#' + str(i+1), width=self.largeursColonnes[i], anchor='center') # indicates column, not displayed
             self.treeview.heading('#' + str(i+1), text=enTete) # Show header
             self.treeview.column('#' + str(i+1), minwidth=self.largeursColonnes[i], stretch=0)
+##        ### correction d'un bug lié aux numéros de ligne : chaque ligne effacée garde son numéro initial.
+##        ### après effacement de 10 lignes, les autres lignes sont décalées et la première ligne est la n°11 (exemple)
+##        self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
 
         def treeviewYscrollCompl (x1,x2) :
             try :
@@ -172,7 +175,8 @@ class MonTableau(Frame):
         self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
+        #self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
+        self.treeview.bind("<<TreeviewSelect>>",self.afficheBoutonVideo)
         #mémorisation des colonnes utiles
         i = 0
         for el in self.enTetes :
@@ -195,6 +199,7 @@ class MonTableau(Frame):
         self.effectif = len(self.treeview.get_children())
         for col in self.enTetes: # bind function to make the header sortable
             self.treeview.heading(col, text=col, command=lambda _col=col: treeview_sort_column(self.treeview, _col, False))
+            
         def treeview_sort_column(tv, col, reverse): # Treeview, column name, arrangement
             l = [(tv.set(k, col), k) for k in tv.get_children('')]
             l.sort(reverse=reverse) # Sort by
@@ -247,10 +252,12 @@ class MonTableau(Frame):
                 item_text = self.treeview.item(item, "values")
                 #print("Ligne sélectionnée:",item_text) # Output the value of the selected row
                 column= self.treeview.identify_column(event.x)# column
-                row = self.treeview.identify_row(event.y) #row
+                #row = self.treeview.identify_row(event.y) #row
                 #print("row=",row, " column=", column)
+            row = self.treeview.focus()
             cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
-            rn = self.conv_Hexa_vers_Dec(str(row).replace('I',''))
+            ### correctif bug lié aux suppressions de lignes successives : rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) #- self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
+            rn = self.treeview.get_children().index(row) + 1
             if self.enTetes[cn-1] in self.donneesEditables :
                 #print("ligne=",rn, ", colonne=", cn)
                 entryedit = Entry(self,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
@@ -381,18 +388,23 @@ class MonTableau(Frame):
             self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
         except :
             True # rien à détruire.
-        for item in self.treeview.selection():
+        #for item in self.treeview.selection():
             #item = I001
-            item_text = self.treeview.item(item, "values")
+            #item_text = self.treeview.item(item, "values")
             #print("Ligne sélectionnée:",item_text) # Output the value of the selected row
-            column= self.treeview.identify_column(event.x)# column
-            row = self.treeview.identify_row(event.y) #row
-            #print("row=",row, " column=", column)
-        cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
-        rn = self.conv_Hexa_vers_Dec(str(row).replace('I',''))
+            #column= self.treeview.identify_column(event.x)# column
+        row = self.treeview.focus() #self.treeview.identify_row(event.y) #row
+        #print("row=",row, "treeview.selection()",self.treeview.selection())
+        #try :
+        #cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
+        #rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) - self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
+        ### amélioration suite aux bugs liés aux effacements successifs possibles dans le treevoew. Les numéros supprimés ne sont pas réaffectés.
+        rn = self.treeview.get_children().index(row)
         ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
-        # print("temps sélectionné",self.listeDesTemps[rn-1].tempsReelFormateDateHeure(sansCentieme = True))
-        fichier = rechercheVideoProcheDe(self.listeDesTemps[rn-1].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
+        #print("focus",self.treeview.focus())
+        #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
+        #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
+        fichier = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
         if fichier : # si une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 10 s près par exempl)
             self.buttonVideo = Button(self,text='Vidéo',command=lambda f=fichier : ouvrirVideo(f))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
             self.buttonVideo['font'] = font.Font(size=7)
@@ -400,7 +412,9 @@ class MonTableau(Frame):
             sommeLargeurColonnes = 0
             for i in range(2) :
                 sommeLargeurColonnes += self.largeursColonnes[i]
-            self.buttonVideo.place(x=sommeLargeurColonnes, y=(rn-premierNomVisible)*20.01+25)
+            self.buttonVideo.place(x=sommeLargeurColonnes, y=(rn+1-premierNomVisible)*20.01+25)
+        #except :
+        #    print("Clic sur le treeview en dehors d'une ligne valide")
                 
     def setLargeurColonnesAuto(self):
         largeurFrame = self.treeview.winfo_width()
@@ -433,13 +447,23 @@ class MonTableau(Frame):
         #print(self.treeview.get_children(), len(x))
         if ligne < len(x) :
             ToDeleteList = x[ligne - 1 : ]
+            print("suppression des lignes en trop en bas du tableau :", len(ToDeleteList))
             #print("liste a supprimer",ToDeleteList)
             for item in ToDeleteList:
                 #print("suppression de ", item)
-                self.treeview.delete(item)
+                #self.treeview.delete(item)
+                self.treeviewDelete(item)    
         self.treeview.pack(side=LEFT, fill=BOTH)
         self.effectif = len(self.treeview.get_children())
+        #print("self.treeview.get_children()",self.treeview.get_children())
+##        if self.effectif == 0 :
+##            self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
+##            print("Le tableau est vide.")
 
+    def treeviewDelete(self,item) :
+        self.treeview.delete(item)
+        #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
+        
     def maj (self, TableauGUI) :
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
@@ -460,17 +484,18 @@ class MonTableau(Frame):
                     self.majLigne(ligneInitiale, donnee, items)
                     ligneInitiale += 1
                 ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
-                premiereLigneASupprimer = ligneInitiale
-                while premiereLigneASupprimer <= len(items) :
-                    # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
-                      # on supprime les derniers éléments de listeDesTemps
-                    item = items[premiereLigneASupprimer - 1]
-                    self.treeview.delete(item)
-                    premiereLigneASupprimer += 1
+                # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
+##                premiereLigneASupprimer = ligneInitiale
+##                while premiereLigneASupprimer <= len(items) :
+##                    
+##                      # on supprime les derniers éléments de listeDesTemps
+##                    item = items[premiereLigneASupprimer - 1]
+##                    self.treeviewDelete(item)
+##                    premiereLigneASupprimer += 1
+                self.delTreeviewFrom(ligneInitiale)
                 del self.listeDesTemps[ligneInitiale - 1:]
                 #nbreFileAttenteLabel.pack()
-                if self.defilementAuto :
-                                                 
+                if self.defilementAuto :      
                     #print("défilement automatique activé. AVANT :", self.vsb.get())
                     self.treeview.yview_moveto('1.0')
 

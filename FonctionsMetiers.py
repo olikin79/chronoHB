@@ -1182,7 +1182,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         #pasDErreur = True
         while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
             ligne = listeLigne[i]
-            print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
+            #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
                 codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents)
@@ -1197,7 +1197,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                     #else :
                         #pasDErreur = False
 ##                else :
-                    print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
+                    #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
                 ### désormais, même s'il y a une erreur, on poursuit les imports.
                 Parametres["ligneDerniereRecuperationSmartphone"] += 1
                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
@@ -1238,7 +1238,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
         #pasDErreur = True
         while i < len(listeLigne):# and pasDErreur :
             ligne = listeLigne[i]
-            print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
+            #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
                 codeErreur = decodeActionsRecupSmartphone(ligne, local=True, UIDPrecedents = dictUIDPrecedents)
@@ -1252,8 +1252,8 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
 ##                        Parametres["tempsDerniereRecuperationLocale"] = time.time()
                     #else :
                      #   pasDErreur = False
-                else :
-                    print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
+                #else :
+                    #print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
                 # même si une erreur se produit, désormais, on poursuit les imports.
                 Parametres["ligneDerniereRecuperationLocale"] += 1
                 Parametres["tempsDerniereRecuperationLocale"] = time.time() 
@@ -2797,7 +2797,7 @@ def dupliqueTemps(tps):
         Retourne un temps disponible dans la liste des temps arrivés (le même temps que celui fourni plus quelques centièmes (en tempsReel calculé)."""
     nouveauTps = tps
     if tempsClientIsNotInArriveeTemps(nouveauTps) :
-        print("Un nouveau temps disponible a été trouvé. On le retourne :",nouveauTps.tempsReelFormateDateHeure())
+        #print("Un nouveau temps disponible a été trouvé. On le retourne :",nouveauTps.tempsReelFormateDateHeure())
         return nouveauTps
     else :
         print("Le temps",nouveauTps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
