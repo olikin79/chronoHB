@@ -24,9 +24,6 @@ A TESTER :
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
 PRIORITAIRES :
-- voir comment gérer les sauvegardes et les vidéos : une sauvegarde manuelle permettrait de sauvegarder les vidéos ?
-pas celles automatiques. Une réinitialisation effacerait toutes les vidéos existantes.
-
 - permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
 les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
 Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 

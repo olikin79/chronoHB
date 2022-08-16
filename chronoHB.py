@@ -612,7 +612,7 @@ def formateSurDeuxChiffres(entier):
 
 def rechercheVideoProcheDe(horaire) :
     ecartTolere = 10 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
-    print(horaire, "%m/%d/%y-%H:%M:%S")
+    print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
     heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
     annee=time.strftime("%Y",heurePassage)
     mois=time.strftime("%m",heurePassage)
@@ -2141,7 +2141,12 @@ class Clock():
         self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
         self.update_clock()
-        
+
+    def setPremiereExecution(self,valeur):
+        try :
+            self.premiereExecution = bool(valeur)
+        except :
+            print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
     def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
@@ -2149,10 +2154,13 @@ class Clock():
 
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
+
+        if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
+            self.auMoinsUnImport = True
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        traitementSmartphone = traiterDonneesSmartphone()
-        traitementLocal = traiterDonneesLocales()
+        traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
+        traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
         self.premiereExecution = False
 
@@ -2164,6 +2172,8 @@ class Clock():
         # maj affichage.
 ##        if tableauGUI :
 ##            print("tableauGUI transmis", tableauGUI)
+##        else :
+##            print("pas de maj de tableau GUI")
         eval(self.MAJfunction + "(tableauGUI)")
         tableau.makeDefilementAuto()
 
@@ -2200,8 +2210,6 @@ class Clock():
         self.premiereExecution = True
         
     def erreursATraiter(self,listeNouvellesErreursATraiter):
-        if listeNouvellesErreursATraiter : # au moins un import avec ou sans erreur. On doit enclencher une sauvegarde.
-            self.auMoinsUnImport = True
         # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
         i = len(self.erreursEnCoursNumeros) - 1

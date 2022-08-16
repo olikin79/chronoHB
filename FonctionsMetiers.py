@@ -82,18 +82,25 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
         if surCle :
             # ajout d'une sauvegarde sur clé très régulière
             destination = Parametres["cheminSauvegardeUSB"]
+            try :
+                creerDir(destination)
+            except :
+                if os.sep == "/" :
+                    print("Impossible de créer le dossier fixé en paramètre ", destination)
+                else :
+                    print("Le lecteur", destination[:3] ,"n'existe pas")
         else :
             destination = "db"
     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
     nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire 
-    d = open(nomFichierCopie + ".db","wb")
+    d = open("Courses.db","wb")
     pickle.dump(root, d)
     d.close()
-    if os.path.exists(nomFichierCopie + ".db") :
-        print("La sauvegarde", nomFichierCopie , "est créée.")
+    if os.path.exists("Courses.db") :
         if destination != "" and creerDir(destination) :
-##          if os.path.exists(sauvegarde+".db") :
-##              shutil.copy2(sauvegarde+".db",  nomFichierCopie + ".db")
+            print("Création de la sauvegarde", nomFichierCopie)
+            if os.path.exists(sauvegarde+".db") :
+                shutil.copy2("Courses.db",  nomFichierCopie + ".db")
             if os.path.exists("donneesModifLocale.txt"):
                 shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
             else :
@@ -835,7 +842,7 @@ def chargerDonnees() :
         Parametres["messageDefaut"]="<prenom> de <classe>. Pour éla, merci beaucoup !"
     messageDefaut=Parametres["messageDefaut"]
     if not "cheminSauvegardeUSB" in Parametres :
-        Parametres["cheminSauvegardeUSB"]="D:"
+        Parametres["cheminSauvegardeUSB"]="N:"
     cheminSauvegardeUSB=Parametres["cheminSauvegardeUSB"]
     if not "vitesseDefilement" in Parametres :
         Parametres["vitesseDefilement"]= "1"
@@ -1366,14 +1373,22 @@ def lignesAPartirDe(fichier, noLigne):
 def derniereModifFichierDonnneesSmartphoneRecente(fichier):
     """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
     #print( "Fichier modif :",os.path.getmtime(fichier), "Dernier Import :",Parametres["tempsDerniereRecuperationSmartphone"])
-    diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationSmartphone"]
-    return diff > 0
+    retour = False
+    if os.path.exists(fichier) :
+        diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationSmartphone"]
+        if diff > 0 :
+            retour = True
+    return retour
 
 def derniereModifFichierDonnneesLocalesRecente(fichier):
     """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
     #print( "Fichier modif :",os.path.getmtime(fichier), "Dernier Import :",Parametres["tempsDerniereRecuperationLocale"])
-    diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationLocale"]
-    return diff > 0
+    retour = False
+    if os.path.exists(fichier) :
+        diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationLocale"]
+        if diff > 0 :
+            retour = True
+    return retour
 
 ### fonctions de listes.
 def listCourses():
