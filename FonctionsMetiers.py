@@ -112,12 +112,13 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
                 print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
                 open("donneesSmartphone.txt", 'a').close()
             creerDir("videos")
-            creerDir(destination + os.sep + "chronoHBvideos")
-            files = glob.glob("videos/*.avi")
-            for file in files :
-                dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
-                if not os.path.exists(dest) :
-                    shutil.copy2(file, dest)
+            if avecVideos or surCle :
+                creerDir(destination + os.sep + "chronoHBvideos")
+                files = glob.glob("videos/*.avi")
+                for file in files :
+                    dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
+                    if not os.path.exists(dest) :
+                        shutil.copy2(file, dest)
             #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
             # désormais, on sauvegarde snas overwrite pour limiter les les flux
                 #shutil.copytree("videos", "chronoHBvideos")

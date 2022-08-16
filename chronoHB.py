@@ -255,10 +255,16 @@ class MonTableau(Frame):
                 #row = self.treeview.identify_row(event.y) #row
                 #print("row=",row, " column=", column)
             row = self.treeview.focus()
-            cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
+            nonVide = True
+            try :
+                cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
+            except :
+                print("Le tableau est vide : sélection impossible")
+                nonVide = False
             ### correctif bug lié aux suppressions de lignes successives : rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) #- self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
-            rn = self.treeview.get_children().index(row) + 1
-            if self.enTetes[cn-1] in self.donneesEditables :
+            
+            if nonVide and self.enTetes[cn-1] in self.donneesEditables :
+                rn = self.treeview.get_children().index(row) + 1
                 #print("ligne=",rn, ", colonne=", cn)
                 entryedit = Entry(self,validate='key',width=int(self.largeursColonnes[cn-1]/6))# - 5.5 avec le bouton ok
                 contenuInitial=item_text[cn-1]
