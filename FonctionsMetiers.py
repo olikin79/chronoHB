@@ -117,7 +117,8 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
                 files = glob.glob("videos/*.avi")
                 for file in files :
                     dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
-                    if not os.path.exists(dest) :
+                    if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
+                        # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
                         shutil.copy2(file, dest)
             #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
             # désormais, on sauvegarde snas overwrite pour limiter les les flux
