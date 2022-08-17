@@ -1,3 +1,8 @@
+Travail du 16/08/22 :
+- correction de bugs sur la détection vidéo, la sauvegarde,...
+- correction d'un bug sur la sélection de lignes dans le treeview (très ancien) quand des lignes ont été supprimées par endroit ou à la fin.
+
+
 Travail du 14/08/22 : version 1.5
 - implémentation de la détection de mouvement et de l'affichage de la webcam dans l'interface.
 Le menu paramètres contient deux paramètres liés à la webcam : le numéro de celle à utiliser, la sensibilité de la détection.
