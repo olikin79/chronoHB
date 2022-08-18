@@ -129,8 +129,12 @@ class MotionDetection(object):
     # Recording thread
     def record_video(self):
         date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        out = cv2.VideoWriter(self.path + '/' + date+'.avi', fourcc, self.frame_rate, self.STD_DIMENSIONS[self.video_size])
+        # originales fonctionnelles :
+        #fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        #out = cv2.VideoWriter(self.path + '/' + date+'.avi', fourcc, self.frame_rate, self.STD_DIMENSIONS[self.video_size])
+        # test en mp4 : deux lignes suivantes
+        fourcc = cv2.VideoWriter_fourcc(*'X264')
+        out = cv2.VideoWriter(self.path + '/' + date+'.mkv', fourcc, self.frame_rate, self.STD_DIMENSIONS[self.video_size])
         time_counter = time.time()
         while time.time() - time_counter < self.recording_time and self.cap.isOpened():
             ret, frame = self.cap.read()

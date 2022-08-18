@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Videos</title>
+<!---<link rel="stylesheet" type="text/css" href="mystyle.css"--->
+</head>
+<body>
+<div id="titrePage" align="center">
+<h2>Vidéos de la ligne d'arrivée </h2>
+</div>
+<br>
+<div>
+	<video src="http://127.0.0.1:8888/videos/2022-08-18-07-22-13.mkv" id="video" preload="auto" controls></video>
+    <ul id="playlist">
+        <li class="active"><a href="http://127.0.0.1:8888/videos/2022-08-18-07-22-13.mkv">Ravel Bolero</a></li>
+        <li><a href="http://127.0.0.1:8888/videos/2022-08-18-07-22-17.mkv">Moonlight Sonata - Beethoven</a></li>
+    </ul>
+</div>
+<script>
+window.addEventListener('DOMContentLoaded', ()=>{
+            (()=>{
+                let $video = document.getElementById('video'),
+                    $songsA = Array.from(document.querySelectorAll('#playlist a'));
+                $songsA.forEach(($song)=>{
+                    $song.addEventListener('click',(e)=>{
+                        $songsA.forEach(($song)=>{
+                            $song.parentNode.classList.remove('active');
+                        });
+                        $song.parentNode.classList.add('active');
+                        $video.src = $song.href;
+                        $video.play();
+                        e.preventDefault();
+                    })
+                });
+            })()
+        })
+
+function init(){
+video[0].play();
+}
+</script>
+
+</body></html>
