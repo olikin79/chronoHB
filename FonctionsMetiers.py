@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.42"
+version = "1.5"
 
 
 def windows():
@@ -3648,154 +3648,335 @@ def estChallenge(obj):
     return (isinstance(obj,str) and len(obj) == 1)
 
 def genereAffichageTV(listeDesGroupements) :
-    with open("Affichage.html","w", encoding='utf8') as f :
-        f.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Résultats crossHB</title>
-<link rel="stylesheet" type="text/css" href="mystyle.css"
-</head>
-<body>
-<div id="titrePage" align="center">
-<h2>Catégorie vide </h2>
-</div>
-<br>
-<div class="marquee-titre" id="marquee-titre" >
-	<table border="1" cellpadding="6" cellspacing="5" id="titres" >          <thead>            <tr>              <th class="first">               Place       </th>              <th class="second">                <div>NOM Prénom</div>              </th>              <th class="third">                <div>Temps</div>              </th>            </tr>          </thead>		  </table>
-</div>
-<div class="marquee-rtl">
-    <!-- le contenu défilant -->
-    <div id="conteneur" class="conteneur run-animation">
-    </div>		
-</div>
-<script>
-var pauseEntreDeuxPages = """)
-        f.write(str(Parametres["tempsPause"]))
-        f.write(""";
-var i = 0;
-""")
-        TableauxHTML = []
-        EnTetesHTML = []
-        TitresHTML = []
-        heuresDeparts = []
-        for groupement in listeDesGroupements :
-            if yATIlUCoureurArrive(groupement) :
-                chrono = False
+    with open("modeles/Affichage-Contenu.html","r", encoding='utf8') as f:
+        contenu = f.read()
+    f.close()
+    ## création des contenus à partir des données de courses.
+    TableauxHTML = []
+    EnTetesHTML = []
+    TitresHTML = []
+    heuresDeparts = []
+    for groupement in listeDesGroupements :
+        if yATIlUCoureurArrive(groupement) :
+            chrono = False
+        else :
+            chrono = True
+        if estChallenge(groupement) :
+            # challenge par niveau
+            TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
+        else :
+            if chrono :
+                TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
             else :
-                chrono = True
-            if estChallenge(groupement) :
-                # challenge par niveau
-                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
-            else :
-                if chrono :
-                    TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
-                else :
-                    TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
-            TableauxHTML.append(genereTableauHTML(groupement, chrono))
-            EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
-            heuresDeparts.append(genereHeureDepartHTML(groupement))
-        f.write("var titres = " + str(TitresHTML) + ";\n")
-        f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
-        f.write("var contenus = " + str(TableauxHTML) + ";\n")
-        f.write("var chronometres = " + str(heuresDeparts) + ";\n") # format attendu : [[2022,1,5,12,0,0],[2022,1,5,11,0,0],[2022,1,5,10,0,0],[2022,1,5,16,0,0]]
-        f.write("""
-        var startTime = 0
-        var start = 0
-        var end = 0
-        var diff = 0
-        var timerID = 0
-        function chrono(){
-                end = new Date()
-                diff = end - start
-                diff = new Date(diff)
-                var msec = diff.getMilliseconds()
-                var sec = diff.getSeconds()
-                var min = diff.getMinutes()
-                var hr = diff.getHours()-1
-                if (min < 10){
-                        min = "0" + min
-                }
-                if (sec < 10){
-                        sec = "0" + sec
-                }
-
-                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec //+ ":" + msec
-                timerID = setTimeout("chrono()", 500)
-        }
-        function chronoStart(i){
-                clearTimeout(timerID)
-                //console.debug(chronometres[i][0])
-                if (chronometres[i][0] == 0) {
-                    // c'est une course qui n'a pas commencé
-                    document.getElementById("chronotime").innerHTML = "00:00:00";
-                }
-                else {
-                    if (chronometres[i][0] == 1) {
-                        // c'est un challenge
-                        document.getElementById("chronotime").innerHTML = "";
-                    }
-                    else {
-                        start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
-                        chrono();
-                    }
-                }
-        }
-        function changeContenus(i) {
-	var elm = document.getElementById("conteneur");
-	var newone = elm.cloneNode(true);
-	elm.parentNode.replaceChild(newone, elm);
-	document.head.classList.add("defilement-rtl");
-	if (contenus.length == 0) {
-		var t4 = setTimeout("document.location.reload(true)", 10000);
-	}
-	else { 
-            if (i >= contenus.length) {
-		document.location.reload(true);
-            }
-        }
-        if (contenus.length > 0) {
-	document.getElementById("conteneur").innerHTML = contenus[i];
-	document.getElementById("marquee-titre").innerHTML = enTetes[i];
-	document.getElementById("titrePage").innerHTML = titres[i];	
-	var elmnt = document.getElementById("resultats");
-	var conteneur = document.getElementById("conteneur");
-	var difference = elmnt.offsetHeight - conteneur.offsetHeight ;
-	chronoStart(i)
-	i += 1 ;
-	if (difference < 0) {
-	// Pas d'animation et donc d'event de fin : on fixe un délai arbitraire de pauseEntreDeuxPages s avant pssage au tableau suivant.
-		difference = 0;
-		var t3 = setTimeout(changeContenus, pauseEntreDeuxPages * 1000, i);
-	} else {
-		var temps = (difference *3 /(""")
-        f.write(Parametres["vitesseDefilement"])
-        f.write("""*50)) ;
-		//txt += "Temps défilement : " + temps + " s<br>";
-		//document.getElementById("demo").innerHTML = txt;
-		var style = document.createElement("style");
-		 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 49% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
-  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
-		 //WebKit Hack
-		 style.appendChild(document.createTextNode(""));
-		 // Add the <style> element to the page
-		 document.head.appendChild(style);		
-		var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
-		return style.sheet;
-	}
-	} else 
-	{
-		document.getElementById("titrePage").innerHTML = "Aucun affichage de chronoHB programmé pour l'instant";
-		document.getElementById("conteneur").innerHTML = "";
-		document.getElementById("marquee-titre").innerHTML ="";
-	}
-        };
-        """)
-        f.write("""window.onload = function() {
-  var t1 = changeContenus(0) ;
-};
-var t4 = setTimeout(changeContenus, 3000, i);
-</script>
-</body></html>""")
+                TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
+        TableauxHTML.append(genereTableauHTML(groupement, chrono))
+        EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
+        heuresDeparts.append(genereHeureDepartHTML(groupement))
+    ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
+    contenu = contenu.replace("@@tempsPause@@",str(Parametres["tempsPause"]))\
+              .replace("@@TitresHTML@@",str(TitresHTML))\
+              .replace("@@EnTetesHTML@@",str(EnTetesHTML))\
+              .replace("@@TableauxHTML@@",str(TableauxHTML))\
+              .replace("@@heuresDeparts@@",str(heuresDeparts))\
+              .replace("@@vitesseDefilement@@",str(Parametres["vitesseDefilement"]))
+              
+    with open("Affichage-Contenu.html","w", encoding='utf8') as f :
+        f.write(contenu)
+    f.close()
+##    with open("Affichage-Contenu.html","w", encoding='utf8') as f :
+##        f.write("""<html>
+##<head>
+##</head>
+##<body>
+##<div id="titrePage" align="center">
+##<h2>Catégorie vide </h2>
+##</div>
+##<br>
+##<div class="marquee-titre" id="marquee-titre" >
+##	<table border="1" cellpadding="6" cellspacing="5" id="titres" >          <thead>            <tr>              <th class="first">               Place       </th>              <th class="second">                <div>NOM Prénom</div>              </th>              <th class="third">                <div>Temps</div>              </th>            </tr>          </thead>		  </table>
+##</div>
+##<div class="marquee-rtl">
+##    <!-- le contenu défilant -->
+##    <div id="conteneur" class="conteneur run-animation">
+##    </div>		
+##</div>
+##<script>
+##var pauseEntreDeuxPages = """)
+##        f.write(str(Parametres["tempsPause"]))
+##        f.write(""";
+##var i = 0;
+##""")
+##        TableauxHTML = []
+##        EnTetesHTML = []
+##        TitresHTML = []
+##        heuresDeparts = []
+##        for groupement in listeDesGroupements :
+##            if yATIlUCoureurArrive(groupement) :
+##                chrono = False
+##            else :
+##                chrono = True
+##            if estChallenge(groupement) :
+##                # challenge par niveau
+##                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
+##            else :
+##                if chrono :
+##                    TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+##                else :
+##                    TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
+##            TableauxHTML.append(genereTableauHTML(groupement, chrono))
+##            EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
+##            heuresDeparts.append(genereHeureDepartHTML(groupement))
+##        f.write("var titres = " + str(TitresHTML) + ";\n")
+##        f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
+##        f.write("var contenus = " + str(TableauxHTML) + ";\n")
+##        f.write("var chronometres = " + str(heuresDeparts) + ";\n") # format attendu : [[2022,1,5,12,0,0],[2022,1,5,11,0,0],[2022,1,5,10,0,0],[2022,1,5,16,0,0]]
+##        f.write("""
+##        var startTime = 0
+##        var start = 0
+##        var end = 0
+##        var diff = 0
+##        var timerID = 0
+##        function chrono(){
+##                end = new Date()
+##                diff = end - start
+##                diff = new Date(diff)
+##                var msec = diff.getMilliseconds()
+##                var sec = diff.getSeconds()
+##                var min = diff.getMinutes()
+##                var hr = diff.getHours()-1
+##                if (min < 10){
+##                        min = "0" + min
+##                }
+##                if (sec < 10){
+##                        sec = "0" + sec
+##                }
+##
+##                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec //+ ":" + msec
+##                timerID = setTimeout("chrono()", 500)
+##        }
+##        function chronoStart(i){
+##                clearTimeout(timerID)
+##                //console.debug(chronometres[i][0])
+##                if (chronometres[i][0] == 0) {
+##                    // c'est une course qui n'a pas commencé
+##                    document.getElementById("chronotime").innerHTML = "00:00:00";
+##                }
+##                else {
+##                    if (chronometres[i][0] == 1) {
+##                        // c'est un challenge
+##                        document.getElementById("chronotime").innerHTML = "";
+##                    }
+##                    else {
+##                        start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+##                        chrono();
+##                    }
+##                }
+##        }
+##        function changeContenus(i) {
+##	var elm = document.getElementById("conteneur");
+##	var newone = elm.cloneNode(true);
+##	elm.parentNode.replaceChild(newone, elm);
+##	document.head.classList.add("defilement-rtl");
+##	if (contenus.length == 0) {
+##		var t4 = setTimeout("document.location.reload(true)", 10000);
+##	}
+##	else { 
+##            if (i >= contenus.length) {
+##		document.location.reload(true);
+##            }
+##        }
+##        if (contenus.length > 0) {
+##	document.getElementById("conteneur").innerHTML = contenus[i];
+##	document.getElementById("marquee-titre").innerHTML = enTetes[i];
+##	document.getElementById("titrePage").innerHTML = titres[i];	
+##	var elmnt = document.getElementById("resultats");
+##	var conteneur = document.getElementById("conteneur");
+##	var difference = elmnt.offsetHeight - conteneur.offsetHeight ;
+##	chronoStart(i)
+##	i += 1 ;
+##	if (difference < 0) {
+##	// Pas d'animation et donc d'event de fin : on fixe un délai arbitraire de pauseEntreDeuxPages s avant pssage au tableau suivant.
+##		difference = 0;
+##		var t3 = setTimeout(changeContenus, pauseEntreDeuxPages * 1000, i);
+##	} else {
+##		var temps = (difference *3 /(""")
+##        f.write(Parametres["vitesseDefilement"])
+##        f.write("""*50)) ;
+##		//txt += "Temps défilement : " + temps + " s<br>";
+##		//document.getElementById("demo").innerHTML = txt;
+##		var style = document.createElement("style");
+##		 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 49% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
+##  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
+##		 //WebKit Hack
+##		 style.appendChild(document.createTextNode(""));
+##		 // Add the <style> element to the page
+##		 document.head.appendChild(style);		
+##		var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
+##		return style.sheet;
+##	}
+##	} else 
+##	{
+##		document.getElementById("titrePage").innerHTML = "<h1>chronoHB : aucun affichage de course paramétré pour l'instant.<br>Voir avec les responsables de l'ordinateur.<br>Ne plus rien toucher et mettre en plein écran avec F11</h1>";
+##		document.getElementById("conteneur").innerHTML = "";
+##		document.getElementById("marquee-titre").innerHTML ="";
+##	}
+##        };
+##        """)
+##        f.write("""window.onload = function() {
+##  var t1 = changeContenus(0) ;
+##};
+##var t4 = setTimeout(changeContenus, 3000, i);
+##</script>
+##<div id="testCharge"></div>
+##</body></html>
+##""")
+##        f.write("""<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+##<html>
+##<head>
+##<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Résultats crossHB</title>
+##<link rel="stylesheet" type="text/css" href="mystyle.css"
+##</head>
+##<body>
+##<div id="titrePage" align="center">
+##<h2>Catégorie vide </h2>
+##</div>
+##<br>
+##<div class="marquee-titre" id="marquee-titre" >
+##	<table border="1" cellpadding="6" cellspacing="5" id="titres" >          <thead>            <tr>              <th class="first">               Place       </th>              <th class="second">                <div>NOM Prénom</div>              </th>              <th class="third">                <div>Temps</div>              </th>            </tr>          </thead>		  </table>
+##</div>
+##<div class="marquee-rtl">
+##    <!-- le contenu défilant -->
+##    <div id="conteneur" class="conteneur run-animation">
+##    </div>		
+##</div>
+##<script>
+##var pauseEntreDeuxPages = """)
+##        f.write(str(Parametres["tempsPause"]))
+##        f.write(""";
+##var i = 0;
+##""")
+##        TableauxHTML = []
+##        EnTetesHTML = []
+##        TitresHTML = []
+##        heuresDeparts = []
+##        for groupement in listeDesGroupements :
+##            if yATIlUCoureurArrive(groupement) :
+##                chrono = False
+##            else :
+##                chrono = True
+##            if estChallenge(groupement) :
+##                # challenge par niveau
+##                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
+##            else :
+##                if chrono :
+##                    TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+##                else :
+##                    TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
+##            TableauxHTML.append(genereTableauHTML(groupement, chrono))
+##            EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
+##            heuresDeparts.append(genereHeureDepartHTML(groupement))
+##        f.write("var titres = " + str(TitresHTML) + ";\n")
+##        f.write("var enTetes = " + str(EnTetesHTML)+ ";\n")
+##        f.write("var contenus = " + str(TableauxHTML) + ";\n")
+##        f.write("var chronometres = " + str(heuresDeparts) + ";\n") # format attendu : [[2022,1,5,12,0,0],[2022,1,5,11,0,0],[2022,1,5,10,0,0],[2022,1,5,16,0,0]]
+##        f.write("""
+##        var startTime = 0
+##        var start = 0
+##        var end = 0
+##        var diff = 0
+##        var timerID = 0
+##        function chrono(){
+##                end = new Date()
+##                diff = end - start
+##                diff = new Date(diff)
+##                var msec = diff.getMilliseconds()
+##                var sec = diff.getSeconds()
+##                var min = diff.getMinutes()
+##                var hr = diff.getHours()-1
+##                if (min < 10){
+##                        min = "0" + min
+##                }
+##                if (sec < 10){
+##                        sec = "0" + sec
+##                }
+##
+##                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec //+ ":" + msec
+##                timerID = setTimeout("chrono()", 500)
+##        }
+##        function chronoStart(i){
+##                clearTimeout(timerID)
+##                //console.debug(chronometres[i][0])
+##                if (chronometres[i][0] == 0) {
+##                    // c'est une course qui n'a pas commencé
+##                    document.getElementById("chronotime").innerHTML = "00:00:00";
+##                }
+##                else {
+##                    if (chronometres[i][0] == 1) {
+##                        // c'est un challenge
+##                        document.getElementById("chronotime").innerHTML = "";
+##                    }
+##                    else {
+##                        start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+##                        chrono();
+##                    }
+##                }
+##        }
+##        function changeContenus(i) {
+##	var elm = document.getElementById("conteneur");
+##	var newone = elm.cloneNode(true);
+##	elm.parentNode.replaceChild(newone, elm);
+##	document.head.classList.add("defilement-rtl");
+##	if (contenus.length == 0) {
+##		var t4 = setTimeout("document.location.reload(true)", 10000);
+##	}
+##	else { 
+##            if (i >= contenus.length) {
+##		document.location.reload(true);
+##            }
+##        }
+##        if (contenus.length > 0) {
+##	document.getElementById("conteneur").innerHTML = contenus[i];
+##	document.getElementById("marquee-titre").innerHTML = enTetes[i];
+##	document.getElementById("titrePage").innerHTML = titres[i];	
+##	var elmnt = document.getElementById("resultats");
+##	var conteneur = document.getElementById("conteneur");
+##	var difference = elmnt.offsetHeight - conteneur.offsetHeight ;
+##	chronoStart(i)
+##	i += 1 ;
+##	if (difference < 0) {
+##	// Pas d'animation et donc d'event de fin : on fixe un délai arbitraire de pauseEntreDeuxPages s avant pssage au tableau suivant.
+##		difference = 0;
+##		var t3 = setTimeout(changeContenus, pauseEntreDeuxPages * 1000, i);
+##	} else {
+##		var temps = (difference *3 /(""")
+##        f.write(Parametres["vitesseDefilement"])
+##        f.write("""*50)) ;
+##		//txt += "Temps défilement : " + temps + " s<br>";
+##		//document.getElementById("demo").innerHTML = txt;
+##		var style = document.createElement("style");
+##		 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 49% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
+##  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
+##		 //WebKit Hack
+##		 style.appendChild(document.createTextNode(""));
+##		 // Add the <style> element to the page
+##		 document.head.appendChild(style);		
+##		var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
+##		return style.sheet;
+##	}
+##	} else 
+##	{
+##		document.getElementById("titrePage").innerHTML = "<h1>chronoHB : aucun affichage de course paramétré pour l'instant.<br>Voir avec les responsables de l'ordinateur.<br>Ne plus rien toucher et mettre en plein écran avec F11</h1>";
+##		document.getElementById("conteneur").innerHTML = "";
+##		document.getElementById("marquee-titre").innerHTML ="";
+##	}
+##        };
+##        """)
+##        f.write("""window.onload = function() {
+##  var t1 = changeContenus(0) ;
+##};
+##var t4 = setTimeout(changeContenus, 3000, i);
+##</script>
+##</body></html>""")
 
 def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :

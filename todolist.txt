@@ -20,6 +20,8 @@ ESTHETIQUE :
 
 
 A TESTER :
+- est ce que l'affichage TV vide se rétablit sur firefox en cas de panne du serveur chronoHB ?
+
 
 
 FONCTIONNALITES MANQUANTES dans chronoHB.py :
