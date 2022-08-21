@@ -3331,7 +3331,6 @@ root.mainloop() # enter the message loop
 
 # sauvegarde de l'état des boutons de l'affichage TV avant fermeture
 Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
-print("cases cochées", Parametres["listeAffichageTV"])
 
 print("Fermeture de la BDD")
 ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")

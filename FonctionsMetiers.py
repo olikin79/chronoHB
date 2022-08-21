@@ -874,14 +874,11 @@ def chargerDonnees() :
     webcamSensibility=Parametres["webcamSensibility"]
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
-        print("Création de listeAffichageTV")
     listeAffichageTV=Parametres["listeAffichageTV"]
     ##transaction.commit()
     return globals()
 
 chargerDonnees()
-
-print("DONNEES RECUPEREES AFFICHAGE TV",Parametres["listeAffichageTV"])
 
 if os.name=="posix" :
     sep="/"
