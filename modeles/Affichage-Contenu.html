@@ -51,14 +51,17 @@ function chronoStart(i){
                 if (chronometres[i][0] == 0) {
                     // c'est une course qui n'a pas commencé
                     document.getElementById("chronotime").innerHTML = "00:00:00";
+					document.getElementById("chronotime").style.display = "line" ;
                 }
                 else {
                     if (chronometres[i][0] == 1) {
                         // c'est un challenge
+						document.getElementById("chronotime").style.display = "none" ;
                         document.getElementById("chronotime").innerHTML = "";
                     }
                     else {
                         start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+						document.getElementById("chronotime").style.display = "line" ;
                         chrono();
                     }
                 }

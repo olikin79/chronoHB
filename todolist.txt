@@ -1,7 +1,7 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- problème découvert pour les challenges par classe : l'affichage TV plante. A creuser.
 - impossible de supprimer un dossard arrivé depuis le smartphone : l'erreur reste permanente si l'on ne corrige pas la catégorie.
+- timing du défilement des tableaux de résultats sur la TV incorrect. A creuser.
 
 
 NON PRIORITAIRES :

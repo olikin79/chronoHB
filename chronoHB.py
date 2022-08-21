@@ -759,6 +759,7 @@ class Checkbar(Frame):
         self.side = side
         self.fr = []
         self.listeAffichageTV = listeAffichageTV
+        self.auMoinsUnChangement = False
         self.actualise(picks)
     def state(self):
         return [var.get() for var in self.vars]
@@ -781,6 +782,9 @@ class Checkbar(Frame):
             if ind :
                 self.checkbuttons[i].destroy()
             i += 1
+    def change(self, valeur = True):
+        self.auMoinsUnChangement = valeur
+        print(valeur)
     def actualise(self,picks) :
         #print("Labels à créer",picks)
         for chkb in self.checkbuttons :
@@ -803,7 +807,7 @@ class Checkbar(Frame):
                 var = BooleanVar(value=True)
             else :
                 var = BooleanVar(value=False)
-            chk = Checkbutton(self.fr[-1], text=pick, variable=var)
+            chk = Checkbutton(self.fr[-1], text=pick, variable=var, command=self.change)
             self.checkbuttons.append(chk)
             if self.vertical :
                 chk.pack(anchor=self.anchor, expand=YES) # à la verticale
@@ -2241,8 +2245,10 @@ class Clock():
         self.erreursATraiter(listeNouvellesErreursATraiter)
 
         # on actualise l'affichageTV à chaque nouvel import.
-        if self.auMoinsUnImport :
+        #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
+        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
+            checkBoxBarAffichage.change(valeur=False)
         
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -2255,13 +2261,13 @@ class Clock():
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
-            self.auMoinsUnImport = False
             self.compteurSauvegarde = 1
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
+        self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 

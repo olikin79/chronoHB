@@ -1,3 +1,10 @@
+Travail du 22/08/22 : version 1.52
+La génération des résultats en fonction des cases cochées s'effectue correctement après toute modification.
+Résolution du bug de génération des résultats de challenge sur la TV.
+Correction de la variable auMoinsUnImport qui n'était pas remise à False systématiquement. Cela provoquait du travail inutile.
+Correction affichage du chronomètre sur un challenge qui suit sur la TV.
+
+
 Travail du 21/08/22 : version 1.51
 Renommage de Affichage.html en index.html pour une URL plus courte.
 Renommage (oublié) du favicon.ico déjà créé.
