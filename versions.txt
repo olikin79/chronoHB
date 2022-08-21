@@ -1,3 +1,14 @@
+Travail du 21/08/22 : version 1.51
+Renommage de Affichage.html en index.html pour une URL plus courte.
+Renommage (oublié) du favicon.ico déjà créé.
+Espace entre la vitesse et "km/h" à l'affichage ajouté.
+Correction des bugs suivants :
+- non actualisation de l'affichage TV lors de nouvelles données. Bug introduit volontairement (fatigué?) à une date indéterminée.
+- ré-import de l'intégralité des fichiers smartphones lors du lancement, qui se corrigeait automatiquement dans les 3 secondes. 
+Cela génèrait des erreurs temporaires.
+- création favicon.ico pour le serveur web.
+
+
 Travail du 16/08/22 :
 - correction de bugs sur la détection vidéo, la sauvegarde,...
 - correction d'un bug sur la sélection de lignes dans le treeview (très ancien) quand des lignes ont été supprimées par endroit ou à la fin.

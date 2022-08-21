@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.5"
+version="1.51"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -31,8 +31,10 @@ if not os.path.exists(LOGDIR) :
 
 
 CoureursParClasse = {}
-tableauGUI = []
-ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
+
+### déjà initialisé dans fonctionsMetiers.py
+### tableauGUI = []
+### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
 
 from FonctionsMetiers import *
 from CameraMotionDetection import * # camera motion detection
@@ -41,7 +43,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -59,7 +61,7 @@ if not DEBUG :
 
 
 generateListCoureursPourSmartphone()
-CoureursParClasseUpdate()
+
 
 class ScrollFrame(Frame):
     def __init__(self, parent):
@@ -1899,22 +1901,28 @@ def ActualiseAffichageTV():
     genereAffichageTV(listeCochee)
 
 def OuvrirNavigateur():
-    webbrowser.open('affichage.html')
+    webbrowser.open('index.html')
 
-ZoneEntryPageWeb = Frame(zoneAffichageTV) # souhait initial de mettre les deux entry en gauche droite : abandonné
+ZoneParametresTV = Frame(zoneAffichageTV)
+ZoneEntryPageWeb = Frame(ZoneParametresTV) # souhait de mettre les deux entry en gauche droite
 VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 3)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 VitesseDefilementFrame.pack(side=TOP,anchor="w")
 TempsPauseFrame.pack(side=TOP,anchor="w")
-ZoneEntryPageWeb.pack(side=TOP,anchor="w",fill=X)
 
-boutonsFrameNavigateur = Frame(zoneAffichageTV)
-ouvrirBouton = Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur)
+
+boutonsFrameNavigateur = Frame(ZoneParametresTV)
+ouvrirBouton = Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur, height=2)
 ouvrirBouton.pack(side=LEFT)
-Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichageTV).pack(side=LEFT)
-boutonsFrameNavigateur.pack(side=TOP)
 
+### INUTILE : affichage en temps réel en fonction des checkbox cochées.
+### Button(boutonsFrameNavigateur, text="Actualiser l'affichage !", command=ActualiseAffichageTV).pack(side=LEFT)
+boutonsFrameNavigateur.pack(side=LEFT)
+ZoneEntryPageWeb.pack(side=LEFT)#,anchor="w",fill=X)
+
+ZoneParametresTV.pack(side=TOP)
 zoneAffichageTV.pack(fill=X)
+
 
 LogFrame = Frame(DroiteFrame)
 Log = Label(LogFrame, text="")
@@ -2006,7 +2014,7 @@ defilementFrame.pack(side=LEFT)
 heureFrame.pack(side=RIGHT)
 
 def actualiseHeureActuelle():
-    lblHeureActuelle.configure(text="                     Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
+    lblHeureActuelle.configure(text="   Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
     defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
 
 ##print(time.localtime())
@@ -2182,7 +2190,6 @@ class Clock():
     def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
-
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
 
@@ -2190,9 +2197,10 @@ class Clock():
             self.auMoinsUnImport = True
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
-        traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
+        traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
+        traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
+            
         self.premiereExecution = False
 
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
@@ -2211,12 +2219,13 @@ class Clock():
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
 
-        # on n'actualise l'affichageTV que lors du clic sur le bouton ou en cas de réinitialisation des données de courses
-        # ActualiseAffichageTV()
+        # on actualise l'affichageTV à chaque nouvel import.
+        if self.auMoinsUnImport :
+            ActualiseAffichageTV()
         
         ip = extract_ip()
         if ip != self.ipActuelle :
-            self.ouvrirBoutonMessage = "Cliquer ici pour afficher les informations sur un 2ème écran relié\nà cet ordinateur (touche WIN+P pour 'étendre l'affichage').\nSur le même réseau wifi, saisir l'adresse suivante pour afficher\nles résultats sur un autre ordinateur :\nhttp://"+ ip +":8888/Affichage.html "
+            self.ouvrirBoutonMessage = "Cliquer ici pour afficher les informations sur un 2ème écran relié\nà cet ordinateur (touche WIN+P pour 'étendre l'affichage').\nSur le même réseau wifi, saisir l'adresse suivante pour afficher\nles résultats sur un autre ordinateur :\nhttp://"+ ip +":8888 "
             myTip = Hovertip(ouvrirBouton,self.ouvrirBoutonMessage)
             self.ipActuelle = ip
         
@@ -2748,7 +2757,6 @@ def recupererSauvegardeGUI() :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         effaceToutesDonnees()
-        CoureursParClasseUpdate()
         recupere_sauvegarde(name_file)
         dictionnaire = chargerDonnees()
         if dictionnaire :

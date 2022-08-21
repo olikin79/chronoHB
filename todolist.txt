@@ -1,6 +1,10 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-
+- corriger problème d'encodage entre l'application smartphone et Arrivee.pyw : 
+les messages affichés sur le smartphone ont des problèmes d'accentuation apparu en 2022. Date inconnue.
+- mémoriser les cases cochées pour l'affichage TV lors de la fermeture. Les restaurer à l'ouverture.
+Ainsi, ne pas réinitialiser l'affichage TV si on redémarre le logiciel. C'est plutôt source de problème en course.
+- problème découvert pour les challenges par classe : l'affichage TV plante. A creuser.
 
 
 

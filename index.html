@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>Résultats chronoHB</title>
+<link rel="stylesheet" type="text/css" href="mystyle.css"></link>
+<!--- <script src="jquery-3.6.0.min.js"> integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+</script>--->
+</head>
+<body>
+<div id="ErreurMessage" style="display:none" ><h1> Le serveur chronoHB est injoignable : problème réseau problable...<br>Cette page se rétablira quand le serveur sera joignable.</h1></div>
+
+<div id="conteneurGlobal" class="fullScreen"></div>
+<!---  src="Affichage-Contenu.html" style="border: 0; width: 100%; height: 100%" --->
+
+<script src="jquery-3.6.0.js"></script>
+<script>
+//var contenuNormal = '<iframe id="conteneurGlobal" class="fullScreen" src="Affichage-Contenu.html" style="border: 0; width: 100%; height: 100%"></iframe>';
+//var contenuErreur = "";
+//var testDataOld = false;
+function reCharger() {
+	document.getElementById('conteneurGlobal').innerHTML = "";
+	$("#conteneurGlobal").load("Affichage-Contenu.html") ;
+}
+
+function testChargement() {
+	//console.log("testChargementdébut");
+	var testData = !!document.getElementById("testCharge");
+	//console.log(testData);
+	if (! testData) {// si la page ne s'est pas chargée correctement.
+		document.getElementById('ErreurMessage').style.display = "block" ;
+		reCharger()
+		console.log("nouvelle tentative de chargement de la page car serveur absent");
+		document.getElementById('conteneurGlobal').style.display = "none" ;
+		//document.getElementById('conteneurGlobal').style.display = "none" ;
+	} 	else { // si la page s'est chargée correctement.
+		//if ( ! testDataOld) {// si la page était préalablement mal chargée
+			//console.log("on ne fait rien : tout est ok.");
+			document.getElementById('ErreurMessage').style.display = "none" ;
+			//document.getElementById('conteneurGlobal').className = "fullScreen" ;
+			document.getElementById('conteneurGlobal').style.display = "block";
+		//}
+	}
+	var t5 = setTimeout("testChargement();", 5000);
+	//var testDataOld = testData ;
+	//document.getElementById("conteneurGlobal").className = "fullScreen";
+	//document.getElementById('conteneurGlobal').style.height = window.innerHeight;
+	}
+
+
+$("#conteneurGlobal").load("Affichage-Contenu.html") ;
+
+var t5 = setTimeout("testChargement();", 5000);
+
+</script>
+</body></html>

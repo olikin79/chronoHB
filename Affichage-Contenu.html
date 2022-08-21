@@ -1,0 +1,123 @@
+<html>
+<head>
+</head>
+<body>
+<div id="titrePage" align="center">
+<h2>Catégorie vide </h2>
+</div>
+<br>
+<div class="marquee-titre" id="marquee-titre" >
+	<table border="1" cellpadding="6" cellspacing="5" id="titres" >          <thead>            <tr>              <th class="first">               Place       </th>              <th class="second">                <div>NOM Prénom</div>              </th>              <th class="third">                <div>Temps</div>              </th>            </tr>          </thead>		  </table>
+</div>
+<div class="marquee-rtl">
+    <!-- le contenu défilant -->
+    <div id="conteneur" class="conteneur run-animation">
+	<table border='1' cellpadding='6' cellspacing='5' id='resultats'></table>
+    </div>		
+</div>
+<script>
+var pauseEntreDeuxPages = 5;
+var i = 0;
+var titres = ["<h2> Catégorie 3-G ( <span id='chronotime'></span> )</h2>"];
+var enTetes = ['<table border=\'1\' cellpadding=\'6\' cellspacing=\'5\' id=\'titres\'><tbody><thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th><th class="classe">Classe</th><th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'];
+var contenus = ["<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody><tr><td class='rang'>1</td><td class='nomprenom'>Prénom2 NOM2</td><td class='classe'>31</td><td class='chrono'>19 s 43''</td><td class='vitesse'>185 km/h</td></tr><tr><td class='rang'>2</td><td class='nomprenom'>Prénom5 NOM5</td><td class='classe'>31</td><td class='chrono'>20 s 57''</td><td class='vitesse'>174 km/h</td></tr><tr><td class='rang'>3</td><td class='nomprenom'>Prénom4 NOM4</td><td class='classe'>31</td><td class='chrono'>20 s 80''</td><td class='vitesse'>173 km/h</td></tr><tr><td class='rang'>4</td><td class='nomprenom'>Prénom8 NOM8</td><td class='classe'>31</td><td class='chrono'>02 min 51 s 89''</td><td class='vitesse'>20,9 km/h</td></tr><tr><td class='rang'>5</td><td class='nomprenom'>Prénom9 NOM9</td><td class='classe'>31</td><td class='chrono'>05 min 41 s 09''</td><td class='vitesse'>10,6 km/h (77% VMA)</td></tr><tr><td class='rang'>6</td><td class='nomprenom'>Prénom12 NOM12</td><td class='classe'>31</td><td class='chrono'>05 min 41 s 99''</td><td class='vitesse'>10,5 km/h (80% VMA)</td></tr><tr><td class='rang'>7</td><td class='nomprenom'>Prénom13 NOM13</td><td class='classe'>31</td><td class='chrono'>05 min 42 s 20''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>8</td><td class='nomprenom'>Prénom15 NOM15</td><td class='classe'>32</td><td class='chrono'>05 min 42 s 38''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>9</td><td class='nomprenom'>Prénom20 NOM20</td><td class='classe'>32</td><td class='chrono'>05 min 42 s 69''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>10</td><td class='nomprenom'>Prénom21 NOM21</td><td class='classe'>32</td><td class='chrono'>05 min 42 s 88''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>11</td><td class='nomprenom'>Prénom22 NOM22</td><td class='classe'>32</td><td class='chrono'>05 min 43 s 09''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>12</td><td class='nomprenom'>Prénom23 NOM23</td><td class='classe'>32</td><td class='chrono'>05 min 43 s 46''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>13</td><td class='nomprenom'>Prénom25 NOM25</td><td class='classe'>32</td><td class='chrono'>05 min 43 s 88''</td><td class='vitesse'>10,5 km/h</td></tr><tr><td class='rang'>14</td><td class='nomprenom'>Prénom57 NOM57</td><td class='classe'>33</td><td class='chrono'>05 min 44 s 05''</td><td class='vitesse'>10,5 km/h (79% VMA)</td></tr></tbody> </table>"];
+var chronometres = [[2022, 8, 20, 16, 10, 14, 690]];
+var startTime = 0 ;
+var start = 0 ;
+var end = 0 ;
+var diff = 0 ;
+var timerID = 0 ;
+function chrono(){
+                end = new Date() ;
+                diff = end - start ;
+                diff = new Date(diff) ;
+                var msec = diff.getMilliseconds() ;
+                var sec = diff.getSeconds() ;
+                var min = diff.getMinutes() ;
+                var hr = diff.getHours()-1 ;
+                if (min < 10){
+                        min = "0" + min ;
+                }
+                if (sec < 10){
+                        sec = "0" + sec ;
+                }
+
+                document.getElementById("chronotime").innerHTML = hr + ":" + min + ":" + sec ;
+                timerID = setTimeout("chrono()", 500) ;
+        }
+function chronoStart(i){
+                clearTimeout(timerID) ;
+                //console.debug(chronometres[i][0])
+                if (chronometres[i][0] == 0) {
+                    // c'est une course qui n'a pas commencé
+                    document.getElementById("chronotime").innerHTML = "00:00:00";
+                }
+                else {
+                    if (chronometres[i][0] == 1) {
+                        // c'est un challenge
+                        document.getElementById("chronotime").innerHTML = "";
+                    }
+                    else {
+                        start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+                        chrono();
+                    }
+                }
+        }
+function changeContenus(i) {
+	//console.log("entrée dans changeContenus()");
+	var elm = document.getElementById("conteneur");
+	var newone = elm.cloneNode(true);
+	elm.parentNode.replaceChild(newone, elm);
+	document.head.classList.add("defilement-rtl");
+	if (contenus.length == 0) {
+		var t4 = setTimeout("reCharger();", 10000);
+		console.log("on recharge le contenu dans 10 s");
+		document.getElementById("titrePage").innerHTML = "<h1>chronoHB : aucun affichage de course paramétré pour l'instant.<br>Voir avec les responsables de l'ordinateur.<br>Ne plus rien toucher et mettre en plein écran avec F11</h1>";
+		document.getElementById("conteneur").innerHTML = "";
+		document.getElementById("marquee-titre").innerHTML ="";
+	}
+	else { 
+        if (i >= contenus.length) {
+			//document.location.reload(true);
+			reCharger();
+			//console.log("on recharge le contenu car on a atteint la fin des actions programmées");
+        } else {
+			if (contenus.length > 0) {
+				document.getElementById("conteneur").innerHTML = contenus[i];
+				document.getElementById("marquee-titre").innerHTML = enTetes[i];
+				document.getElementById("titrePage").innerHTML = titres[i];	
+				var elmnt = document.getElementById("resultats");
+				var conteneur = document.getElementById("conteneur");
+				var difference = elmnt.offsetHeight - conteneur.offsetHeight ;
+				chronoStart(i)
+				i += 1 ;
+				if (difference < 0) {
+				// Pas d'animation et donc d'event de fin : on fixe un délai arbitraire de pauseEntreDeuxPages s avant pssage au tableau suivant.
+					difference = 0;
+					var t3 = setTimeout(changeContenus, pauseEntreDeuxPages * 1000, i);
+				} else {
+					var temps = (difference *3 /(1*50)) ;
+					//txt += "Temps défilement : " + temps + " s<br>";
+					//document.getElementById("demo").innerHTML = txt;
+					var style = document.createElement("style");
+					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 49% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
+			  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
+					 //WebKit Hack
+					 style.appendChild(document.createTextNode(""));
+					 // Add the <style> element to the page
+					 document.head.appendChild(style);		
+					var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
+					return style.sheet;
+				}
+			}
+		}
+	}
+};
+window.onload = function() {
+  var t1 = changeContenus(0) ;
+};
+//var t4 = setTimeout(changeContenus, 30, i);
+changeContenus(0);
+</script>
+<div id="testCharge"></div>
+</body></html>

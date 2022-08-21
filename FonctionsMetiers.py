@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.5"
+version = "1.51"
 
 
 def windows():
@@ -391,9 +391,9 @@ class Coureur():#persistent.Persistent):
         return ch
     def vitesseFormatee(self) :
         if self.vitesse >=100 :
-            ch = str(int(self.vitesse)) + "km/h"
+            ch = str(int(self.vitesse)) + " km/h"
         else :
-            ch = str(round(self.vitesse, 1)).replace(".",",") + "km/h"
+            ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
         return ch
     def vitesseFormateeAvecVMA(self) :
         if self.VMA and self.VMA > self.vitesse :
@@ -748,7 +748,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -804,6 +804,9 @@ def chargerDonnees() :
     if not "dictUIDPrecedents" in root :
         root["dictUIDPrecedents"] = {}
     dictUIDPrecedents=root["dictUIDPrecedents"]
+    if not "ligneTableauGUI" in root :
+        root["ligneTableauGUI"] = [1,0]
+    ligneTableauGUI=root["ligneTableauGUI"]
 
     ### paramètres par défaut
     if not "Parametres" in root :
@@ -1075,7 +1078,8 @@ def exportXLSX():
 
 global TableauGUI
 tableauGUI = []
-ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
+### ajouté à la base données : initialisé avant dans la fonction dédiée.
+### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
 
 def reinitTableauGUI () :
     global tableauGUI
@@ -3662,7 +3666,7 @@ def genereAffichageTV(listeDesGroupements) :
         else :
             chrono = True
         if estChallenge(groupement) :
-            # challenge par niveau
+            print("C'est un challenge par niveau")
             TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
         else :
             if chrono :
