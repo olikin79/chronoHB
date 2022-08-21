@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.51"
+version="1.52"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -750,7 +750,7 @@ class MaxLengthEntry(ValidatingEntry):
 
 
 class Checkbar(Frame):
-    def __init__(self, parent=None, picks=[], side=LEFT, vertical=False, anchor=W):
+    def __init__(self, parent=None, picks=[], side=LEFT, vertical=False, anchor=W, listeAffichageTV=[]):
         Frame.__init__(self, parent)
         self.vertical = vertical
         self.anchor=anchor
@@ -758,9 +758,23 @@ class Checkbar(Frame):
         self.checkbuttons = []
         self.side = side
         self.fr = []
+        self.listeAffichageTV = listeAffichageTV
         self.actualise(picks)
     def state(self):
         return [var.get() for var in self.vars]
+##    def resetState(self, listeAffichageTV) :
+##        if DEBUG :
+##            print("Restauration des checkbox de l'affichage TV avec :",listeAffichageTV)
+##        i = 0
+##        while i < len(self.vars) and i < len(listeAffichageTV) :
+##            if listeAffichageTV[i] :
+##                ### aucune des lignes suivantes n'est fonctionnelle
+##                #self.checkbuttons[i].select()
+##                self.vars[i] = BooleanVar(value=True)
+####            if DEBUG :
+####                print(self.picks[i]," devrait avoir pour valeur ",listeAffichageTV[i])
+##            print(i,self.vars[i].get(),listeAffichageTV[i])
+##            i += 1
     def detruire(self, listeDIndices) :
         i=0
         for ind in listeDIndices :
@@ -785,7 +799,10 @@ class Checkbar(Frame):
             moitie = 20 # on ne coupe pas !
         i = 0
         for pick in picks:
-            var = IntVar()
+            if i < len(self.listeAffichageTV) and self.listeAffichageTV[i] :
+                var = BooleanVar(value=True)
+            else :
+                var = BooleanVar(value=False)
             chk = Checkbutton(self.fr[-1], text=pick, variable=var)
             self.checkbuttons.append(chk)
             if self.vertical :
@@ -1580,7 +1597,10 @@ zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 
-checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False)
+checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False, listeAffichageTV=listeAffichageTV)
+
+# restauration de l'état à la fermeture de l'application.
+#checkBoxBarAffichage.resetState(listeAffichageTV)
 
 ##def CoureursAleatoires() :
 ##    global listeDeCourses
@@ -1897,11 +1917,12 @@ def ActualiseAffichageTV():
         #print(i, val)
         if val :
             listeCochee.append(listeDeGroupementsEtChallenge[i])
+    listeAffichageTV = listeCochee
     #print("Affichage de :", listeCochee)
-    genereAffichageTV(listeCochee)
+    genereAffichageTV(listeAffichageTV)
 
 def OuvrirNavigateur():
-    webbrowser.open('index.html')
+    webbrowser.open('http://127.0.0.1:8888')
 
 ZoneParametresTV = Frame(zoneAffichageTV)
 ZoneEntryPageWeb = Frame(ZoneParametresTV) # souhait de mettre les deux entry en gauche droite
@@ -3307,6 +3328,10 @@ DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 ##root.configure(width=width, height=height)  # 100% de l'écran
 
 root.mainloop() # enter the message loop
+
+# sauvegarde de l'état des boutons de l'affichage TV avant fermeture
+Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
+print("cases cochées", Parametres["listeAffichageTV"])
 
 print("Fermeture de la BDD")
 ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")

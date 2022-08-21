@@ -1,7 +1,5 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- mémoriser les cases cochées pour l'affichage TV lors de la fermeture. Les restaurer à l'ouverture.
-Ainsi, ne pas réinitialiser l'affichage TV si on redémarre le logiciel. C'est plutôt source de problème en course.
 - problème découvert pour les challenges par classe : l'affichage TV plante. A creuser.
 - impossible de supprimer un dossard arrivé depuis le smartphone : l'erreur reste permanente si l'on ne corrige pas la catégorie.
 

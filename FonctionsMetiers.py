@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.51"
+version = "1.52"
 
 
 def windows():
@@ -748,7 +748,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -807,7 +807,7 @@ def chargerDonnees() :
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
-
+    
     ### paramètres par défaut
     if not "Parametres" in root :
         root["Parametres"] = {}
@@ -872,10 +872,16 @@ def chargerDonnees() :
     if not "webcamSensibility" in Parametres :
         Parametres["webcamSensibility"]= 20000
     webcamSensibility=Parametres["webcamSensibility"]
+    if not "listeAffichageTV" in Parametres :
+        Parametres["listeAffichageTV"] = []
+        print("Création de listeAffichageTV")
+    listeAffichageTV=Parametres["listeAffichageTV"]
     ##transaction.commit()
     return globals()
 
 chargerDonnees()
+
+print("DONNEES RECUPEREES AFFICHAGE TV",Parametres["listeAffichageTV"])
 
 if os.name=="posix" :
     sep="/"
