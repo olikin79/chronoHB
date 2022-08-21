@@ -7,6 +7,7 @@ Correction des bugs suivants :
 - ré-import de l'intégralité des fichiers smartphones lors du lancement, qui se corrigeait automatiquement dans les 3 secondes. 
 Cela génèrait des erreurs temporaires.
 - création favicon.ico pour le serveur web.
+- encodage des caractères envoyés au smartphone incorrect depuis les développements 2022. Corrigé.
 
 
 Travail du 16/08/22 :

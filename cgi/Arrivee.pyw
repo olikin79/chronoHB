@@ -45,6 +45,7 @@ form = cgi.FieldStorage()
 
 import sys
 sys.stderr = sys.stdout
+sys.stdout.reconfigure(encoding='utf-8')
 
 def addInstruction(liste) :
     global local
@@ -208,7 +209,8 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                     dossardPrecedent = form.getvalue("dossardPrecedent")
                     if action == "add" :
                         if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
-                            print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", commentaireArrivee.replace(",",";"), "," + str(doss) + ",")
+                            ligneRetour = "DI," + nom + "," + prenom + "," +  classe + "," + categorie + "," + categorieLisible + "," + commentaireArrivee.replace(",",";") + "," + str(doss) + ","
+                            print(ligneRetour)#.encode("iso-8859-15"))
                         else :
                             messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
