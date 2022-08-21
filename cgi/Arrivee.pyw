@@ -1,8 +1,10 @@
-#!/usr/local/bin/pythonw
-
-#/usr/bin/pythonw
-#!"C:\Program Files (x86)\Python38-32\pythonw.exe" -u
+#!"C:\Users\olikin\AppData\Local\Programs\Python\Python39\pythonw.exe" -u
 # coding: utf-8
+
+
+#!/usr/local/bin/pythonw
+#/usr/bin/pythonw
+
 import time
 tpsServeur = time.time()
 # on récupère l'heure locale le plus tôt possible après la requête afin de calculer un éventuel décalage entre le client et le serveur le plus précis possible.
