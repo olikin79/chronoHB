@@ -1,7 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
 - impossible de supprimer un dossard arrivé depuis le smartphone : l'erreur reste permanente si l'on ne corrige pas la catégorie.
-- timing du défilement des tableaux de résultats sur la TV incorrect. A creuser.
 
 
 NON PRIORITAIRES :
@@ -20,7 +19,7 @@ ESTHETIQUE :
 
 
 A TESTER :
-- est ce que l'affichage TV vide se rétablit sur firefox en cas de panne du serveur chronoHB ?
+- tester des groupements de courses, le listing des résultats, le challenge prennent ils en compte les élèves des groupements ou pas ?
 
 
 

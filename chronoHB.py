@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.52"
+version="1.53"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -43,7 +43,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -2288,17 +2288,26 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 401, 441, 451]: ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
+            if not erreur.numero in [0, 311, 312, 321, 401, 441, 451]:
+                ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
             ### Le traitement strictement chronologique des fichiers de donnéesimpose ce post-traitement dans ce seul cas.
                 #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
             elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
                 ajout = True
+            ## alimentation de la liste complète des erreurs à afficher de façon effective.
             if ajout :
                 #print("ajout",erreur.numero,erreur.dossard)
                 self.erreursEnCours.append(erreur)
                 self.erreursEnCoursNumeros.append(erreur.numero)
+        # gestion a posteriori des erreurs 431
+        i = len(self.erreursEnCoursNumeros) - 1
+        while i >= 0 : # on supprime l'erreur 431 des erreurs précédentes si le dossard a été supprimé des arrivées entre temps.
+            if self.erreursEnCoursNumeros[i] == 431 and ArriveeDossards.count(self.erreursEnCours[i].dossard) == 0 :
+                del self.erreursEnCoursNumeros[i]
+                del self.erreursEnCours[i]
+            i -= 1
         #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
