@@ -1,6 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- impossible de supprimer un dossard arrivé depuis le smartphone : l'erreur reste permanente si l'on ne corrige pas la catégorie.
+
 
 
 NON PRIORITAIRES :
