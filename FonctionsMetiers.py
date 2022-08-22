@@ -861,7 +861,7 @@ def chargerDonnees() :
         Parametres["vitesseDefilement"]= "1"
     vitesseDefilement=Parametres["vitesseDefilement"]
     if not "tempsPause" in Parametres :
-        Parametres["tempsPause"]= "5"
+        Parametres["tempsPause"]= "8"
     tempsPause=Parametres["tempsPause"]
     if not "dossardModele" in Parametres :
         Parametres["dossardModele"]= "dossard-modele-1.tex"
