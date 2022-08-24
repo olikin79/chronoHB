@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.52"
+version = "1.53"
 
 
 def windows():
@@ -1683,16 +1683,16 @@ def generateDossardsNG() :
     listeCategories = listCourses()
     listeCategories.append("0-tousLesDossards")
     for file  in listeCategories :
-        with open(TEXDIR+file+ ".tex", 'w') as f :
+        with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
             f.write(entete + "\n\n")
         f.close()
-    with open(TEXDIR+"0-listing.tex", 'w') as f :
+    with open(TEXDIR+"0-listing.tex", 'w',encoding="utf-8") as f :
         f.write(enteteL + "\n\n")
     f.close()
     listeCategories.append("0-listing")
-    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
+    with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
         for coureur in Coureurs :
-            if not coureur.dispense :
+            if not coureur.dispense and not coureur.absent :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 groupementNom = nomGroupementAPartirDUneCategorie(cat)
                 #print("cat =",cat, "   groupementNom=",groupementNom)
@@ -1707,11 +1707,11 @@ def generateDossardsNG() :
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
                 f.write(chaineComplete)
-                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
+                with open(TEXDIR+cat + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
     f.close()
-    with open(TEXDIR+"0-listing.tex", 'a') as fL :
+    with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
         L = list(CoureursParClasse.keys())
         L.sort()
         for nomClasse in L :
@@ -1725,7 +1725,7 @@ def generateDossardsNG() :
     #print(listeCategories)
     # pour chaque fichier dans listeCategories , ajouter le end document.
     for file in listeCategories :
-        with open(TEXDIR+file + ".tex", 'a') as f :
+        with open(TEXDIR+file + ".tex", 'a',encoding="utf-8") as f :
             f.write("\\end{document}")
         f.close()
         # il faut compiler tous les fichiers de la liste.
@@ -1826,7 +1826,7 @@ def generateDossardsAImprimer() :
     f.close()
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
-    with open(TEXDIR+"A-imprimer.tex", 'w') as f :
+    with open(TEXDIR+"A-imprimer.tex", 'w',encoding="utf-8") as f :
         f.write(entete + "\n\n")
         for coureur in Coureurs :
             if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
@@ -1869,7 +1869,7 @@ def generateDossard(coureur) :
     osCWD = os.getcwd()
     #os.chdir("dossards")
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
-    with open(TEXDIR+file+ ".tex", 'w') as f :
+    with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
         f.write(entete + "\n\n")
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
@@ -2056,7 +2056,7 @@ def generateImpressions() :
     #os.chdir("impressions")
     ### (pas urgent) générer le tex des statistiques ?
     print("Création du fichier de statistiques")
-    fstats = open(TEXDIR+"_statistiques.tex", 'w')
+    fstats = open(TEXDIR+"_statistiques.tex", 'w',encoding="utf-8")
     fstats.write(enteteS)
     
     ### générer les tex pour chaque classe + alimenter les statistiques de chacune
@@ -2070,7 +2070,7 @@ def generateImpressions() :
         if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
             #print("Création du fichier de "+classe)
             nomFichier = classe.replace(" ","-")
-            with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
+            with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
                 f.write(contenu)
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -2142,7 +2142,7 @@ def generateImpressions() :
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
         #print("Création du fichier de "+classe)
         nomFichier = classe.replace(" ","-")
-        with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
+        with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
             f.write(contenu)
             f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -2237,7 +2237,7 @@ def generateImpressions() :
         #print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
             print("Création du fichier du challenge", challenge)
-            with open(TEXDIR+challenge+ ".tex", 'w') as f :
+            with open(TEXDIR+challenge+ ".tex", 'w',encoding="utf-8") as f :
                 f.write(creerFichierChallenge(challenge,enteteC))
                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
             f.close()
@@ -2927,14 +2927,14 @@ def delArriveeTempsClient(tempsCoureur, dossard=0) :
                 codeRetour = ""
                 break
         n -= 1
-    if codeRetour == "" :
+    if codeRetour == "" and not Parametres["calculateAll"] : 
         print("on regénère tout le tableau")
         #DonneesAAfficher.reinit() # on regénère le tableau GUI
         Parametres["calculateAll"] = True
         #transaction.commit()
     else :
         #codeRetour = ""
-        print("La suppression demandée ne peut pas être effectuée car le temps " + tempsCoureur + " pour le dossard " + dossard + " a déjà été supprimé.")
+        print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
     return Erreur(0) # la suppression constitue une correction d'erreur et ne doit donc jamais en signaler une # codeRetour
 
 def delArriveeTemps(tempsCoureur, dossard=0) :

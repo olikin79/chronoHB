@@ -43,7 +43,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -393,9 +393,11 @@ class MonTableau(Frame):
 
     def afficheBoutonVideo(self,event): # select ligne pour afficher le bouton vidéo éventuel
         try :
-            self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+            for bouton in self.buttonVideos :
+                bouton.destroy() # on détruit les anciens boutons dans tous les cas.
         except :
             True # rien à détruire.
+        self.buttonVideos = []
         #for item in self.treeview.selection():
             #item = I001
             #item_text = self.treeview.item(item, "values")
@@ -412,15 +414,24 @@ class MonTableau(Frame):
         #print("focus",self.treeview.focus())
         #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
         #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
-        fichier = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
-        if fichier : # si une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 10 s près par exempl)
-            self.buttonVideo = Button(self,text='Vidéo',command=lambda f=fichier : ouvrirVideo(f))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
-            self.buttonVideo['font'] = font.Font(size=7)
+        fichiers = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
+        j = 0
+        decalage = 0
+        while j < len(fichiers) : # si au moins une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 4 s près par exempl)
+            fichier = fichiers[j]
+            if len(fichiers) == 1 :
+                texte = 'Vidéo'
+            else :
+                texte = 'V' + str(j)
+            self.buttonVideos.append(Button(self,text=texte,command=lambda f=fichier : ouvrirVideo(f)))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+            self.buttonVideos[j]['font'] = font.Font(size=7)
             premierNomVisible = self.vsb.get()[0]*self.effectif+1
             sommeLargeurColonnes = 0
             for i in range(2) :
                 sommeLargeurColonnes += self.largeursColonnes[i]
-            self.buttonVideo.place(x=sommeLargeurColonnes, y=(rn+1-premierNomVisible)*20.01+25)
+            self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=(rn+1-premierNomVisible)*20.01+25)
+            decalage += 20
+            j += 1
         #except :
         #    print("Clic sur le treeview en dehors d'une ligne valide")
                 
@@ -644,7 +655,8 @@ def formateSurDeuxChiffres(entier):
     return str(entier)
 
 def rechercheVideoProcheDe(horaire) :
-    ecartTolere = 10 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
+    retour = []
+    ecartTolere = 4 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
     print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
     heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
     annee=time.strftime("%Y",heurePassage)
@@ -658,41 +670,43 @@ def rechercheVideoProcheDe(horaire) :
     #print("Temps sélectionné en secondes depuis epoch :",tpsSelectionne)
     ## optimisation pour limiter le nombre de fichiers : l'heure du début de la vidéo précède forcément l'heure de passage car le champ est large
     if int(seconde) >= 10 :
-        files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.avi"))
+        files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
     else :
         if int(minute) > 0 :
             # si seconde < 10 , on prend tous les fichiers qui sont dans la minute qui précède et la minute courante
-            files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + formateSurDeuxChiffres(int(minute)-1) +"-*.avi")+\
-                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.avi"))
+            files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + formateSurDeuxChiffres(int(minute)-1) +"-*.*")+\
+                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
         else :
             if int(heure) > 0 :
                 # on doit aussi prendre les fichiers de la 59ème minute de l'heure précédente
-                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + formateSurDeuxChiffres(int(heure)-1) + "-59-*.avi")+\
-                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-00-*.avi"))
+                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + formateSurDeuxChiffres(int(heure)-1) + "-59-*.*")+\
+                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-00-*.*"))
             else :
                 # aucune optimisation : cas improbable car on ne coure pas à minuit !
-                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour+"-*.avi"))
+                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour+"-*.*"))
     #files.sort(key=os.path.getmtime) # finalement, on trie en fonction du nom, qui contient l'heure. Plus fiable en cas de copies-restaurations de fichiers ultérieures.
     #print("\n".join(files))
-    ecart = 4000000000 # durée d'une vie humaine : 4.10^9 secondes
+    ### ecart = 4000000000 # durée d'une vie humaine : 4.10^9 secondes
     # on recherche le fichier avec le plus faible ecart : si l'écart augmente, on arrête le parcours, on s'éloigne. On a trouvé le minimum.
     # on pourrait imaginer une dichotomie pour se rapprocher plus vite de la meilleure vidéo
     # mais peu utile vu le filtre sur les heures des vidéos ci-dessus.
     for file in files :
         nom = os.path.basename(file[:-4])
         tpsFile = time.mktime(time.strptime(nom, "%Y-%m-%d-%H-%M-%S"))
-        nouvelEcart = abs(tpsSelectionne - tpsFile)
+        ecart = abs(tpsSelectionne - tpsFile)
+        if (ecart <= ecartTolere and tpsFile <= tpsSelectionne) or (ecart <= 1 and tpsFile >= tpsSelectionne) :
+            retour.append(file)
         #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
-        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
-            break
-        else :
-            fichierChoisi = file
-            ecart = nouvelEcart
-    if ecart < ecartTolere : # tolérance choisie en début de fonction
-        retour = fichierChoisi
-        print("Affichage de la vidéo",retour)
-    else :
-        retour = ""
+            ### la méthode suivante ne convenait pas. Il se peut qu'il n'y ait pas d'enregistrement après celui souhaité.
+##        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
+##            break
+##        else :
+##            fichierChoisi = file
+##            ecart = nouvelEcart
+##    if ecart < ecartTolere : # tolérance choisie en début de fonction
+##        retour = fichierChoisi
+    if retour :
+        print("Affichage des vidéos",retour)
     return retour
 
 class ValidatingEntry(Entry):
@@ -784,7 +798,6 @@ class Checkbar(Frame):
             i += 1
     def change(self, valeur = True):
         self.auMoinsUnChangement = valeur
-        print(valeur)
     def actualise(self,picks) :
         #print("Labels à créer",picks)
         for chkb in self.checkbuttons :
