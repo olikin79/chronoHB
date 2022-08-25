@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.53"
+version = "1.54"
 
 
 def windows():
@@ -2027,22 +2027,22 @@ def generateImpressions() :
         if not os.path.exists(DIR) :
             os.makedirs(DIR)
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    with open("./modeles/impression-en-tete.tex", 'r') as f :
+    with open("./modeles/impression-en-tete.tex", 'r',encoding="utf-8") as f :
         entete = f.read()
     f.close()
-    with open("./modeles/impression-en-teteC.tex", 'r') as f :
+    with open("./modeles/impression-en-teteC.tex", 'r',encoding="utf-8") as f :
         enteteC = f.read()
     f.close()
-    with open("./modeles/impression-en-teteS.tex", 'r') as f :
+    with open("./modeles/impression-en-teteS.tex", 'r',encoding="utf-8") as f :
         if Parametres["CategorieDAge"] :
             enteteS = f.read().replace("@categorie@","catégorie")
         else :
             enteteS = f.read().replace("@categorie@","classe")
     f.close()
-    with open("./modeles/impression-en-teteSGpments.tex", 'r') as f :
+    with open("./modeles/impression-en-teteSGpments.tex", 'r',encoding="utf-8") as f :
         enteteSGpments = f.read()#.replace("@date",dateDuJour())
     f.close()
-    with open("./modeles/stats-ligne.tex", 'r') as f :
+    with open("./modeles/stats-ligne.tex", 'r',encoding="utf-8") as f :
         ligneStats = f.read()
     f.close()
     TEXDIR = "impressions"+os.sep+"tex"+os.sep
@@ -2056,7 +2056,7 @@ def generateImpressions() :
     #os.chdir("impressions")
     ### (pas urgent) générer le tex des statistiques ?
     print("Création du fichier de statistiques")
-    fstats = open(TEXDIR+"_statistiques.tex", 'w',encoding="utf-8")
+    fstats = open(TEXDIR+"_statistiques.tex", 'w', encoding="utf-8")
     fstats.write(enteteS)
     
     ### générer les tex pour chaque classe + alimenter les statistiques de chacune
@@ -2141,83 +2141,84 @@ def generateImpressions() :
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
         #print("Création du fichier de "+classe)
-        nomFichier = classe.replace(" ","-")
-        with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-            contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
-            f.write(contenu)
-            f.write("\n\\end{longtable}\\end{center}\\end{document}")
-        f.close()
-        # alimentation des statistiques
-        listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
-        effTot = sum(ArrDispAbsAbandon[:-1])
-        effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
-        effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
-        moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
-        mediane = medianeDesTemps(listeDesTempsDeLaClasse)
-        ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
-        if StatsEffectifs :
-            if effTotF :
-                FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+        if not estChallenge(classe) :
+            nomFichier = classe.replace(" ","-").replace("-/-","-").replace("/","_").replace("\\","_")
+            with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
+                f.write(contenu)
+                f.write("\n\\end{longtable}\\end{center}\\end{document}")
+            f.close()
+            # alimentation des statistiques
+            listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+            effTot = sum(ArrDispAbsAbandon[:-1])
+            effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+            effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+            moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+            mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+            ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+            if StatsEffectifs :
+                if effTotF :
+                    FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+                else :
+                    FArr = "{-}"
+                if effTotG :
+                    GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+                else :
+                    GArr = "{-}"
+                if effTotF :
+                    FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FD = "{-}"
+                if effTotG :
+                    GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GD = "{-}"
+                if effTotF :
+                    FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FAba = "{-}"
+                if effTotG :
+                    GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GAba = "{-}"
+                if effTotF :
+                    FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+                else :
+                    FAbs = "{-}"
+                if effTotG :
+                    GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+                else :
+                    GAbs = "{-}"
             else :
-                FArr = "{-}"
-            if effTotG :
-                GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
-            else :
-                GArr = "{-}"
-            if effTotF :
-                FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
-            else :
-                FD = "{-}"
-            if effTotG :
-                GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
-            else :
-                GD = "{-}"
-            if effTotF :
-                FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
-            else :
-                FAba = "{-}"
-            if effTotG :
-                GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
-            else :
-                GAba = "{-}"
-            if effTotF :
-                FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
-            else :
-                FAbs = "{-}"
-            if effTotG :
-                GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
-            else :
-                GAbs = "{-}"
-        else :
-            FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
-            GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
-            FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
-            GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
-            FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
-            GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
-            FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
-            GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
-        nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
-        nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
-        nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
-        nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
-        #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-        #if estNomDeGroupement(classe) :
-        ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-                     .replace("@GArr",GArr).replace("@FD",FD)\
-                     .replace("@GD",GD).replace("@FAba",FAba)\
-                     .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-                     .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                     .replace("@med",mediane)
-        #else :
-        #    ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-         #            .replace("@GArr",GArr).replace("@FD",FD)\
-          #           .replace("@GD",GD).replace("@FAba",FAba)\
-           #          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-            #         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-             #        .replace("@med",mediane)
+                FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+                GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+                FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+                GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+                FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+                GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+                FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+                GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+            nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+            nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+            nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+            nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+            #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+            #if estNomDeGroupement(classe) :
+            ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                         .replace("@GArr",GArr).replace("@FD",FD)\
+                         .replace("@GD",GD).replace("@FAba",FAba)\
+                         .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                         .replace("@med",mediane)
+            #else :
+            #    ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+             #            .replace("@GArr",GArr).replace("@FD",FD)\
+              #           .replace("@GD",GD).replace("@FAba",FAba)\
+               #          .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                #         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                 #        .replace("@med",mediane)
 
-    # on ferme le fichier de statistiques des classes
+        # on ferme le fichier de statistiques des classes
     fstats.write(ContenuLignesCategories)
     fstats.write("\n\\end{tabular}\\end{center}\n ")
     
@@ -3778,15 +3779,15 @@ def creerFichierChallenge(challenge, entete):
 \\hline
 \\endhead"""
     i = 0
-    while i < len(Resultats[challenge]) :
-        #moy = Resultats[challenge][i].moyenneTemps
-        score = Resultats[challenge][i].score
-        classe = Resultats[challenge][i].nom
-        liste = Resultats[challenge][i].listeCF + Resultats[challenge][i].listeCG
+    while i < len(ResultatsGroupements[challenge]) :
+        #moy = ResultatsGroupements[challenge][i].moyenneTemps
+        score = ResultatsGroupements[challenge][i].score
+        classe = ResultatsGroupements[challenge][i].nom
+        liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
         tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  & {} \\hfill {} "+ classe +"{} \\hfill {}  &  "
-        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\hfill {} ' + listeNPremiers(Resultats[challenge][i].listeCF) + ' {} \\hfill {} \\\\ \n \n'
-        tableau += ' {} \\hfill {} ' + listeNPremiers(Resultats[challenge][i].listeCG) + ' {} \\hfill {} \\\\ \n \\end{minipage} \n & '
-        tableau += "{} \\hfill {} "+str(Resultats[challenge][i].score) +"{} \\hfill {} \\\\ \n"
+        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\hfill {} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ' {} \\hfill {} \\\\ \n \n'
+        tableau += ' {} \\hfill {} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCG) + ' {} \\hfill {} \\\\ \n \\end{minipage} \n & '
+        tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].score) +"{} \\hfill {} \\\\ \n"
         #tableau += "<td class='moyC'>" + moy +"</td>"
         tableau += "\\hline\n"
         i += 1
@@ -3840,9 +3841,11 @@ def creerFichierClasse(nom, entete, estGroupement):
 \\endhead
 \n"""
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
+    print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Course " + nom
         Dossards = ResultatsGroupements[nom]
+        print(Dossards)
         rangCourse = False
         if Parametres["CategorieDAge"] :
             garderAbandons = True
@@ -3859,7 +3862,7 @@ def creerFichierClasse(nom, entete, estGroupement):
             Dossards = triParTemps(Resultats[nom])### listDossardsDUneCategorie(nom))
         else :
             denomination = "Classe " + nom
-            Dossards = Resultats[nom] # on devrait trier par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
+            Dossards = Resultats[nom] # on devrait trier par classe puis par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
             # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul

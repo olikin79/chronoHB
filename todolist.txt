@@ -1,6 +1,13 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-
+- encodage du fichier statistiques.
+- les statistiques par groupement contiennent des non-groupements.
+- les abandons sont absents.
+- ne pas générer un fichier challenge si vide ?
+- le fichier d'une classe devrait être par ordre alpha et non de temps.
+- faire un rang dans la catégorie et un rang dans le groupement. Ajouter une propriété à la class Coureur pour cela.
+Utiliser cette propriété pour les pdf des catégories et les pdf des groupements.
+- voir pourquoi certains groupements sont incorrects.
 
 
 NON PRIORITAIRES :
