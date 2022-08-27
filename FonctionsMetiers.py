@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.54"
+version = "1.55"
 
 
 def windows():
@@ -64,7 +64,7 @@ def creerDir(path) :
         if dossier != "" : # sous windows, en cas de sauvegarde vers la racine d'un disque, basename est vide.
             os.makedirs(dossier, exist_ok=True)
     except :
-        print("Impossible de créer le dossier : la clé USB de sauvegarde n'est probablement pas branchée.")
+        #print("Impossible de créer le dossier : la clé USB de sauvegarde n'est probablement pas branchée.")
         retour = False
     return retour
 
@@ -273,7 +273,7 @@ class Coureur():#persistent.Persistent):
         self.VMA = float(VMA)
         self.vitesse = 0
         self.rang = 0
-        self.rangCourse = 0
+        self.rangCat = 0
         self.commentaireArrivee = commentaireArrivee
         self.aImprimer = aImprimer
         self.categorieAuto = True
@@ -411,8 +411,8 @@ class Coureur():#persistent.Persistent):
         return self.vitesseFormateeAvecVMA().replace("%","\%")
     def setRang(self, rang) :
         self.rang = int(rang)
-    def setRangCourse(self, rang) :
-        self.rangCourse = int(rang)
+    def setRangCat(self, rang) :
+        self.rangCat = int(rang)
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
     def setNom(self, valeur) :
@@ -437,7 +437,10 @@ class Course():#persistent.Persistent):
         self.distance = 0
         self.tempsAuto = 0
         self.nomGroupement = categorie
+        self.aRegenererPourImpression = False
 ##        self.equipesClasses = []
+    def setARegenererPourImpression (self, val):
+        self.aRegenererPourImpression = bool(val)
     def reset(self) :
         print("On annule le départ de",self.categorie,".")
         self.temps = 0
@@ -446,8 +449,7 @@ class Course():#persistent.Persistent):
         self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat)
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
-        if nomDonne : 
-            self.nomGroupement = nomDonne
+        self.nomGroupement = str(nomDonne)
     def setTemps(self, temps=0, tempsAuto=False):
         if temps == 0 :
             self.temps = time.time()
@@ -537,10 +539,15 @@ class Groupement():
         self.manuel = False
         self.distance = 0
         self.actualiseNom()
+        self.aRegenererPourImpression = False
+##        self.equipesClasses = []
+    def setARegenererPourImpression (self, val):
+        self.aRegenererPourImpression = bool(val)
     def setNom(self, nomChoisi):
-        print("nom choisi:",nomChoisi)
-        self.nom = str(nomChoisi)
-        self.manuel = True
+        if len(nomChoisi) > 1 : # les noms à 1 caractère sont réservés aux challenges.
+            print("nom choisi:",nomChoisi)
+            self.nom = str(nomChoisi)
+            self.manuel = True
     def setDistance(self, distance):
         self.distance = float(distance)
         ### il faut actualiser les distances de toutes les courses du groupement. Sinon, les calculs de vitesse tombent à l'eau.
@@ -561,11 +568,17 @@ class Groupement():
         if not self.manuel :
             self.nom = self.nom + " / " + str(nomCourse)
         self.actualiseNom()
-        # on ajoute le nom du groupement dans la course (pour éviter des centaines de parcours de listes toutes les 2 secondes)
-        Courses[nomCourse].setNomGroupement(self.nom)
+        # on actualise les propriétés nomGroupement de toutes les courses du groupement (pour éviter des centaines de parcours de listes toutes les 2 secondes)
+        actualiseProprieteGroupementDesCourses()
+        
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
+        actualiseProprieteGroupementDesCourses()
+        
+    def actualiseProprieteGroupementDesCourses(self):
+        for c in self.listeDesCourses :
+            Courses[c].setNomGroupement(self.nomStandard)
     def affichageInfoTerminal(self) :
         print("Groupement", self.nom, "de nom standard", self.nomStandard,"contenant les courses",self.listeDesCourses,"de distance",self.distance)
         
@@ -1217,7 +1230,10 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
             i += 1
             retour.append(codeErreur)
         #print("Erreurs retournées :",retour)
-    #else :
+        if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+            Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+    else :
+        Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
     #    print("Fichier du smartphone déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
@@ -1272,7 +1288,10 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
                 print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
             i += 1
             retour.append(codeErreur)
-##    else :
+        if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+            Parametres["tempsDerniereRecuperationLocale"] = time.time()
+    else :
+        Parametres["tempsDerniereRecuperationLocale"] = time.time()
 ##        #print("Fichier des données locales déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
@@ -1284,6 +1303,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     listeAction = ligne.split(",")
     action = listeAction[1]
     dossard = int(listeAction[2])
+    if dossard > 0 : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+        selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
         tpsClient = float(listeAction[4])
@@ -1362,6 +1383,13 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
         retour = Erreur(301)
     #print('Parametres["calculateAll"] après decodeAction... : ',Parametres["calculateAll"])
     return retour
+
+def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
+    cat = Coureurs[dossard-1].categorie(Parametres["CategorieDAge"])
+    # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
+    Courses[cat].setARegenererPourImpression(True)
+    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
+    
     
 def effacerFichierDonnneesSmartphone() :
     print("Effacement des données venant des smartphones  effectué")
@@ -2015,7 +2043,17 @@ def testTMPStats():
         entete = f.read()
     f.close()
     print(creerFichierClasse("36",entete))
-    
+
+def supprimerFichier(file):
+    try :
+        os.remove(file)
+        if DEBUG :
+            print("suppression du fichier",file)
+    except :
+        texte = "Impossible de supprimer le fichier "+file+" car il est ouvert dans un autre programme.\nIl ne sera pas regénéré."
+        showinfo("ERREUR !",texte)
+        if DEBUG :
+            print(texte)
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
@@ -2048,9 +2086,31 @@ def generateImpressions() :
     TEXDIR = "impressions"+os.sep+"tex"+os.sep
     ## effacer les tex existants
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
+    for file in liste_fichiers_tex_complete :
+        os.remove(file) # on supprime tous les .tex
     liste_fichiers_pdf_complete=glob.glob("impressions"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
-    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
-        os.remove(file)
+    for file in liste_fichiers_pdf_complete : # on selectionne les pdf à supprimer
+        nomFichierPdfDecoupe = os.path.basename(file)[:-4].split("_")
+        try :
+            nomFichierPdfDecoupe.remove("")
+        except :
+            pass
+        #print(nomFichierPdfDecoupe, Courses)
+        if nomFichierPdfDecoupe[0] == "Classe" :
+            catG = nomFichierPdfDecoupe[1][0] + "-G"
+            catF = nomFichierPdfDecoupe[1][0] + "-F"
+            aSupprimer = Courses[catG].aRegenererPourImpression or Courses[catF].aRegenererPourImpression
+        else :
+            aSupprimer = False
+        casOuOnSupprime = (aSupprimer) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques" 
+        if not casOuOnSupprime : #pas a virer car aucun changement , on conserve.
+            print("on conserve le fichier ", file, " car aucun resultat n'est survenu depuis la dernière génération.")
+        else : # si categorie ou groupement disparu ou à regénérer, on vire
+            # pour l'instant, on vire également les challenges par classe (problème mineur). Optimisation peu importante vu le travail.
+            supprimerFichier(file)
     ## générer de nouveaux en-têtes.
     #osCWD = os.getcwd()
     #os.chdir("impressions")
@@ -2064,152 +2124,170 @@ def generateImpressions() :
     nbreDispensesTotal = 0
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
+    if Parametres["CategorieDAge"] :
+        denomination = "Categorie"
+    else :
+        denomination = "Classe"
     for classe in Resultats :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
-        if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
+        if (Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G")) :
             #print("Création du fichier de "+classe)
-            nomFichier = classe.replace(" ","-")
-            with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
-                f.write(contenu)
-                f.write("\n\\end{longtable}\\end{center}\\end{document}")
-            f.close()
-            # alimentation des statistiques
-            listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
-            effTot = sum(ArrDispAbsAbandon[:-1])
-            effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
-            effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
-            moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
-            mediane = medianeDesTemps(listeDesTempsDeLaClasse)
-            ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
-            if StatsEffectifs :
-                if effTotF :
-                    FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+            contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
+            nomFichier = classe.replace(" ","_").replace("__","_")
+            if ArrDispAbsAbandon[8] and not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
+                with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                    f.write(contenu)
+                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                f.close()
+                # alimentation des statistiques
+                listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+                effTot = sum(ArrDispAbsAbandon[:-1])
+                effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+                effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+                moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+                mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+                ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+                if StatsEffectifs :
+                    if effTotF :
+                        FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+                    else :
+                        FArr = "{-}"
+                    if effTotG :
+                        GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+                    else :
+                        GArr = "{-}"
+                    if effTotF :
+                        FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FD = "{-}"
+                    if effTotG :
+                        GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GD = "{-}"
+                    if effTotF :
+                        FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FAba = "{-}"
+                    if effTotG :
+                        GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GAba = "{-}"
+                    if effTotF :
+                        FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FAbs = "{-}"
+                    if effTotG :
+                        GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GAbs = "{-}"
                 else :
-                    FArr = "{-}"
-                if effTotG :
-                    GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
-                else :
-                    GArr = "{-}"
-                if effTotF :
-                    FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FD = "{-}"
-                if effTotG :
-                    GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GD = "{-}"
-                if effTotF :
-                    FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FAba = "{-}"
-                if effTotG :
-                    GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GAba = "{-}"
-                if effTotF :
-                    FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FAbs = "{-}"
-                if effTotG :
-                    GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GAbs = "{-}"
-            else :
-                FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
-                GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
-                FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
-                GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
-                FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
-                GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
-                FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
-                GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
-            # nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
-            # nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
-            # nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
-            # nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
-            #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-            ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-                         .replace("@GArr",GArr).replace("@FD",FD)\
-                         .replace("@GD",GD).replace("@FAba",FAba)\
-                         .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-                         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                         .replace("@med",mediane)
+                    FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+                    GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+                    FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+                    GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+                    FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+                    GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+                    FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+                    GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+                # nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+                # nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+                # nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+                # nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+                #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+                ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                             .replace("@GArr",GArr).replace("@FD",FD)\
+                             .replace("@GD",GD).replace("@FAba",FAba)\
+                             .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                             .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                             .replace("@med",mediane)
+                ### la catégorie n'a plus à être regénérée sauf modification
+                if denomination != "Classe" :
+                    Courses[classe].setARegenererPourImpression(False)
+                    # si la classe a été générée, la catégorie également via les groupements ci-dessous
+
     for classe in ResultatsGroupements :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
         #print("Création du fichier de "+classe)
-        if not estChallenge(classe) :
-            nomFichier = classe.replace(" ","-").replace("-/-","-").replace("/","_").replace("\\","_")
-            with open(TEXDIR+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
-                f.write(contenu)
-                f.write("\n\\end{longtable}\\end{center}\\end{document}")
-            f.close()
-            # alimentation des statistiques
-            listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
-            effTot = sum(ArrDispAbsAbandon[:-1])
-            effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
-            effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
-            moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
-            mediane = medianeDesTemps(listeDesTempsDeLaClasse)
-            ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
-            if StatsEffectifs :
-                if effTotF :
-                    FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+
+        # on gardera finalement les groupements pour ne pas afficher les abandons, etc...
+        if (not estChallenge(classe) and len(groupementAPartirDeSonNom(classe).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
+            contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
+            nomFichier = classe.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("__","_")
+            if ArrDispAbsAbandon[8] and not os.path.exists("impressions"+os.sep+"Groupement_"+nomFichier+ ".pdf") :
+                with open(TEXDIR+"Groupement_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                    f.write(contenu)
+                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                f.close()
+                # alimentation des statistiques
+                listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+                effTot = sum(ArrDispAbsAbandon[:-1])
+                effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+                effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+                #print("listeDesTempsDeLaClasse",classe,":", listeDesTempsDeLaClasse)
+                moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+                mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+                ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+                if StatsEffectifs :
+                    if effTotF :
+                        FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+                    else :
+                        FArr = "{-}"
+                    if effTotG :
+                        GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+                    else :
+                        GArr = "{-}"
+                    if effTotF :
+                        FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FD = "{-}"
+                    if effTotG :
+                        GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GD = "{-}"
+                    if effTotF :
+                        FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FAba = "{-}"
+                    if effTotG :
+                        GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GAba = "{-}"
+                    if effTotF :
+                        FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+                    else :
+                        FAbs = "{-}"
+                    if effTotG :
+                        GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+                    else :
+                        GAbs = "{-}"
                 else :
-                    FArr = "{-}"
-                if effTotG :
-                    GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
-                else :
-                    GArr = "{-}"
-                if effTotF :
-                    FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FD = "{-}"
-                if effTotG :
-                    GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GD = "{-}"
-                if effTotF :
-                    FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FAba = "{-}"
-                if effTotG :
-                    GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GAba = "{-}"
-                if effTotF :
-                    FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
-                else :
-                    FAbs = "{-}"
-                if effTotG :
-                    GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
-                else :
-                    GAbs = "{-}"
-            else :
-                FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
-                GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
-                FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
-                GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
-                FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
-                GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
-                FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
-                GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
-            nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
-            nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
-            nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
-            nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
-            #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-            #if estNomDeGroupement(classe) :
-            ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-                         .replace("@GArr",GArr).replace("@FD",FD)\
-                         .replace("@GD",GD).replace("@FAba",FAba)\
-                         .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-                         .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                         .replace("@med",mediane)
+                    FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+                    GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+                    FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+                    GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+                    FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+                    GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+                    FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+                    GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+                nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+                nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+                nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+                nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+                #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+                #if estNomDeGroupement(classe) :
+                ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                             .replace("@GArr",GArr).replace("@FD",FD)\
+                             .replace("@GD",GD).replace("@FAba",FAba)\
+                             .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                             .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                             .replace("@med",mediane)
+                ### le groupement et toutes les catégories incluses n'ont plus à être regénérés sauf modification ultérieure
+                groupementAPartirDeSonNom(classe).setARegenererPourImpression(False)
+                for c in groupementAPartirDeSonNom(classe).listeDesCourses :
+                    Courses[c].setARegenererPourImpression(False)
             #else :
             #    ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
              #            .replace("@GArr",GArr).replace("@FD",FD)\
@@ -2237,11 +2315,13 @@ def generateImpressions() :
         listeChallenges = listChallenges()
         #print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
-            print("Création du fichier du challenge", challenge)
-            with open(TEXDIR+challenge+ ".tex", 'w',encoding="utf-8") as f :
-                f.write(creerFichierChallenge(challenge,enteteC))
-                f.write("\n\\end{longtable}\\end{center}\\end{document}")
-            f.close()
+            #print(ResultatsGroupements[challenge])
+            if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
+                print("Création du fichier du challenge", challenge)
+                with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
+                    f.write(creerFichierChallenge(challenge,enteteC))
+                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                f.close()
         
     ### générer les tex pour chaque groupement.
     listeGroupements = listGroupementsCommences()
@@ -2339,12 +2419,12 @@ def groupementAPartirDUneCategorie(categorie):
 
 def nettoieGroupements() :
     """ supprime les listes vides de Groupements, créées par l'interface si un utilisateur décide d'effectuer des regroupements non incrémentés à partir de 1."""
-    try:
-        while True:
-            Groupements.remove([])
-    except ValueError:
-        pass
-
+    i = len(Groupements) - 1
+    while i >= 0 :
+        if not Groupements[i].listeDesCourses :
+            del Groupements[i]
+        i -= 1
+    
 def updateNomGroupement(nomStandard, nomChoisi) :
     groupementAPartirDeSonNom(nomStandard).setNom(nomChoisi)
 
@@ -2360,8 +2440,8 @@ def updateGroupements(categorie, placeInitiale, placeFinale):
         nettoieGroupements()
         print("Groupements final :")
         for grp in Groupements :
-            print(grp.listeDesCourses)
-            print(grp.nom)
+            print(grp.nom,grp.listeDesCourses)
+
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
@@ -2375,7 +2455,7 @@ def absentsDispensesAbandonsEnTex() :
         elif c.dispense :
             Ldisp.append(c)
             #print(c.nom, c.prenom, "est dispensé")
-        elif c.rang == 0 and c.categorie() in Resultats.keys() :
+        elif c.rang == 0 and Courses[c.categorie(Parametres["CategorieDAge"])].depart : # si la course a été lancé et le coureur n'est pas arrivé.
             Labandon.append(c)
             #print(c.nom, c.prenom, "a abandonné")
     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
@@ -2427,7 +2507,7 @@ def syscmd(cmd, encoding=''):
 
 def compiler(compilateur, chemin, fichierACompiler, nombre) :
     """ compilation latex avec le compilateur de son choix et suppression des fichiers de compilation"""
-    print("arguments :" , compilateur, chemin, fichierACompiler, nombre)
+    #print("arguments :" , compilateur, chemin, fichierACompiler, nombre)
     retour = ""
     #with open("out.txt", mode='w') as f :
     for i in range(nombre) :
@@ -2435,17 +2515,18 @@ def compiler(compilateur, chemin, fichierACompiler, nombre) :
         compilateurComplete = compilateur.replace("@dossier@",chemin)
         cmd = compilateurComplete +  fichierACompiler
         #subprocess.run(cmd, stdout=f)
-        print("Exécution de", cmd)
+        #print("Exécution de", cmd)
         syscmd(cmd)
         #os.system(cmd)
-        retour = "Compilation avec " + compilateurComplete + " du fichier généré " + fichierACompiler + " effectuée."
+        retour ="Compilation du fichier " + fichierACompiler + " effectuée."
+        #"Compilation avec " + compilateurComplete + " du fichier généré " + fichierACompiler + " effectuée."
     # suppression des fichiers de compilation.
     aSupprimer = ""
     ### uniquement pour ce programme car la compilation s'effectue toujours dans le dossier .. Nettoyage du dossier chemin et de sa racine pour gérer tous les cas.
     for ch in [ chemin , chemin + os.sep + ".." ] :
         for ext in [".aux" , ".log", ".out" , ".synctex.gz", ".hd"] :
             if os.path.exists(os.path.join(ch,fichierACompiler[:-4] + ext)) :
-                retour += "Suppression de " + os.path.join(ch,fichierACompiler[:-4] + ext)
+                #retour += "Suppression de " + os.path.join(ch,fichierACompiler[:-4] + ext)
                 os.remove(os.path.join(ch,fichierACompiler[:-4] + ext))#  + fichierACompiler[:-4] + ".log " + fichierACompiler[:-4] + ".out " + fichierACompiler[:-4] + ".synctex.gz "
     # affichage dans le lecteur de pdf par défaut.
     #cmd = "open " + fichierACompiler[:-4] + ".pdf"
@@ -2616,8 +2697,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             ResultatsGroupements[groupement] = []
         if coureur.temps != -1  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
             ResultatsGroupements[groupement].append(doss)
-        else :
-            coureur.setRang(0)
+##        else :
+##            coureur.setRang(0)
             
         ### ajout du coureur dans sa classe ou sa catégorie d'age.
         if not Parametres["CategorieDAge"] :
@@ -2635,9 +2716,9 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
     ### on traite les rangs dans les Groupements
-    keyList = []
+    #keyList = []
     for nom in ResultatsGroupements :
-        keyList.append(nom)
+        #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
         # on affecte son rang à chaque coureur dans sa Course.
         #print("course ",nom,":",Resultats[nom])
@@ -2671,10 +2752,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
             if coureur.temps > 0 : 
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
-                coureur.setRangCourse(i+1)
+                coureur.setRangCat(i+1)
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
-                coureur.setRangCourse(0)
+                coureur.setRangCat(0)
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
@@ -3665,6 +3746,7 @@ def genereAffichageTV(listeDesGroupements) :
     TitresHTML = []
     heuresDeparts = []
     for groupement in listeDesGroupements :
+        #print(groupement)
         if yATIlUCoureurArrive(groupement) :
             chrono = False
         else :
@@ -3673,10 +3755,11 @@ def genereAffichageTV(listeDesGroupements) :
             #print("C'est un challenge par niveau")
             TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
         else :
+            nomGroupementAffiche = groupementAPartirDeSonNom(groupement, nomStandard=True).nom
             if chrono :
-                TitresHTML.append( "<h2> Catégorie " + groupement + "</h2>" )
+                TitresHTML.append( "<h2> Catégorie " + nomGroupementAffiche + "</h2>" )
             else :
-                TitresHTML.append( "<h2> Catégorie " + groupement + " ( <span id='chronotime'></span> )</h2>" )
+                TitresHTML.append( "<h2> Catégorie " + nomGroupementAffiche + " ( <span id='chronotime'></span> )</h2>" )
         TableauxHTML.append(genereTableauHTML(groupement, chrono))
         EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
         heuresDeparts.append(genereHeureDepartHTML(groupement))
@@ -3697,7 +3780,7 @@ def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else : 
-        c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = False).listeDesCourses[0]]
+        c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
         #print("TEST HTML :",c.label, c.temps)
         if c.temps :
             retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
@@ -3841,26 +3924,29 @@ def creerFichierClasse(nom, entete, estGroupement):
 \\endhead
 \n"""
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
-    print(nom, estGroupement)
+    #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Course " + nom
         Dossards = ResultatsGroupements[nom]
-        print(Dossards)
+        #print("Dossards:",Dossards)
         rangCourse = False
         if Parametres["CategorieDAge"] :
-            garderAbandons = True
+            garderAbandons = False
             garderAbsDispAbandons = False
         else :
             garderAbandons = False
             garderAbsDispAbandons = False
     else :
-        garderAbandons = False
-        garderAbsDispAbandons = False
-        rangCourse = True
         if Parametres["CategorieDAge"] :
+            garderAbandons = True
+            garderAbsDispAbandons = False
+            rangCourse = True
             denomination = "Catégorie " + nom
             Dossards = triParTemps(Resultats[nom])### listDossardsDUneCategorie(nom))
         else :
+            garderAbandons = True
+            garderAbsDispAbandons = True
+            rangCourse = False # pour une classe, on affiche le rang pour le cross du collège en général
             denomination = "Classe " + nom
             Dossards = Resultats[nom] # on devrait trier par classe puis par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
             # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
@@ -3897,9 +3983,9 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
 ##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex()# + supplVMA
         if rangCourse :
-            contenuRang = str(coureur.rang)
-        else :
             contenuRang = str(coureur.rangCourse)
+        else :
+            contenuRang = str(coureur.rang)
         if coureur.sexe == "F" :
             ArrDispAbsAbandon[0] = ArrDispAbsAbandon[0] + 1
         else :

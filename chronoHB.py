@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.53"
+version="1.55"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -1934,9 +1934,15 @@ def ActualiseAffichageTV():
         #print(i, val)
         if val :
             listeCochee.append(listeDeGroupementsEtChallenge[i])
-    listeAffichageTV = listeCochee
-    #print("Affichage de :", listeCochee)
-    genereAffichageTV(listeAffichageTV)
+    i = 0
+    for el in listeCochee : # on remplace chaque nom personnalisé par son nom standard
+        nomActuel = listeCochee[i]
+        if len(nomActuel) > 1 : # les challenges portent déjà le bon nom.
+            listeCochee[i] = groupementAPartirDeSonNom(nomActuel, nomStandard=False).nomStandard
+        i += 1
+    print("Affichage de la liste", listeCochee,"sur la TV")
+    #print(ResultatsGroupements)
+    genereAffichageTV(listeCochee)
 
 def OuvrirNavigateur():
     webbrowser.open('http://127.0.0.1:8888')
@@ -2218,6 +2224,7 @@ class Clock():
         self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
         self.update_clock()
+        #self.sauvegardeDejaEnErreur = False
 
     def setPremiereExecution(self,valeur):
         try :
@@ -2230,7 +2237,8 @@ class Clock():
         global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
-
+        
+        #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
         if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
             self.auMoinsUnImport = True
         
@@ -2262,15 +2270,16 @@ class Clock():
         if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
-        
+
         ip = extract_ip()
         if ip != self.ipActuelle :
             self.ouvrirBoutonMessage = "Cliquer ici pour afficher les informations sur un 2ème écran relié\nà cet ordinateur (touche WIN+P pour 'étendre l'affichage').\nSur le même réseau wifi, saisir l'adresse suivante pour afficher\nles résultats sur un autre ordinateur :\nhttp://"+ ip +":8888 "
             myTip = Hovertip(ouvrirBouton,self.ouvrirBoutonMessage)
             self.ipActuelle = ip
-        
+       
         ## Sauvegarde toutes les 1 minutes s'il y a au moins un évènement à traiter. Sinon, rien.
         # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
+        #print("TEst sauvegarde:",self.auMoinsUnImport)
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)

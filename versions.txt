@@ -1,3 +1,18 @@
+Travail du 27/08/22 : version 1.55
+Nombreuses corrections de bugs :
+- Correctif liés à l'encodage des fichiers tex : fichier de statistiques,...
+- Correctif lié aux groupements : les groupements vides n'étaient pas supprimés par nettoieGroupements()
+- Correctifs nombreux liés à la distinction à effectuer entre les impressions par catégories d'âge ou par classe.
+- Les abandons n'apparaissaient plus dans le fichier de statistiques,
+- Les fichiers .tex sans données étaient générés,... Ils ne le sont plus.
+- Si un pdf est ouvert, ne génère plus d'erreur à la compilation. Affiche un popup indiquant de le fermer.
+- si les fichiers txt de données venant de l'interface ou des smartphones n'existaient pas ou n'était pas modifiés, la sauvegarde se lançait quand même. Corrigé.
+- correction pour que les groupements de l'affichage TV utilisent le nomStandard et non celui librement paramétrable. Plus sûr.
+
+Optimisation : les fichiers tex inchangés (pas de changement dans une course donnée) ne sont plus regénérés.
+On ne supprime plus tous les pdf mais seulement ceux qui doivent subir un changement. Ajout d'une propriété flag aux class Courses et Groupement.
+
+
 Travail du 22/08/22 : version 1.52
 La génération des résultats en fonction des cases cochées s'effectue correctement après toute modification.
 Résolution du bug de génération des résultats de challenge sur la TV.
