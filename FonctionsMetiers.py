@@ -569,12 +569,12 @@ class Groupement():
             self.nom = self.nom + " / " + str(nomCourse)
         self.actualiseNom()
         # on actualise les propriétés nomGroupement de toutes les courses du groupement (pour éviter des centaines de parcours de listes toutes les 2 secondes)
-        actualiseProprieteGroupementDesCourses()
+        self.actualiseProprieteGroupementDesCourses()
         
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
-        actualiseProprieteGroupementDesCourses()
+        self.actualiseProprieteGroupementDesCourses()
         
     def actualiseProprieteGroupementDesCourses(self):
         for c in self.listeDesCourses :
@@ -2435,12 +2435,15 @@ def updateGroupements(categorie, placeInitiale, placeFinale):
         # print(grp.listeDesCourses)
         # print(grp.nom)
     if placeInitiale != placeFinale :
-        Groupements[placeInitiale-1].removeCourse(categorie)    
-        Groupements[placeFinale-1].addCourse(categorie)
+        Groupements[placeInitiale-1].removeCourse(categorie)
+        if placeFinale - 1 == len(Groupements) :
+            Groupements.append(Groupement(categorie,[categorie]))
+        else :
+            Groupements[placeFinale-1].addCourse(categorie)
         nettoieGroupements()
-        print("Groupements final :")
-        for grp in Groupements :
-            print(grp.nom,grp.listeDesCourses)
+        #print("Groupements final :")
+        #for grp in Groupements :
+        #    print(grp.nom,grp.listeDesCourses)
 
 
 def absentsDispensesAbandonsEnTex() :

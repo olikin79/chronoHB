@@ -1,3 +1,10 @@
+Travail du 28/08/22 : version 1.56
+Amélioration gestion des groupements:
+Quand on regroupe des catégories, on perdait un numéro dans les combobox :
+	- on ne pouvait plus augmenter le nombre de groupements. Rajouter un numéro dans les combobox si le nombre de groupements est inférieur strict au nbre de catégories.
+	- blocage du combobox (non modifiable).
+
+
 Travail du 27/08/22 : version 1.55
 Nombreuses corrections de bugs :
 - Correctif liés à l'encodage des fichiers tex : fichier de statistiques,...

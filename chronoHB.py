@@ -43,7 +43,7 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1077,7 +1077,12 @@ class EntryGroupements(Frame):
 ##                ligne.pack(side=TOP)
                 #print("EntryGroupement(",course,noGroupement,self.longueur,")")
                 #self.listeDesEntryGroupement.append(
-                EntryGroupement(course,noGroupement,self.longueur, self, self.groupements).pack(side=TOP)
+                longueur = self.longueur
+                #print(longueur, len(Courses))
+                if longueur < len(Courses) :
+                    longueur += 1
+                    #print("on ajoute 1")
+                EntryGroupement(course,noGroupement,longueur, self, self.groupements).pack(side=TOP)
                 #    )
                 #self.listeDesEntryGroupement[-1].pack(side=TOP)
             noGroupement = noGroupement + 1
@@ -1096,7 +1101,7 @@ class EntryGroupement(Frame):
         self.numero = numero
         self.max = numeromax
         i = 1
-        valeursPossibles = list(range(1,1+self.max))
+        valeursPossibles = list(range(1,self.max+1))
         ## tentative pour éliminer les valeurs des courses déjà commencées.
         if not Courses[self.course].depart :
             for grpment in groupements :
@@ -1105,7 +1110,7 @@ class EntryGroupement(Frame):
                 i += 1
         valeurs=tuple(valeursPossibles)
         #print(course,valeurs)
-        self.combobox = Combobox(self, width=5, justify=CENTER, values=valeurs)
+        self.combobox = Combobox(self, width=5, state="readonly", justify=CENTER, values=valeurs)
         #self.combobox.current(self.numero-1)
         self.combobox.set(self.numero)
         def memoriseValeurBind(event) :
