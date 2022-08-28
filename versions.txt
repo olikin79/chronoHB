@@ -4,6 +4,8 @@ Quand on regroupe des catégories, on perdait un numéro dans les combobox :
 	- on ne pouvait plus augmenter le nombre de groupements. Rajouter un numéro dans les combobox si le nombre de groupements est inférieur strict au nbre de catégories.
 	- blocage du combobox (non modifiable).
 - le fichier d'une classe est trié par ordre alpha et non de numéro de dossard (historiquement).
+- correction dénomination "Catégorie" en lieu et place de "Classe" dans le listing.
+- correction nom personnalisé du groupement au lieu du nom standard sur les dossards.
 
 
 Travail du 27/08/22 : version 1.55

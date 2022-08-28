@@ -1,7 +1,7 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-
-
+- l'affichage TV ne s'actualise plus. A creuser. en mode catégorie d'age.
+- la génération des pdf de résultats ne fonctionne plus en catégories d'age.
 
 
 NON PRIORITAIRES :
@@ -20,7 +20,7 @@ ESTHETIQUE :
 
 
 A TESTER :
-- tester des groupements de courses, le listing des résultats, le challenge prennent ils en compte les élèves des groupements ou pas ?
+- tester si les résultats par classe sont ordonnés par ordre alphabétique.
 
 
 

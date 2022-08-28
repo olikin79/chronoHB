@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.56"
+version = "1.55"
 
 
 def windows():
@@ -446,7 +446,7 @@ class Course():#persistent.Persistent):
         self.temps = 0
         self.depart = False
     def initNomGroupement(self, cat) :
-        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat)
+        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nom
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
         self.nomGroupement = str(nomDonne)
@@ -1388,7 +1388,8 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     cat = Coureurs[dossard-1].categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     Courses[cat].setARegenererPourImpression(True)
-    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
+    #print("nom groupement de la catégorie", cat, ":", Courses[cat].nomGroupement)
+    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = False).setARegenererPourImpression(True)
     
     
 def effacerFichierDonnneesSmartphone() :
@@ -1683,10 +1684,10 @@ def generateDossardsNG() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     global CoureursParClasse
-    with open("./modeles/dossard-en-tete.tex", 'r') as f :
+    with open("./modeles/dossard-en-tete.tex", 'r',encoding="utf-8") as f :
         entete = f.read()
     f.close()
-    with open("./modeles/listing-en-tete.tex", 'r') as f :
+    with open("./modeles/listing-en-tete.tex", 'r',encoding="utf-8") as f :
         enteteL = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
@@ -1733,7 +1734,7 @@ def generateDossardsNG() :
                 else :
                     cl = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 with open(TEXDIR+cat + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1917,12 +1918,16 @@ def generateDossard(coureur) :
     return fichierAOuvrir
 
 def alimenteListingPourClasse(nomClasse, file):
+    if Parametres["CategorieDAge"] :
+        denomination = "Catégorie"
+    else :
+        denomination = "Classe"
     debutTab = """{}\\hfill {}
 %\\fcolorbox{black}{gray!30}{
 \\begin{minipage}{0.9\\textwidth}
 \\Huge
 {}\\hfill {}
-\\textbf{Classe """ + nomClasse + """}
+\\textbf{""" + denomination + " " + nomClasse + """}
 {}\\hfill {}
 \\end{minipage}
 %}

@@ -2207,6 +2207,14 @@ def actualiseAffichageErreurs(listErreursEnCours):
     else :
         zoneAffichageErreurs.forget()
 
+
+
+##print("bug nom groupement")
+##print(Groupements[0].nom,Groupements[0].nomStandard)
+##print(Courses["SE-G"].nomGroupement)
+##print("correctif nomGroupements incorrects")
+##for c in Courses :
+##    Courses[c].initNomGroupement(Courses[c].categorie)
    
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
@@ -3361,6 +3369,8 @@ actualiseToutLAffichage()
 
 GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
 DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+
+
 
 
 
