@@ -1,7 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- l'affichage TV ne s'actualise plus. A creuser. en mode catégorie d'age.
-- la génération des pdf de résultats ne fonctionne plus en catégories d'age.
+- lors d'une récupération de sauvegarde (ou effacement de toutes les données), effacer toutes les vidéos, tous les dossards, tous les pdf de résultats.
 
 
 NON PRIORITAIRES :

@@ -2107,10 +2107,13 @@ def generateImpressions() :
             aSupprimer = Courses[catG].aRegenererPourImpression or Courses[catF].aRegenererPourImpression
         else :
             aSupprimer = False
-        casOuOnSupprime = (aSupprimer) \
+        try :
+            casOuOnSupprime = (aSupprimer) \
                           or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
                           or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
-                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques" 
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
+        except :
+            casOuOnSupprime = True
         if not casOuOnSupprime : #pas a virer car aucun changement , on conserve.
             print("on conserve le fichier ", file, " car aucun resultat n'est survenu depuis la dernière génération.")
         else : # si categorie ou groupement disparu ou à regénérer, on vire
