@@ -1,6 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- le fichier d'une classe devrait être par ordre alpha et non de temps.
+
 
 
 

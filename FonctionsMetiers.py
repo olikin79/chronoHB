@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.55"
+version = "1.56"
 
 
 def windows():
@@ -2811,6 +2811,13 @@ def estUneClasse(nom):
     """ Comme le nom des classes est libre, estUneClasse est vraie si n'est pas une course ou un groupement ET n'est pas un challenge (1 caractère)"""
     return len(nom) > 1 and (not estUneCourseOuUnGroupement(nom))
 
+def estSuperieurNP(d1, d2):
+    if Coureurs[d1-1].nom == Coureurs[d2-1].nom :
+        # si les noms sont égaux, on compare les prénoms
+        return Coureurs[d1-1].prenom > Coureurs[d2-1].prenom
+    else :
+        return Coureurs[d1-1].nom > Coureurs[d2-1].nom
+
 def estSuperieur(d1, d2):
     if Coureurs[d1-1].temps == 0 or Coureurs[d1-1].temps == -1 :
         # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie. si -1 c'est que le départ n'a pas été donné
@@ -2832,6 +2839,9 @@ def estSuperieurS(E1, E2):
         else :
             return E1.score > E2.score
 
+def triParNomPrenom(listeDeDossard):
+    return trifusionNP(listeDeDossard)
+
 def triParTemps(listeDeDossard):
     return trifusion(listeDeDossard)
 
@@ -2843,6 +2853,12 @@ def trifusionS(T) :
     T1=[T[x] for x in range(len(T)//2)]
     T2=[T[x] for x in range(len(T)//2,len(T))]
     return fusionS(trifusionS(T1),trifusionS(T2)) 
+
+def trifusionNP(T) :
+    if len(T)<=1 : return T
+    T1=[T[x] for x in range(len(T)//2)]
+    T2=[T[x] for x in range(len(T)//2,len(T))]
+    return fusionNP(trifusionNP(T1),trifusionNP(T2))  
 
 def trifusion(T) :
     if len(T)<=1 : return T
@@ -2857,6 +2873,14 @@ def fusionS(T1,T2) :
         return [T1[0]]+fusionS(T1[1 :],T2)
     else :
         return [T2[0]]+fusionS(T1,T2[1 :])
+
+def fusionNP(T1,T2) :
+    if T1==[] :return T2
+    if T2==[] :return T1
+    if estSuperieurNP(T2[0], T1[0]) :
+        return [T1[0]]+fusionNP(T1[1 :],T2)
+    else :
+        return [T2[0]]+fusionNP(T1,T2[1 :])  
 
 def fusion(T1,T2) :
     if T1==[] :return T2
@@ -3951,7 +3975,7 @@ def creerFichierClasse(nom, entete, estGroupement):
             garderAbsDispAbandons = True
             rangCourse = False # pour une classe, on affiche le rang pour le cross du collège en général
             denomination = "Classe " + nom
-            Dossards = Resultats[nom] # on devrait trier par classe puis par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
+            Dossards = triParNomPrenom(Resultats[nom]) # on trie par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
             # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
