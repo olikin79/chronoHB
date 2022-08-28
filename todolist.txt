@@ -19,7 +19,7 @@ ESTHETIQUE :
 
 
 A TESTER :
-- tester si les résultats par classe sont ordonnés par ordre alphabétique.
+
 
 
 
