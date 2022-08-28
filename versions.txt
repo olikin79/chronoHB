@@ -6,6 +6,8 @@ Quand on regroupe des catégories, on perdait un numéro dans les combobox :
 - le fichier d'une classe est trié par ordre alpha et non de numéro de dossard (historiquement).
 - correction dénomination "Catégorie" en lieu et place de "Classe" dans le listing.
 - correction nom personnalisé du groupement au lieu du nom standard sur les dossards.
+- correction rechercheVideoProcheDe si recherche d'une ligne sans horaire ("-" quand il manque un temps)
+- correction bug si plusieurs générations de pdf successives : les statistiques étaient vides.
 
 
 Travail du 27/08/22 : version 1.55

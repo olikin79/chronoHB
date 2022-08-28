@@ -657,56 +657,59 @@ def formateSurDeuxChiffres(entier):
 def rechercheVideoProcheDe(horaire) :
     retour = []
     ecartTolere = 4 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
-    print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
-    heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
-    annee=time.strftime("%Y",heurePassage)
-    mois=time.strftime("%m",heurePassage)
-    jour=time.strftime("%d",heurePassage)
-    heure=time.strftime("%H",heurePassage)
-    minute=time.strftime("%M",heurePassage)
-    seconde=time.strftime("%S",heurePassage)
-    #print(horaire)
-    tpsSelectionne = time.mktime(heurePassage)
-    #print("Temps sélectionné en secondes depuis epoch :",tpsSelectionne)
-    ## optimisation pour limiter le nombre de fichiers : l'heure du début de la vidéo précède forcément l'heure de passage car le champ est large
-    if int(seconde) >= 10 :
-        files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
-    else :
-        if int(minute) > 0 :
-            # si seconde < 10 , on prend tous les fichiers qui sont dans la minute qui précède et la minute courante
-            files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + formateSurDeuxChiffres(int(minute)-1) +"-*.*")+\
-                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
+    try :
+        heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
+        print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
+        annee=time.strftime("%Y",heurePassage)
+        mois=time.strftime("%m",heurePassage)
+        jour=time.strftime("%d",heurePassage)
+        heure=time.strftime("%H",heurePassage)
+        minute=time.strftime("%M",heurePassage)
+        seconde=time.strftime("%S",heurePassage)
+        #print(horaire)
+        tpsSelectionne = time.mktime(heurePassage)
+        #print("Temps sélectionné en secondes depuis epoch :",tpsSelectionne)
+        ## optimisation pour limiter le nombre de fichiers : l'heure du début de la vidéo précède forcément l'heure de passage car le champ est large
+        if int(seconde) >= 10 :
+            files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
         else :
-            if int(heure) > 0 :
-                # on doit aussi prendre les fichiers de la 59ème minute de l'heure précédente
-                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + formateSurDeuxChiffres(int(heure)-1) + "-59-*.*")+\
-                           glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-00-*.*"))
+            if int(minute) > 0 :
+                # si seconde < 10 , on prend tous les fichiers qui sont dans la minute qui précède et la minute courante
+                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + formateSurDeuxChiffres(int(minute)-1) +"-*.*")+\
+                               glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-" + minute +"-*.*"))
             else :
-                # aucune optimisation : cas improbable car on ne coure pas à minuit !
-                files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour+"-*.*"))
-    #files.sort(key=os.path.getmtime) # finalement, on trie en fonction du nom, qui contient l'heure. Plus fiable en cas de copies-restaurations de fichiers ultérieures.
-    #print("\n".join(files))
-    ### ecart = 4000000000 # durée d'une vie humaine : 4.10^9 secondes
-    # on recherche le fichier avec le plus faible ecart : si l'écart augmente, on arrête le parcours, on s'éloigne. On a trouvé le minimum.
-    # on pourrait imaginer une dichotomie pour se rapprocher plus vite de la meilleure vidéo
-    # mais peu utile vu le filtre sur les heures des vidéos ci-dessus.
-    for file in files :
-        nom = os.path.basename(file[:-4])
-        tpsFile = time.mktime(time.strptime(nom, "%Y-%m-%d-%H-%M-%S"))
-        ecart = abs(tpsSelectionne - tpsFile)
-        if (ecart <= ecartTolere and tpsFile <= tpsSelectionne) or (ecart <= 1 and tpsFile >= tpsSelectionne) :
-            retour.append(file)
-        #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
-            ### la méthode suivante ne convenait pas. Il se peut qu'il n'y ait pas d'enregistrement après celui souhaité.
-##        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
-##            break
-##        else :
-##            fichierChoisi = file
-##            ecart = nouvelEcart
-##    if ecart < ecartTolere : # tolérance choisie en début de fonction
-##        retour = fichierChoisi
-    if retour :
-        print("Affichage des vidéos",retour)
+                if int(heure) > 0 :
+                    # on doit aussi prendre les fichiers de la 59ème minute de l'heure précédente
+                    files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + formateSurDeuxChiffres(int(heure)-1) + "-59-*.*")+\
+                               glob.glob("videos/"+annee+"-"+mois+"-"+jour + "-" + heure + "-00-*.*"))
+                else :
+                    # aucune optimisation : cas improbable car on ne coure pas à minuit !
+                    files = sorted(glob.glob("videos/"+annee+"-"+mois+"-"+jour+"-*.*"))
+        #files.sort(key=os.path.getmtime) # finalement, on trie en fonction du nom, qui contient l'heure. Plus fiable en cas de copies-restaurations de fichiers ultérieures.
+        #print("\n".join(files))
+        ### ecart = 4000000000 # durée d'une vie humaine : 4.10^9 secondes
+        # on recherche le fichier avec le plus faible ecart : si l'écart augmente, on arrête le parcours, on s'éloigne. On a trouvé le minimum.
+        # on pourrait imaginer une dichotomie pour se rapprocher plus vite de la meilleure vidéo
+        # mais peu utile vu le filtre sur les heures des vidéos ci-dessus.
+        for file in files :
+            nom = os.path.basename(file[:-4])
+            tpsFile = time.mktime(time.strptime(nom, "%Y-%m-%d-%H-%M-%S"))
+            ecart = abs(tpsSelectionne - tpsFile)
+            if (ecart <= ecartTolere and tpsFile <= tpsSelectionne) or (ecart <= 1 and tpsFile >= tpsSelectionne) :
+                retour.append(file)
+            #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
+                ### la méthode suivante ne convenait pas. Il se peut qu'il n'y ait pas d'enregistrement après celui souhaité.
+    ##        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
+    ##            break
+    ##        else :
+    ##            fichierChoisi = file
+    ##            ecart = nouvelEcart
+    ##    if ecart < ecartTolere : # tolérance choisie en début de fonction
+    ##        retour = fichierChoisi
+        if retour :
+            print("Affichage des vidéos",retour)
+    except :
+        print("La ligne sélectionné ne contient pas d'horaire")
     return retour
 
 class ValidatingEntry(Entry):
@@ -2212,9 +2215,9 @@ def actualiseAffichageErreurs(listErreursEnCours):
 ##print("bug nom groupement")
 ##print(Groupements[0].nom,Groupements[0].nomStandard)
 ##print(Courses["SE-G"].nomGroupement)
-##print("correctif nomGroupements incorrects")
-##for c in Courses :
-##    Courses[c].initNomGroupement(Courses[c].categorie)
+print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
+for c in Courses :
+    Courses[c].initNomGroupement(Courses[c].categorie)
    
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.

@@ -446,7 +446,7 @@ class Course():#persistent.Persistent):
         self.temps = 0
         self.depart = False
     def initNomGroupement(self, cat) :
-        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nom
+        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
         self.nomGroupement = str(nomDonne)
@@ -1389,7 +1389,7 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     Courses[cat].setARegenererPourImpression(True)
     #print("nom groupement de la catégorie", cat, ":", Courses[cat].nomGroupement)
-    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = False).setARegenererPourImpression(True)
+    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
     
     
 def effacerFichierDonnneesSmartphone() :
@@ -2140,11 +2140,12 @@ def generateImpressions() :
             #print("Création du fichier de "+classe)
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
             nomFichier = classe.replace(" ","_").replace("__","_")
-            if ArrDispAbsAbandon[8] and not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
-                with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                    f.write(contenu)
-                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                f.close()
+            if ArrDispAbsAbandon[8] :
+                if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
+                    with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                        f.write(contenu)
+                        f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                    f.close()
                 # alimentation des statistiques
                 listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
                 effTot = sum(ArrDispAbsAbandon[:-1])
@@ -2215,17 +2216,18 @@ def generateImpressions() :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
-        #print("Création du fichier de "+classe)
+        print("Création du fichier de "+classe)
 
         # on gardera finalement les groupements pour ne pas afficher les abandons, etc...
-        if (not estChallenge(classe) and len(groupementAPartirDeSonNom(classe).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
+        if (not estChallenge(classe) and len(groupementAPartirDeSonNom(classe, nomStandard = True).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
-            nomFichier = classe.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("__","_")
-            if ArrDispAbsAbandon[8] and not os.path.exists("impressions"+os.sep+"Groupement_"+nomFichier+ ".pdf") :
-                with open(TEXDIR+"Groupement_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                    f.write(contenu)
-                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                f.close()
+            nomFichier = classe.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
+            if ArrDispAbsAbandon[8] :
+                if not os.path.exists("impressions"+os.sep+"Groupement_"+nomFichier+ ".pdf") :
+                    with open(TEXDIR+"Groupement_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                        f.write(contenu)
+                        f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                    f.close()
                 # alimentation des statistiques
                 listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
                 effTot = sum(ArrDispAbsAbandon[:-1])
@@ -2283,7 +2285,7 @@ def generateImpressions() :
                 nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
                 #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
                 #if estNomDeGroupement(classe) :
-                ContenuLignesGroupements += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+                ContenuLignesGroupements += ligneStats.replace("@classe",groupementAPartirDeSonNom(classe).nom).replace("@FArr",FArr)\
                              .replace("@GArr",GArr).replace("@FD",FD)\
                              .replace("@GD",GD).replace("@FAba",FAba)\
                              .replace("@GAba",GAba).replace("@FAbs",FAbs)\
@@ -3958,7 +3960,7 @@ def creerFichierClasse(nom, entete, estGroupement):
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
-        denomination = "Course " + nom
+        denomination = "Course " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
         Dossards = ResultatsGroupements[nom]
         #print("Dossards:",Dossards)
         rangCourse = False
@@ -4015,7 +4017,7 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
 ##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex()# + supplVMA
         if rangCourse :
-            contenuRang = str(coureur.rangCourse)
+            contenuRang = str(coureur.rangCat)
         else :
             contenuRang = str(coureur.rang)
         if coureur.sexe == "F" :
