@@ -2060,10 +2060,50 @@ def supprimerFichier(file):
         if DEBUG :
             print(texte)
 
+def selectPlusRecent(dossier,formatDuNom):
+    datePrecedente = 0
+    for file in glob.glob(dossier + os.sep + formatDuNom,recursive = False) :
+        if datePrecedente < os.path.getmtime(file) :
+            datePrecedente = os.path.getmtime(file)
+            fichierSelectionne = file
+    return fichierSelectionne
+
+def nettoyerTousLesFichiersGeneres():
+    ## effacer les dossards et les fichiers les ayant générés.
+    DOSSDIR = "dossards"+os.sep
+    L1 =glob.glob(DOSSDIR+"tex"+os.sep+'*.tex',recursive = True)
+    L2 =glob.glob(DOSSDIR+'*.pdf',recursive = False)
+    ## effacer les tex existants d'impressions
+    IMPDIR = "impressions"+os.sep
+    L3 =glob.glob(IMPDIR+"tex"+os.sep+'*.tex',recursive = False)
+    L4 =glob.glob(IMPDIR+'*.pdf',recursive = False)
+    listeTotale = L1 + L2 + L3 + L4
+    for file in listeTotale :
+        try :
+            supprimerFichier(file)
+        except :
+            print("Impossible de supprimer:", file)
+    ## effacer les videos.
+    if os.path.exists("videos") :
+        shutil.rmtree("videos")
+    ## effacer les bases de donnees superflues : toutes sauf la dernière.
+    L = []
+    for schema in ["*.db","*_DS.txt","*_ML.txt"] :
+        L.append(selectPlusRecent("db",schema))
+    #print(L)
+    L5 =glob.glob('db'+os.sep+'*.db',recursive = False)
+    L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
+    for file in L5 + L6 :
+        if not file in L :
+            try :
+                supprimerFichier(file)
+            except :
+                print("Impossible de supprimer:", file)
+
+    
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
     StatsEffectifs = True ## à basculer dans les paramètres
-    
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
     for DIR in [ "impressions", "impressions"+os.sep+"tex" ]:

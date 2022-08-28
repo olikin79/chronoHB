@@ -2518,6 +2518,7 @@ def effaceToutesDonnees() :
         delCoureurs()
         tableau.reinit()
         actualiseToutLAffichage()
+        nettoyerTousLesFichiersGeneres()
         #actualiseEtatBoutonsRadioConfig()
         
 def effaceDonneesGUI ():

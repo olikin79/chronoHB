@@ -8,6 +8,10 @@ Quand on regroupe des catégories, on perdait un numéro dans les combobox :
 - correction nom personnalisé du groupement au lieu du nom standard sur les dossards.
 - correction rechercheVideoProcheDe si recherche d'une ligne sans horaire ("-" quand il manque un temps)
 - correction bug si plusieurs générations de pdf successives : les statistiques étaient vides.
+- ajout d'une fonction de nettoyage quand on efface toutes les données ou que l'on récupère une sauvegarde. 
+On efface les vieilles vidéos, db, fichiers tex et pdf etc...
+Si l'utilisateur veut conserver une sauvegarde, il doit l'avoir fait spécifiquement (pour les vidéos). 
+Sinon, on garde juste la dernière version de la base de données comme indiqué dans le message en pop-up.
 
 
 Travail du 27/08/22 : version 1.55
