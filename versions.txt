@@ -1,4 +1,11 @@
 Travail du 28/08/22 : version 1.56
+- effacement des fichiers de LOG en cas de réinitialisation des données (oublié en 1.55).
+- fonctionne avec pythonw. Les sorties console n'étaient pas redirigées assez tôt dans chronoHB.py.
+- renommage de chronoHB.py en chronoHB.pyw, adaptation de la documentation.
+- résolution d'un bug en cas d'imports de données depuis le smartphone avant l'import de coureurs (Peu probable mais corrigé). 
+
+
+Travail du 28/08/22 : version 1.56
 - Amélioration gestion des groupements:
 Quand on regroupe des catégories, on perdait un numéro dans les combobox :
 	- on ne pouvait plus augmenter le nombre de groupements. Rajouter un numéro dans les combobox si le nombre de groupements est inférieur strict au nbre de catégories.

@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.55"
+version = "1.56"
 
 
 def windows():
@@ -2090,9 +2090,10 @@ def nettoyerTousLesFichiersGeneres():
     L = []
     for schema in ["*.db","*_DS.txt","*_ML.txt"] :
         L.append(selectPlusRecent("db",schema))
-    #print(L)
+    ## effacer les fichiers de base de données automatiquement générés + fichiers de LOG
     L5 =glob.glob('db'+os.sep+'*.db',recursive = False)
     L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
+    L7 =glob.glob('logs'+os.sep+'*.txt',recursive = False)
     for file in L5 + L6 :
         if not file in L :
             try :

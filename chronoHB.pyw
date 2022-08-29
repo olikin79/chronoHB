@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.55"
+version="1.56"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -36,18 +36,22 @@ CoureursParClasse = {}
 ### tableauGUI = []
 ### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
 
+
+#### DEBUG
+DEBUG = True
+
+if not DEBUG : 
+    sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
+    sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
+    
+
 from FonctionsMetiers import *
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
 # from PIL import ImageTk,Image 
 
-#### DEBUG
-DEBUG = False
 
-if not DEBUG : 
-    sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
-    sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
 
 
 ##class Logger(object):
@@ -583,14 +587,15 @@ class MonTableau(Frame):
         doss = int(donnee[self.colonneDossard])
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
-        if Coureurs[doss-1].rang :
-            ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
-        else :
-            ligneAAjouter[self.colonneRang] = "?"
-        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         if doss == 0:
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
+        else :
+            if Coureurs[doss-1].rang :
+                ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+            else :
+                ligneAAjouter[self.colonneRang] = "?"
+        ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
         #print("temps de la ligne", ligne, donnee[1])
         if ligne <= len(items) :
