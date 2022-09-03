@@ -930,15 +930,21 @@ class EntryParam(Frame):
             self.valeur = "" # n'existe pas dans la base de données. Ne devrait pas arriver.
         self.nombre = nombre
         self.entry = Entry(self, width=self.largeur)
-        self.entry.insert(0,str(self.valeur).replace(".",","))
+        if self.nombre :
+            self.entry.insert(0,str(self.valeur).replace(".",","))
+        else :
+            self.entry.insert(0,str(self.valeur))
         def dontsaveedit(event) :
             self.entry.delete(0, END)
-            self.entry.insert(0,str(self.valeur).replace(".",","))
+            if self.nombre :
+                self.entry.insert(0,str(self.valeur).replace(".",","))
+            else :
+                self.entry.insert(0,str(self.valeur))
         def memoriseValeurBind(event) :
             ch = self.entry.get()
-            ch = ch.replace(",",".")
             if self.nombre :
                 try :
+                    ch = ch.replace(",",".")
                     float(ch)
                     setParam(self.param, ch)
                 except :
@@ -954,6 +960,13 @@ class EntryParam(Frame):
         #self.checkbuttons.append(chk)
         self.lbl.pack(side=LEFT) 
         self.entry.pack(side=LEFT) # à la verticale
+    def actualise(self):
+        self.valeur = Parametres[self.param]
+        self.entry.delete(0, END)
+        if self.nombre :
+            self.entry.insert(0,str(self.valeur).replace(".",","))
+        else :
+            self.entry.insert(0,str(self.valeur))
 
 class EntryCourse(Frame):
     def __init__(self, groupement, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
@@ -2826,6 +2839,16 @@ def imprimerDossardsNonImprimes() :
         showinfo("Informations","Il n'y a aucun dossard créé manuellement, non absent ou dispensé, et qui n'aurait pas encore été imprimé pour l'instant.")
         print("Il n'y a aucun dossard créé manuellement, non absent ou dispensé, et qui n'aurait pas encore été imprimé pour l'instant.")
 
+def actualiseEntryParams():
+    VitesseDefilementFrame.actualise()
+    SauvegardeUSBFrame.actualise()
+    MessageParDefautFrame.actualise()
+    NbreCoureursChallengeFrame.actualise()
+    LieuEntry.actualise()
+    IntituleEntry.actualise()
+    TempsPauseFrame.actualise()
+    VitesseDefilementFrame.actualise()
+
 def recupererSauvegardeGUI() :
     #global root,Courses
     CURRENT_DIRECTORY = os.getcwd()
@@ -2846,6 +2869,7 @@ def recupererSauvegardeGUI() :
         print("---------------")
         print("COURSES dans recuperer_sauvegardeGUI =",Courses)
         #print("global",globals()["Courses"])
+        actualiseEntryParams()
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
         generateListCoureursPourSmartphone()

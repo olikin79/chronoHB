@@ -1,5 +1,6 @@
 Travail du 03/09/22 : version 1.57
-Correctif non actualisation de l'affichage TV lors du top départ d'une course.
+- Correctif non actualisation de l'affichage TV lors du top départ d'une course.
+- Correctif non actualisation des EntryParam (champs contenant les paramètres) lors de la récupération d'une sauvegarde.
 
 
 Travail du 28/08/22 : version 1.56
