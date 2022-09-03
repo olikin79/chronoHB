@@ -1,7 +1,6 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- l'apostrophe dans le nom de la course provoque un bug dans la page web : 
-voir s'il est possible de permuter des " avec des ' et d'empêcher les guillemets (dans ce cas) dans l'interface graphique.
+
 
 
 NON PRIORITAIRES :

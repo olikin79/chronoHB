@@ -23,7 +23,7 @@ from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
 
-version="1.56"
+version="1.57"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -38,7 +38,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -1395,7 +1395,8 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
         actualiseAffichageDeparts()
-        ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
+        #ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
+        checkBoxBarAffichage.change(True)
     def actualise(self) :
         self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)

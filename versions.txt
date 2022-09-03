@@ -1,3 +1,7 @@
+Travail du 03/09/22 : version 1.57
+Correctif non actualisation de l'affichage TV lors du top départ d'une course.
+
+
 Travail du 28/08/22 : version 1.56
 - effacement des fichiers de LOG en cas de réinitialisation des données (oublié en 1.55).
 - fonctionne avec pythonw. Les sorties console n'étaient pas redirigées assez tôt dans chronoHB.py.

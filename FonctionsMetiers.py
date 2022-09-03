@@ -23,7 +23,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.56"
+version = "1.57"
 
 
 def windows():
@@ -2463,10 +2463,21 @@ def groupementAPartirDUneCategorie(categorie):
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
-        retour = Groupements[Groupements.index(Courses[categorie].nomGroupement)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+        #print(Courses[categorie].nomGroupement)
+        retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
-        retour = Groupements[Groupements.index(Courses[categorie].initNomGroupement(categorie))]# Courses[categorie].initNomGroupement(categorie)
+        retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
     return retour
+
+def findIndex(nom, L):
+    '''Find index of nom in liste de groupements L where it is present'''
+    i = 0
+    for el in L :
+        #print("on cherche", nom, "et on trouve", el.nomStandard)
+        if el.nomStandard == nom :
+            break
+        i += 1
+    return i
 
 def nettoieGroupements() :
     """ supprime les listes vides de Groupements, créées par l'interface si un utilisateur décide d'effectuer des regroupements non incrémentés à partir de 1."""
@@ -3092,9 +3103,9 @@ def delArriveeTempsClient(tempsCoureur, dossard=0) :
         #DonneesAAfficher.reinit() # on regénère le tableau GUI
         Parametres["calculateAll"] = True
         #transaction.commit()
-    else :
+    #else :
         #codeRetour = ""
-        print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
+        #print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
     return Erreur(0) # la suppression constitue une correction d'erreur et ne doit donc jamais en signaler une # codeRetour
 
 def delArriveeTemps(tempsCoureur, dossard=0) :
