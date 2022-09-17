@@ -1,5 +1,9 @@
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+- changement des catégories au 1er septembre.
+- catégories M0, M1, M10,...
+- Mettre en évidence dans les groupements les premiers M3, premiers M2, sur le tableau des résultats.
+- générer un pdf avec 6 qrcodes.
 
 
 
