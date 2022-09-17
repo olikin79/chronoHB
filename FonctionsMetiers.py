@@ -6,7 +6,7 @@
 #import persistent
 #import transaction
 import time, datetime
-import os, glob, subprocess
+import os, sys, glob, subprocess
 import shutil
 import random
 import csv
@@ -2617,6 +2617,7 @@ def compilerDossards(compilateur, chemin, fichierACompiler, nombre) :
         #subprocess.Popen(cmd, shell=False)
         print(cmd)
         syscmd(cmd)
+        ### subprocess.call(("cmd.exe", cmd), shell=False)
         ##### FONCTIONNEL mais visible :
         #os.system(cmd)
         retour = "Compilation avec " + compilateur + " du fichier généré " + fichierACompiler + " effectuée."
@@ -3764,6 +3765,7 @@ def delCourse(categorie) :
 ##    httpd = server(server_address, handler)
 ##    httpd.serve_forever()
 
+
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''
     PORT = 8888
@@ -3895,6 +3897,8 @@ def genereEnTetesHTML(groupement, chrono=False) :
             tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
             if not CategorieDAge :
                 tableau += '<th class="classe">Classe</th>'
+            else :
+                tableau += '<th class="classe">Catégorie</th>'
             tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
     return tableau 
 
@@ -4142,10 +4146,29 @@ def listeNPremiers(listeCoureurs):
 
 def genereLigneTableauHTML(dossard) :
     coureur = Coureurs[dossard - 1]
-    ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom +"</td>"
+    ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
+    if not CategorieDAge :
+        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
+    ligne += "</td>"
     if not CategorieDAge :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
+    else:
+        ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"])
+        ligne += ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+        ligne += "</td>"
     ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
+    return ligne
+
+def ajoutMedailleEnFonctionDuRang(r) :
+    ''' on fournit le rang r (int), cela génère le code HTML nécessaire pour l'insertion de l'image'''
+    ligne = ""
+    if r < 4 :
+        if r == 1 :
+            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="/media/or.webp" alt="(1er)">'
+        elif r == 2 :
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/argent.webp" alt="(2ème)">'
+        elif r == 3 :
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/bronze.webp" alt="(3ème)">'
     return ligne
 
 
@@ -4155,14 +4178,14 @@ def categorieAthletisme(anneeNaissance) :
     # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
     # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
     # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
-    correspondanceAnneeCategories = [ [1987, "VE" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
+    correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
     try :
         anneeNaissance = int(anneeNaissance)
         currentDateTime = datetime.datetime.now()
         date = currentDateTime.date()
         year = currentDateTime.year
-        if currentDateTime.month > 10 :
-            #changement d'année sportive au premier novembre.
+        if currentDateTime.month > 8 :
+            #changement d'année sportive au premier septembre.
             year += 1
         ecart2022 = year - 2022
         anneeCherchee = anneeNaissance - ecart2022

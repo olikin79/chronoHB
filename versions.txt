@@ -1,3 +1,10 @@
+Travail du 17/09/22 : 
+- ajout des catégories M0, M1, M2, ...
+- changement d'année sportive au 1er septembre (au lieu du 01/11).
+- si catégories d'âge, ajout d'une médaille d'or, d'argent, de bronze à chaque premier de catégorie sur l'affichage TV.
+  sinon (cross du collège), ajout uniquement des médailles des premiers d'un groupement, à côté de leur nom.
+
+
 Travail du 03/09/22 : version 1.57
 - Correctif non actualisation de l'affichage TV lors du top départ d'une course.
 - Correctif non actualisation des EntryParam (champs contenant les paramètres) lors de la récupération d'une sauvegarde.

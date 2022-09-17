@@ -1,9 +1,22 @@
+EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
+- générer un pdf avec 6 qrcodes par page.
+- faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
+Ce ne serait plus la catégorie qui donnerait la course mais une propriété (à créer) du coureur.
+Dans les paramètres, un checkbox en plus sera associé à Parametres["CategorieDAge"]=2 deviendrait un entier : 0, 1, 2 
+(1 et 2 correspondrait aux catégories d'athlétisme automatiquement : évitera des corrections dans le code).
+Dans les paramètres, un champ Entry apparaîtrait en cas de choix "Trail" et il suffirait de saisir les noms des courses désirées, séparées par ; ou /.
+Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la partie droite prendrait alors en compte ce nouveau paramètre.
+Dans le menu d'ajout de coureur, les fonctions d'import CSV (champ trail à considérer), 
+- Idéalement, les dossards coderaient 1A, 2A, 3A pour la première course, 1B, 2B, ... pour la 2ème course. 
+Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
+Même schéma pour ArriveeTemps, ArriveeTempsAffectes, ArriveeDossards, 
+
+
+
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-- changement des catégories au 1er septembre.
-- catégories M0, M1, M10,...
-- Mettre en évidence dans les groupements les premiers M3, premiers M2, sur le tableau des résultats.
-- générer un pdf avec 6 qrcodes.
+
+
 
 
 
@@ -14,7 +27,7 @@ NON PRIORITAIRES :
 	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
 	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
 	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
-	Impact graphique uniquement ?
+	Impact graphique uniquement (je le pense fortement) ?
 	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
 
 	
