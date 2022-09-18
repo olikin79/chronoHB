@@ -11,7 +11,8 @@ import shutil
 import random
 import csv
 
-import http.server
+#import http.server
+from server import *
 import threading
 from threading import Thread
 import requests
@@ -3772,8 +3773,8 @@ def start_server(path, port=8888):
     server_address = ("", PORT)
 ##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
 ##    httpd.serve_forever()
-    server = http.server.HTTPServer
-    handler = http.server.CGIHTTPRequestHandler
+    server = HTTPServer
+    handler = CGIHTTPRequestHandler
     handler.cgi_directories = ["/cgi"]
     print("Serveur actif sur le port :", port)
     httpd = server(server_address, handler)

@@ -1,3 +1,7 @@
+Travail du 18/09/22 : 
+- modification du serveur HTTP pour qu'il utilise pythonw.exe au lieu de python.exe. Plus joli :-D.
+
+
 Travail du 17/09/22 : 
 - ajout des catégories M0, M1, M2, ...
 - changement d'année sportive au 1er septembre (au lieu du 01/11).
