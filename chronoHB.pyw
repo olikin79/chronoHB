@@ -5,11 +5,11 @@
 # TkVideoPlayer by PaulleDemon : https://github.com/PaulleDemon/tkVideoPlayer
 
 
-from tkinter import ttk
+#from tkinter import ttk
 from tkinter import *
 from tkinter.filedialog import *
 from tkinter.messagebox import *
-from tkinter.ttk import Combobox
+from tkinter.ttk import Combobox,Treeview,Scrollbar
 import tkinter.font as font
 
 import time
@@ -22,6 +22,7 @@ import socket # obtenir ip
 from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
 
+import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
 version="1.57"
 
@@ -149,7 +150,7 @@ class MonTableau(Frame):
         #self.largeursColonnes = largeursColonnes
         self.defilementAuto = defilementAuto
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
-        self.treeview = ttk.Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
+        self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
             #print(i, enTete)
@@ -174,9 +175,9 @@ class MonTableau(Frame):
                 True # rien à détruire.
             self.vsb.set(x1,x2)
         
-        self.vsb = ttk.Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
+        self.vsb = Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
-        self.hsb = ttk.Scrollbar(parent, orient="horizontal", command=self.treeview.xview)
+        self.hsb = Scrollbar(parent, orient="horizontal", command=self.treeview.xview)
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
