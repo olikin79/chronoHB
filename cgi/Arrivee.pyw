@@ -40,12 +40,13 @@ from os import path
 ##listeDossardsCommetairePersonnalise = [1]
 ##listeCommentairesPersonnalises = ["Bravo, pour une fois, tu as franchi la ligne."]
 
-import cgi
-form = cgi.FieldStorage()
-
 import sys
 sys.stderr = sys.stdout
 sys.stdout.reconfigure(encoding='utf-8')
+
+import cgi
+form = cgi.FieldStorage()
+
 
 def addInstruction(liste) :
     global local
