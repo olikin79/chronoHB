@@ -1731,7 +1731,7 @@ def generateDossardsNG() :
                 else :
                     groupement = ""
                 if coureur.classe :
-                    cl = "Classe : " + coureur.classe
+                    cl = coureur.classe #"Classe : " + coureur.classe
                 else :
                     cl = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
