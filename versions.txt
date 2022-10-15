@@ -2,6 +2,7 @@ Travail du 15/10/22 :
 - création des dossards par groupements (et non plus par catégories).
 C'est logique pour une impression dans une couleur pour une course car plusieurs catégories pouvaient être regroupées en une course.
 - grossissement des caractères affichés sur la TV.
+- bug timezone du chronomètre de la TV corrigé.
 
 
 Travail du 18/09/22 : 
