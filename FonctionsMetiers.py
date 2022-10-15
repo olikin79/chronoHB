@@ -1724,7 +1724,7 @@ def generateDossardsNG() :
         for coureur in Coureurs :
             if not coureur.dispense and not coureur.absent :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
-                groupementNom = nomGroupementAPartirDUneCategorie(cat)
+                groupementNom = groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
                 #print("cat =",cat, "   groupementNom=",groupementNom)
                 groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
                 if cat != groupementNom :
