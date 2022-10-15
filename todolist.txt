@@ -28,7 +28,7 @@ NON PRIORITAIRES :
 	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
 	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
 	Aucun impact sur les temps calculés et les statistiques. 
-	Impact sur l'affichage TV sur le chronomètre en temps réel affiché en haut.
+	Impact sur l'affichage TV sur le chronomètre en temps réel affiché en haut ? A vérifier.
 	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
 
 	
