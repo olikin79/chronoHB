@@ -1,3 +1,19 @@
+Travail du 13/10/22 :
+- ajout des propriétés categorie, licenceUNSS et établissement à l'objet Coureur.
+- modification de la classe Coureur pour considérer la catégorie fixée manuellement.
+- ajout de l'import CSV de ces propriétés par creerCoureur().
+- début de modification de l'interface d'ajout de coureur pour prendre en compte la configuration manuelle d'une catégorie via un combobox.
+Points à poursuivre :
+1. le bouton ok ne devrait apparaître que si la catégorie a été saisie (dans le cas Parametres["categorieManuelle"] == True).
+Dans ce cas, la classe ou la date de naissance seraient facultatives, ce qui n'est pas encore le cas.
+2. Dans la class Coureur, si Parametres["categorieManuelle"] == True, il faudrait automatiquement choisir de ne pas utiliser la catégorie automatique. 
+Ignorer la propriété spécifique au coureur et privilégier le paramètre global à tout le logiciel. (FAIT : à tester)
+3. empêcher la modif à posteriori du paramétrage via les boutons radio de Parametres["categorieManuelle"].
+Cela risquerait de générer des catégories vides pour des coureurs.
+4. Imposer la colonne catégorie lors de l'import CSV si Parametres["categorieManuelle"] == True
+5. Ajouter la substitution <etablissement> dans le message vocal.
+
+
 Travail du 18/09/22 : 
 - modification du serveur HTTP pour qu'il utilise pythonw.exe au lieu de python.exe. Plus joli :-D.
 

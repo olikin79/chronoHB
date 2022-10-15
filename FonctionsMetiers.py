@@ -257,7 +257,8 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0,\
+                 aImprimer=False, etablissement="", licenceUNSS="", categorieManuelle=""):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -277,16 +278,28 @@ class Coureur():#persistent.Persistent):
         self.rangCat = 0
         self.commentaireArrivee = commentaireArrivee
         self.aImprimer = aImprimer
-        self.categorieAuto = True
+        self.etablissement = etablissement
+        self.licenceUNSS = licenceUNSS
+        if categorieManuelle :
+            #self.categorieAuto = False
+            self.__private_categorie_manuelle = categorieManuelle
+        else :
+            self.__private_categorie_manuelle = None
+            #self.categorieAuto = True
         self.__private_categorie = None
-        self.__private_categorie_manuelle = None
+
     def categorie(self, CategorieDAge=False):
-        try :
-            self.categorieAuto
-        except :
-            self.categorieAuto = True
-        if self.categorieAuto :
-            if self.__private_categorie == None :
+##        try :
+##            self.categorieAuto
+##        except :
+##            self.categorieAuto = True
+        if Parametres["CategorieManuelle"] :
+            if self.__private_categorie_manuelle :
+                return self.__private_categorie_manuelle
+            else :
+                return "Non définie"
+        else : # catégorie calculée automatiquement une fois pour toutes.
+            if self.__private_categorie == None : # si on n'a jamais calculé la catégorie
                 if CategorieDAge :
                     if len(self.naissance) != 0 :
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -296,8 +309,7 @@ class Coureur():#persistent.Persistent):
                     if len(self.classe) != 0 :
                         self.__private_categorie = self.classe[0] + "-" + self.sexe
             return self.__private_categorie
-        else :
-            return 
+        
     def setCategorie(self, nouveauNom, CategorieDAge=False):
         try :
             self.__private_categorie_manuelle = str(nouveauNom)
@@ -762,7 +774,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CategorieManuelle#,categoriesTrail,dossardsNG
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -889,6 +901,15 @@ def chargerDonnees() :
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
     listeAffichageTV=Parametres["listeAffichageTV"]
+    if not "CategorieManuelle" in Parametres :
+        Parametres["CategorieManuelle"] = False
+    CategorieManuelle=Parametres["CategorieManuelle"]
+##    if not "categoriesTrail" in Parametres :
+##        Parametres["categoriesTrail"] = ""
+##    categoriesTrail=Parametres["categoriesTrail"]
+##    if not "dossardsNG" in Parametres :
+##        Parametres["dossardsNG"] = False
+##    dossardsNG=Parametres["dossardsNG"]
     ##transaction.commit()
     return globals()
 
@@ -1644,8 +1665,12 @@ def generateListCoureursPourSmartphone() :
     fichierDonneesSmartphone = "Coureurs.txt"
     with open(fichierDonneesSmartphone, 'w') as f :
         for coureur in Coureurs :
+            try : # cas où la course définie manuellement n'existe pas
+                descr = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+            except :
+                descr = "Course non définie"
             result = str(coureur.dossard) + "," + coureur.nom + "," + coureur.prenom +","+ coureur.classe + "," + coureur.categorie(Parametres["CategorieDAge"]) \
-                     + "," + Courses[coureur.categorie(Parametres["CategorieDAge"])].description + "," + coureur.commentaireArrivee.replace(",",";")
+                     + "," + descr + "," + coureur.commentaireArrivee.replace(",",";")
             result += "\n"
             f.write(result)
     f.close()
@@ -4327,13 +4352,32 @@ def creerCoureur(listePerso, informations) :
             vma = float(infos["vma"])
         except :
             vma = 0
+    if "établissement" in informations :
+        try : 
+            etabl = supprLF(infos["établissement"])
+        except :
+            etabl = ""
+    if "licence" in informations :
+        try : 
+            licence = supprLF(infos["licence"])
+        except :
+            licence = ""
+    if "catégorie" in informations :
+        try : 
+            cat = supprLF(infos["catégorie"])
+        except :
+            cat = ""
     if "commentairearrivée" in informations :
-        comment = infos["commentairearrivée"]
+        try :
+            comment = supprLF(infos["commentairearrivée"])
+        except :
+            comment = ""
         #print("Commentaire personnalisé :" + comment+ ".")
     #print("youpee")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+    addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, absent=abse, dispense=disp,\
+               commentaireArrivee=supprLF(comment), VMA=vma, etablissement=etabl, licenceUNSS=licence, categorieManuelle=cat)
 
 
 def supprLF(ch) :

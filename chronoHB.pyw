@@ -38,7 +38,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -2942,7 +2942,18 @@ class CoureurFrame(Frame) :
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
         self.classeE.bind("<KeyRelease>", self.reactiverBoutons)
-        self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        if Parametres["CategorieManuelle"] :
+            self.lblCat = Label(self.parent, text="Catégorie", fg='black')
+        else :
+            self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center")#, state='readonly') #Entry(self.parent)
+        #self.comboBoxCategorie.bind("<KeyRelease>", self.reactiverBoutons)
+        L = listCategories()
+        self.comboBoxCategorie['values'] = L
+        try :
+            self.comboBoxCategorie.set(L[0])
+        except :
+            True # pas encore de catégorie créée.
         self.vma = 0
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
@@ -2975,6 +2986,7 @@ class CoureurFrame(Frame) :
         self.lblClasse.forget()
         self.classeE.forget()
         self.lblCat.forget()
+        self.comboBoxCategorie.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3071,6 +3083,10 @@ class CoureurFrame(Frame) :
         self.lblClasse.pack()
         self.classeE.pack()
         self.lblCat.pack()
+        if Parametres["CategorieManuelle"] :
+            self.comboBoxCategorie.pack()
+        else :
+            self.comboBoxCategorie.forget()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3096,7 +3112,10 @@ class CoureurFrame(Frame) :
         resultat = self.categorieEstCorrecte()
         # on affiche la catégorie en fonction des contenus.
         if resultat :
-            self.lblCat.configure(text="Catégorie : " + resultat)
+            if Parametres["CategorieManuelle"] :
+                self.lblCat.configure(text="Catégorie", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : " + resultat, fg='red')
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
                 ## on autorise la validation uniquement si la catégorie est correcte et si le nom et le prénom sont saisis
@@ -3111,7 +3130,10 @@ class CoureurFrame(Frame) :
                     self.coureurBannul.forget()
                     self.coureurBoksuivant.forget()
         else :
-            self.lblCat.configure(text="Catégorie : inconnue")
+            if Parametres["CategorieManuelle"] :
+                self.lblCat.configure(text="Catégorie", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : inconnue", fg='red')
             self.actualiseBoutonImpression()
             self.coureurBannul.forget()
             self.coureurBoksuivant.forget()
@@ -3208,6 +3230,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
     packAutresWidgets()
+
     
 def choixCA():		# Fonction associée à catégories par Age
     #print('Case à cocher : ',str(svRadio.get()))
@@ -3218,6 +3241,7 @@ def choixCA():		# Fonction associée à catégories par Age
     packAutresWidgets()
 
 def packAutresWidgets():
+    CategorieManuelleFrame.pack(side=TOP,anchor="w")
     MessageParDefautFrameL.pack(side=TOP,anchor="w")
     MessageParDefautFrame.pack(side=LEFT,anchor="w")
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
@@ -3253,18 +3277,41 @@ LieuEntry = EntryParam("lieu", "Lieu", largeur=15, parent=titresCourseF)
   
 svRadio  = StringVar()
 if Parametres["CategorieDAge"] :
-    svRadio.set('0')
-else :
     svRadio.set('1')
+else :
+    svRadio.set('0')
     
 rbGF = Frame(GaucheFrameParametresCourses)
 rbF = Frame(rbGF)
-rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
-rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
+rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='0', command=choixCC)
+rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='1', command=choixCA)
+#rb3 = Radiobutton(rbF, text="Catégories au choix.", variable=svRadio, value='2', command=choixCL)
 rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
+
+
+def choixCNM():		# Fonction associée à catégorie non manuelle
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CategorieManuelle"]=False
+
+    
+def choixCM():		# Fonction associée à catégories entièrement manuelles
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CategorieManuelle"]=True
+
+
+CategorieManuelleFrame = Frame(GaucheFrameParametresCourses)
+svRadioCM  = StringVar()
+if Parametres["CategorieManuelle"] :
+    svRadioCM.set('1')
+else :
+    svRadioCM.set('0')
+rbCM1 = Radiobutton(CategorieManuelleFrame, text="Catégories automatiques", variable=svRadioCM, value='0', command=choixCNM)
+rbCM2 = Radiobutton(CategorieManuelleFrame, text="Catégories fixées manuellement (Trail,...).", variable=svRadioCM, value='1', command=choixCM)
+##rbLblCM = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
+
 
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
@@ -3334,6 +3381,10 @@ rb2.pack(side=LEFT,anchor="w")
 rbF.pack(side=TOP,anchor="w")
 rbLbl.pack(side=TOP,anchor="w")
 rbGF.pack(side=TOP,anchor="w")
+
+rbCM1.pack(side=LEFT,anchor="w")
+rbCM2.pack(side=LEFT,anchor="w")
+
 
 if Parametres["CategorieDAge"] :
     choixCA()
