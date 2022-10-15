@@ -27,8 +27,18 @@ var start = 0 ;
 var end = 0 ;
 var diff = 0 ;
 var timerID = 0 ;
+function changeTimeZone(date, ianatz) {
+  // suppose the date is 12:00 UTC
+  var invdate = new Date(date.toLocaleString('en-US', {
+    timeZone: ianatz
+  }));
+  var diff = date.getTime() - invdate.getTime();
+  // so 12:00 in Toronto is 17:00 UTC
+  return new Date(date.getTime() - diff); // needs to substract
+}
 function chrono(){
                 end = new Date() ;
+				//end = changeTimeZone(new Date(), 'Europe/Paris');
                 diff = end - start ;
                 diff = new Date(diff) ;
                 var msec = diff.getMilliseconds() ;
@@ -61,6 +71,7 @@ function chronoStart(i){
                     }
                     else {
                         start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
+						start = changeTimeZone(start, 'UTC');
 						document.getElementById("chronotime").style.display = "line" ;
                         chrono();
                     }
@@ -116,9 +127,9 @@ function changeContenus(i) {
 		}
 	}
 };
-window.onload = function() {
-  var t1 = changeContenus(0) ;
-};
+//window.onload = function() {
+//  var t1 = changeContenus(0) ;
+//};
 //var t4 = setTimeout(changeContenus, 30, i);
 changeContenus(0);
 </script>
