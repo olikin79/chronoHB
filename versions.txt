@@ -1,3 +1,8 @@
+Travail du 15/10/22 :
+- création des dossards par groupements (et non plus par catégories).
+C'est logique pour une impression dans une couleur pour une course car plusieurs catégories pouvaient être regroupées en une course.
+
+
 Travail du 18/09/22 : 
 - modification du serveur HTTP pour qu'il utilise pythonw.exe au lieu de python.exe. Plus joli :-D.
 

@@ -1590,14 +1590,14 @@ def listNomsGroupementsNonCommences(nomStandard = False):
                     retour.append(groupement.nom)               
     return retour
 
-def listNomsGroupements(nomStandard = False):
+def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
             if nomStandard :
-                retour.append(groupement.nomStandard) 
+                retour.append(groupement.nomStandard.replace(" ","").replace("/","-")) 
             else :
-                retour.append(groupement.nom) 
+                retour.append(groupement.nom.replace(" ","").replace("/","-")) 
     return retour
 
 def listNomsGroupementsEtChallenges(nomStandard = False):
@@ -1710,7 +1710,7 @@ def generateDossardsNG() :
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     #os.chdir("dossards")
-    listeCategories = listCourses()
+    listeCategories = listNomsGroupements(nomStandard=False,sansSlashNiEspace=True)
     listeCategories.append("0-tousLesDossards")
     for file  in listeCategories :
         with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
@@ -1726,6 +1726,7 @@ def generateDossardsNG() :
                 cat = coureur.categorie(Parametres["CategorieDAge"])
                 groupementNom = nomGroupementAPartirDUneCategorie(cat)
                 #print("cat =",cat, "   groupementNom=",groupementNom)
+                groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
                 if cat != groupementNom :
                     groupement = "Course : " + groupementNom
                 else :
@@ -1737,7 +1738,7 @@ def generateDossardsNG() :
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
-                with open(TEXDIR+cat + ".tex", 'a',encoding="utf-8") as fileCat :
+                with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
     f.close()
