@@ -1595,9 +1595,14 @@ def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
     for groupement in Groupements :
         if groupement.listeDesCourses :
             if nomStandard :
-                retour.append(groupement.nomStandard.replace(" ","").replace("/","-")) 
+                nom = groupement.nomStandard
+                if sansSlashNiEspace :
+                    nom = nom.replace(" ","").replace("/","-")
             else :
-                retour.append(groupement.nom.replace(" ","").replace("/","-")) 
+                nom = groupement.nom
+                if sansSlashNiEspace :
+                    nom = nom.replace(" ","").replace("/","-")
+            retour.append(nom) 
     return retour
 
 def listNomsGroupementsEtChallenges(nomStandard = False):
