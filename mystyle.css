@@ -128,12 +128,13 @@ position: fixed;
 }
 
 
-/*
+
 td, th
 {
-align:center;
+/*align:center;*/
+font-size: 20px;
 }
-*/
+
 
 
 tbody, thead, tr{
