@@ -19,6 +19,9 @@ import requests
 
 import xlsxwriter # pour les exports excels des résultats
 
+### A décommenter plus tard pour la mise en place des imports NG.
+###import openpyxl
+
 from tkinter.messagebox import *
 
 #### DEBUG
@@ -4210,8 +4213,86 @@ def categorieAthletisme(anneeNaissance) :
 
 #print(categorieAthletisme(2003))
 
+#### Import des données nouvelle génération (post 2022) à tester...
+def traitementDesDonneesAImporter (donneesBrutes) :
+    ''' données brutes est un tableau (ou itérable) qui contient des lignes onstituées des chaines de caractères (sans point virgule) issues d'un CSV ou tableur.
+    Crée les coureurs à partir des informations de chacun, si les données indispensables sont présentes.
+    Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
+    i=0
+    for row in spamreader:
+        if i == 0 :
+             informations = [x.lower() for x in row]
+             #print(informations)
+             if "nom" in informations and "prénom" in informations and "sexe" in informations and \
+                (((not Parametres["CategorieDAge"]) and "classe" in informations) or \
+                 (Parametres["CategorieDAge"] and "naissance" in informations) or \
+                 (Parametres["CategorieManuelle"] and "catégorie" in informations)) :
+                 retour = True
+             else :
+                 print("Certains éléments obligatoires manquent dans le fichier fourni :", informations)
+                 retour = False
+                 break
+        else :
+             #print(row, informations)
+             creerCoureur(row, informations)
+             #print("ligne :" ,row)
+        i+=1
+    return retour
 
-#### Import CSV 
+
+### Import XLSX
+def recupImportNG(fichierSelectionne="") :
+    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout di paramètre categorieManuelle'''
+    retour = False
+    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
+        if fichierSelectionne[-4:].lower() == "xlsx" :
+            retour = recupXLSX(fichierSelectionne)
+        elif fichierSelectionne[-3:].lower() == "csv":
+            retour = recupCSV(fichierSelectionne)
+    if retour :
+        print("IMPORT CSV SIECLE TERMINE")
+        generateListCoureursPourSmartphone()
+        CoureursParClasseUpdate()
+        print("Liste des coureurs pour smartphone créée.")
+    else :
+        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
+    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
+    return retour
+
+
+def recupXLSX(fichierSelectionne=""):
+    ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
+    try :
+        with openpyxl.load_workbook(fichierSelectionne) as wb_obj :
+            sheet = wb_obj.active # lis la feuille active
+            donneesBrutes = [] # initialisation
+            for row in sheet.iter_rows(max_row=sheet.max_row):
+                chaine = ""
+                for cell in row:
+                    chaine += str(cell.value).replace(";",",") # élimination des points virgules pour coller à l'ancien import CSV.
+                donneesBrutes.append(chaine)
+            ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+            retour = traitementDesDonneesAImporter(donneesBrutes)
+    except :
+        retour = False
+        print("Erreur : probablement pas un fichier xlsx valide...")
+    return retour
+
+
+def recupCSV(fichierSelectionne=""):
+    ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
+    try :
+        with open(fichierSelectionne, encoding='utf-8') as csvfile:
+            donneesBrutes = csv.reader(csvfile, delimiter=';')
+            ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+            retour = traitementDesDonneesAImporter(donneesBrutes)
+    except :
+        retour = False
+        print("Erreur : probablement un mauvais encodage...")
+    return retour
+  
+
+#### Import CSV ancienne génération (avant 2022)
 
 def recupCSVSIECLE(fichierSelectionne=""):
 ##    if Parametres["CourseCommencee"] :
@@ -4234,6 +4315,7 @@ def recupCSVSIECLE(fichierSelectionne=""):
         try :
             with open(fichierSelectionne, encoding='utf-8') as csvfile:
                 spamreader = csv.reader(csvfile, delimiter=';')
+                ### traitement à déporter dans la fonction ci-dessus traitementDesDonneesAImporter
                 i=0
                 for row in spamreader:
                     if i == 0 :

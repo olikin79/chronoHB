@@ -37,7 +37,9 @@ ESTHETIQUE :
 
 
 A TESTER :
-
+Suite à la création (16/10) d'une fonction d'import xlsx et prise en compte des nouveaux cas possibles à venir (catégories manuelles, etc...)
+Reste à tester ces nouvelles fonctions et à les intégrer en remplaçant tous les appels à recupCSVSIECLE par des appels à recupImportNG()
+Reste à permettre le choix de fichiers xlsx depuis la boite de dialogue de l'interface.
 
 
 
@@ -50,6 +52,7 @@ de vérification et de laisser les coureurs concernés loin des installations.
 
 	
 MOYENNEMENT PRIORITAIRE :
+- remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.
 - mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
 Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
 - accepter la pondération pour les challenges par classe.

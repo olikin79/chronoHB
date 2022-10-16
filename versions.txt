@@ -1,3 +1,9 @@
+Travail du 16/10/22 :
+- création d'une fonction d'import xlsx et prise en compte des nouveaux cas possibles à venir (catégories manuelles, etc...)
+Reste à tester ces nouvelles fonctions et à les intégrer en remplaçant tous les appels à recupCSVSIECLE par des appels à recupImportNG()
+Reste à permettre le choix de fichiers xlsx depuis la boite de dialogue de l'interface.
+
+
 Travail du 15/10/22 :
 - création des dossards par groupements (et non plus par catégories).
 C'est logique pour une impression dans une couleur pour une course car plusieurs catégories pouvaient être regroupées en une course.
