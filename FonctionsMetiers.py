@@ -4412,7 +4412,7 @@ def creerCoureur(listePerso, informations) :
             naiss = None
     if "vma" in informations :
         try : 
-            vma = float(infos["vma"])
+            vma = float(infos["vma"].replace(",",".")) # on assure le coup si les VMA sont à virgule.
         except :
             vma = 0
     if "commentairearrivée" in informations :

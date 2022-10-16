@@ -2,6 +2,7 @@ Travail du 16/10/22 :
 - création d'une fonction d'import xlsx et prise en compte des nouveaux cas possibles à venir (catégories manuelles, etc...)
 Reste à tester ces nouvelles fonctions et à les intégrer en remplaçant tous les appels à recupCSVSIECLE par des appels à recupImportNG()
 Reste à permettre le choix de fichiers xlsx depuis la boite de dialogue de l'interface.
+- possibilité d'importer des VMA avec des virgules (ou des points indifféremment).
 
 
 Travail du 15/10/22 :
