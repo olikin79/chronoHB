@@ -39,7 +39,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 if not DEBUG : 
     sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
@@ -601,9 +601,12 @@ class MonTableau(Frame):
         #print("temps de la ligne", ligne, donnee[1])
         if ligne <= len(items) :
             # mise à jour d'une ligne
-            self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
-            iid = items[ligne - 1]
-            self.treeview.item(iid,values=tuple(ligneAAjouter))
+            try :
+                self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
+                iid = items[ligne - 1]
+                self.treeview.item(iid,values=tuple(ligneAAjouter))
+            except:
+                print("Erreur de mise à jour du tableau GUI : surement un tableau vide. On poursuit")
             #print("mise à jour de la ligne", ligne, "avec", donnee)
         else :
             # ajout d'une ligne

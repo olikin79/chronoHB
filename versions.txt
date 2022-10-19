@@ -1,6 +1,7 @@
 Travail du 19/10/22 :
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
-- 
+- blindage de la mise à jour d'une ligne en cas de vidage du tableau. A explorer plus tard...
+
 
 Travail du 16/10/22 :
 - création d'une fonction d'import xlsx et prise en compte des nouveaux cas possibles à venir (catégories manuelles, etc...)
