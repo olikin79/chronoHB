@@ -432,7 +432,7 @@ class MonTableau(Frame):
             self.buttonVideos[j]['font'] = font.Font(size=7)
             premierNomVisible = self.vsb.get()[0]*self.effectif+1
             sommeLargeurColonnes = 0
-            for i in range(2) :
+            for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
                 sommeLargeurColonnes += self.largeursColonnes[i]
             self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=(rn+1-premierNomVisible)*20.01+25)
             decalage += 20
