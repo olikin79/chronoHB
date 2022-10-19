@@ -132,13 +132,10 @@ def lireParametres() :
     return contenu
 
 def formateClasse(classe) :
-    if classe == "AL3" : # cas particulier du cross ELA où les L3 ont donné un coup de main et ont pour classe AL3 pour Adulte L3
-        retour = "L3"
-    elif classe != "" :
-        if classe[0].isnumeric() :
+    retour = str(classe)
+    if retour != "" :
+        if classe[0].isnumeric() : # pour l'annonce vocale, "63" devra être lu "6ème 3". ce sont les dénominations du collège H.B.
             retour = classe[0] + "ème " + classe[1:]
-    else :
-        retour = ""
     return retour
 
 def generateMessage(dossard, nature, action, uid, noTransmission):     
