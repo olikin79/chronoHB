@@ -1744,7 +1744,8 @@ def generateDossardsNG() :
                 else :
                     cl = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete)
                 with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1873,7 +1874,7 @@ def generateDossardsAImprimer() :
                 retour.append(coureur.dossard)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
                 f.write(chaineComplete + "\n\n")
                 generateQRcode(coureur.dossard)
         ## f.write(chaineComplete+ "\n\n")
@@ -1913,7 +1914,7 @@ def generateDossard(coureur) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
             .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-            .replace("@groupement@",nomGroupementAPartirDUneCategorie(cat))
+            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
@@ -2273,7 +2274,8 @@ def generateImpressions() :
         print("Création du fichier de "+classe)
 
         # on gardera finalement les groupements pour ne pas afficher les abandons, etc...
-        if (not estChallenge(classe) and len(groupementAPartirDeSonNom(classe, nomStandard = True).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
+        if (not estChallenge(classe)) :# and len(groupementAPartirDeSonNom(classe, nomStandard = True).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
+            
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
             nomFichier = classe.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
             if ArrDispAbsAbandon[8] :
@@ -3431,7 +3433,17 @@ def calculeTousLesTemps(reinitialise = False):
             tps = ArriveeTemps[k]
             dossardAffecteAuTps = ArriveeTempsAffectes[k]
             #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps, True)
-            alimenteTableauGUI (tableauGUI, coureurVide, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
+            if k == i and not Parametres["CategorieDAge"] and categorieDuDernierDepart() != "" :
+                ### seul le premier temps prévisionnel sera affiché (pour disposer du premier d'une course).
+                coureurPrevisionnel = Coureur("", "", "", "")
+                arrivee = tps.tempsReel
+                cat = categorieDuDernierDepart()
+                depart = Courses[cat].temps
+                coureurPrevisionnel.setTemps(arrivee- depart, Courses[cat].distance)
+                alimenteTableauGUI (tableauGUI, coureurPrevisionnel, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
+            else :
+                ### affichage classique des heures de passage vides sans coureur affecté.
+                alimenteTableauGUI (tableauGUI, coureurVide, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
             ligneAjoutee += 1
             k += 1
     # Cas tordu : s'il n'y a pas assez de temps saisis à la toute fin, affecte le dernier temps à tous les derniers dossards.
@@ -3463,6 +3475,17 @@ def calculeTousLesTemps(reinitialise = False):
     Parametres["positionDansArriveeDossards"] = j
     #print("A la fin",retour)
     return retour
+
+def categorieDuDernierDepart() :
+    ''' retourne l'heure du dernier départ lancé'''
+    cat = ""
+    tempsMax = 0
+    for nom in Courses :
+        c = Courses[nom]
+        if c.depart and c.temps > tempsMax :
+            cat = c.categorie
+            tempsMax = c.temps
+    return cat
 
 ##def calculeTousLesTemps(reinitialise = False):
 ##    """ associe un temps à chaque dossard ayant passé la ligne d'arrivée permet les décalages positifs et négatifs.
@@ -3567,6 +3590,7 @@ def calculeTousLesTemps(reinitialise = False):
 ##    if reinitialise :
 ##        retour = "<p>RECALCUL DE TOUS LES TEMPS :</p>\n" + retour
 ##    return retour
+
 
 def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee, tpsNonSaisi=False):
     arrivee = tps.tempsReel

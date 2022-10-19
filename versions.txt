@@ -1,6 +1,8 @@
 Travail du 19/10/22 :
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
 - blindage de la mise à jour d'une ligne en cas de vidage du tableau. A explorer plus tard...
+- correctif des pdf des groupements non générés.
+- correctif nom du groupement affiché sur les dossards générés un par un.
 
 
 Travail du 16/10/22 :
