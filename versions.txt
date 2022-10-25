@@ -1,3 +1,17 @@
+Manquent :
+- la propriété établissement et établissementNature pour chaque Coureur.
+- la compatibilité ascendante avec d'anciennes sauvegardes.
+- l'actualisation du fichier texte par CoureursParClasseUpdate() avec établissement et d'autres paramètres si besoin.
+- l'import XLSX (à tester) via recupImportNG()
+- l'import dans le cas UNSS : ajouter en obligatoire l'établissement et sa nature (CLG LGT LP)
+
+
+Travail du 25/10/22 :
+- bouton radio pour catégories UNSS
+- Parametres['CategorieDAge'] devient un entier 0, 1 ou 2 pour l'UNSS. 
+Compatibilité ascendante assurée (import de vieilles bases de données, choix 1 et 2 amènent à considérer les catégories d'âge.
+
+
 Travail du 19/10/22 :
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
 - blindage de la mise à jour d'une ligne en cas de vidage du tableau. A explorer plus tard...

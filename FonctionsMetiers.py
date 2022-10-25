@@ -842,7 +842,7 @@ def chargerDonnees() :
         Parametres["ligneDerniereRecuperationLocale"]=1
     ligneDerniereRecuperationLocale = Parametres["ligneDerniereRecuperationLocale"]
     if not "CategorieDAge" in Parametres :
-        Parametres["CategorieDAge"]=False
+        Parametres["CategorieDAge"]=0
     CategorieDAge=Parametres["CategorieDAge"]
     if not "CourseCommencee" in Parametres :
         Parametres["CourseCommencee"]=False
@@ -4266,7 +4266,7 @@ def traitementDesDonneesAImporter (donneesBrutes) :
 
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
-    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout di paramètre categorieManuelle'''
+    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
     retour = False
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
@@ -4278,9 +4278,9 @@ def recupImportNG(fichierSelectionne="") :
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         print("Liste des coureurs pour smartphone créée.")
+        # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
     else :
         print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
-    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
     return retour
 
 

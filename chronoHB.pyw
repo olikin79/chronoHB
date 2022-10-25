@@ -2722,17 +2722,16 @@ def parametresDesCourses():
 
 def actualiseEtatBoutonsRadioConfig():
     # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
-    if Parametres["CategorieDAge"] :
-        svRadio.set('0')
-    else :
-        svRadio.set('1')
+    svRadio.set(str(Parametres["CategorieDAge"]))
     if len(Coureurs) :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
+        rb3.configure(state='disabled')
         rbLbl.pack(side=TOP,anchor="w")
     else :
         rb1.configure(state='normal')
         rb2.configure(state='normal')
+        rb3.configure(state='normal')
         rbLbl.forget()
 
 GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
@@ -3207,7 +3206,7 @@ zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 
 def choixCC():		# Fonction associée à Catégories par Classes
     #print('Case à cocher : ',str(svRadio.get()))
-    Parametres["CategorieDAge"]=False
+    Parametres["CategorieDAge"]=0
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
@@ -3215,7 +3214,15 @@ def choixCC():		# Fonction associée à Catégories par Classes
     
 def choixCA():		# Fonction associée à catégories par Age
     #print('Case à cocher : ',str(svRadio.get()))
-    Parametres["CategorieDAge"]=True
+    Parametres["CategorieDAge"]=1
+    forgetAutresWidgets()
+    NbreCoureursChallengeFrameL.pack_forget()
+    NbreCoureursChallengeFrame.pack_forget()
+    packAutresWidgets()
+
+def choixUNSS():		# Fonction associée à catégories par Age
+    #print('Case à cocher : ',str(svRadio.get()))
+    Parametres["CategorieDAge"]=2
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
@@ -3254,17 +3261,22 @@ IntituleEntry = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, p
 #LieuFrameL = Frame(GaucheFrameParametresCourses)
 LieuEntry = EntryParam("lieu", "Lieu", largeur=15, parent=titresCourseF)
 
+### compatibilité ascendante (pour les anciennes sauvegarde où ce paramètre était un boolean.
+if isinstance(Parametres["CategorieDAge"],bool) :
+    if Parametres["CategorieDAge"] :
+        Parametres["CategorieDAge"] = 1
+    else :
+        Parametres["CategorieDAge"] = 0
   
 svRadio  = StringVar()
-if Parametres["CategorieDAge"] :
-    svRadio.set('0')
-else :
-    svRadio.set('1')
+svRadio.set(str(Parametres["CategorieDAge"]))
+
     
 rbGF = Frame(GaucheFrameParametresCourses)
 rbF = Frame(rbGF)
-rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='1', command=choixCC)
-rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='0', command=choixCA)
+rb1 = Radiobutton(rbF, text="Catégories basées sur l'initiale de la classe.", variable=svRadio, value='0', command=choixCC)
+rb2 = Radiobutton(rbF, text="Catégories basées sur la date de naissance.", variable=svRadio, value='1', command=choixCA)
+rb3 = Radiobutton(rbF, text="Catégories UNSS.", variable=svRadio, value='2', command=choixUNSS)
 rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
@@ -3335,12 +3347,16 @@ LieuEntry.pack(side=LEFT,anchor="w")
 
 rb1.pack(side=LEFT,anchor="w")
 rb2.pack(side=LEFT,anchor="w")
+rb3.pack(side=LEFT,anchor="w")
 rbF.pack(side=TOP,anchor="w")
 rbLbl.pack(side=TOP,anchor="w")
 rbGF.pack(side=TOP,anchor="w")
 
 if Parametres["CategorieDAge"] :
-    choixCA()
+    if Parametres["CategorieDAge"]== 1 :
+        choixCA()
+    else :
+        choixUNSS()
 else :
     choixCC()
 
