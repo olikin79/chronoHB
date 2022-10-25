@@ -260,7 +260,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -271,6 +271,8 @@ class Coureur():#persistent.Persistent):
         self.classe = str(classe)
         self.naissance = ""
         self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
+        self.etablissement = etablissement
+        self.etablissementNature = etablissementNature
         self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
@@ -292,15 +294,25 @@ class Coureur():#persistent.Persistent):
             if self.__private_categorie == None :
                 if CategorieDAge :
                     if len(self.naissance) != 0 :
-                        #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                        anneeNaissance = self.naissance[6:]
-                        self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
-                else :
+                       anneeNaissance = self.naissance[6:] 
+                        if CategorieDAge == 2 : ## UNSS
+                             ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
+                             ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
+                            cat = categorieAthletisme(anneeNaissance)
+                            if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                                cat = "MI"
+                            elif self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                                cat = "CA"
+                            self.__private_categorie = cat + "-" + self.sexe
+                        else: ## catégories FFA 
+                            #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                            self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+                else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
                     if len(self.classe) != 0 :
                         self.__private_categorie = self.classe[0] + "-" + self.sexe
             return self.__private_categorie
         else :
-            return 
+            return self.__private_categorie_manuelle
     def setCategorie(self, nouveauNom, CategorieDAge=False):
         try :
             self.__private_categorie_manuelle = str(nouveauNom)

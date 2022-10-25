@@ -1,5 +1,4 @@
 Manquent :
-- la propriété établissement et établissementNature pour chaque Coureur.
 - la compatibilité ascendante avec d'anciennes sauvegardes.
 - l'actualisation du fichier texte par CoureursParClasseUpdate() avec établissement et d'autres paramètres si besoin.
 - l'import XLSX (à tester) via recupImportNG()
@@ -10,7 +9,8 @@ Travail du 25/10/22 :
 - bouton radio pour catégories UNSS
 - Parametres['CategorieDAge'] devient un entier 0, 1 ou 2 pour l'UNSS. 
 Compatibilité ascendante assurée (import de vieilles bases de données, choix 1 et 2 amènent à considérer les catégories d'âge.
-
+- la propriété établissement et établissementNature pour chaque Coureur.
+- actualisation de la catégorie dans le cas UNSS : prise en compte des redoublants et des élèves ayant sauté une classe.
 
 Travail du 19/10/22 :
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
