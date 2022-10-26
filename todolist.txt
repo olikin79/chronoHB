@@ -40,6 +40,8 @@ La class Coureur() permet déjà le cumul, je pense...
 - Selon la taille des noms des catégories, les cases à cocher pour l'affichage TV débordent de l'écran. Faire en sorte que cela soit adaptatif.
 Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne. Actuellement, on coupe en deux les combobox.
 
+- changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
+
 
 
 - ESTHETIQUE :
