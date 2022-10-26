@@ -25,9 +25,9 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
-version = "1.57"
+version = "1.6"
 
 LOGDIR="logs"
 
@@ -3244,12 +3244,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             Coureurs[dossard-1].setNaissance(naissance)
             Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
             addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
+            print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
             retour = [0,1,0]
         else :
             dossard = len(Coureurs)+1
-            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
             ##transaction.commit()
-            #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
             addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
             retour = [1,0,0]
     else :
@@ -4289,7 +4290,8 @@ def traitementDesDonneesAImporter(donneesBrutes) :
             if "nom" in informations and "prénom" in informations and "sexe" in informations and \
             ((Parametres["CategorieDAge"] == 0 and "classe" in informations) \
              or (Parametres["CategorieDAge"] == 1 and "naissance" in informations) \
-             or (Parametres["CategorieDAge"] == 2 and "naissance" in informations and "etablissement" in informations and "etablissementNature" in informations)) :
+             or (Parametres["CategorieDAge"] == 2 and "naissance" in informations and "établissement" in informations and \
+                 ("établissementtype" in informations or "type" in informations))) :
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
              # 1 - cas de courses organisées en fonction des catégories de la FFA
@@ -4304,9 +4306,10 @@ def traitementDesDonneesAImporter(donneesBrutes) :
                  print("Première ligne du fichier importé:")
                  print(row)
              retourCreationModifErreur = creerCoureur(row, informations)
-             #print("ligne :" ,row)
-             for i in range(2) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
-                if retourCreationModifErreur[i] :
+             #print("retour création :" ,retourCreationModifErreur)
+             for i in range(3) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
+                 #print(i,retourCreationModifErreur[i])
+                 if retourCreationModifErreur[i] :
                     BilanCreationModifErreur[i] += 1
         i+=1
     return retour,BilanCreationModifErreur
@@ -4346,12 +4349,22 @@ def recupXLSX(fichierSelectionne=""):
                 ligne.append("")
             else :
                 valeur = str(cell.value)
-                if len(valeur)> 8 and valeur[:8] == "datetime" :
-                    # cas des dates dans excel
-                    print("Date à importer",value)
-                    valeur = time.strftime("%d/%m/%Y", valeur)
-                else :
-                    ligne.append(valeur)#.replace(";",",")+";" # élimination des points virgules pour coller à l'ancien import CSV.
+                ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
+                if len(valeur)> 18 :
+                    if valeur[:8] == "datetime" : # cas datetime.datetime(20,08,2008)
+                        # cas des dates dans excel
+                        #print("Date à importer au format datetime(...)",valeur)
+                        valeur = time.strftime("%d/%m/%Y", valeur)
+                    else :
+                        try :
+                            valeurInitiale = valeur
+                            valeur = time.strftime("%d/%m/%Y",time.strptime(valeur, "%Y-%m-%d  %H:%M:%S")) #cas 2008-08-20 00:00:00
+                            #print("Date à importer au format 2008-08-20 00:00:00",valeurInitiale, "vers",valeur)
+                        except :
+                            True # on ne fait rien si une date n'est pas reconnue.
+                            #print("Probablement pas une date. Valeur conservée :", valeur)
+                ligne.append(valeur)
+
         #print(chaine)
         donneesBrutes.append(ligne)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
@@ -4467,7 +4480,7 @@ def creerCoureur(listePerso, informations) :
     infos = {}
     i = 0
     while i < len(informations):
-        if len(listePerso) > 0 :
+        if i < len(listePerso) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     #print(infos)
@@ -4502,11 +4515,14 @@ def creerCoureur(listePerso, informations) :
             etab = supprLF(infos["établissement"])
         except :
             etab = ""
-    if "établissementtype" in informations :
+    if "établissementtype" in informations or "type" in informations:
         try : 
             nature = supprLF(infos["établissementtype"])
         except :
-            nature = ""
+            try :
+                nature = supprLF(infos["type"])
+            except : 
+                nature = ""
     if "vma" in informations :
         try : 
             vma = float(infos["vma"].replace(",",".")) # on assure le coup si les VMA sont à virgule.
@@ -4519,6 +4535,7 @@ def creerCoureur(listePerso, informations) :
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
         retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+        #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         retourCreationModifErreur = [0,0,0]
 ##        print("Probablement une ligne vide dans le tableur ou csv. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"])

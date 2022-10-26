@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.57"
+version="1.6"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -45,7 +45,7 @@ def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
     if not DEBUG : 
         sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
-        sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
+        sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a')
 
 LOGstandards()    
 
@@ -2416,26 +2416,29 @@ def importSIECLEAction() :
         nomFichier = os.path.basename(file_path)
         #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
         #print(file_path)
-        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci (ajout de nouveaux dossards,...) ?\n\
+        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci?\n\
 Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
 Cela peut figer momentanément l'interface...")
         if reponse :
             fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
             # redirection temporaire pour les messages liés à l'import
-            filePath = "dernierImport.txt"
-            if os.path.exists(filePath):
+            filePath = LOGDIR + os.sep + "dernierImport.txt"
+            if os.path.exists(filePath) :
                 os.remove(filePath)
-            sys.stdout = open(LOGDIR + os.sep + filePath, "a")
+            file = open(filePath, "a")
+            tmp = sys.stdout # sauvegarde de la sortie standard.
+            sys.stdout = file
             retourImport,BilanCreationModifErreur = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
-            LOGstandards()
+            file.close()
+            sys.stdout = tmp
 ##            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
 ##            mon_threadter.start()
 ##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
 ##            mon_threadter.join()
             ### bilan des données importées
             chaineBilan = ""
-            if sum(BilanCreationModifErreur) :
+            if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
                 chaineBilan += "\nBilan :\n"
                 if BilanCreationModifErreur[0] :
                     chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
@@ -2461,11 +2464,9 @@ Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pou
 'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
 et 'VMA' (pour la VMA en km/h). \
 L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
-                print("reponse", reponse)
-                if reponse :
-                    path = os.getcwd()
-                    #subprocess.Popen(r'explorer /select,"' + path + os.sep +  LOGDIR + os.sep + filePath)
-                    os.startfile(LOGDIR + os.sep + filePath)
+            #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
+            if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
+                os.startfile(filePath)
                 
 
 def actualiseToutLAffichage() :

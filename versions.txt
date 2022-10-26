@@ -1,16 +1,13 @@
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
-- corriger le bug : Etablissement et commentaire arrivée sont False dans Coureurs.txt (et dans la base) suite à un import tout neuf. 
-Lié à une des fonctions d'import.
 
 
 
 Travail du 26/10/22 :
 - on permet les années sur 2 ou 4 chiffres à l'import (naissanceValide() modifié)
 - les messages d'erreur lors de l'import devraient être redirigés vers un fichier texte dédié pour affichage dans l'interface via un clic en cas d'erreur présente.
-
-
+- l'import UNSS semble fonctionnel et affecte bien les élèves à la limite (minime-cadet) en fonction de leur établissement.
 
 
 Travail du 25/10/22 :
@@ -25,7 +22,7 @@ Compatibilité ascendante assurée (import de vieilles bases de données, choix 
 - Arrivee.pyw remplace <etablissement> par le nom en question (implémenté mais non testé)
 
 
-Travail du 19/10/22 :
+Travail du 19/10/22 : version 1.6
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
 - blindage de la mise à jour d'une ligne en cas de vidage du tableau. A explorer plus tard...
 - correctif des pdf des groupements non générés.
