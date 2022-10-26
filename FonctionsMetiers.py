@@ -3970,7 +3970,10 @@ def genereEnTetesHTML(groupement, chrono=False) :
             if not CategorieDAge :
                 tableau += '<th class="classe">Classe</th>'
             else :
-                tableau += '<th class="classe">Catégorie</th>'
+                if CategorieDAge == 1 :
+                    tableau += '<th class="classe">Catégorie</th>'
+                else :
+                    tableau += '<th class="etab">Etablissement</th>'
             tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
     return tableau 
 
@@ -4225,7 +4228,10 @@ def genereLigneTableauHTML(dossard) :
     if not CategorieDAge :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
-        ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"])
+        if CategorieDAge == 1 :
+            ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"])
+        else :
+            ligne += "<td class='etab'>"+coureur.etablissement
         ligne += ajoutMedailleEnFonctionDuRang(coureur.rangCat)
         ligne += "</td>"
     ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
