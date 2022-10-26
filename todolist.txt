@@ -37,10 +37,8 @@ cela décoche les cases liées à l'affichage TV.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
 La class Coureur() permet déjà le cumul, je pense...
 
-- Déplacer les boutons d'accès aux vidéos. Ils gênent là où je les ai mis.
-
 - Selon la taille des noms des catégories, les cases à cocher pour l'affichage TV débordent de l'écran. Faire en sorte que cela soit adaptatif.
-
+Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne. Actuellement, on coupe en deux les combobox.
 
 
 

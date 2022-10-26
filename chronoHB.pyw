@@ -41,10 +41,13 @@ CoureursParClasse = {}
 #### DEBUG
 DEBUG = True
 
-if not DEBUG : 
-    sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
-    sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
-    
+def LOGstandards():
+    ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
+    if not DEBUG : 
+        sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
+        sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a', 1)
+
+LOGstandards()    
 
 from FonctionsMetiers import *
 from CameraMotionDetection import * # camera motion detection
@@ -1468,7 +1471,7 @@ class DossardsFrame(Frame) :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
-            self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données de SIECLE.")
+            self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données.")
             self.comboBoxBarClasse.forget()
             self.choixClasseCombo.forget()
         
@@ -1528,7 +1531,7 @@ class AbsDispFrame(Frame) :
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
             self.choixClasseCombo.forget()
-            self.TopDepartLabel.configure(text="Il n'y a aucune classe ou catégorie à afficher. Importer d'abord des données de SIECLE.")
+            self.TopDepartLabel.configure(text="Il n'y a aucune classe ou catégorie à afficher. Importer d'abord des données.")
             self.comboBoxBarClasse.forget()
         #print(self.listeCoureursDeLaClasse[0])
 ##        self.listeAffichee = []
@@ -2408,7 +2411,7 @@ def regenereAffichageGUI() :
 
 
 def importSIECLEAction() :
-    file_path = askopenfilename(title = "Sélectionner un fichier csv issu de SIECLE", filetypes = (("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
+    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
     if file_path :
         nomFichier = os.path.basename(file_path)
         #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
@@ -2417,25 +2420,52 @@ def importSIECLEAction() :
 Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
 Cela peut figer momentanément l'interface...")
         if reponse :
-            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-siecle")
-            retourImport = recupCSVSIECLE(file_path)
+            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+            # redirection temporaire pour les messages liés à l'import
+            filePath = "dernierImport.txt"
+            if os.path.exists(filePath):
+                os.remove(filePath)
+            sys.stdout = open(LOGDIR + os.sep + filePath, "a")
+            retourImport,BilanCreationModifErreur = recupImportNG(file_path)
+            # fin de la redirection des logs temporaire
+            LOGstandards()
 ##            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
 ##            mon_threadter.start()
 ##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
 ##            mon_threadter.join()
+            ### bilan des données importées
+            chaineBilan = ""
+            if sum(BilanCreationModifErreur) :
+                chaineBilan += "\nBilan :\n"
+                if BilanCreationModifErreur[0] :
+                    chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+                if BilanCreationModifErreur[1] :
+                    chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+                if BilanCreationModifErreur[2] :
+                    chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
+                chaineBilan += "\n"
+            else :
+                retourImport = False # rien n'a été trouvé dans le fichier, Signaler l'erreur.
             if retourImport :
                 actualiseToutLAffichage()
-                reponse = showinfo("FIN DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier +" est terminé.\n\
-Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
+                reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
+chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
 Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
             else :
-                reponse = showinfo("ERREUR","L'import SIECLE à partir du fichier "+nomFichier +" n'a pas été effectué.\n\
-Le fichier fourni doit impérativement être au format CSV, encodé en UTF8, avec des points virgules comme séparateur.\n\
-Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G), 'Classe' ou 'Naissance' (l'un ou l'autre minimum).\n \
+                reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
+Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
+D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
+et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
 Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
 'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
 et 'VMA' (pour la VMA en km/h). \
-L'ordre des colonnes est indifférent.")
+L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
+                print("reponse", reponse)
+                if reponse :
+                    path = os.getcwd()
+                    #subprocess.Popen(r'explorer /select,"' + path + os.sep +  LOGDIR + os.sep + filePath)
+                    os.startfile(LOGDIR + os.sep + filePath)
                 
 
 def actualiseToutLAffichage() :
@@ -2895,7 +2925,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
 filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
-filemenu.add_command(label="Import CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
+filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()

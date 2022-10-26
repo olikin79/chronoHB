@@ -202,6 +202,10 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                         commentaireArrivee = ligne[6]
                     except :
                         commentaireArrivee = ""
+                    try : # ajout sur des données pas encore compatibles
+                        etablissement = ligne[7]
+                    except :
+                        etablissement = ""
                     # ici, ajouter un dispositif de vérification sur le dossard demandé : course bien commencée...
                     # ce qui ne peut pas être effectué côté client.
                     dossardPrecedent = form.getvalue("dossardPrecedent")
@@ -210,7 +214,9 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                             ligneRetour = "DI," + nom + "," + prenom + "," +  classe + "," + categorie + "," + categorieLisible + "," + commentaireArrivee.replace(",",";") + "," + str(doss) + ","
                             print(ligneRetour)#.encode("iso-8859-15"))
                         else :
-                            messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss)
+                            messageVocal = lireMessageDefaut().replace(",",";").replace("<nom>",nom).replace("<prenom>",prenom).\
+                                           replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss).\
+                                           replace("<etablissement>",etablissement)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
                         addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
                     elif action == "del" :

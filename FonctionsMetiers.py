@@ -20,7 +20,7 @@ import requests
 import xlsxwriter # pour les exports excels des résultats
 
 ### A décommenter plus tard pour la mise en place des imports NG.
-###import openpyxl
+from openpyxl import load_workbook
 
 from tkinter.messagebox import *
 
@@ -29,6 +29,7 @@ DEBUG = False
 
 version = "1.57"
 
+LOGDIR="logs"
 
 def windows():
     if os.sep == "\\" :
@@ -244,7 +245,7 @@ class ErreursATraiter():
 def naissanceValide(naissance) :
     try:
         #print("annee")
-        annee = naissance[6:10]
+        annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
         #print("mois")
         mois = naissance[3:5]
         jour = naissance[0:2]
@@ -290,11 +291,16 @@ class Coureur():#persistent.Persistent):
             self.categorieAuto
         except :
             self.categorieAuto = True
+        try : # compatibilité avec les vieilles sauvegardes restaurées 
+            self.etablissement
+        except: 
+            self.etablissement = ""
+            self.etablissementNature = ""
         if self.categorieAuto :
             if self.__private_categorie == None :
                 if CategorieDAge :
                     if len(self.naissance) != 0 :
-                       anneeNaissance = self.naissance[6:] 
+                        anneeNaissance = self.naissance[6:] 
                         if CategorieDAge == 2 : ## UNSS
                              ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                              ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
@@ -321,7 +327,11 @@ class Coureur():#persistent.Persistent):
             print("nom de catégorie incorrect:", nouveauNom)
     def setCategorieAuto(self):
         self.categorieAuto = True
-
+    def setEtablissement(self,etab, nature):
+        self.etablissement = etab
+        self.etablissementNature = "CLG"
+        if nature == "LGT" or nature == "LP" :
+            self.etablissementNature = nature
     def setDossard(self, dossard) :
         try :
             self.dossard = int(dossard)
@@ -346,7 +356,7 @@ class Coureur():#persistent.Persistent):
 ##        else :
 ##            self.naissance = None
     def setCommentaire(self, commentaire):
-        self.commentaireArrivee = commentaire
+        self.commentaireArrivee = str(commentaire)
     def setClasse(self, classe) :
         self.classe =classe
         self.__private_categorie = None # réinit
@@ -1663,9 +1673,20 @@ def fixerDepart(nomGroupement,temps):
 def generateListCoureursPourSmartphone() :
     fichierDonneesSmartphone = "Coureurs.txt"
     with open(fichierDonneesSmartphone, 'w') as f :
+        print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
         for coureur in Coureurs :
-            result = str(coureur.dossard) + "," + coureur.nom + "," + coureur.prenom +","+ coureur.classe + "," + coureur.categorie(Parametres["CategorieDAge"]) \
-                     + "," + Courses[coureur.categorie(Parametres["CategorieDAge"])].description + "," + coureur.commentaireArrivee.replace(",",";")
+            try :
+                result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
+                         str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
+                         str(Courses[coureur.categorie(Parametres["CategorieDAge"])].description) + "," +\
+                         str(coureur.commentaireArrivee).replace(",",";") + \
+                         "," + str(coureur.etablissement)
+            except :
+                result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
+                         "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
+                print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
+                      str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
+                      str(coureur.commentaireArrivee))
             result += "\n"
             f.write(result)
     f.close()
@@ -2470,7 +2491,10 @@ def nomGroupementAPartirDUneCategorie(categorie):
     try :
         retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
-        retour = Courses[categorie].initNomGroupement(categorie)
+        try :
+            retour = Courses[categorie].initNomGroupement(categorie)
+        except:
+            retour = ""
     #print("categorie",Courses[categorie].categorie ,retour)
     return retour
 
@@ -3186,79 +3210,76 @@ def coureurExists(Coureurs, nom, prenom) :
         i += 1
     return retour
 
- 
+def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
+    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LGT" or etablissementNature.upper() == "LP" 
+    return nom and prenom and sexe and \
+           ((Parametres["CategorieDAge"] == 0 and classe) \
+             or (Parametres["CategorieDAge"] == 1 and naissanceValide(naissance)) \
+             or (Parametres["CategorieDAge"] == 2 and naissanceValide(naissance) and etablissement and etablissementNatureValide))
+             # si infos indispensables dans tous les cas
+             # 0 - cas du cross du collège. On a besoin uniquement de la classe.
+             # 1 - cas de courses organisées en fonction des catégories de la FFA
+             # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
-def addCoureur(nom, prenom, sexe, classe='', naissance=None,  absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
-    testNaissance = naissanceValide(naissance)
+def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
-        if testNaissance :
-            naissanceValid = naissance
-        else :
-            naissanceValid = None
-        if Parametres['CategorieDAge'] :
-            complement = testNaissance
-        else :
-            complement = classe != ""
-        if nom != "" and prenom != "" and complement :
-            dossard = coureurExists(Coureurs, nom, prenom)
-            if dossard :
-                #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-                if dispense != None :
-                    Coureurs[dossard-1].setDispense(dispense)
-                if absent != None :
-                    Coureurs[dossard-1].setAbsent(absent)
-                Coureurs[dossard-1].setCommentaire(commentaireArrivee)
-##                if commentaireArrivee != "" :
-##                    print("mise à jour commentaire :",commentaireArrivee)
-                Coureurs[dossard-1].setClasse(classe)
-                Coureurs[dossard-1].setVMA(vma)
-                Coureurs[dossard-1].setNaissance(naissanceValid)
-                addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
-            else :
-                dossard = len(Coureurs)+1
-                Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissanceValid,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
-                ##transaction.commit()
-                #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
-                addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
-                ## on regénère la liste des Coureurs après un ajout manuel.
-                generateListCoureursPourSmartphone()
-                CoureursParClasseUpdate()
-        else :
-            print("Il manque un paramètre obligatoire (valide). nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
     except :
-        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
-
-def modifyCoureur(dossard, nom, prenom, sexe, classe='', naissance=None, commentaireArrivee="", VMA="0", aImprimer = True):
-    testNaissance = naissanceValide(naissance)
-    try :
-        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
-        vma = float(VMA)
-        if testNaissance :
-            naissanceValid = naissance
-        else :
-            naissanceValid = None
-        if Parametres['CategorieDAge'] :
-            complement = testNaissance
-        else :
-            complement = classe != ""
-        if nom != "" and prenom != "" and complement :
-            Coureurs[dossard-1].setNom(nom)
-            Coureurs[dossard-1].setPrenom(prenom)
-            Coureurs[dossard-1].setSexe(sexe)
-            Coureurs[dossard-1].setAImprimer(aImprimer)
+        vma = "0"
+        #print("complement",complement)
+    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature) :
+        dossard = coureurExists(Coureurs, nom, prenom)
+        if dossard :
+            #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+            if dispense != None :
+                Coureurs[dossard-1].setDispense(dispense)
+            if absent != None :
+                Coureurs[dossard-1].setAbsent(absent)
             Coureurs[dossard-1].setCommentaire(commentaireArrivee)
 ##                if commentaireArrivee != "" :
 ##                    print("mise à jour commentaire :",commentaireArrivee)
             Coureurs[dossard-1].setClasse(classe)
             Coureurs[dossard-1].setVMA(vma)
-            Coureurs[dossard-1].setNaissance(naissanceValid)
+            Coureurs[dossard-1].setNaissance(naissance)
+            Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
             addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
+            retour = [0,1,0]
         else :
-            print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance)
+            dossard = len(Coureurs)+1
+            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+            ##transaction.commit()
+            #print("Coureur", nom, prenom, "ajouté (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
+            addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+            retour = [1,0,0]
+    else :
+        print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
+        retour = [0,0,1]
+    return retour 
+##    except :
+##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
+##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
+
+def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablisemmentNature = "", naissance="", commentaireArrivee="", VMA="0", aImprimer = True):
+    try :
+        vma = float(VMA)
     except :
-        print("Impossible de modifier " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
+        vma = "0"
+    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature) :
+        Coureurs[dossard-1].setNom(nom)
+        Coureurs[dossard-1].setPrenom(prenom)
+        Coureurs[dossard-1].setSexe(sexe)
+        Coureurs[dossard-1].setAImprimer(aImprimer)
+        Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+##                if commentaireArrivee != "" :
+##                    print("mise à jour commentaire :",commentaireArrivee)
+        Coureurs[dossard-1].setClasse(classe)
+        Coureurs[dossard-1].setVMA(vma)
+        Coureurs[dossard-1].setNaissance(naissance)
+        Coureurs[dossard-1].setEtablissement(etablissement,etablisemmentNature)
+        addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
+    else :
+        print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
 
 def addCourse(categorie) :
     # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
@@ -3609,18 +3630,22 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
     coureur = Coureurs[doss-1]
     cat = coureur.categorie(Parametres["CategorieDAge"])
     retour = []
-    if Courses[cat].depart :
-        depart = Courses[cat].temps
+    try :
+        categ = Courses[cat]
+    except:
+        categ = ""
+    if categ and Courses[cat].depart :
+        depart = categ.temps
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le coureur " + coureur.nom + " " + coureur.prenom + " (" + str(doss) + ") a un temps négatif :\nDépart (" + str(Courses[cat].categorie)  +") : " + str(Courses[cat].departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
+            message = "Le coureur " + coureur.nom + " " + coureur.prenom + " (" + str(doss) + ") a un temps négatif :\nDépart (" + str(categ.categorie)  +") : " + str(categ.departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
             retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :
             alimenteTableauGUI (tableauGUI, coureur, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
         else :
-            coureur.setTemps(arrivee- depart, Courses[cat].distance)
+            coureur.setTemps(arrivee- depart, categ.distance)
             if tpsNonSaisi :
                 alimenteTableauGUI (tableauGUI, coureur, Temps(0,0,0), dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
                 #DonneesAAfficher.append(coureur,Temps(0,0,0), dossardAffecteAuTps)
@@ -4250,137 +4275,161 @@ def categorieAthletisme(anneeNaissance) :
 #print(categorieAthletisme(2003))
 
 #### Import des données nouvelle génération (post 2022) à tester...
-def traitementDesDonneesAImporter (donneesBrutes) :
-    ''' données brutes est un tableau (ou itérable) qui contient des lignes onstituées des chaines de caractères (sans point virgule) issues d'un CSV ou tableur.
+def traitementDesDonneesAImporter(donneesBrutes) :
+    ''' données brutes est un tableau (ou itérable) qui contient des lignes constituées des chaines de caractères (sans point virgule) issues d'un CSV ou tableur.
     Crée les coureurs à partir des informations de chacun, si les données indispensables sont présentes.
     Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
     i=0
-    for row in spamreader:
+    retour= False
+    BilanCreationModifErreur = [0,0,0]
+    for row in donneesBrutes:
         if i == 0 :
-             informations = [x.lower() for x in row]
-             #print(informations)
-             if "nom" in informations and "prénom" in informations and "sexe" in informations and \
-                (((not Parametres["CategorieDAge"]) and "classe" in informations) or \
-                 (Parametres["CategorieDAge"] and "naissance" in informations) or \
-                 (Parametres["CategorieManuelle"] and "catégorie" in informations)) :
-                 retour = True
-             else :
-                 print("Certains éléments obligatoires manquent dans le fichier fourni :", informations)
-                 retour = False
-                 break
+            informations = [x.lower() for x in row]
+            print("Informations disponibles dans le fichier importé",informations)
+            if "nom" in informations and "prénom" in informations and "sexe" in informations and \
+            ((Parametres["CategorieDAge"] == 0 and "classe" in informations) \
+             or (Parametres["CategorieDAge"] == 1 and "naissance" in informations) \
+             or (Parametres["CategorieDAge"] == 2 and "naissance" in informations and "etablissement" in informations and "etablissementNature" in informations)) :
+             # si infos indispensables dans tous les cas
+             # 0 - cas du cross du collège. On a besoin uniquement de la classe.
+             # 1 - cas de courses organisées en fonction des catégories de la FFA
+             # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+                retour = True
+            else :
+                print("Certains éléments obligatoires manquent dans le fichier fourni :", informations)
+                retour = False
+                break
         else :
-             #print(row, informations)
-             creerCoureur(row, informations)
+             if i == 1 :
+                 print("Première ligne du fichier importé:")
+                 print(row)
+             retourCreationModifErreur = creerCoureur(row, informations)
              #print("ligne :" ,row)
+             for i in range(2) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
+                if retourCreationModifErreur[i] :
+                    BilanCreationModifErreur[i] += 1
         i+=1
-    return retour
+    return retour,BilanCreationModifErreur
 
 
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
-    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
-    retour = False
+    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''  
+    retour,BilanCreationModifErreur = False,[0,0,0]
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            retour = recupXLSX(fichierSelectionne)
+            retour,BilanCreationModifErreur = recupXLSX(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
-            retour = recupCSV(fichierSelectionne)
+            retour,BilanCreationModifErreur = recupCSV(fichierSelectionne)
     if retour :
-        print("IMPORT CSV SIECLE TERMINE")
+        print("IMPORT CSV ou XLSX TERMINE")
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
-        print("Liste des coureurs pour smartphone créée.")
+        print("Liste des coureurs pour smartphone actualisée.")
         # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
     else :
         print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
-    return retour
+    return retour,BilanCreationModifErreur
 
 
 def recupXLSX(fichierSelectionne=""):
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
-    try :
-        with openpyxl.load_workbook(fichierSelectionne) as wb_obj :
-            sheet = wb_obj.active # lis la feuille active
-            donneesBrutes = [] # initialisation
-            for row in sheet.iter_rows(max_row=sheet.max_row):
-                chaine = ""
-                for cell in row:
-                    chaine += str(cell.value).replace(";",",") # élimination des points virgules pour coller à l'ancien import CSV.
-                donneesBrutes.append(chaine)
-            ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-            retour = traitementDesDonneesAImporter(donneesBrutes)
-    except :
-        retour = False
-        print("Erreur : probablement pas un fichier xlsx valide...")
-    return retour
+    #try :
+    #print(fichierSelectionne)
+    wb_obj = load_workbook(fichierSelectionne) 
+    sheet = wb_obj.active # lis la feuille active
+    donneesBrutes = [] # initialisation
+    for row in sheet.iter_rows(max_row=sheet.max_row):
+        ligne = []
+        for cell in row:
+            if cell.value == None :
+                ligne.append("")
+            else :
+                valeur = str(cell.value)
+                if len(valeur)> 8 and valeur[:8] == "datetime" :
+                    # cas des dates dans excel
+                    print("Date à importer",value)
+                    valeur = time.strftime("%d/%m/%Y", valeur)
+                else :
+                    ligne.append(valeur)#.replace(";",",")+";" # élimination des points virgules pour coller à l'ancien import CSV.
+        #print(chaine)
+        donneesBrutes.append(ligne)
+    ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+    retour,BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
+    wb_obj.close()
+    #except :
+    #    print("Erreur : probablement pas un fichier xlsx valide...")
+    return retour,BilanCreationModifErreur
 
 
 def recupCSV(fichierSelectionne=""):
     ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
-    try :
+    #print("fichierSelectionne",fichierSelectionne)
+    retour,BilanCreationModifErreur = False,[0,0,0]
+    try : 
         with open(fichierSelectionne, encoding='utf-8') as csvfile:
             donneesBrutes = csv.reader(csvfile, delimiter=';')
+            #print(donneesBrutes)
             ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-            retour = traitementDesDonneesAImporter(donneesBrutes)
+            retour,BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
     except :
-        retour = False
         print("Erreur : probablement un mauvais encodage...")
-    return retour
+    return retour,BilanCreationModifErreur
   
 
 #### Import CSV ancienne génération (avant 2022)
 
-def recupCSVSIECLE(fichierSelectionne=""):
-##    if Parametres["CourseCommencee"] :
-##        message = 'Une ou plusieurs courses ont commencé(es).\nNettoyer toutes les données de courses précédentes avant un import SIECLE.'
-##        if __name__=="__main__":
-##            print(message)
-##        else :
-##            reponse = showinfo("PAS D'IMPORT SIECLE",message)
+##def recupCSVSIECLE(fichierSelectionne=""):
+####    if Parametres["CourseCommencee"] :
+####        message = 'Une ou plusieurs courses ont commencé(es).\nNettoyer toutes les données de courses précédentes avant un import SIECLE.'
+####        if __name__=="__main__":
+####            print(message)
+####        else :
+####            reponse = showinfo("PAS D'IMPORT SIECLE",message)
+####    else :
+##    # Dans une première version non interfacée, on selectionnait le csv le plus récent
+##    if fichierSelectionne=="" :
+##        datePrecedente = 0
+##        for file in glob.glob("./*.csv") :
+##            if datePrecedente < os.path.getmtime(file) :
+##                datePrecedente = os.path.getmtime(file)
+##                fichierSelectionne = file
+##        print("Le fichier listing le plus récent est :", fichierSelectionne)
+##    # on procède à l'import si le fichier existe
+##    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
+##        try :
+##            with open(fichierSelectionne, encoding='utf-8') as csvfile:
+##                spamreader = csv.reader(csvfile, delimiter=';')
+##                ### traitement à déporter dans la fonction ci-dessus traitementDesDonneesAImporter
+##                i=0
+##                for row in spamreader:
+##                    if i == 0 :
+##                         informations = [x.lower() for x in row]
+##                         print(informations)
+##                         if "nom" in informations and "prénom" in informations and\
+##                            "classe" in informations and "sexe" in informations :
+##                             retour = True
+##                         else :
+##                             retour = False
+##                             break
+##                    else :
+##                         #print(row, informations)
+##                         creerCoureur(row, informations)
+##                         #print("ligne :" ,row)
+##                    i+=1
+##        except :
+##            retour = False
+##            print("Erreur : probablement un mauvais encodage...")
 ##    else :
-    # Dans une première version non interfacée, on selectionnait le csv le plus récent
-    if fichierSelectionne=="" :
-        datePrecedente = 0
-        for file in glob.glob("./*.csv") :
-            if datePrecedente < os.path.getmtime(file) :
-                datePrecedente = os.path.getmtime(file)
-                fichierSelectionne = file
-        print("Le fichier listing le plus récent est :", fichierSelectionne)
-    # on procède à l'import si le fichier existe
-    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
-        try :
-            with open(fichierSelectionne, encoding='utf-8') as csvfile:
-                spamreader = csv.reader(csvfile, delimiter=';')
-                ### traitement à déporter dans la fonction ci-dessus traitementDesDonneesAImporter
-                i=0
-                for row in spamreader:
-                    if i == 0 :
-                         informations = [x.lower() for x in row]
-                         print(informations)
-                         if "nom" in informations and "prénom" in informations and\
-                            "classe" in informations and "sexe" in informations :
-                             retour = True
-                         else :
-                             retour = False
-                             break
-                    else :
-                         #print(row, informations)
-                         creerCoureur(row, informations)
-                         #print("ligne :" ,row)
-                    i+=1
-        except :
-            retour = False
-            print("Erreur : probablement un mauvais encodage...")
-    else :
-        print("Pas de fichier CSV trouvé. N'arrivera jamais avec l'interface graphique normalement.")
-        retour = False
-    print("IMPORT CSV SIECLE TERMINE")
-    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-SIECLE")
-    if retour : # import effectué : on regénère la liste pour l'application smartphone.
-        generateListCoureursPourSmartphone()
-        CoureursParClasseUpdate()
-        print("Liste des coureurs pour smartphone créée.")
-    return retour
+##        print("Pas de fichier CSV trouvé. N'arrivera jamais avec l'interface graphique normalement.")
+##        retour = False
+##    print("IMPORT CSV SIECLE TERMINE")
+##    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-SIECLE")
+##    if retour : # import effectué : on regénère la liste pour l'application smartphone.
+##        generateListCoureursPourSmartphone()
+##        CoureursParClasseUpdate()
+##        print("Liste des coureurs pour smartphone créée.")
+##    return retour
 
 def setDistances():
     for nom in listeDeCourses :
@@ -4423,7 +4472,9 @@ def creerCoureur(listePerso, informations) :
         i += 1
     #print(infos)
     clas = ""
-    naiss = None
+    naiss = ""
+    etab = ""
+    nature = ""
     disp=False
     abse=False
     vma = 0
@@ -4445,19 +4496,33 @@ def creerCoureur(listePerso, informations) :
         try : 
             naiss = supprLF(infos["naissance"])
         except :
-            naiss = None
+            naiss = ""
+    if "établissement" in informations :
+        try : 
+            etab = supprLF(infos["établissement"])
+        except :
+            etab = ""
+    if "établissementtype" in informations :
+        try : 
+            nature = supprLF(infos["établissementtype"])
+        except :
+            nature = ""
     if "vma" in informations :
         try : 
             vma = float(infos["vma"].replace(",",".")) # on assure le coup si les VMA sont à virgule.
         except :
             vma = 0
     if "commentairearrivée" in informations :
-        comment = infos["commentairearrivée"]
+        comment = supprLF(infos["commentairearrivée"])
         #print("Commentaire personnalisé :" + comment+ ".")
-    #print("youpee")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+    if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
+        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+    else :
+        retourCreationModifErreur = [0,0,0]
+##        print("Probablement une ligne vide dans le tableur ou csv. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"])
+    return retourCreationModifErreur
 
 
 def supprLF(ch) :

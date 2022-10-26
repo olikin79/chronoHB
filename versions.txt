@@ -1,8 +1,16 @@
 Manquent :
-- la compatibilité ascendante avec d'anciennes sauvegardes.
-- l'actualisation du fichier texte par CoureursParClasseUpdate() avec établissement et d'autres paramètres si besoin.
-- l'import XLSX (à tester) via recupImportNG()
-- l'import dans le cas UNSS : ajouter en obligatoire l'établissement et sa nature (CLG LGT LP)
+- tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
+- la compatibilité ascendante avec d'anciennes sauvegardes à tester
+- corriger le bug : Etablissement et commentaire arrivée sont False dans Coureurs.txt (et dans la base) suite à un import tout neuf. 
+Lié à une des fonctions d'import.
+
+
+
+Travail du 26/10/22 :
+- on permet les années sur 2 ou 4 chiffres à l'import (naissanceValide() modifié)
+- les messages d'erreur lors de l'import devraient être redirigés vers un fichier texte dédié pour affichage dans l'interface via un clic en cas d'erreur présente.
+
+
 
 
 Travail du 25/10/22 :
@@ -11,6 +19,11 @@ Travail du 25/10/22 :
 Compatibilité ascendante assurée (import de vieilles bases de données, choix 1 et 2 amènent à considérer les catégories d'âge.
 - la propriété établissement et établissementNature pour chaque Coureur.
 - actualisation de la catégorie dans le cas UNSS : prise en compte des redoublants et des élèves ayant sauté une classe.
+- l'import XLSX (testé et corrigé) via recupImportNG() (factorisation + sécurisation du code d'import)
+- l'import dans le cas UNSS : ajouter en obligatoire l'établissement et sa nature (CLG LGT LP)
+- l'actualisation du fichier texte par CoureursParClasseUpdate() avec établissement en dernier paramètre si présent.
+- Arrivee.pyw remplace <etablissement> par le nom en question (implémenté mais non testé)
+
 
 Travail du 19/10/22 :
 - cgi/arrivee.pyw retourne une classe dans tous les cas (bug découvert avec une chaine non numérique corrigé).
