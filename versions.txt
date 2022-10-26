@@ -1,6 +1,7 @@
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
+- temps prévisionnel pour le paramétrage UNSS également.
 
 
 

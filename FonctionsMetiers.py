@@ -3467,7 +3467,7 @@ def calculeTousLesTemps(reinitialise = False):
             tps = ArriveeTemps[k]
             dossardAffecteAuTps = ArriveeTempsAffectes[k]
             #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps, True)
-            if k == i and not Parametres["CategorieDAge"] and categorieDuDernierDepart() != "" :
+            if k == i and (Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2) and categorieDuDernierDepart() != "" :
                 ### seul le premier temps prévisionnel sera affiché (pour disposer du premier d'une course).
                 coureurPrevisionnel = Coureur("", "", "", "")
                 arrivee = tps.tempsReel
@@ -4302,9 +4302,9 @@ def traitementDesDonneesAImporter(donneesBrutes) :
                 retour = False
                 break
         else :
-             if i == 1 :
-                 print("Première ligne du fichier importé:")
-                 print(row)
+##             if i == 1 :
+##                 print("Première ligne du fichier importé:")
+##                 print(row)
              retourCreationModifErreur = creerCoureur(row, informations)
              #print("retour création :" ,retourCreationModifErreur)
              for i in range(3) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
