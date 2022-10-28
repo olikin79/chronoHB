@@ -36,7 +36,7 @@ def windows():
         return True
     else :
         return False
-    
+
 
 if windows() :
     import win32ui,win32print,win32api,win32con # impression pdf sous windows.
@@ -51,7 +51,7 @@ import pickle
 # récupère les données de sauvegarde de à la carte en tant que variables globales pour être utilisées par les autres fonctions.
 ##def lire_sauvegarde(sauvegarde) :
 ##    if os.path.exists(sauvegarde+".db") :
-##        #d = 
+##        #d =
 ##        retour = pickle.load(open(sauvegarde+".db","rb"))
 ##        #d = shelve.open(sauvegarde)
 ##        #retour = d['root']
@@ -73,8 +73,8 @@ def creerDir(path) :
         retour = False
     return retour
 
-# enregistre les données de sauvegarde 
-# récupère les données de sauvegarde 
+# enregistre les données de sauvegarde
+# récupère les données de sauvegarde
 def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
     #global noSauvegarde
     #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
@@ -97,7 +97,7 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
         else :
             destination = "db"
     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-    nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire 
+    nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
     d = open("Courses.db","wb")
     pickle.dump(root, d)
     d.close()
@@ -140,8 +140,8 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
         return nomFichierCopie
 
 
-# enregistre les données de sauvegarde 
-# récupère les données de sauvegarde 
+# enregistre les données de sauvegarde
+# récupère les données de sauvegarde
 def recupere_sauvegarde(sauvegardeChoisie) :
     global sauvegarde
     #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
@@ -178,9 +178,9 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
         retour = chargerDonnees()
         setParametres() # fichier à destination du smartphone à regéréner.
-        return retour 
-        
-    
+        return retour
+
+
 ##    d = open(sauvegarde+".db","wb")
 ##    pickle.dump(root, d)
 ##    #d['root'] = root
@@ -222,7 +222,7 @@ class Erreur():
             self.temps = 0.0
         elif isinstance(elementConcerne,float) : # c'est un temps.
             self.dossard = 0
-            self.temps = elementConcerne    
+            self.temps = elementConcerne
         else :
             self.dossard = 0
             self.temps = 0.0
@@ -261,7 +261,8 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA=0, aImprimer=False):
+    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
+                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -280,8 +281,10 @@ class Coureur():#persistent.Persistent):
         self.VMA = float(VMA)
         self.vitesse = 0
         self.rang = 0
+        self.scoreUNSS = scoreUNSS 
         self.rangCat = 0
         self.commentaireArrivee = commentaireArrivee
+        self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
         self.categorieAuto = True
         self.__private_categorie = None
@@ -291,26 +294,26 @@ class Coureur():#persistent.Persistent):
             self.categorieAuto
         except :
             self.categorieAuto = True
-        try : # compatibilité avec les vieilles sauvegardes restaurées 
+        try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
-        except: 
+        except:
             self.etablissement = ""
             self.etablissementNature = ""
         if self.categorieAuto :
             if self.__private_categorie == None :
                 if CategorieDAge :
                     if len(self.naissance) != 0 :
-                        anneeNaissance = self.naissance[6:] 
+                        anneeNaissance = self.naissance[6:]
                         if CategorieDAge == 2 : ## UNSS
                              ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                              ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
                             cat = categorieAthletisme(anneeNaissance)
                             if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
                                 cat = "MI"
-                            elif self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                            elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
                                 cat = "CA"
                             self.__private_categorie = cat + "-" + self.sexe
-                        else: ## catégories FFA 
+                        else: ## catégories FFA
                             #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
                             self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
                 else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
@@ -319,6 +322,16 @@ class Coureur():#persistent.Persistent):
             return self.__private_categorie
         else :
             return self.__private_categorie_manuelle
+    def categorieSansSexe(self) :
+        return self.categorie(Parametres["CategorieDAge"])[:2]
+    def setScoreUNSS(self, nbreArriveesGroupement) :
+        try :
+            if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
+                self.scoreUNSS = self.rang * 100 / nbreArriveesGroupement
+            else :
+                self.scoreUNSS = self.rang
+        except :
+            self.scoreUNSS = 1000000 # pour éviter qu'une erreur (non prévue) place le coureur dans les premiers.
     def setCategorie(self, nouveauNom, CategorieDAge=False):
         try :
             self.__private_categorie_manuelle = str(nouveauNom)
@@ -379,9 +392,9 @@ class Coureur():#persistent.Persistent):
         else :
             self.dispense = False
     def setTemps(self, temps=0, distance=0):
-        try : 
+        try :
             self.temps = float(temps)
-        except : 
+        except :
             self.temps = 0
         if self.temps >  0:
             self.vitesse = distance *3600 / self.temps
@@ -596,18 +609,18 @@ class Groupement():
         self.actualiseNom()
         # on actualise les propriétés nomGroupement de toutes les courses du groupement (pour éviter des centaines de parcours de listes toutes les 2 secondes)
         self.actualiseProprieteGroupementDesCourses()
-        
+
     def removeCourse(self, nomCourse):
         self.listeDesCourses.remove(nomCourse)
         self.actualiseNom()
         self.actualiseProprieteGroupementDesCourses()
-        
+
     def actualiseProprieteGroupementDesCourses(self):
         for c in self.listeDesCourses :
             Courses[c].setNomGroupement(self.nomStandard)
     def affichageInfoTerminal(self) :
         print("Groupement", self.nom, "de nom standard", self.nomStandard,"contenant les courses",self.listeDesCourses,"de distance",self.distance)
-        
+
 
 class Temps():#persistent.Persistent):
     """Un tempsCoureur sur la ligne d'arrivée, éventuellement affecté à un dossard
@@ -684,7 +697,7 @@ def formaterTemps(tps, HMS=True) :
         if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
             #print(time.strftime("%M",time.gmtime(tps)))
             if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
-                if HMS : 
+                if HMS :
                     ch = time.strftime("%S s ",time.localtime(tps)) + partieDecimale + "''"
                 else :
                     ch = time.strftime("%S:",time.localtime(tps)) + partieDecimale
@@ -694,7 +707,7 @@ def formaterTemps(tps, HMS=True) :
                 else :
                     ch = time.strftime("%M:%S:",time.localtime(tps)) + partieDecimale
         else :
-            if HMS : 
+            if HMS :
                 ch = time.strftime("%H h %M min %S s",time.localtime(tps)) # + partieDecimale
             else :
                 ch = time.strftime("%H:%M:%S:",time.localtime(tps)) + partieDecimale
@@ -709,7 +722,7 @@ def formaterTemps(tps, HMS=True) :
 def formaterTempsALaSeconde(tps) :
     if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
         if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
-            ch = time.strftime("00:00:%S",time.localtime(tps)) 
+            ch = time.strftime("00:00:%S",time.localtime(tps))
         else :
             ch = time.strftime("00:%M:%S",time.localtime(tps))
     else :
@@ -728,8 +741,8 @@ def formaterDuree(tps, HMS=True) :
     if int(time.strftime("%H",time.gmtime(tps))) == 0 : # pas d'heure à afficher.
         #print(time.strftime("%M",time.gmtime(tps)))
         if int(time.strftime("%M",time.gmtime(tps))) == 0 : # pas de minute à afficher.
-            if HMS : 
-                ch = time.strftime("%S s ",time.gmtime(tps)) 
+            if HMS :
+                ch = time.strftime("%S s ",time.gmtime(tps))
             else :
                 ch = time.strftime("00:00:%S",time.gmtime(tps))
         else :
@@ -738,7 +751,7 @@ def formaterDuree(tps, HMS=True) :
             else :
                 ch = time.strftime("00:%M:%S",time.gmtime(tps))
     else :
-        if HMS : 
+        if HMS :
             ch = time.strftime("%H h %M min %S s",time.gmtime(tps)) # + partieDecimale
         else :
             ch = time.strftime("%H:%M:%S",time.gmtime(tps))
@@ -751,15 +764,19 @@ def formaterDuree(tps, HMS=True) :
 
 class EquipeClasse():
     """Un objet permettant de contenir les informations pour le challenge par classe"""
-    def __init__(self, nom, score, scoreNonPondere, listeCG, listeCF, ponderation, complet, listeDesRangs):
+    def __init__(self, nom, listeCG, listeCF, ponderation=False):
         self.nom = nom
         self.listeCG = listeCG
         self.listeCF = listeCF
-        self.score = score
+        self.score = 0
+        for c in listeCG + listeCF :
+            self.score += c.scoreUNSS
         self.ponderation = ponderation
-        self.scoreNonPondere = scoreNonPondere
-        self.complet = complet
-        self.listeDesRangs = listeDesRangs
+        if ponderation :
+            self.score = self.score * Parametres["nbreDeCoureursPrisEnCompte"]*2/(len(listeCG) + len(listeCF))
+        #self.scoreNonPondere = score
+        #self.complet = complet
+        #self.listeDesRangs = listeDesRangs
 ##        # alimentation des listes ci-dessus avec les n (=nbreDeCoureursPrisEnCompte) meilleurs de la classe en question.
 ##        while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
 ##            doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
@@ -774,12 +791,28 @@ class EquipeClasse():
 ##                self.listeCF.append(coureur)
 ##                self.score += coureur.rang
 ##                nf += 1
-##            i+=1     
+##            i+=1
 ##        # correctif si le nombre nbreDeCoureursPrisEnCompte n'est pas atteint à l'arrivée.
 ##        if ng + nf < 2*nbreDeCoureursPrisEnCompte :
 ##            print("Application d'une pondération à la classe", self.nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
+    def listeDesRangs(self) :
+        listeRangs = []
+        for c in listeCG + listeCF :
+            listeRangs.append(c.score) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+        return listeRangs.sort()
+    def complet(self) :
+        if Parametres["CategorieDAge"] == 2 :
+            if len(self.listeCG) + len(self.listeCF) >= 5 :
+                return True
+            else :
+                return False
+        else : # cas Parametres["CategorieDAge"] == 0 (cross du collège)
+            if len(self.listeCG) + len(self.listeCF) >= Parametres["nbreDeCoureursPrisEnCompte"]*2 :
+                return True
+            else :
+                return False
 
 # setup the database
 def chargerDonnees() :
@@ -814,7 +847,7 @@ def chargerDonnees() :
         # on récupère les noms de toutes les catégories présentes, on regarde si chacune est bien dans un groupement existant. A défaut, on le crée.
         L = []
         for cat in Courses :
-            L.append(Courses[cat].categorie) 
+            L.append(Courses[cat].categorie)
         for cat in L :
             estPresent = False
             for grpment in root["Groupements"] :
@@ -846,7 +879,7 @@ def chargerDonnees() :
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
-    
+
     ### paramètres par défaut
     if not "Parametres" in root :
         root["Parametres"] = {}
@@ -957,7 +990,7 @@ else :
 ##                self.largeursColonnes.append(len(t)*self.largeurCaracteres)
 ##        #pour des colonnes de largeur nulle, je tentais d'ajouter le titre après. ECHEC titres[1] = "Heure Mesurée"
 ##        self.titres = tuple(titres)
-##    def append(self, coureur, temps, dossardAffecte) :#, tempsSupplementaire = False): 
+##    def append(self, coureur, temps, dossardAffecte) :#, tempsSupplementaire = False):
 ##        #print(len(self.lignes)+1)
 ##        if len(coureur.nom)>=2 :
 ##            nom = str(coureur.nom)[0].upper()+ str(coureur.nom)[1:].lower()
@@ -984,7 +1017,7 @@ else :
 ##            dossard = coureur.dossard
 ##        else :
 ##            dossard = "-"
-##        try : 
+##        try :
 ##            index = self.tempsReferences.index(temps.tempsCoureur)
 ##            # cas des coureurs qui ont le même temps affecté à cause d'un décalage du nombre de saisies entre les deux smartphones.
 ##            trouve = False
@@ -1072,12 +1105,12 @@ def exportXLSX():
     if os.path.exists(fichier) :
         os.remove(fichier)
     workbook = xlsxwriter.Workbook(fichier)
-    worksheet = workbook.add_worksheet() 
-    worksheet.write('A1', 'Dossard') 
-    worksheet.write('B1', 'Nom') 
-    worksheet.write('C1', 'Prénom') 
+    worksheet = workbook.add_worksheet()
+    worksheet.write('A1', 'Dossard')
+    worksheet.write('B1', 'Nom')
+    worksheet.write('C1', 'Prénom')
     worksheet.write('D1', 'Classe')
-    worksheet.write('E1', 'Catégorie') 
+    worksheet.write('E1', 'Catégorie')
     worksheet.write('F1', 'Temps (en s)')
     worksheet.write('G1', 'Temps (HMS)')
     worksheet.write('H1', 'Rang')
@@ -1113,7 +1146,7 @@ def exportXLSX():
     fichierAOuvrir = path + os.sep + fichier
     subprocess.Popen([fichierAOuvrir],shell=True)
     #subprocess.Popen(r'explorer /select,"' + )
-           
+
 
 
 #############################################################""
@@ -1126,7 +1159,7 @@ tableauGUI = []
 def reinitTableauGUI () :
     global tableauGUI
     tableauGUI.clear()
-    
+
 def alimenteTableauGUI (tableauGUI, coureur, temps, dossardAffecte, ligneAjoutee, derniereLigneStabilisee ):
     """ modifie le tableau tableauGUI des lignes à actualiser dans l'interface graphique """
     global ligneTableauGUI
@@ -1189,7 +1222,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
 ##        i += 1
 ##    return [ ind , newlines ]
 
-    
+
 
 
 Resultats = {} # dictionnaire des résultats calculés qui sera regénéré à chaque lancement en fonction des données de root
@@ -1206,7 +1239,7 @@ coureurVide = Coureur("", "", "", "", "")
 def traiterToutesDonnees():
     traiterDonneesSmartphone(True, False)
     traiterDonneesLocales(True,False)
-    
+
 def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
     """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
         à la fin mémoriser heureDerniereRecuperationSmartphone
@@ -1248,7 +1281,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                     #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
                 ### désormais, même s'il y a une erreur, on poursuit les imports.
                 Parametres["ligneDerniereRecuperationSmartphone"] += 1
-                Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
+                Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
                     ##transaction.commit()
             else :
                 #pasDErreur = False
@@ -1259,12 +1292,12 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
             Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
     else :
-        Parametres["tempsDerniereRecuperationSmartphone"] = time.time() 
+        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
     #    print("Fichier du smartphone déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
 
-        
+
     ########### copié collé de la fonction précédente en changeant juste les variables de mémorisation
 def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
     """traite le 2ème fichier de données :  celui généré par les requêtes effactuées localement directement sur l'interface GUI.
@@ -1307,7 +1340,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
                     #print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
                 # même si une erreur se produit, désormais, on poursuit les imports.
                 Parametres["ligneDerniereRecuperationLocale"] += 1
-                Parametres["tempsDerniereRecuperationLocale"] = time.time() 
+                Parametres["tempsDerniereRecuperationLocale"] = time.time()
                     ##transaction.commit()
             else :
                 #pasDErreur = False
@@ -1321,7 +1354,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
 ##        #print("Fichier des données locales déjà traité à cette heure")
 ##        retour = "RAS"
     return retour
-        
+
 
 def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
@@ -1337,11 +1370,11 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
         tpsServeur = float(listeAction[5])
         try :
             uid = int(listeAction[6])
-        except : 
+        except :
             uid = 0
         try :
             noTransmission = int(listeAction[7])
-        except : 
+        except :
             noTransmission = 0
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
@@ -1374,7 +1407,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             else :
                 print("Action venant du smartphone incorrecte", ligne)
                 retour = Erreur(301)
-            if uid and noTransmission : 
+            if uid and noTransmission :
                 UIDPrecedents[uid].append(noTransmission)
         else :
             print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
@@ -1383,11 +1416,11 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
         dossardPrecedent = int(listeAction[3])
         try :
             uid = int(listeAction[4])
-        except : 
+        except :
             uid = 0
         try :
             noTransmission = int(listeAction[5])
-        except : 
+        except :
             noTransmission = 0
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
@@ -1399,11 +1432,11 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             else :
                 print("Action venant du smartphone incorrecte", ligne)
                 retour = Erreur(301)
-            if uid and noTransmission : 
+            if uid and noTransmission :
                 UIDPrecedents[uid].append(noTransmission)
         else :
             print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
-            retour = Erreur(451)       
+            retour = Erreur(451)
     else :
         print("Type d'action venant du smartphone incorrecte", ligne)
         retour = Erreur(301)
@@ -1416,8 +1449,8 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     Courses[cat].setARegenererPourImpression(True)
     #print("nom groupement de la catégorie", cat, ":", Courses[cat].nomGroupement)
     groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
-    
-    
+
+
 def effacerFichierDonnneesSmartphone() :
     print("Effacement des données venant des smartphones  effectué")
     file = "donneesSmartphone.txt"
@@ -1474,7 +1507,7 @@ def listCourses():
         retour.append(Courses[cat].categorie)
     return retour
     ##transaction.commit()
-    
+
 def listCategories():
     retour = []
     if len(Coureurs)!=0:
@@ -1612,7 +1645,7 @@ def listNomsGroupementsNonCommences(nomStandard = False):
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
-                    retour.append(groupement.nom)               
+                    retour.append(groupement.nom)
     return retour
 
 def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
@@ -1627,7 +1660,7 @@ def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
                 nom = groupement.nom
                 if sansSlashNiEspace :
                     nom = nom.replace(" ","").replace("/","-")
-            retour.append(nom) 
+            retour.append(nom)
     return retour
 
 def listNomsGroupementsEtChallenges(nomStandard = False):
@@ -1650,7 +1683,7 @@ def listGroupementsNonCommences(nomStandard = False):
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
-                retour.append(groupement)               
+                retour.append(groupement)
     return retour
 
 def topDepart(listeDeGroupements):
@@ -1668,7 +1701,7 @@ def fixerDepart(nomGroupement,temps):
             for categorie in groupement.listeDesCourses :
                 Courses[categorie].setTempsHMS(temps)
                 print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
-    
+
 
 def generateListCoureursPourSmartphone() :
     fichierDonneesSmartphone = "Coureurs.txt"
@@ -1710,7 +1743,7 @@ def generateQRcode(n) :
         compiler(compilateurComplete, TEXDIR, str(n) + ".tex" , 1)
     ##else :
      #   print("le QR-code existe déjà")
-        
+
 def generateQRcodes() :
     print("Création des QR-codes nécessaires")
     i = 1
@@ -1805,7 +1838,7 @@ def generateDossardsNG() :
         #print(file)
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
-        
+
 
 ##def generateDossards() :
 ##    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
@@ -1956,7 +1989,7 @@ def generateDossard(coureur) :
     print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
     fichierAOuvrir = "dossards" + sep + file+".pdf"
     # Finalement, on retourne le nom du fichier.
-    # celui-ci sera imprimé directement sous windows et ouvert dans le lecteur pdf par défaut sous les OS unix 
+    # celui-ci sera imprimé directement sous windows et ouvert dans le lecteur pdf par défaut sous les OS unix
     # subprocess.Popen([fichierAOuvrir],shell=True)
     #open(fichierAOuvrir)
     return fichierAOuvrir
@@ -1986,13 +2019,13 @@ def alimenteListingPourClasse(nomClasse, file):
     ligne = 1
     while ligne <= (len(CoureursParClasse[nomClasse])//4 + 1) :
         imin = (ligne - 1)* 4
-        imax = ligne * 4 
+        imax = ligne * 4
         if imax >= len(CoureursParClasse[nomClasse]):
             listeDeQuatreCoureursMax = CoureursParClasse[nomClasse][imin:]
         else :
             listeDeQuatreCoureursMax = CoureursParClasse[nomClasse][imin:imax]
         file.write(alimenteLignePourListingClasse(listeDeQuatreCoureursMax))
-        ligne += 1 
+        ligne += 1
     file.write("\n\\end{tabular}\n\n")
 
 def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
@@ -2008,7 +2041,7 @@ def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
                 prenom = listeDeQuatreCoureursMax[i].prenom
                 dossard = listeDeQuatreCoureursMax[i].dossard
                 #test.append(nom +  prenom + str(dossard))
-                retour += alimenteCellulePourListingClasse(nom, prenom, dossard)        
+                retour += alimenteCellulePourListingClasse(nom, prenom, dossard)
             i += 1
             if i == 4 :
                 retour += " \\\\\n \\hline"
@@ -2018,15 +2051,15 @@ def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
     return retour
 
 def alimenteCellulePourListingClasse(nom, prenom, dossard) :
-    # ancienne ligne où l'on compilait le QR-code : {}\\hfill {} \\qrcode[height=0.5\\linewidth]{@dossard@} {}\\hfill {} 
+    # ancienne ligne où l'on compilait le QR-code : {}\\hfill {} \\qrcode[height=0.5\\linewidth]{@dossard@} {}\\hfill {}
     contenuCellule = """\\begin{minipage}{\\linewidth}
 {}
 
 \\smallskip
-{}\\hfill {} {\\footnotesize @dossard@ @prenom@ @nom@ } {}\\hfill {} 
+{}\\hfill {} {\\footnotesize @dossard@ @prenom@ @nom@ } {}\\hfill {}
 
 \\medskip
-{}\\hfill {} \\includegraphics[width=0.5\\linewidth]{QRcodes/@dossard@.pdf} {}\\hfill {} 
+{}\\hfill {} \\includegraphics[width=0.5\\linewidth]{QRcodes/@dossard@.pdf} {}\\hfill {}
 
 \\bigskip
 \\end{minipage} """
@@ -2145,7 +2178,7 @@ def nettoyerTousLesFichiersGeneres():
             except :
                 print("Impossible de supprimer:", file)
 
-    
+
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
     StatsEffectifs = True ## à basculer dans les paramètres
@@ -2211,7 +2244,7 @@ def generateImpressions() :
     print("Création du fichier de statistiques")
     fstats = open(TEXDIR+"_statistiques.tex", 'w', encoding="utf-8")
     fstats.write(enteteS)
-    
+
     ### générer les tex pour chaque classe + alimenter les statistiques de chacune
     nbreArriveesTotal = 0
     nbreDispensesTotal = 0
@@ -2308,7 +2341,7 @@ def generateImpressions() :
 
         # on gardera finalement les groupements pour ne pas afficher les abandons, etc...
         if (not estChallenge(classe)) :# and len(groupementAPartirDeSonNom(classe, nomStandard = True).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
-            
+
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
             nomFichier = classe.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
             if ArrDispAbsAbandon[8] :
@@ -2395,7 +2428,7 @@ def generateImpressions() :
         # on ferme le fichier de statistiques des classes
     fstats.write(ContenuLignesCategories)
     fstats.write("\n\\end{tabular}\\end{center}\n ")
-    
+
     fstats.write(enteteSGpments)
     fstats.write(ContenuLignesGroupements)
     fstats.write("\n\\end{tabular}\\end{center}\n\n\\bigskip")
@@ -2418,13 +2451,13 @@ def generateImpressions() :
                     f.write(creerFichierChallenge(challenge,enteteC))
                     f.write("\n\\end{longtable}\\end{center}\\end{document}")
                 f.close()
-        
+
     ### générer les tex pour chaque groupement.
     listeGroupements = listGroupementsCommences()
     for nomGroupement  in listeGroupements :
         # ajout d'une sécurité si aucune arrivée dans une course
         aCreer = False
-        groupement = groupementAPartirDeSonNom(nomGroupement) 
+        groupement = groupementAPartirDeSonNom(nomGroupement)
         if groupement :
             for nomCategorie in groupement.listeDesCourses :
                 if nomCategorie in ResultatsGroupements.keys() :
@@ -2435,7 +2468,7 @@ def generateImpressions() :
                     f.write(creerFichierCategories(groupement,entete))
                     f.write("\n\\end{longtable}\\end{center}\\end{document}")
                 f.close()
-    
+
     # pour chaque fichier dans impressions , compiler.
     liste_fichiers_tex_complete=glob.glob(TEXDIR+'*.tex',recursive = True)
     for file in liste_fichiers_tex_complete :
@@ -2469,15 +2502,15 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
                 retour = groupement
                 break
     return retour
-    
+
 def ancienGroupementAPartirDUneCategorie(categorie):
     """ retourne un objet groupement à partir d'un nom de catégorie
-    Non optimisé. Cette version est maintenu pour permettre l'import d'anciennes sauvegardes 
+    Non optimisé. Cette version est maintenu pour permettre l'import d'anciennes sauvegardes
     où les Courses n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     retour = None
     for groupement in Groupements :
-        for cat in groupement.listeDesCourses : 
+        for cat in groupement.listeDesCourses :
             if cat == categorie :
                 retour = groupement
                 break
@@ -2503,7 +2536,7 @@ def groupementAPartirDUneCategorie(categorie):
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     # retour = None
     # for groupement in Groupements :
-        # for cat in groupement.listeDesCourses : 
+        # for cat in groupement.listeDesCourses :
             # if cat == categorie :
                 # retour = groupement
                 # break
@@ -2534,7 +2567,7 @@ def nettoieGroupements() :
         if not Groupements[i].listeDesCourses :
             del Groupements[i]
         i -= 1
-    
+
 def updateNomGroupement(nomStandard, nomChoisi) :
     groupementAPartirDeSonNom(nomStandard).setNom(nomChoisi)
 
@@ -2694,7 +2727,7 @@ def dossardPrecedentDansArriveeDossards(dossard):
             return ArriveeDossards[n-1]
     except:
         return -1
-    
+
 def dossardSuivantDansArriveeDossards(dossard):
     """ retourne le dossard suivant l'argument dans arriveeDossards
     retourne 0 si dossard est le dernier de la liste
@@ -2739,7 +2772,7 @@ def listArriveeTemps() :
         i += 1
     ##transaction.commit()
 
-    
+
 ### Fonctions métiers pour gérer les temps et résultats des courses.
 
 
@@ -2759,7 +2792,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     i = 0
     listeCG = []
     listeCF = []
-    listeDesRangs = []
+    #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
         doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
@@ -2775,22 +2808,131 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
                 listeCF.append(coureur)
                 score += coureur.rang
                 nf += 1
-            listeDesRangs.append(coureur.rang)
+            #listeDesRangs.append(coureur.rang)
         i+=1
-    scoreNonPondere = score
-    if ng + nf < 2*nbreDeCoureursPrisEnCompte :
-        # correctif si le nombre nbreDeCoureursPrisEnCompte n'est pas atteint à l'arrivée.
-        complet = False
-        if Parametres["ponderationAcceptee"] :
-            print("Application d'une pondération", 2*nbreDeCoureursPrisEnCompte, "/", ng + nf ," à la classe", nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
-            score = score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
-    else :
-        complet = True
+##    scoreNonPondere = score
+##    if ng + nf < 2*nbreDeCoureursPrisEnCompte :
+##        # correctif si le nombre nbreDeCoureursPrisEnCompte n'est pas atteint à l'arrivée.
+##        complet = False
+##        if Parametres["ponderationAcceptee"] :
+##            print("Application d'une pondération", 2*nbreDeCoureursPrisEnCompte, "/", ng + nf ," à la classe", nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
+##            score = score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
+##    else :
+##        complet = True
     #print(nom, score, listeCG, listeCF)
-    return EquipeClasse(nom, score, scoreNonPondere, listeCG, listeCF, Parametres["ponderationAcceptee"], complet, listeDesRangs)
+    return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
+
+def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClasse):
+	nbreDeCoureursNecessairesParEquipe = 5
+	tousLesGars = []
+	toutesLesFilles = []
+	listeFSelect = []
+	listeGSelect = []
+	unCoureurCategorieLimiteDejaSelectionne = False
+	complet = False
+	listeDesEquipes = []
+	# on sépare les filles des garçons dans listeCG et listeCF.
+	if listeOrdonneeParTempsDesDossardsDeLaClasse :
+		# paramétrage en fonction du type de challenge : collège, LGT ou LP
+		doss = listeOrdonneeParTempsDesDossardsDeLaClasse[0]
+		coureur = Coureurs[doss-1]
+		# si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
+		if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
+			nbreMaxdUnSexe = 5
+			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+		elif coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
+			nbreMaxdUnSexe = 3
+			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+		else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
+			nbreMaxdUnSexe = 3
+			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
+		i = 0
+		### parcours de la liste ordonnée fournie pour la séparer par sexe
+		while i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
+			doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
+			coureur = Coureurs[doss-1]
+			if coureur.temps > 0 :
+				if coureur.sexe == "F" :
+					toutesLesFilles.append(coureur)
+				else : # c'est un gars !
+					tousLesGars.append(coureur)
+			i+=1
+		 # tant qu'il y a au moins un coureur, on parcourt les deux listes en choisissant le meilleur garçon ou la meilleur fille (en terme de scoreUNSS)
+		i=0
+		while toutesLesFilles or tousLesGars :
+			 ## on doit trouver le prohcain coureur à selectionner : celui qui a le scoreeUNSS le plus bas.
+			 ## ETAPE DE SELECTION
+			 if len(listeGSelect) >= nbreMaxdUnSexe and toutesLesFilles :
+				 # il manque uniquement des filles et il y a des filles
+				 # on prend prioritairement dans la reserveF (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCF.
+				 coureurSelectionne = toutesLesFilles.pop(indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+			 elif len(listeFSelect) >= nbreMaxdUnSexe and tousLesGars :
+				 # il manque uniquement des garçons et il y a des garçons
+				 # on prend prioritairement dans la reserveG (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCG.
+				 coureurSelectionne = tousLesGars.pop(indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+			 else :
+				 # on est libre de choisir un gars ou une fille.
+				 indiceMeilleurFilleAutorisee = indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+				 indiceMeilleurGarsAutorise = indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+				 if indiceMeilleurFilleAutorisee != None and indiceMeilleurGarsAutorise != None : # aucun des deux coureurs cherché n'est None.
+					 # il reste des filles et des garçons : on prend le meilleur suivant dans l'un des deux sexes.
+					 if toutesLesFilles[indiceMeilleurFilleAutorisee].scoreUNSS <  tousLesGars[indiceMeilleurGarsAutorise].scoreUNSS :
+						 ## on prélève la meilleure fille à l'équipe
+						 coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
+					 else :
+						 coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
+						 ## on affecte le meilleur gars dans l'équipe
+				 else :
+					 if indiceMeilleurFilleAutorisee != None :
+						 coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
+					 elif indiceMeilleurGarsAutorise != None :
+						 coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
+					 else : # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !
+						 coureurSelectionne = None
+			 if coureurSelectionne == None :
+				# si l'une des étapes amène à sélectionner None, c'est qu'il n'y a plus de coureur qui convienne pour compléter
+				# l'équipe en cours, qui restera donc incomplète.
+				 break
+
+			## ETAPE AVANT DE BOUCLER (le coureurSelectionne à ce stade est différent de None.
+			# le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
+			 if coureurSelectionne.categorieSansSexe() in categoriesLimitees :
+				 unCoureurCategorieLimiteDejaSelectionne = True
+			# on alimente l'équipe avec celui sélectionné.
+			 if coureurSelectionne.sexe == "F" :
+				 listeFSelect.append(coureurSelectionne)
+			 else :
+				 listeGSelect.append(coureurSelectionne)
+			 if len(listeGSelect) + len(listeFSelect) >= nbreDeCoureursNecessairesParEquipe :
+				# si une équipe est complète, on réinitialise les variables.
+				 print("Création d'une équipe pour le challenge",nom, listeGSelect, listeFSelect)
+				 listeDesEquipes.append(EquipeClasse(nom, listeGSelect, listeFSelect))
+				 unCoureurCategorieLimiteDejaSelectionne = False
+				 listeGSelect = []
+				 listeFSelect = []
+	return listeDesEquipes
 
 
-def genereResultatsCoursesEtClasses(premiereExecution = False) : 
+def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCoureurCategorieLimiteDejaSelectionne) :
+    ''' la liste de coureurs fournie, une liste de catégories interdites , est ce que cette liste doit être prise en compte ou pas via le boolean unCoureurCategorieLimiteDejaSelectionne
+    Retourne l'indice du premier coureur autorisé de la listeDeCoureurs fournie.
+    Peut retourner None si aucun coureur n'est trouvé '''
+    if unCoureurCategorieLimiteDejaSelectionne :
+        retour = None
+        i = 0
+        for c in listeDeCoureurs :
+            if not c.categorieSansSexe() in categoriesInterdites :
+                retour = i
+                break
+            i += 1
+    else :
+        if listeDeCoureurs :
+            retour = 0
+        else :
+            retour = None
+    return retour
+
+def genereResultatsCoursesEtClasses(premiereExecution = False) :
     """ procédure mettant à jour le dictionnaire Résultats et le rang de chaque coureur dans sa course"""
     global tableauGUI
     #Tdebut = time.time()
@@ -2798,14 +2940,15 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("calculeTousLesTemps : ",retour)
     Resultats.clear()
     ResultatsGroupements.clear()
-    listeDesClasses = []
-    # on complète avec les absents, dispensés et abandons
+    #listeDesClasses = []
+    # ETAPE 1 : on alimente Resultats avec les coureurs des classes (cross du collège), des catégories d'athlétisme, ou des catégories par établissement (UNSS)
     for coureur in Coureurs :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
         groupement = nomGroupementAPartirDUneCategorie(cat)
         #print(groupement)
         classe = coureur.classe
+        etab = coureur.etablissement
         ### ajout du coureur au groupement pour résultat du groupement.
         if groupement not in ResultatsGroupements :
             ResultatsGroupements[groupement] = []
@@ -2813,45 +2956,64 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             ResultatsGroupements[groupement].append(doss)
 ##        else :
 ##            coureur.setRang(0)
-            
+
         ### ajout du coureur dans sa classe ou sa catégorie d'age.
-        if not Parametres["CategorieDAge"] :
+        if Parametres["CategorieDAge"] == 0 :
             if classe not in Resultats :
                 Resultats[classe] = []
-            if classe not in listeDesClasses : ### raison d'être de cette liste à trouver ! Encore utile ?
-                listeDesClasses.append(classe)
-            if coureur.temps != -1 :  # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
+            #if classe not in listeDesClasses : ### raison d'être de cette liste à trouver ! Encore utile ? Je ne pense pas : commenté.
+            #    listeDesClasses.append(classe)
+            if coureur.temps != -1 :
+                # les coureurs au temps -1 sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
                 Resultats[classe].append(doss)
-        else :
+        elif Parametres["CategorieDAge"] == 1 :
             if cat not in Resultats :
                 Resultats[cat] = []
             if coureur.temps != -1 : # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
                 Resultats[cat].append(doss)
+        elif Parametres["CategorieDAge"] == 2 :
+            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # cas du challenge UNSS lycée qui mélange tous les lycéens !
+                if coureur.etablissementNature.upper() == "LP" : # c'est un lycée pro.
+                    nomDuResultat = "LP-" + coureur.sexe + str(etab)
+                else :
+                    nomDuResultat = "LGT-" + coureur.sexe + str(etab)
+            else : # on est en collège : le nom du résultat est constitué de la cat sur deux caractères
+                nomDuResultat = str(cat) + "-" + str(etab) # le challenge sera calculé entre les résultats de MI-Bourrillon, MI-Gevaudan, etc... Basé sur l'initiale de la catégorie.
+            if nomDuResultat not in Resultats :
+                Resultats[nomDuResultat] = []
+            if coureur.temps != -1 :
+                # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
+                Resultats[nomDuResultat].append(doss)
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
+    ## ETAPE 2 : on alimente ResultatsGroupements, on affecte les rangs aux coureurs en fonction de leur rang d'arrivée dans le Groupement.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
     ### on traite les rangs dans les Groupements
     #keyList = []
     for nom in ResultatsGroupements :
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
-        # on affecte son rang à chaque coureur dans sa Course.
+        # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
         #print("course ",nom,":",Resultats[nom])
         ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
             #print(nom, "est une course ou un groupement",Resultats[nom])
         i = 0
-        while i < len(ResultatsGroupements[nom]) :
+        nbreArriveesGroupement = len(ResultatsGroupements[nom])
+        while i < nbreArriveesGroupement :
             doss = ResultatsGroupements[nom][i]
             coureur = Coureurs[doss-1]
             #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-            if coureur.temps > 0 : 
+            if coureur.temps > 0 :
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
                 coureur.setRang(i+1)
+                ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
+                if Parametres["CategorieDAge"] == 2 :
+                    coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
-    ### On traite les rangs dans les courses
+    ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
     keyList = []
     for nom in Resultats :
         keyList.append(nom)
@@ -2864,7 +3026,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             doss = Resultats[nom][i]
             coureur = Coureurs[doss-1]
             #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-            if coureur.temps > 0 : 
+            if coureur.temps > 0 :
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
                 coureur.setRangCat(i+1)
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
@@ -2874,26 +3036,36 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
-    if not Parametres["CategorieDAge"] : # challenge uniquement pour le cross du collège
+    if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
         for nom in keyList :
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
-            challenge = nom[0]
+            if Parametres["CategorieDAge"] == 0 :
+                challenge = nom[0]
+            else :
+                challenge = nom[:2]
             # création du challenge pour ce niveau, si inexistant
             if challenge not in ResultatsGroupements :
                 ResultatsGroupements[challenge] = []
                 L.append(challenge)
-            # on alimente le challenge avec une EquipeClasse
-            equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
-            if Parametres["ponderationAcceptee"] :
-                ResultatsGroupements[challenge].append(equ)
-            elif equ.complet :
-                ResultatsGroupements[challenge].append(equ)
+            # cas du cross du collège
+            if Parametres["CategorieDAge"] == 0 :
+                # on alimente le challenge avec une EquipeClasse
+                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+                if Parametres["ponderationAcceptee"] :
+                    ResultatsGroupements[challenge].append(equ)
+                elif equ.complet :
+                    ResultatsGroupements[challenge].append(equ)
+            elif Parametres["CategorieDAge"] == 2 :
+                Lequ = generateResultatsChallengeUNSS(nom, Resultats[nom])
+                # le codage de generateResultatsChallengeUNSS ne génère que des équipes complètes.
+                for equ in Lequ :
+                    ResultatsGroupements[challenge].append(equ)
         # on trie chaque challenge par score.
         for challenge in L :
             ResultatsGroupements[challenge]=triParScore(ResultatsGroupements[challenge])
     return retour
-                
+
 def estUneCourseOuUnGroupement(nom):
     if nom in Courses :
         retour = True
@@ -2910,7 +3082,7 @@ def estUneCourse(nom):
     else :
         retour = False
     return retour
-    
+
 def estUnGroupement(nom):
     if groupementAPartirDeSonNom(nom, nomStandard=False) != None :
         retour = True
@@ -2946,7 +3118,7 @@ def estSuperieurS(E1, E2):
         return False
     else :
         if E1.score == E2.score :
-            return E1.listeDesRangs > E2.listeDesRangs
+            return E1.listeDesRangs() > E2.listeDesRangs()
         else :
             return E1.score > E2.score
 
@@ -2963,19 +3135,19 @@ def trifusionS(T) :
     if len(T)<=1 : return T
     T1=[T[x] for x in range(len(T)//2)]
     T2=[T[x] for x in range(len(T)//2,len(T))]
-    return fusionS(trifusionS(T1),trifusionS(T2)) 
+    return fusionS(trifusionS(T1),trifusionS(T2))
 
 def trifusionNP(T) :
     if len(T)<=1 : return T
     T1=[T[x] for x in range(len(T)//2)]
     T2=[T[x] for x in range(len(T)//2,len(T))]
-    return fusionNP(trifusionNP(T1),trifusionNP(T2))  
+    return fusionNP(trifusionNP(T1),trifusionNP(T2))
 
 def trifusion(T) :
     if len(T)<=1 : return T
     T1=[T[x] for x in range(len(T)//2)]
     T2=[T[x] for x in range(len(T)//2,len(T))]
-    return fusion(trifusion(T1),trifusion(T2))                                                                      
+    return fusion(trifusion(T1),trifusion(T2))
 
 def fusionS(T1,T2) :
     if T1==[] :return T2
@@ -2991,7 +3163,7 @@ def fusionNP(T1,T2) :
     if estSuperieurNP(T2[0], T1[0]) :
         return [T1[0]]+fusionNP(T1[1 :],T2)
     else :
-        return [T2[0]]+fusionNP(T1,T2[1 :])  
+        return [T2[0]]+fusionNP(T1,T2[1 :])
 
 def fusion(T1,T2) :
     if T1==[] :return T2
@@ -2999,7 +3171,7 @@ def fusion(T1,T2) :
     if estSuperieur(T2[0], T1[0]) :
         return [T1[0]]+fusion(T1[1 :],T2)
     else :
-        return [T2[0]]+fusion(T1,T2[1 :])                                                               
+        return [T2[0]]+fusion(T1,T2[1 :])
 
 def tempsClientIsNotInArriveeTemps(newTps) :
     """ retourne True si le tempsClient n'est pas présent dans ArriveeTemps."""
@@ -3032,7 +3204,7 @@ def dupliqueTemps(tps):
         print("Le temps",nouveauTps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
         nouveauTps = tps.tempsPlusUnCentieme()
         return dupliqueTemps(nouveauTps)
-       
+
 
 def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard=0) :
     """ ajoute un temps dans la liste par ordre croissant pour que ArriveeTemps reste toujours croissante
@@ -3047,7 +3219,7 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard=0) :
         ArriveeTemps.append(newTps)
         ArriveeTempsAffectes.append(doss)
         CodeRetour = Erreur(0)
-    else :        
+    else :
         while n > 0 :
             tpsDejaPresent = ArriveeTemps[n-1]
             if tpsDejaPresent.tempsReel < newTps.tempsReel:
@@ -3110,7 +3282,7 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
     if n != 0 :
         while n > 0 :
             tpsPresent = ArriveeTemps[n-1]
-            #print("tpsPresent en position", n-1, ":",tpsPresent.tempsReel, " soit ", tpsPresent.tempsReelFormate()) 
+            #print("tpsPresent en position", n-1, ":",tpsPresent.tempsReel, " soit ", tpsPresent.tempsReelFormate())
             if tpsPresent.tempsReel == tempsReel :
                 ArriveeTempsAffectes[n-1] = doss
                 if DEBUG :
@@ -3147,7 +3319,7 @@ def delArriveeTempsClient(tempsCoureur, dossard=0) :
                 codeRetour = ""
                 break
         n -= 1
-    if codeRetour == "" and not Parametres["calculateAll"] : 
+    if codeRetour == "" and not Parametres["calculateAll"] :
         print("on regénère tout le tableau")
         #DonneesAAfficher.reinit() # on regénère le tableau GUI
         Parametres["calculateAll"] = True
@@ -3181,7 +3353,7 @@ def delArriveeTemps(tempsCoureur, dossard=0) :
                 codeRetour = ""
                 break
         n -= 1
-    if codeRetour == "" : 
+    if codeRetour == "" :
         Parametres["calculateAll"] = True # le prochain calcul se fera sur l'intégralité des données.
     else :
         #codeRetour = ""
@@ -3199,8 +3371,8 @@ def delArriveeTemps(tempsCoureur, dossard=0) :
 ##    except :
 ##        print("suppression du temps impossible")
 ##    return codeRetour
-    
-        
+
+
 def coureurExists(Coureurs, nom, prenom) :
     retour = 0
     i=0
@@ -3211,7 +3383,7 @@ def coureurExists(Coureurs, nom, prenom) :
     return retour
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
-    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LGT" or etablissementNature.upper() == "LP" 
+    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LGT" or etablissementNature.upper() == "LP"
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and naissanceValide(naissance)) \
@@ -3256,7 +3428,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
         retour = [0,0,1]
-    return retour 
+    return retour
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
@@ -3284,7 +3456,7 @@ def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etabl
 
 def addCourse(categorie) :
     # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-    estPresent = False 
+    estPresent = False
     for grpment in Groupements :
         if categorie in grpment.listeDesCourses :
             estPresent = True
@@ -3302,7 +3474,7 @@ def addCourse(categorie) :
     #print("cat",Courses[categorie].categorie)
 
 
-    
+
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
     """ajoute un dossard sur la ligne d'arrivée dans l'ordre si non précisé. Si l'index est précisé, insère à l'endroit précisé par dossardPrecedent
         si dossardPrécedent vaut 0, insère en première position.
@@ -3314,7 +3486,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     message = ""
     retour = Erreur(0)
     if doss in ArriveeDossards :
-        ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise. 
+        ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise.
         ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, etc...
         # if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
             # message = "Dossard" + str(doss) + "envoyé deux fois successivement par le smartphone : problème de communication wifi."
@@ -3684,7 +3856,7 @@ def reindexDossards(numeroInitial) :
             #print("on rénumérote les dossards pour", coureur.nom, coureur.prenom)
             coureur.setDossard(i+1)
             i += 1
-    
+
 
 def delCoureur(dossard):
     doss = int(dossard)
@@ -3717,7 +3889,7 @@ def delArriveeDossard(dossard):
             print(message)
             retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
 ##            PasDErreur = True
-    return retour 
+    return retour
 
 def delArriveeDossards():
 ##    if not Parametres["CourseCommencee"] :
@@ -3733,7 +3905,7 @@ def delTousLesTempsDesCoureurs():
         c.setRang(0)
         c.setTemps(0)
     print("Tous les temps des coureurs effacés")
-    
+
 def delTousLesDeparts():
     for key, value in Courses.items() :
         value.reset()
@@ -3803,7 +3975,7 @@ def delCourse(categorie) :
 ##            #print("Categorie", categorie, "conservée.")
 ##            #c.decremente()
 ##            #transaction.commit()
-##      ANCIENNE VERSION (restaurée) QUAND L'EFFECTIF N'ETAIT PAS UNE PROPRIETE DE l'objet Course        
+##      ANCIENNE VERSION (restaurée) QUAND L'EFFECTIF N'ETAIT PAS UNE PROPRIETE DE l'objet Course
         i=0
         stop = False
         while i < len(Coureurs) and not stop :
@@ -3892,7 +4064,7 @@ def listerDonneesTerminal():
 
 def estGroupement(obj):
     return isinstance(obj,Groupement)
-    
+
 def estNomDeGroupement(nom):
     return nom in listNomsGroupements()
 
@@ -3933,7 +4105,7 @@ def genereAffichageTV(listeDesGroupements) :
               .replace("@@TableauxHTML@@",str(TableauxHTML))\
               .replace("@@heuresDeparts@@",str(heuresDeparts))\
               .replace("@@vitesseDefilement@@",str(Parametres["vitesseDefilement"]))
-              
+
     with open("Affichage-Contenu.html","w", encoding='utf8') as f :
         f.write(contenu)
     f.close()
@@ -3942,7 +4114,7 @@ def genereAffichageTV(listeDesGroupements) :
 def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
-    else : 
+    else :
         c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
         #print("TEST HTML :",c.label, c.temps)
         if c.temps :
@@ -3950,7 +4122,7 @@ def genereHeureDepartHTML(groupement) :
         else :
             retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
     return retour
-        
+
 
 def genereEnTetesHTML(groupement, chrono=False) :
     if estChallenge(groupement) :
@@ -3975,7 +4147,7 @@ def genereEnTetesHTML(groupement, chrono=False) :
                 else :
                     tableau += '<th class="etab">Etablissement</th>'
             tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
-    return tableau 
+    return tableau
 
 def genereTableauHTML(courseName, chrono = False) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
@@ -4116,7 +4288,7 @@ def creerFichierClasse(nom, entete, estGroupement):
             garderAbsDispAbandons = True
             rangCourse = False # pour une classe, on affiche le rang pour le cross du collège en général
             denomination = "Classe " + nom
-            Dossards = triParNomPrenom(Resultats[nom]) # on trie par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom) 
+            Dossards = triParNomPrenom(Resultats[nom]) # on trie par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom)
             # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
@@ -4217,7 +4389,7 @@ def listeNPremiers(listeCoureurs):
         #print("coureur", coureur.nom, coureur.prenom)
         retour += coureur.nom + " " + coureur.prenom  + " (" + str(coureur.rang) + "), "
     return retour[:-2]
-    
+
 
 def genereLigneTableauHTML(dossard) :
     coureur = Coureurs[dossard - 1]
@@ -4273,7 +4445,7 @@ def categorieAthletisme(anneeNaissance) :
             if anneeCherchee <= correspondanceAnneeCategories[i][0] :
                 continuer = False
                 categorie = correspondanceAnneeCategories[i][1]
-            i += 1    
+            i += 1
         return categorie
     except :
         print("argument fourni incorrect : pas au format nombre entier")
@@ -4323,7 +4495,7 @@ def traitementDesDonneesAImporter(donneesBrutes) :
 
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
-    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''  
+    ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
     retour,BilanCreationModifErreur = False,[0,0,0]
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
@@ -4345,7 +4517,7 @@ def recupXLSX(fichierSelectionne=""):
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
     #try :
     #print(fichierSelectionne)
-    wb_obj = load_workbook(fichierSelectionne) 
+    wb_obj = load_workbook(fichierSelectionne)
     sheet = wb_obj.active # lis la feuille active
     donneesBrutes = [] # initialisation
     for row in sheet.iter_rows(max_row=sheet.max_row):
@@ -4385,7 +4557,7 @@ def recupCSV(fichierSelectionne=""):
     ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
     #print("fichierSelectionne",fichierSelectionne)
     retour,BilanCreationModifErreur = False,[0,0,0]
-    try : 
+    try :
         with open(fichierSelectionne, encoding='utf-8') as csvfile:
             donneesBrutes = csv.reader(csvfile, delimiter=';')
             #print(donneesBrutes)
@@ -4394,7 +4566,7 @@ def recupCSV(fichierSelectionne=""):
     except :
         print("Erreur : probablement un mauvais encodage...")
     return retour,BilanCreationModifErreur
-  
+
 
 #### Import CSV ancienne génération (avant 2022)
 
@@ -4454,7 +4626,7 @@ def setDistances():
     for nom in listeDeCourses :
         print("ajout de la distance 1.2 km à", nom)
         Courses[nom].setDistance(1.2)
-        
+
 def setDistanceToutesCourses(distance):
     for nom in listCourses() :
         setDistance(nom, distance)
@@ -4507,30 +4679,30 @@ def creerCoureur(listePerso, informations) :
         else :
             abse = True
     if "classe" in informations :
-        try : 
+        try :
             clas = supprLF(infos["classe"])
         except :
             clas = ""
     if "naissance" in informations :
-        try : 
+        try :
             naiss = supprLF(infos["naissance"])
         except :
             naiss = ""
     if "établissement" in informations :
-        try : 
+        try :
             etab = supprLF(infos["établissement"])
         except :
             etab = ""
     if "établissementtype" in informations or "type" in informations:
-        try : 
+        try :
             nature = supprLF(infos["établissementtype"])
         except :
             try :
                 nature = supprLF(infos["type"])
-            except : 
+            except :
                 nature = ""
     if "vma" in informations :
-        try : 
+        try :
             vma = float(infos["vma"].replace(",",".")) # on assure le coup si les VMA sont à virgule.
         except :
             vma = 0
@@ -4552,7 +4724,7 @@ def supprLF(ch) :
     # selon la dernière colonne du csv importée, choisie par l'utilisateur, on peut potentiellement avoir un LF dans n'importe quel champ.
     return ch.replace("\n","")
 
- 
+
 
 
 if __name__=="__main__":
@@ -4693,7 +4865,7 @@ if __name__=="__main__":
             nom=input("nom :")
             prenom=input("prenom :")
             sexe=input("sexe :")
-            classe=input("classe :")     
+            classe=input("classe :")
             addCoureur(nom, prenom, sexe, classe)
 
         elif choice=="q":
