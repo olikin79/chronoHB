@@ -1,6 +1,13 @@
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
+- dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
+Cela permettra de mieux faire l'appel.
+
+
+Travail du 28/10/22 :
+- génération des challenges UNSS (gros travail sur le code dédié aux challenges).
+- export XLSX avec etablissement et sa nature.
 
 
 Travail du 26/10/22 :
