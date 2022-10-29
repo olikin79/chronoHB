@@ -2003,7 +2003,7 @@ boutonsFrameNavigateur.pack(side=LEFT)
 ZoneEntryPageWeb.pack(side=LEFT)#,anchor="w",fill=X)
 
 ZoneParametresTV.pack(side=TOP)
-zoneAffichageTV.pack(fill=X)
+
 
 
 LogFrame = Frame(DroiteFrame)
@@ -2236,19 +2236,36 @@ def actualiseAffichageErreurs(listErreursEnCours):
                 errBouton.pack(side=TOP)
                 #lblFrE.pack(side=TOP)
                 lblListE.append(errBouton)#[lblTemps,lblFrE]
-        zoneAffichageErreurs.pack(side=TOP,fill=X)
-    else :
-        zoneAffichageErreurs.forget()
+        #zoneAffichageErreurs.pack(side=TOP,fill=X)
+    #else :
+        #zoneAffichageErreurs.forget()
 
 
 
 ##print("bug nom groupement")
 ##print(Groupements[0].nom,Groupements[0].nomStandard)
 ##print(Courses["SE-G"].nomGroupement)
-print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
+
+#print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
 for c in Courses :
     Courses[c].initNomGroupement(Courses[c].categorie)
-   
+
+
+def actualiseAffichageZoneDeDroite(erreursEnCours) :
+    '''on impose l'ordre d'affichage des frames à droite'''
+    global listGroupementsCommences
+    # les départs déjà donnés
+    if listGroupementsCommences :
+        zoneAffichageDeparts.pack(side=TOP,fill=X)
+    else :
+        zoneAffichageDeparts.forget()
+    # l'affichage TV paramétrable.
+    zoneAffichageTV.pack(fill=X)
+    # les erreurs en cours
+    if erreursEnCours :
+        zoneAffichageErreurs.pack(side=TOP,fill=X)
+    else :
+        zoneAffichageErreurs.forget()
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
 
@@ -2335,6 +2352,10 @@ class Clock():
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
+
+        # actualisation de l'affichage après les départs
+        actualiseAffichageZoneDeDroite(self.erreursEnCours)
+        
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
@@ -2510,7 +2531,7 @@ def actualiseAffichageDeparts():
     lblDict.clear()
     listGroupementsCommences = listNomsGroupementsCommences()
     #print("coucou",listGroupementsCommences)
-    if listGroupementsCommences :
+    if listGroupementsCommences : 
         for grp in listGroupementsCommences :
             lblFr = Frame(fr)
             lblLegende = Label(lblFr, text= grp + " : ")
@@ -2521,10 +2542,10 @@ def actualiseAffichageDeparts():
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
         actualiseTempsAffichageDeparts()
-        zoneAffichageDeparts.pack(side=TOP,fill=X)
+        #zoneAffichageDeparts.pack(side=TOP,fill=X)
         fr.pack()
     else :
-        zoneAffichageDeparts.forget()
+        #zoneAffichageDeparts.forget()
         fr.forget()
 
 tagActualiseTemps = False 
