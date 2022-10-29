@@ -2217,6 +2217,8 @@ def nettoyerTousLesFichiersGeneres():
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
+    print("Resultats avant impressions", Resultats)
+    print("Courses",Courses)
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
@@ -2286,10 +2288,12 @@ def generateImpressions() :
     nbreDispensesTotal = 0
     nbreAbsentsTotal = 0
     nbreAbandonsTotal = 0
-    if Parametres["CategorieDAge"] :
-        denomination = "Categorie"
-    else :
+    if Parametres["CategorieDAge"] == 2 :
+        denomination = "Eleves"
+    elif Parametres["CategorieDAge"] == 0 :
         denomination = "Classe"
+    else :
+        denomination = "Categorie"
     for classe in Resultats :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
@@ -2366,7 +2370,10 @@ def generateImpressions() :
                              .replace("@med",mediane)
                 ### la catégorie n'a plus à être regénérée sauf modification
                 if denomination != "Classe" :
-                    Courses[classe].setARegenererPourImpression(False)
+                    try :
+                        Courses[classe].setARegenererPourImpression(False)
+                    except :
+                        True
                     # si la classe a été générée, la catégorie également via les groupements ci-dessous
 
     for classe in ResultatsGroupements :
