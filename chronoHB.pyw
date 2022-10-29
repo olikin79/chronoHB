@@ -1633,16 +1633,19 @@ zoneTopDepartBienPlacee = Frame(Affichageframe)
 zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
 zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
+
+
+
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
+zoneAffichageDeparts = Frame(Affichageframe, relief=GROOVE, bd=2)
+zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 #listeDeCourses = listCourses()
 
 listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
 
 
-zoneAffichageDeparts = Frame(Affichageframe, relief=GROOVE, bd=2)
 
-zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 
 zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)

@@ -2907,14 +2907,19 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClass
         while toutesLesFilles or tousLesGars :
              ## on doit trouver le prohcain coureur à selectionner : celui qui a le scoreeUNSS le plus bas.
              ## ETAPE DE SELECTION
+             coureurSelectionne = None
              if len(listeGSelect) >= nbreMaxdUnSexe and toutesLesFilles :
                  # il manque uniquement des filles et il y a des filles
                  # on prend prioritairement dans la reserveF (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCF.
-                 coureurSelectionne = toutesLesFilles.pop(indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+                 ind = indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+                 if ind != None :
+                    coureurSelectionne = toutesLesFilles.pop(ind)
              elif len(listeFSelect) >= nbreMaxdUnSexe and tousLesGars :
                  # il manque uniquement des garçons et il y a des garçons
                  # on prend prioritairement dans la reserveG (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCG.
-                 coureurSelectionne = tousLesGars.pop(indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+                 ind = indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+                 if ind != None :
+                    coureurSelectionne = tousLesGars.pop(ind)
              else :
                  # on est libre de choisir un gars ou une fille.
                  indiceMeilleurFilleAutorisee = indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
@@ -2932,8 +2937,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClass
                          coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
                      elif indiceMeilleurGarsAutorise != None :
                          coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
-                     else : # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !
-                         coureurSelectionne = None
+             # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !            
              if coureurSelectionne == None :
                 # si l'une des étapes amène à sélectionner None, c'est qu'il n'y a plus de coureur qui convienne pour compléter
                 # l'équipe en cours, qui restera donc incomplète.
@@ -2997,7 +3001,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         ### ajout du coureur au groupement pour résultat du groupement.
         if groupement not in ResultatsGroupements :
             ResultatsGroupements[groupement] = []
-        if coureur.temps != -1  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
+        if coureur.temps > 0  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
             ResultatsGroupements[groupement].append(doss)
 ##        else :
 ##            coureur.setRang(0)
@@ -3054,6 +3058,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             #print(nom, "est une course ou un groupement",Resultats[nom])
         i = 0
         nbreArriveesGroupement = len(ResultatsGroupements[nom])
+        #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
         while i < nbreArriveesGroupement :
             doss = ResultatsGroupements[nom][i]
             coureur = Coureurs[doss-1]
@@ -4208,13 +4213,13 @@ def genereEnTetesHTML(groupement, chrono=False) :
         else :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
             tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
-            if not CategorieDAge :
+            if CategorieDAge == 0 :
                 tableau += '<th class="classe">Classe</th>'
             else :
-                if CategorieDAge == 1 :
-                    tableau += '<th class="classe">Catégorie</th>'
-                else :
+                if CategorieDAge == 2 :
                     tableau += '<th class="etab">Etablissement</th>'
+                else :
+                    tableau += '<th class="classe">Catégorie</th>'
             tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
     return tableau
 
@@ -4462,7 +4467,13 @@ def listeNPremiers(listeCoureurs):
     retour = ""
     for coureur in listeCoureurs :
         #print("coureur", coureur.nom, coureur.prenom)
-        retour += coureur.nom + " " + coureur.prenom  + " (" + str(coureur.rang) + "), "
+        retour += coureur.nom + " " + coureur.prenom  + " ("
+        if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
+            retour += "rang " + str(coureur.rang) + "/" + str(round(coureur.scoreUNSS,1)).replace(".",",") + "pts"
+        else :
+            retour += str(coureur.rang)
+        #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
+        retour += "), "
     return retour[:-2]
 
 
