@@ -800,7 +800,7 @@ class EquipeClasse():
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
     def scoreFormate(self) :
-        return str(round(self.score,2)).replace(".",",")
+        return str(round(self.score,1)).replace(".",",")
     def listeDesRangs(self) :
         listeRangs = []
         for c in self.listeCG + self.listeCF :
@@ -2233,7 +2233,9 @@ def generateImpressions() :
         enteteC = f.read()
     f.close()
     with open("./modeles/impression-en-teteS.tex", 'r',encoding="utf-8") as f :
-        if Parametres["CategorieDAge"] :
+        if Parametres["CategorieDAge"] == 2 :
+            enteteS = f.read().replace("@categorie@","établissement")
+        elif Parametres["CategorieDAge"] == 1 :
             enteteS = f.read().replace("@categorie@","catégorie")
         else :
             enteteS = f.read().replace("@categorie@","classe")
@@ -2483,7 +2485,7 @@ def generateImpressions() :
     fstats.write("\\end{document}")
     fstats.close()
     ### générer les tex pour chaque challenge
-    if not Parametres["CategorieDAge"] :
+    if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
         listeChallenges = listChallenges()
         #print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
@@ -2655,7 +2657,12 @@ def absentsDispensesAbandonsEnTex() :
 \\begin{itemize}
 """
     for c in Labs:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" + c.classe + ")"
+        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+        if Parametres["CategorieDAge"] == 2 : 
+            retour += c.etablissement
+        else :
+            retour += c.classe 
+        retour += ")"
     retour +="\\end{itemize}\\end{multicols}\n\n"
     retour += """\\bigskip
 
@@ -2665,7 +2672,12 @@ def absentsDispensesAbandonsEnTex() :
 \\begin{itemize}
 """
     for c in Ldisp:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" + c.classe + ")"
+        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+        if Parametres["CategorieDAge"] == 2 : 
+            retour += c.etablissement
+        else :
+            retour += c.classe 
+        retour += ")"
     retour +="\\end{itemize}\\end{multicols}\n\n"
     retour += """\\bigskip
 
@@ -2675,7 +2687,12 @@ def absentsDispensesAbandonsEnTex() :
 \\begin{itemize}
 """
     for c in Labandon:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" + c.classe + ")"
+        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+        if Parametres["CategorieDAge"] == 2 : 
+            retour += c.etablissement
+        else :
+            retour += c.classe 
+        retour += ")"
     retour +="\\end{itemize}\\end{multicols}\n\n"
     return retour
 
@@ -2883,6 +2900,8 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClass
         coureur = Coureurs[doss-1]
         # si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
         if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
+            nbreDeFillesNecessairesParEquipe = 0
+            nbreDeGarsNecessairesParEquipe = 0
             nbreMaxdUnSexe = 5
             categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
         elif coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
@@ -4202,7 +4221,7 @@ def genereEnTetesHTML(groupement, chrono=False) :
             tableau += '<th class="etabC">Etablissement</th>'
         else :
             tableau += '<th class="classeC">Classe</th>'
-        tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
+        tableau += '<th class="detailCTitre">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
         tableau += '<th class="totalC">Total</th>'
         #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
         tableau += '</tr></thead> </table>'
@@ -4224,7 +4243,7 @@ def genereEnTetesHTML(groupement, chrono=False) :
     return tableau
 
 def genereTableauHTML(courseName, chrono = False) :
-    tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats'><tbody>"
+    tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
     if estChallenge(courseName) :
         # challenge par classe
@@ -4241,8 +4260,8 @@ def genereTableauHTML(courseName, chrono = False) :
                 tableau += "<td class='etabC'>" + classe[3:] # pour l'UNSS, afin de regrouper les coureurs d'un même établissement pour une catégorie, le nom de la "classe" est préfixé : on enlève ce préfixe à l'affichage.
             else :
                 tableau += "<td class='classeC'>" + classe
-            tableau += "</td><th class='detailC'>"
-            tableau += '<div class="detailC"><p>' + listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + '</p><p>' + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></div></td>'
+            tableau += "</td><td class='detailC'><p>" # + '<div class="detailCdiv">'
+            tableau += listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + "</p><p>" + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></td>'
             tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
             #tableau += "<td class='moyC'>" + moy +"</td>"
             tableau += "</tr>"
@@ -4273,24 +4292,43 @@ def yATIlUCoureurArrive(groupement) :
 ############ LATEX #######################
 
 def creerFichierChallenge(challenge, entete):
-    titre = "{\\Large {} \\hfill Challenge " + challenge + "èmes \\hfill {}}"
+    if challenge == "LG" :
+        challengeNomAffiche = "lycées généraux et technologiques"
+    elif challenge == "LP" :
+        challengeNomAffiche = "lycées professionnels"
+    elif challenge == "MI" :
+        challengeNomAffiche = "minimes"
+    elif challenge == "BE" :
+        challengeNomAffiche = "benjamin(e)s"
+        
+    titre = "{\\Large {} \\hfill Challenge " + challengeNomAffiche
+    if Parametres["CategorieDAge"] == 0 :
+        titre += "ème"
+    titre += " \\hfill {}}"
+    if Parametres["CategorieDAge"] == 2 :
+        chaineSub = "Etabl."
+    else :
+        chaineSub = "Classe"
     tableau = """
 \\begin{center}
 \\begin{longtable}{| p{2cm} | p{2cm} | p{18cm} | p{2cm} |}
 \\hline
-{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{Classe} \\hfill {} & {}\\hfill \\textbf{Détail :} \ldots Prénom Nom (rang à l'arrivée) \ldots \\hfill {} & {}\\hfill \\textbf{Total} \\hfill{} \\\\
+{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{@classe@} \\hfill {} & {}\\hfill \\textbf{Détail :} \ldots Prénom Nom (rang à l'arrivée) \ldots \\hfill {} & {}\\hfill \\textbf{Total} \\hfill{} \\\\
 \\hline
-\\endhead"""
+\\endhead""".replace("@classe@",chaineSub)
     i = 0
     while i < len(ResultatsGroupements[challenge]) :
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
         score = ResultatsGroupements[challenge][i].score
         classe = ResultatsGroupements[challenge][i].nom
+        if Parametres["CategorieDAge"] == 2 :
+            classe = classe[3:]
         liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
         tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  & {} \\hfill {} "+ classe +"{} \\hfill {}  &  "
-        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\hfill {} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ' {} \\hfill {} \\\\ \n \n'
-        tableau += ' {} \\hfill {} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCG) + ' {} \\hfill {} \\\\ \n \\end{minipage} \n & '
-        tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].score) +"{} \\hfill {} \\\\ \n"
+        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) +", "
+        #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
+        tableau += listeNPremiers(ResultatsGroupements[challenge][i].listeCG) + ' \\end{center} \\\\ \n \\end{minipage} \n & '
+        tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
         #tableau += "<td class='moyC'>" + moy +"</td>"
         tableau += "\\hline\n"
         i += 1
@@ -4469,7 +4507,7 @@ def listeNPremiers(listeCoureurs):
         #print("coureur", coureur.nom, coureur.prenom)
         retour += coureur.nom + " " + coureur.prenom  + " ("
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
-            retour += "rang " + str(coureur.rang) + "/" + str(round(coureur.scoreUNSS,1)).replace(".",",") + "pts"
+            retour += str(coureur.rang) + "->" + str(round(coureur.scoreUNSS,1)).replace(".",",") + "pts"
         else :
             retour += str(coureur.rang)
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)

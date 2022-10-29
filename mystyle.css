@@ -119,14 +119,29 @@ position: fixed;
 }
 
 .etabC{
-	width : 10%;
+	width : 15%;
+	text-align: center;
+}
+
+.detailCTitre{
+	/*width : 70%;*/
+	word-break: break-word;
 	text-align: center;
 }
 
 .detailC{
-	/*width : 10%;*/
+	/*width : 70%;*/
+	word-break: break-word;
 	text-align: center;
+	font-size: 15px;
 }
+
+/*
+.detailCdiv{
+	width : 80px;
+	word-break: break-word;
+}
+*/
 
 .totalC{
 	width : 5%;
@@ -143,6 +158,7 @@ position: fixed;
 td, th
 {
 /*align:center;*/
+word-wrap: break-word;
 font-size: 20px;
 }
 
@@ -155,6 +171,7 @@ width: 100%;
 table{
 width: 100%;
 table-layout:fixed;
+overflow:hidden;
 }
 
 /*
