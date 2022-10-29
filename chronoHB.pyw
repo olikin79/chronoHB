@@ -1971,7 +1971,8 @@ def ActualiseAffichageTV():
     i = 0
     for el in listeCochee : # on remplace chaque nom personnalisé par son nom standard
         nomActuel = listeCochee[i]
-        if len(nomActuel) > 1 : # les challenges portent déjà le bon nom.
+        if estUnGroupement(nomActuel) :# pour différencier les challenges des groupements
+            # avant les challenges ne comportaient qu'un caractère : len(nomActuel) > 1 : # les challenges portent déjà le bon nom.
             listeCochee[i] = groupementAPartirDeSonNom(nomActuel, nomStandard=False).nomStandard
         i += 1
     print("Affichage de la liste", listeCochee,"sur la TV")

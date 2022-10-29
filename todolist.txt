@@ -43,6 +43,17 @@ Créer un affichage qui dépend de la longueur totale à afficher avec retour à
 - changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
 
 
+- ULTRA-PEU-PROBABLE (ignoré lors de l'implémentation de l'UNSS) :
+	* si on est en présence d'une course UNSS, qu'il n'y a que des cadets G et des juniors F (ou l'inverse), le challenge Lycée ne sera pas créé.
+Cela ne peut pas survenir vu qu'il y a toujours des cadets, cadettes, juniors et juniores sur une compétition UNSS.
+S'il n'y a que des cadets et cadettes, tout fonctionne (idem si juniors et juniores).
+Compliqué de gérer ce cas improbable en pratique, vu que le challenge lycée regroupe les catégories CA et JU, qui peuvent être filles ou
+garçons et que son nom ne correspond pas aux catégories officielles des courses courues.
+
+	* si on est en présence d'une course UNSS, qu'un coureur M10 (vétéran dernière catégorie) courre avec les jeunes de lycée, 
+alors celui-ci pourra entrer dans n'importe quel challenge sans limitation. Cela vient du fait que M10 comporte 3 caractères contrairement à
+toutes les catégories. Pas créé de cas particulier pour cette éventualité (qui ne peut pas survenir en pratique).
+
 
 - ESTHETIQUE :
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
@@ -57,14 +68,10 @@ Créer un affichage qui dépend de la longueur totale à afficher avec retour à
 	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
 
 	
-ESTHETIQUE :
-
 
 
 A TESTER :
-Suite à la création (16/10) d'une fonction d'import xlsx et prise en compte des nouveaux cas possibles à venir (catégories manuelles, etc...)
-Reste à tester ces nouvelles fonctions et à les intégrer en remplaçant tous les appels à recupCSVSIECLE par des appels à recupImportNG()
-Reste à permettre le choix de fichiers xlsx depuis la boite de dialogue de l'interface.
+
 
 
 

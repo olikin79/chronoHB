@@ -324,6 +324,8 @@ class Coureur():#persistent.Persistent):
             return self.__private_categorie_manuelle
     def categorieSansSexe(self) :
         return self.categorie(Parametres["CategorieDAge"])[:2]
+    def categorieFFA(self) :
+        return categorieAthletisme(self.naissance[6:])
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
@@ -797,10 +799,12 @@ class EquipeClasse():
 ##            print("Application d'une pondération à la classe", self.nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
+    def scoreFormate(self) :
+        return str(round(self.score,2)).replace(".",",")
     def listeDesRangs(self) :
         listeRangs = []
-        for c in listeCG + listeCF :
-            listeRangs.append(c.score) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+        for c in self.listeCG + self.listeCF :
+            listeRangs.append(c.scoreUNSS) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
         return listeRangs.sort()
     def complet(self) :
         if Parametres["CategorieDAge"] == 2 :
@@ -1109,13 +1113,21 @@ def exportXLSX():
     worksheet.write('A1', 'Dossard')
     worksheet.write('B1', 'Nom')
     worksheet.write('C1', 'Prénom')
-    worksheet.write('D1', 'Classe')
-    worksheet.write('E1', 'Catégorie')
+    worksheet.write('D1', 'Sexe')
+    worksheet.write('E1', 'Catégorie FFA')
     worksheet.write('F1', 'Temps (en s)')
     worksheet.write('G1', 'Temps (HMS)')
     worksheet.write('H1', 'Rang')
     worksheet.write('I1', 'Vitesse (en km/h)')
     worksheet.write('J1', 'Pourcentage de VMA')
+    if Parametres["CategorieDAge"] == 0 :
+        worksheet.write('K1', 'Classe')
+    elif Parametres["CategorieDAge"] == 1 :
+        worksheet.write('K1', 'Course')
+    elif Parametres["CategorieDAge"] == 2 :
+        worksheet.write('K1', 'Course')
+        worksheet.write('L1', 'Etablissement')
+        worksheet.write('M1', 'EtablissementType')
     i = 0
     fmt = workbook.add_format({'num_format':'hh:mm:ss'})
     while i < len (Coureurs) :
@@ -1124,8 +1136,8 @@ def exportXLSX():
         worksheet.write('A' + str(ligne), coureur.dossard)
         worksheet.write('B' + str(ligne), coureur.nom)
         worksheet.write('C' + str(ligne), coureur.prenom)
-        worksheet.write('D' + str(ligne), coureur.classe)
-        worksheet.write('E' + str(ligne), coureur.categorie(Parametres["CategorieDAge"]))
+        worksheet.write('D' + str(ligne), coureur.sexe)
+        worksheet.write('E' + str(ligne), coureur.categorieFFA())
         worksheet.write('F' + str(ligne), round(coureur.temps,2))
         worksheet.write('G' + str(ligne), coureur.tempsHMS())
         if coureur.rang :
@@ -1139,6 +1151,18 @@ def exportXLSX():
             vit = "-"
         worksheet.write('I' + str(ligne), vit)
         worksheet.write('J' + str(ligne), coureur.pourcentageVMA())
+        if Parametres["CategorieDAge"] == 0 :
+            worksheet.write('K' + str(ligne), coureur.classe)
+        elif Parametres["CategorieDAge"] == 1 :
+            cat = coureur.categorie(Parametres["CategorieDAge"])
+            groupement = nomGroupementAPartirDUneCategorie(cat)
+            worksheet.write('K' + str(ligne), groupement)
+        elif Parametres["CategorieDAge"] == 2 :
+            cat = coureur.categorie(Parametres["CategorieDAge"])
+            groupement = nomGroupementAPartirDUneCategorie(cat)
+            worksheet.write('K' + str(ligne), groupement)
+            worksheet.write('L' + str(ligne), coureur.etablissement)
+            worksheet.write('M' + str(ligne), coureur.etablissementNature)
         i += 1
     worksheet.set_column('G:G', None, fmt)
     workbook.close()
@@ -1575,19 +1599,31 @@ def listCoureursDUneCourse(course):
     return retour
 
 def listChallenges():
+    ''' Un challenge existe uniquement pour les CategorieDAge==0 (cross du collège) ou 2 (UNSS) et si l'on trouve une course dont le nom standard est identique en G et en F'''
     listeCourses = []
     retour = []
-    if len(Courses)!=0 and not Parametres["CategorieDAge"] :
+    if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
         #print("There are Courses.")
         for cat in Courses :
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
             listeCourses.append(Courses[cat].categorie)
         for cat in listeCourses :
-            NomDuChallenge = cat[0]
+            if Parametres["CategorieDAge"]== 0 :
+                NomDuChallenge = cat[0]
+            else :
+                NomDuChallenge = cat[:2] 
             #print("nom de challenge potentiel", NomDuChallenge)
-            if NomDuChallenge not in retour and NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
-                retour.append(NomDuChallenge)
+            if NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
+                ### en théorie, il faudrait créer le challenge même s'il n'y a que des filles cadettes et des garçons juniors. 
+                ### Actuellement, c'est un "bug" qui n'apparaitra jamais car il y a toujours des coureurs en cadets et junior dans les deux sexes.
+                if Parametres["CategorieDAge"]== 2 and NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
+                    # on ajoute les deux challenges LP et LG violemment.
+                    if "LP" not in retour :
+                        retour.append("LP")
+                    NomDuChallenge = "LG"
+                if NomDuChallenge not in retour :
+                    retour.append(NomDuChallenge)
     return retour
 
 def listCoursesEtChallenges():
@@ -2823,94 +2859,96 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClasse):
-	nbreDeCoureursNecessairesParEquipe = 5
-	tousLesGars = []
-	toutesLesFilles = []
-	listeFSelect = []
-	listeGSelect = []
-	unCoureurCategorieLimiteDejaSelectionne = False
-	complet = False
-	listeDesEquipes = []
-	# on sépare les filles des garçons dans listeCG et listeCF.
-	if listeOrdonneeParTempsDesDossardsDeLaClasse :
-		# paramétrage en fonction du type de challenge : collège, LGT ou LP
-		doss = listeOrdonneeParTempsDesDossardsDeLaClasse[0]
-		coureur = Coureurs[doss-1]
-		# si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
-		if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
-			nbreMaxdUnSexe = 5
-			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
-		elif coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
-			nbreMaxdUnSexe = 3
-			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
-		else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
-			nbreMaxdUnSexe = 3
-			categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
-		i = 0
-		### parcours de la liste ordonnée fournie pour la séparer par sexe
-		while i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
-			doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
-			coureur = Coureurs[doss-1]
-			if coureur.temps > 0 :
-				if coureur.sexe == "F" :
-					toutesLesFilles.append(coureur)
-				else : # c'est un gars !
-					tousLesGars.append(coureur)
-			i+=1
-		 # tant qu'il y a au moins un coureur, on parcourt les deux listes en choisissant le meilleur garçon ou la meilleur fille (en terme de scoreUNSS)
-		i=0
-		while toutesLesFilles or tousLesGars :
-			 ## on doit trouver le prohcain coureur à selectionner : celui qui a le scoreeUNSS le plus bas.
-			 ## ETAPE DE SELECTION
-			 if len(listeGSelect) >= nbreMaxdUnSexe and toutesLesFilles :
-				 # il manque uniquement des filles et il y a des filles
-				 # on prend prioritairement dans la reserveF (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCF.
-				 coureurSelectionne = toutesLesFilles.pop(indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
-			 elif len(listeFSelect) >= nbreMaxdUnSexe and tousLesGars :
-				 # il manque uniquement des garçons et il y a des garçons
-				 # on prend prioritairement dans la reserveG (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCG.
-				 coureurSelectionne = tousLesGars.pop(indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
-			 else :
-				 # on est libre de choisir un gars ou une fille.
-				 indiceMeilleurFilleAutorisee = indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
-				 indiceMeilleurGarsAutorise = indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
-				 if indiceMeilleurFilleAutorisee != None and indiceMeilleurGarsAutorise != None : # aucun des deux coureurs cherché n'est None.
-					 # il reste des filles et des garçons : on prend le meilleur suivant dans l'un des deux sexes.
-					 if toutesLesFilles[indiceMeilleurFilleAutorisee].scoreUNSS <  tousLesGars[indiceMeilleurGarsAutorise].scoreUNSS :
-						 ## on prélève la meilleure fille à l'équipe
-						 coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
-					 else :
-						 coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
-						 ## on affecte le meilleur gars dans l'équipe
-				 else :
-					 if indiceMeilleurFilleAutorisee != None :
-						 coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
-					 elif indiceMeilleurGarsAutorise != None :
-						 coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
-					 else : # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !
-						 coureurSelectionne = None
-			 if coureurSelectionne == None :
-				# si l'une des étapes amène à sélectionner None, c'est qu'il n'y a plus de coureur qui convienne pour compléter
-				# l'équipe en cours, qui restera donc incomplète.
-				 break
+    nbreDeCoureursNecessairesParEquipe = 5
+    nbreDeFillesNecessairesParEquipe = 2
+    nbreDeGarsNecessairesParEquipe = 2
+    tousLesGars = []
+    toutesLesFilles = []
+    listeFSelect = []
+    listeGSelect = []
+    unCoureurCategorieLimiteDejaSelectionne = False
+    complet = False
+    listeDesEquipes = []
+    # on sépare les filles des garçons dans listeCG et listeCF.
+    if listeOrdonneeParTempsDesDossardsDeLaClasse :
+        # paramétrage en fonction du type de challenge : collège, LGT ou LP
+        doss = listeOrdonneeParTempsDesDossardsDeLaClasse[0]
+        coureur = Coureurs[doss-1]
+        # si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
+        if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
+            nbreMaxdUnSexe = 5
+            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+        elif coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
+            nbreMaxdUnSexe = 3
+            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+        else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
+            nbreMaxdUnSexe = 3
+            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
+        i = 0
+        ### parcours de la liste ordonnée fournie pour la séparer par sexe
+        while i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
+            doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
+            coureur = Coureurs[doss-1]
+            if coureur.temps > 0 :
+                if coureur.sexe == "F" :
+                    toutesLesFilles.append(coureur)
+                else : # c'est un gars !
+                    tousLesGars.append(coureur)
+            i+=1
+         # tant qu'il y a au moins un coureur, on parcourt les deux listes en choisissant le meilleur garçon ou la meilleur fille (en terme de scoreUNSS)
+        i=0
+        while toutesLesFilles or tousLesGars :
+             ## on doit trouver le prohcain coureur à selectionner : celui qui a le scoreeUNSS le plus bas.
+             ## ETAPE DE SELECTION
+             if len(listeGSelect) >= nbreMaxdUnSexe and toutesLesFilles :
+                 # il manque uniquement des filles et il y a des filles
+                 # on prend prioritairement dans la reserveF (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCF.
+                 coureurSelectionne = toutesLesFilles.pop(indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+             elif len(listeFSelect) >= nbreMaxdUnSexe and tousLesGars :
+                 # il manque uniquement des garçons et il y a des garçons
+                 # on prend prioritairement dans la reserveG (ceux qui sont d'une catégorie plus élevée) et sinon dans la listeCG.
+                 coureurSelectionne = tousLesGars.pop(indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne))
+             else :
+                 # on est libre de choisir un gars ou une fille.
+                 indiceMeilleurFilleAutorisee = indicePremierCoureurAutoriseUNSS(toutesLesFilles, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+                 indiceMeilleurGarsAutorise = indicePremierCoureurAutoriseUNSS(tousLesGars, categoriesLimitees, unCoureurCategorieLimiteDejaSelectionne)
+                 if indiceMeilleurFilleAutorisee != None and indiceMeilleurGarsAutorise != None : # aucun des deux coureurs cherché n'est None.
+                     # il reste des filles et des garçons : on prend le meilleur suivant dans l'un des deux sexes.
+                     if toutesLesFilles[indiceMeilleurFilleAutorisee].scoreUNSS <  tousLesGars[indiceMeilleurGarsAutorise].scoreUNSS :
+                         ## on prélève la meilleure fille à l'équipe
+                         coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
+                     else :
+                         coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
+                         ## on affecte le meilleur gars dans l'équipe
+                 else :
+                     if indiceMeilleurFilleAutorisee != None :
+                         coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
+                     elif indiceMeilleurGarsAutorise != None :
+                         coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
+                     else : # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !
+                         coureurSelectionne = None
+             if coureurSelectionne == None :
+                # si l'une des étapes amène à sélectionner None, c'est qu'il n'y a plus de coureur qui convienne pour compléter
+                # l'équipe en cours, qui restera donc incomplète.
+                 break
 
-			## ETAPE AVANT DE BOUCLER (le coureurSelectionne à ce stade est différent de None.
-			# le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
-			 if coureurSelectionne.categorieSansSexe() in categoriesLimitees :
-				 unCoureurCategorieLimiteDejaSelectionne = True
-			# on alimente l'équipe avec celui sélectionné.
-			 if coureurSelectionne.sexe == "F" :
-				 listeFSelect.append(coureurSelectionne)
-			 else :
-				 listeGSelect.append(coureurSelectionne)
-			 if len(listeGSelect) + len(listeFSelect) >= nbreDeCoureursNecessairesParEquipe :
-				# si une équipe est complète, on réinitialise les variables.
-				 print("Création d'une équipe pour le challenge",nom, listeGSelect, listeFSelect)
-				 listeDesEquipes.append(EquipeClasse(nom, listeGSelect, listeFSelect))
-				 unCoureurCategorieLimiteDejaSelectionne = False
-				 listeGSelect = []
-				 listeFSelect = []
-	return listeDesEquipes
+            ## ETAPE AVANT DE BOUCLER (le coureurSelectionne à ce stade est différent de None.
+            # le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
+             if coureurSelectionne.categorieSansSexe() in categoriesLimitees :
+                 unCoureurCategorieLimiteDejaSelectionne = True
+            # on alimente l'équipe avec celui sélectionné.
+             if coureurSelectionne.sexe == "F" :
+                 listeFSelect.append(coureurSelectionne)
+             else :
+                 listeGSelect.append(coureurSelectionne)
+             if len(listeGSelect) + len(listeFSelect) >= nbreDeCoureursNecessairesParEquipe and len(listeGSelect) >= nbreDeGarsNecessairesParEquipe and len(listeFSelect)  >= nbreDeFillesNecessairesParEquipe :
+                # si une équipe est complète, on réinitialise les variables.
+                 #print("Création d'une équipe pour le challenge",nom, [cour.nom for cour in listeGSelect], [cour.nom for cour in listeFSelect])
+                 listeDesEquipes.append(EquipeClasse(nom, listeGSelect, listeFSelect))
+                 unCoureurCategorieLimiteDejaSelectionne = False
+                 listeGSelect = []
+                 listeFSelect = []
+    return listeDesEquipes
 
 
 def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCoureurCategorieLimiteDejaSelectionne) :
@@ -2973,17 +3011,28 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 Resultats[cat].append(doss)
         elif Parametres["CategorieDAge"] == 2 :
             if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # cas du challenge UNSS lycée qui mélange tous les lycéens !
+                ### cas particulier du challenge UNSS : on ajoute les résultats des LP et des LG même s'il n'y a aucun coureur.
+                ### Trop galère de tout changer sachant que les challenges ne correspondent pas à des catégories d'athlétisme du logiciel
+                if "LP-"  + str(etab) not in Resultats :
+                    Resultats["LP-" + str(etab)] = []
+                if "LG-" + str(etab) not in Resultats :
+                    Resultats["LG-" + str(etab)] = []
                 if coureur.etablissementNature.upper() == "LP" : # c'est un lycée pro.
-                    nomDuResultat = "LP-" + coureur.sexe + str(etab)
+                    nomDuResultat = "LP-" + str(etab)
                 else :
-                    nomDuResultat = "LGT-" + coureur.sexe + str(etab)
+                    nomDuResultat = "LG-" + str(etab)
             else : # on est en collège : le nom du résultat est constitué de la cat sur deux caractères
-                nomDuResultat = str(cat) + "-" + str(etab) # le challenge sera calculé entre les résultats de MI-Bourrillon, MI-Gevaudan, etc... Basé sur l'initiale de la catégorie.
+                nomDuResultat = str(coureur.categorieSansSexe()) + "-" + str(etab) # le challenge sera calculé entre les résultats de MI-Bourrillon, MI-Gevaudan, etc... Basé sur l'initiale de la catégorie.
             if nomDuResultat not in Resultats :
                 Resultats[nomDuResultat] = []
-            if coureur.temps != -1 :
+            if coureur.temps > 0 :
                 # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
                 Resultats[nomDuResultat].append(doss)
+                #print("Dossard ajouté ", doss,"dans Resultats[",nomDuResultat,"]")
+                #print(Resultats)
+            #else :
+            #    print("Dossard au temps négatif ignoré", doss)
+    #print("Resultats",Resultats)
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     ## ETAPE 2 : on alimente ResultatsGroupements, on affecte les rangs aux coureurs en fonction de leur rang d'arrivée dans le Groupement.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
@@ -3035,7 +3084,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
-    # on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
+    ## ETAPE 4 : on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
+    #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
         for nom in keyList :
@@ -3111,6 +3161,7 @@ def estSuperieur(d1, d2):
         return Coureurs[d1-1].temps > Coureurs[d2-1].temps
 
 def estSuperieurS(E1, E2):
+    ''' on trie par EquipeClasse.score puis en fonction de listeDesRangs()'''
     if E1.score == 0 :
         # si le score est nul, c'est que le challenge n'est pas jouable pour cette équipe.
         return True
@@ -3118,7 +3169,11 @@ def estSuperieurS(E1, E2):
         return False
     else :
         if E1.score == E2.score :
-            return E1.listeDesRangs() > E2.listeDesRangs()
+            try :
+                retour = E1.listeDesRangs() > E2.listeDesRangs()
+            except :
+                retour = True # comparer deux objets None signifie qu'il n'y a pas de départage possible. Ne devrait pas arriver si on départage des équipeClasse complètes.
+            return retour # E1.listeDesRangs() > E2.listeDesRangs()
         else :
             return E1.score > E2.score
 
@@ -4069,7 +4124,7 @@ def estNomDeGroupement(nom):
     return nom in listNomsGroupements()
 
 def estChallenge(obj):
-    return (isinstance(obj,str) and len(obj) == 1)
+    return (isinstance(obj,str) and obj in listChallenges())
 
 def genereAffichageTV(listeDesGroupements) :
     with open("modeles/Affichage-Contenu.html","r", encoding='utf8') as f:
@@ -4088,7 +4143,10 @@ def genereAffichageTV(listeDesGroupements) :
             chrono = True
         if estChallenge(groupement) :
             #print("C'est un challenge par niveau")
-            TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
+            if Parametres["CategorieDAge"] == 2 :
+                TitresHTML.append( "<h2> Challenge entre les établissements : catégorie " + groupement + ". </h2><span id='chronotime'></span>" )
+            else :
+                TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
         else :
             nomGroupementAffiche = groupementAPartirDeSonNom(groupement, nomStandard=True).nom
             if chrono :
@@ -4127,7 +4185,11 @@ def genereHeureDepartHTML(groupement) :
 def genereEnTetesHTML(groupement, chrono=False) :
     if estChallenge(groupement) :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-        tableau += '<thead> <tr><th class="rangC"> Classement</th> <th class="classeC">Classe </th>'
+        tableau += '<thead> <tr><th class="rangC"> Classement</th>'
+        if Parametres["CategorieDAge"] == 2 :
+            tableau += '<th class="etabC">Etablissement</th>'
+        else :
+            tableau += '<th class="classeC">Classe</th>'
         tableau += '<th class="detailC">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
         tableau += '<th class="totalC">Total</th>'
         #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
@@ -4155,15 +4217,21 @@ def genereTableauHTML(courseName, chrono = False) :
     if estChallenge(courseName) :
         # challenge par classe
         i = 0
+        print("ResultatsGroupements",ResultatsGroupements)
         while i < len(ResultatsGroupements[courseName]) :
             #moy = Resultats[courseName][i].moyenneTemps
             score = ResultatsGroupements[courseName][i].score
             #print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
             classe = ResultatsGroupements[courseName][i].nom
             liste = ResultatsGroupements[courseName][i].listeCF + ResultatsGroupements[courseName][i].listeCG
-            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td><td class='classeC'>"+ classe+"</td><th class='detailC'>"
+            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td>"
+            if Parametres["CategorieDAge"] == 2 :
+                tableau += "<td class='etabC'>" + classe[3:] # pour l'UNSS, afin de regrouper les coureurs d'un même établissement pour une catégorie, le nom de la "classe" est préfixé : on enlève ce préfixe à l'affichage.
+            else :
+                tableau += "<td class='classeC'>" + classe
+            tableau += "</td><th class='detailC'>"
             tableau += '<div class="detailC"><p>' + listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + '</p><p>' + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></div></td>'
-            tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].score) +"</td>"
+            tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
             #tableau += "<td class='moyC'>" + moy +"</td>"
             tableau += "</tr>"
             i += 1
