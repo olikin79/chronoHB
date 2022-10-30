@@ -424,7 +424,7 @@ class Coureur():#persistent.Persistent):
             sec = "0" + sec
         return heures + ":" + minu + ":" + sec
     def tempsFormate(self) :
-        print(self.dossard,self.nom,self.temps)
+        #print(self.dossard,self.nom,self.temps)
         if self.temps > 0 : # ajouté suite au coureurVide utile pour affiché le temps potentiel du prochain coureur. 
             partieDecimale = str(round(((self.temps - int(self.temps))*100)))
             if len(partieDecimale) == 1 :
@@ -1864,7 +1864,7 @@ def generateDossardsNG() :
                     cl = ""
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                                  .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
                 f.write(chaineComplete)
                 with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -1993,7 +1993,7 @@ def generateDossardsAImprimer() :
                 retour.append(coureur.dossard)
                 chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
                                  .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
                 f.write(chaineComplete + "\n\n")
                 generateQRcode(coureur.dossard)
         ## f.write(chaineComplete+ "\n\n")
@@ -2033,7 +2033,7 @@ def generateDossard(coureur) :
         cat = coureur.categorie(Parametres["CategorieDAge"])
         chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
             .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom)
+            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
         f.write(chaineComplete+ "\n\n")
         f.write("\\end{document}")
     f.close()
