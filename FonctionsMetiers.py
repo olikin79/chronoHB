@@ -2894,10 +2894,8 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     #print(nom, score, listeCG, listeCF)
     return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
 
-def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClasse):
+def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
     nbreDeCoureursNecessairesParEquipe = 5
-    nbreDeFillesNecessairesParEquipe = 2
-    nbreDeGarsNecessairesParEquipe = 2
     tousLesGars = []
     toutesLesFilles = []
     listeFSelect = []
@@ -2906,9 +2904,9 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClass
     complet = False
     listeDesEquipes = []
     # on sépare les filles des garçons dans listeCG et listeCF.
-    if listeOrdonneeParTempsDesDossardsDeLaClasse :
+    if listeOrdonneeParScoreDesDossardsDeLaClasse :
         # paramétrage en fonction du type de challenge : collège, LGT ou LP
-        doss = listeOrdonneeParTempsDesDossardsDeLaClasse[0]
+        doss = listeOrdonneeParScoreDesDossardsDeLaClasse[0]
         coureur = Coureurs[doss-1]
         # si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
         if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
@@ -2916,16 +2914,19 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParTempsDesDossardsDeLaClass
             nbreDeGarsNecessairesParEquipe = 0
             nbreMaxdUnSexe = 5
             categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
-        elif coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
-            nbreMaxdUnSexe = 3
-            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
-        else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
-            nbreMaxdUnSexe = 3
-            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
+        else :
+            nbreDeFillesNecessairesParEquipe = 2
+            nbreDeGarsNecessairesParEquipe = 2
+            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
+                nbreMaxdUnSexe = 3
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+            else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
+                nbreMaxdUnSexe = 3
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
         i = 0
         ### parcours de la liste ordonnée fournie pour la séparer par sexe
-        while i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
-            doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
+        while i < len(listeOrdonneeParScoreDesDossardsDeLaClasse):
+            doss = listeOrdonneeParScoreDesDossardsDeLaClasse[i]
             coureur = Coureurs[doss-1]
             if coureur.temps > 0 :
                 if coureur.sexe == "F" :
@@ -3132,6 +3133,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
         for nom in keyList :
+            Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
             if Parametres["CategorieDAge"] == 0 :
                 challenge = nom[0]
@@ -3219,6 +3221,17 @@ def estSuperieurS(E1, E2):
             return retour # E1.listeDesRangs() > E2.listeDesRangs()
         else :
             return E1.score > E2.score
+            
+def estSuperieurSUNSS(E1, E2):
+    ''' on trie par coureur.scoreUNSS puis en fonction de coureur.rang'''
+    if Coureurs[E1-1].scoreUNSS == Coureurs[E2-1].scoreUNSS :
+        try :
+            retour = Coureurs[E1-1].rang > Coureurs[E2-1].rang
+        except :
+            retour = True #pas de départage possible.
+        return retour 
+    else :
+        return Coureurs[E1-1].scoreUNSS > Coureurs[E2-1].scoreUNSS
 
 def triParNomPrenom(listeDeDossard):
     return trifusionNP(listeDeDossard)
@@ -3226,8 +3239,17 @@ def triParNomPrenom(listeDeDossard):
 def triParTemps(listeDeDossard):
     return trifusion(listeDeDossard)
 
+def triParScoreUNSS(listeDeCoureurs):
+    return trifusionSUNSS(listeDeCoureurs)
+
 def triParScore(listeDEquipes):
     return trifusionS(listeDEquipes)
+
+def trifusionSUNSS(T) :
+    if len(T)<=1 : return T
+    T1=[T[x] for x in range(len(T)//2)]
+    T2=[T[x] for x in range(len(T)//2,len(T))]
+    return fusionSUNSS(trifusionSUNSS(T1),trifusionSUNSS(T2))
 
 def trifusionS(T) :
     if len(T)<=1 : return T
@@ -3246,6 +3268,14 @@ def trifusion(T) :
     T1=[T[x] for x in range(len(T)//2)]
     T2=[T[x] for x in range(len(T)//2,len(T))]
     return fusion(trifusion(T1),trifusion(T2))
+
+def fusionSUNSS(T1,T2) :
+    if T1==[] :return T2
+    if T2==[] :return T1
+    if estSuperieurSUNSS(T2[0], T1[0]) :
+        return [T1[0]]+fusionSUNSS(T1[1 :],T2)
+    else :
+        return [T2[0]]+fusionSUNSS(T1,T2[1 :])
 
 def fusionS(T1,T2) :
     if T1==[] :return T2
