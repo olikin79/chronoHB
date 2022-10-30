@@ -2987,7 +2987,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
              #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
              #    print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(),"mais de catégorie réelle", coureurSelectionne.categorieFFA())
              if coureurSelectionne.categorieFFA() in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
-                 print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(), " mais est de catégorie réelle", coureurSelectionne.categorieFFA(),". On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
+                 print(coureurSelectionne.nom, " est de catégorie réelle", coureurSelectionne.categorieFFA()," et court avec des élèves de catégorie inférieure. On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
                  unCoureurCategorieLimiteDejaSelectionne = True
             # on alimente l'équipe avec celui sélectionné.
              if coureurSelectionne.sexe == "F" :
