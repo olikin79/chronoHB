@@ -1,8 +1,16 @@
 Manquent :
+- en mode UNSS, ajouter un champ établissement et type d'établissement dans la création manuelle et la modification de Coureurs.
+- faire en sorte que l'annulation d'un départ réinitialise l'affichage à droite pour que les départs soient bien placés.
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
 - dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
-Cela permettra de mieux faire l'appel.
+Cela permettrait de mieux faire l'appel.
+
+
+Travail du 30/10/22 :
+- débuggage des challenges UNSS (ok suite aux derniers tests).
+- nouveau dossard UNSS
+- affichage à droite stable désormais (sauf quand on annule un départ)
 
 
 Travail du 28/10/22 :
