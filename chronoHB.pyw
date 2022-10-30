@@ -3009,6 +3009,17 @@ class CoureurFrame(Frame) :
         self.lblCommentaire = Label(self.parent, text="Commentaire à l'arrivée (facultatif) :")
         self.commentaireArriveeE = Entry(self.parent)
         self.commentaireArriveeE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.lblEtab = Label(self.parent, text="Etablissement :")
+##        self.etabE = Entry(self.parent)
+##        self.etabE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.etabC = Combobox(self.parent, width=25, justify="center")
+        self.etabC['values'] = tupleEtablissement()
+        self.etabC.bind("<<ComboboxSelected>>", self.reactiverBoutons)
+        self.lblEtabNature = Label(self.parent, text="Nature :")
+        self.etabNatureC = Combobox(self.parent, width=15, justify="center")
+        self.etabNatureC['values'] = ('CLG','LG','LP')
+        self.etabNatureC.set("CLG")
+        self.etabNatureC.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         self.boutonsFrame = Frame(self.parent)
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
         self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.annulAction)
@@ -3038,6 +3049,10 @@ class CoureurFrame(Frame) :
         self.vmaE.forget()
         self.lblCommentaire.forget()
         self.commentaireArriveeE.forget()
+        self.lblEtab.forget()
+        self.etabC.forget()
+        self.lblEtabNature.forget()
+        self.etabNatureC.forget()
         self.coureurBannul.forget()
         self.coureurBoksuivant.forget()
         self.coureurBimprimer.forget()
@@ -3046,12 +3061,13 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeC.get()
-        #print("sexe",s)
-        if s ==  "G" or s == "F" :
+        nature = self.etabNatureC.get()
+        print("nature",nature)
+        if s ==  "G" or s == "F" and nature :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
                 if len(anneeNaissance) == 4 :
-                    c = categorieAthletisme(anneeNaissance)
+                    c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
                     if c :
                         resultat = c + "-" + s
             else :
@@ -3090,6 +3106,8 @@ class CoureurFrame(Frame) :
             #self.sexeE.insert(0, coureur.sexe)
             self.vmaE.insert(0, coureur.VMA)
             self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
+            self.etabC.set(coureur.etablissement)
+            self.etabNatureC.set(coureur.etablissementNature)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
             
@@ -3123,12 +3141,19 @@ class CoureurFrame(Frame) :
         self.prenomE.pack()
         self.lblSexe.pack()
         self.sexeC.pack()
-        if Parametres["CategorieDAge"] :
+        if Parametres["CategorieDAge"] : # catégories d'age utilisées pour les cross 
             self.lblClasse.configure(text="Date de naissance (au format JJ/MM/AAAA) :")
         else :
+            # cas du cross du collège où les catégories sont basées sur les classes.
             self.lblClasse.configure(text="Classe :")
         self.lblClasse.pack()
         self.classeE.pack()
+        if Parametres["CategorieDAge"] == 2 :
+            # cas du cross UNSS : on affiche les deux champs supplémentaires self.etabE, self.etabNatureC
+            self.lblEtab.pack()
+            self.etabC.pack()
+            self.lblEtabNature.pack()
+            self.etabNatureC.pack()
         self.lblCat.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
@@ -3185,18 +3210,24 @@ class CoureurFrame(Frame) :
         except :
             self.vma = 0
         if self.ajoutCoureur :
-            if Parametres['CategorieDAge'] :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
-            else :
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+            if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
+                           etablissementNature = self.etabNatureC.get())
+            else : # cas du cross du collège
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
             doss = int(self.choixDossardCombo.get())
             if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
+                              etablissementNature = self.etabNatureC.get())
             else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.modif = False

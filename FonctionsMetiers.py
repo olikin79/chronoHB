@@ -307,11 +307,11 @@ class Coureur():#persistent.Persistent):
                         if CategorieDAge == 2 : ## UNSS
                              ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                              ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
-                            cat = categorieAthletisme(anneeNaissance)
-                            if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                                cat = "MI"
-                            elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                                cat = "CA"
+                            cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
+                            # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                                # cat = "MI"
+                            # elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                                # cat = "CA"
                             self.__private_categorie = cat + "-" + self.sexe
                         else: ## catégories FFA
                             #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -2987,7 +2987,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
              #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
              #    print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(),"mais de catégorie réelle", coureurSelectionne.categorieFFA())
              if coureurSelectionne.categorieFFA() in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
-                 print(coureurSelectionne.nom, " est de catégorie réelle", coureurSelectionne.categorieFFA()," et court avec des élèves de catégorie inférieure. On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
+                 #print(coureurSelectionne.nom, " est de catégorie réelle", coureurSelectionne.categorieFFA()," et court avec des élèves de catégorie inférieure. On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
                  unCoureurCategorieLimiteDejaSelectionne = True
             # on alimente l'équipe avec celui sélectionné.
              if coureurSelectionne.sexe == "F" :
@@ -3963,8 +3963,8 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
             else :
                 alimenteTableauGUI (tableauGUI, coureur, tps , dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
                 #DonneesAAfficher.append(coureur,tps, dossardAffecteAuTps)
-            if DEBUG :
-                print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
+            #if DEBUG :
+                #print("On affecte le temps ",arrivee,"-",depart,"=",formateTemps(coureur.temps)," au coureur ",doss, "de rang", coureur.rang)
             message = "On affecte le temps " + str(arrivee) + " - " + str(depart) + " = " + formateTemps(coureur.temps) + " au coureur " + str(doss)+"."
             #print(message)
             retour.append(Erreur(0))
@@ -3984,6 +3984,14 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
     #if retour[0].numero :
     #    print("retour affecteChronoAUnCoureur",retour, retour[0].numero)
     return retour
+    
+def tupleEtablissement() :
+    '''retourne un tuple avec tous les établissements de tous les coureurs'''
+    L = []
+    for c in Coureurs :
+        if not c.etablissement in L :
+            L.append(c.etablissement)
+    return tuple(L)
 
 def reindexDossards(numeroInitial) :
     """ Réindexe tous les numéros de dossards des coureurs en cas d'insertion ou de suppression dans la liste Coureurs. Le dossard doit toujours être égal à l'index + 1 """
@@ -4628,7 +4636,7 @@ def ajoutMedailleEnFonctionDuRang(r) :
 
 #### catégories d'athlétisme
 
-def categorieAthletisme(anneeNaissance) :
+def categorieAthletisme(anneeNaissance, etablissementNature = "") :
     # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
     # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
     # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
@@ -4650,6 +4658,12 @@ def categorieAthletisme(anneeNaissance) :
                 continuer = False
                 categorie = correspondanceAnneeCategories[i][1]
             i += 1
+        # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
+        if Parametres["CategorieDAge"] == 2 :
+            if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
+                categorie = "MI"
+            elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
+                categorie = "CA"
         return categorie
     except :
         print("argument fourni incorrect : pas au format nombre entier")
