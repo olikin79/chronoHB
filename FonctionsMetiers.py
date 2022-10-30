@@ -424,19 +424,24 @@ class Coureur():#persistent.Persistent):
             sec = "0" + sec
         return heures + ":" + minu + ":" + sec
     def tempsFormate(self) :
-        partieDecimale = str(round(((self.temps - int(self.temps))*100)))
-        if len(partieDecimale) == 1 :
-            partieDecimale = "0" + partieDecimale
-        if int(time.strftime("%j",time.gmtime(self.temps))) == 1 : # pas de jour à afficher. "Premier de l'année"
-            if int(time.strftime("%H",time.gmtime(self.temps))) == 0 : # pas d'heure à afficher.
-                if int(time.strftime("%M",time.gmtime(self.temps))) == 0 : # pas de minute à afficher.
-                    ch = time.strftime("%S s ",time.gmtime(self.temps)) + partieDecimale + "''"
+        print(self.dossard,self.nom,self.temps)
+        if self.temps > 0 : # ajouté suite au coureurVide utile pour affiché le temps potentiel du prochain coureur. 
+            partieDecimale = str(round(((self.temps - int(self.temps))*100)))
+            if len(partieDecimale) == 1 :
+                partieDecimale = "0" + partieDecimale
+            #print(self.nom,self.dossard,self.temps)
+            if int(time.strftime("%j",time.gmtime(self.temps))) == 1 : # pas de jour à afficher. "Premier de l'année"
+                if int(time.strftime("%H",time.gmtime(self.temps))) == 0 : # pas d'heure à afficher.
+                    if int(time.strftime("%M",time.gmtime(self.temps))) == 0 : # pas de minute à afficher.
+                        ch = time.strftime("%S s ",time.gmtime(self.temps)) + partieDecimale + "''"
+                    else :
+                        ch = time.strftime("%M min %S s ",time.gmtime(self.temps)) + partieDecimale + "''"
                 else :
-                    ch = time.strftime("%M min %S s ",time.gmtime(self.temps)) + partieDecimale + "''"
+                    ch = time.strftime("%H h %M min %S s ",time.gmtime(self.temps)) # + partieDecimale
             else :
-                ch = time.strftime("%H h %M min %S s ",time.gmtime(self.temps)) # + partieDecimale
+                ch = str(int(time.strftime("%j",time.gmtime(self.temps)))-1) + " j " + time.strftime("%H h %M min %S s ",time.gmtime(self.temps))# + partieDecimale
         else :
-            ch = str(int(time.strftime("%j",time.gmtime(self.temps)))-1) + " j " + time.strftime("%H h %M min %S s ",time.gmtime(self.temps))# + partieDecimale
+            ch = "Pas de temps"
         return ch
     def vitesseFormatee(self) :
         if self.vitesse >=100 :
