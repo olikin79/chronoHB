@@ -4273,7 +4273,8 @@ def genereTableauHTML(courseName, chrono = False) :
             else :
                 tableau += "<td class='classeC'>" + classe
             tableau += "</td><td class='detailC'><p>" # + '<div class="detailCdiv">'
-            tableau += listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + ", " + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></td>'
+            tableau += listeNPremiersGF(ResultatsGroupements[courseName][i], htmlRetourLigne=True) #+ ", " + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) 
+            tableau += '</p></td>'
             tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
             #tableau += "<td class='moyC'>" + moy +"</td>"
             tableau += "</tr>"
@@ -4335,12 +4336,12 @@ def creerFichierChallenge(challenge, entete):
         classe = ResultatsGroupements[challenge][i].nom
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
-        liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
+        #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
         tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  & {} \\hfill {} "+ classe +"{} \\hfill {}  &  "
-        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF)\
-        + ", "
+        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
         #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
-        tableau += listeNPremiers(ResultatsGroupements[challenge][i].listeCG) + ' \\end{center} \\\\ \n \\end{minipage} \n & '
+        tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
+        tableau += ' \\end{center} \\\\ \n \\end{minipage} \n & '
         tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
         #tableau += "<td class='moyC'>" + moy +"</td>"
         tableau += "\\hline\n"
@@ -4512,13 +4513,14 @@ def genereLigneTableauTEX(dossard) :
             contenuTemps = "Abandon"
         ligne = ""
     return ligne
-
-def listeNPremiers(listeCoureurs,htmlRetourLigne=False):
-    #print("liste des dossards premiers : ",listeCoureurs)
+    
+def listeNPremiersGF(equipe,htmlRetourLigne=False):
+    ''' nouvelle version de listeNPremiers destinée à remplacer listeNPremiers dans tout le code'''
+    listeCoureurs = equipe.listeCF + equipe.listeCG
     retour = ""
     i=0
     for coureur in listeCoureurs :
-        if i == 2 :
+        if htmlRetourLigne and i == 2 :
             retour += "</p><p>"
             i = 0
         #print("coureur", coureur.nom, coureur.prenom)
@@ -4530,7 +4532,27 @@ def listeNPremiers(listeCoureurs,htmlRetourLigne=False):
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
         retour += "), "
         i += 1
-    return retour[:-2]
+    return retour[:-2] + "."
+
+
+# def listeNPremiers(listeCoureurs,htmlRetourLigne=False):
+    # #print("liste des dossards premiers : ",listeCoureurs)
+    # retour = ""
+    # i=0
+    # for coureur in listeCoureurs :
+        # if i == 2 :
+            # retour += "</p><p>"
+            # i = 0
+        # #print("coureur", coureur.nom, coureur.prenom)
+        # retour += coureur.nom + " " + coureur.prenom  + " ("
+        # if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
+            # retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
+        # else :
+            # retour += str(coureur.rang)
+        # #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
+        # retour += "), "
+        # i += 1
+    # return retour[:-2]
 
 
 def genereLigneTableauHTML(dossard) :
