@@ -4377,7 +4377,7 @@ def creerFichierChallenge(challenge, entete):
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
         #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
-        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  & {} \\hfill {} "+ classe +"{} \\hfill {}  &  "
+        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-2em}\\begin{center} "+ classe +"\\end{center}&  "
         tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
         #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
         tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
