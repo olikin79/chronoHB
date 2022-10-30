@@ -2970,19 +2970,24 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
                          coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
                          ## on affecte le meilleur gars dans l'équipe
                  else :
-                     if indiceMeilleurFilleAutorisee != None :
+                     if indiceMeilleurFilleAutorisee != None : # il reste au moins une fille sélectionnable mais plus de gars
                          coureurSelectionne = toutesLesFilles.pop(indiceMeilleurFilleAutorisee)
-                     elif indiceMeilleurGarsAutorise != None :
+                     elif indiceMeilleurGarsAutorise != None : # L'inverse du test ci-dessus.
                          coureurSelectionne = tousLesGars.pop(indiceMeilleurGarsAutorise)
+              
              # les deux listes ne contiennent plus de coureur autorisé (les deux indices sont None. Il est nécessaire de stopper la boucle !            
              if coureurSelectionne == None :
                 # si l'une des étapes amène à sélectionner None, c'est qu'il n'y a plus de coureur qui convienne pour compléter
                 # l'équipe en cours, qui restera donc incomplète.
                  break
 
+            # print(coureurSelectionne.nom, "sélectionné alors que unCoureurCategorieLimiteDejaSelectionne = ",unCoureurCategorieLimiteDejaSelectionne) 
             ## ETAPE AVANT DE BOUCLER (le coureurSelectionne à ce stade est différent de None.
             # le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
-             if coureurSelectionne.categorieSansSexe() in categoriesLimitees :
+             #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
+             #    print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(),"mais de catégorie réelle", coureurSelectionne.categorieFFA())
+             if coureurSelectionne.categorieFFA() in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
+                 print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(), " mais est de catégorie réelle", coureurSelectionne.categorieFFA(),". On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
                  unCoureurCategorieLimiteDejaSelectionne = True
             # on alimente l'équipe avec celui sélectionné.
              if coureurSelectionne.sexe == "F" :
@@ -3007,7 +3012,7 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
         retour = None
         i = 0
         for c in listeDeCoureurs :
-            if not c.categorieSansSexe() in categoriesInterdites :
+            if not c.categorieFFA() in categoriesInterdites :
                 retour = i
                 break
             i += 1
@@ -3566,7 +3571,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
 
-def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablisemmentNature = "", naissance="", commentaireArrivee="", VMA="0", aImprimer = True):
+def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="", VMA="0", aImprimer = True):
     try :
         vma = float(VMA)
     except :
