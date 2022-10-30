@@ -326,14 +326,22 @@ class Coureur():#persistent.Persistent):
         return self.categorie(Parametres["CategorieDAge"])[:2]
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
+    def scoreUNSSFormate(self) :
+        if int(self.scoreUNSS) == self.scoreUNSS : # scoreUNSS est un entier au type float.
+            retour = str(int(self.scoreUNSS))
+        else :
+            retour = str(round(self.scoreUNSS,1)).replace(".",",")
+        return retour
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
                 self.scoreUNSS = self.rang * 100 / nbreArriveesGroupement
             else :
                 self.scoreUNSS = self.rang
+            self.nbreArriveesGroupement = nbreArriveesGroupement
         except :
             self.scoreUNSS = 1000000 # pour éviter qu'une erreur (non prévue) place le coureur dans les premiers.
+            self.nbreArriveesGroupement = 0
     def setCategorie(self, nouveauNom, CategorieDAge=False):
         try :
             self.__private_categorie_manuelle = str(nouveauNom)
@@ -800,7 +808,11 @@ class EquipeClasse():
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
     def scoreFormate(self) :
-        return str(round(self.score,1)).replace(".",",")
+        if int(self.score) == self.score :
+            retour = str(self.score)
+        else :
+            retour = str(round(self.score,1)).replace(".",",")
+        return retour
     def listeDesRangs(self) :
         listeRangs = []
         for c in self.listeCG + self.listeCF :
@@ -4261,7 +4273,7 @@ def genereTableauHTML(courseName, chrono = False) :
             else :
                 tableau += "<td class='classeC'>" + classe
             tableau += "</td><td class='detailC'><p>" # + '<div class="detailCdiv">'
-            tableau += listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + "</p><p>" + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></td>'
+            tableau += listeNPremiers(ResultatsGroupements[courseName][i].listeCF) + ", " + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) + '</p></td>'
             tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
             #tableau += "<td class='moyC'>" + moy +"</td>"
             tableau += "</tr>"
@@ -4325,7 +4337,8 @@ def creerFichierChallenge(challenge, entete):
             classe = classe[3:]
         liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
         tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  & {} \\hfill {} "+ classe +"{} \\hfill {}  &  "
-        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) +", "
+        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} ' + listeNPremiers(ResultatsGroupements[challenge][i].listeCF)\
+        + ", "
         #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
         tableau += listeNPremiers(ResultatsGroupements[challenge][i].listeCG) + ' \\end{center} \\\\ \n \\end{minipage} \n & '
         tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
@@ -4500,18 +4513,23 @@ def genereLigneTableauTEX(dossard) :
         ligne = ""
     return ligne
 
-def listeNPremiers(listeCoureurs):
+def listeNPremiers(listeCoureurs,htmlRetourLigne=False):
     #print("liste des dossards premiers : ",listeCoureurs)
     retour = ""
+    i=0
     for coureur in listeCoureurs :
+        if i == 2 :
+            retour += "</p><p>"
+            i = 0
         #print("coureur", coureur.nom, coureur.prenom)
         retour += coureur.nom + " " + coureur.prenom  + " ("
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
-            retour += str(coureur.rang) + "->" + str(round(coureur.scoreUNSS,1)).replace(".",",") + "pts"
+            retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
         else :
             retour += str(coureur.rang)
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
         retour += "), "
+        i += 1
     return retour[:-2]
 
 
