@@ -27,12 +27,6 @@ Le try : except: ajouté en urgence aujourd'hui (le 19/10/22 dans chronoHB.pyw p
  mais pas d'en corriger la cause. Enlever le try: et tenter de reproduire le bug puis de le corriger.
 En pratique, vider le tableau n'arrive jamais en conditions réelles : on n'efface jamais toutes les arrivées.
 
-- Quand des horaires de passage ne sont pas affectés à un dossard, si on tente de supprimer le temps en question,
-je pense que celui-ci est effectivement supprimé dans la base mais l'affichage ne s'actualise pas... :-(
-
-- Quand on corrige une erreur sur l'ordinateur, en cliquant sur le bouton proposé pour la corriger, 
-cela décoche les cases liées à l'affichage TV.
-
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
 La class Coureur() permet déjà le cumul, je pense...
