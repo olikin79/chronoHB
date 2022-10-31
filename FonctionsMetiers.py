@@ -3023,6 +3023,14 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
             retour = None
     return retour
 
+def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge) :
+    for couple in DecompteParCategoriesDAge :
+        couple[1] += 1
+        if catFFA == couple[0] :
+            rangDansCategorie = couple[1]
+            break
+    return rangDansCategorie
+
 def genereResultatsCoursesEtClasses(premiereExecution = False) :
     """ procédure mettant à jour le dictionnaire Résultats et le rang de chaque coureur dans sa course"""
     global tableauGUI
@@ -3092,6 +3100,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     ### on traite les rangs dans les Groupements
     #keyList = []
     for nom in ResultatsGroupements :
+        DecompteParCategoriesDAge =[ ["M10",0 ], ["M9",0 ], ["M8",0 ], ["M7",0 ], ["M6",0 ], ["M5",0 ], ["M4",0 ], ["M3",0 ], ["M2",0 ], ["M1",0 ],\
+                                    ["M0", 0 ], ["SE",0 ], ["ES",0 ], ["JU",0 ], ["CA",0 ], ["MI",0 ], ["BE",0 ], ["PO",0 ], ["EA",0 ], ["BB",0 ]]
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
         # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
@@ -3111,9 +3121,13 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
                 if Parametres["CategorieDAge"] == 2 :
                     coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
+                if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
+                    catFFA = coureur.categorieFFA()
+                    coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge))
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
+                coureur.setRangCat(0)
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
     ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
@@ -3121,22 +3135,22 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     for nom in Resultats :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
-        # on affecte son rang à chaque coureur dans sa Course.
-        #print("course ",nom,":",Resultats[nom])
-        ### inutile car obligatoire vu ce qui précède : if estUneCourse(nom) :
-        i = 0
-        while i < len(Resultats[nom]) :
-            doss = Resultats[nom][i]
-            coureur = Coureurs[doss-1]
-            #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-            if coureur.temps > 0 :
-            ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
-                coureur.setRangCat(i+1)
-            else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
-            # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
-                coureur.setRangCat(0)
-            #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
-            i += 1
+        # # on affecte son rang à chaque coureur dans sa Course.
+        # #print("course ",nom,":",Resultats[nom])
+        # ### inutile car obligatoire vu ce qui précède : if estUneCourse(nom) :
+        # i = 0
+        # while i < len(Resultats[nom]) :
+            # doss = Resultats[nom][i]
+            # coureur = Coureurs[doss-1]
+            # #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
+            # if coureur.temps > 0 :
+            # ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
+                # coureur.setRangCat(i+1)
+            # else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+            # # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
+                # coureur.setRangCat(0)
+            # #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+            # i += 1
     #### POINT DE RENCONTRE DE TOUS LES THREADS (pas d'accès concurrant ni pour les tris, ni pour le rang de chaque coureur qui ne coure que dans une course..
     ## ETAPE 4 : on calcule les résultats du challenge par classe après que les deux catégories G et F soient triées => obligation de séparer.
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
