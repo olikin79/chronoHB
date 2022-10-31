@@ -1,5 +1,4 @@
 Manquent :
-- en mode UNSS, ajouter un champ établissement et type d'établissement dans la création manuelle et la modification de Coureurs.
 - faire en sorte que l'annulation d'un départ réinitialise l'affichage à droite pour que les départs soient bien placés.
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
