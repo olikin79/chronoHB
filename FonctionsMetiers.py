@@ -4619,7 +4619,12 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
 
 def genereLigneTableauHTML(dossard) :
     coureur = Coureurs[dossard - 1]
-    ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
+    ligne = "<tr><td class='rang'>"
+    if coureur.rang < 4 :
+        ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
+    else :
+        ligne += str(coureur.rang) 
+    ligne += "</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
     if not CategorieDAge :
         ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
     elif CategorieDAge == 2 and coureur.rang > 1 and coureur.rang != coureur.rangCat :
@@ -4631,11 +4636,11 @@ def genereLigneTableauHTML(dossard) :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
         if CategorieDAge == 1 :
-            ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"]) + ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat) + coureur.categorie(Parametres["CategorieDAge"]) 
         elif CategorieDAge == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
-            if coureur.rang < 4 :
-                ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
+            #if coureur.rang < 4 :
+            #    ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
         ligne += "</td>"
     ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
     return ligne
