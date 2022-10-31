@@ -4608,15 +4608,20 @@ def genereLigneTableauHTML(dossard) :
     ligne = "<tr><td class='rang'>"+ str(coureur.rang) +"</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
     if not CategorieDAge :
         ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
+    elif CategorieDAge == 2 and coureur.rang > 1 and coureur.rang != coureur.rangCat :
+        medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+        if medailleMeilleurDeSaCategorie :
+            ligne += " (" + medailleMeilleurDeSaCategorie + "" + coureur.categorieFFA()+")"
     ligne += "</td>"
     if not CategorieDAge :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
         if CategorieDAge == 1 :
-            ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"])
-        else :
+            ligne += "<td class='classe'>"+coureur.categorie(Parametres["CategorieDAge"]) + ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+        elif CategorieDAge == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
-        ligne += ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+            if coureur.rang < 4 :
+                ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
         ligne += "</td>"
     ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
     return ligne
