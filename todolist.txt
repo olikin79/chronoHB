@@ -21,11 +21,10 @@ PRIORITAIRES :
 
 
 NON PRIORITAIRES :
-- FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on avait (parfois) 
-un bug dans Coureur.defMajLigne()  à la ligne "self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps".
-Le try : except: ajouté en urgence aujourd'hui (le 19/10/22 dans chronoHB.pyw permet d'éviter le problème
- mais pas d'en corriger la cause. Enlever le try: et tenter de reproduire le bug puis de le corriger.
-En pratique, vider le tableau n'arrive jamais en conditions réelles : on n'efface jamais toutes les arrivées.
+- FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
+si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
+si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
+ou un nouveau temps ajouté ensuite la font disparaître.
 
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.

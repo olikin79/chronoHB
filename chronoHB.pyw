@@ -39,7 +39,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -600,17 +600,18 @@ class MonTableau(Frame):
             else :
                 ligneAAjouter[self.colonneRang] = "?"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
-        #print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
-        #print("temps de la ligne", ligne, donnee[1])
+##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
+##        print("temps de la ligne", ligne)
+##        print(donnee)
+##        print(donnee[1])
         if ligne <= len(items) :
             # mise à jour d'une ligne
             try :
                 self.listeDesTemps[ligne - 1] = donnee[1] # mise à jour du temps
-                iid = items[ligne - 1]
-                self.treeview.item(iid,values=tuple(ligneAAjouter))
-            except:
-                print("Erreur de mise à jour du tableau GUI : surement un tableau vide. On poursuit")
-            #print("mise à jour de la ligne", ligne, "avec", donnee)
+            except :
+                self.listeDesTemps.append(donnee[1])
+            iid = items[ligne - 1]
+            self.treeview.item(iid,values=tuple(ligneAAjouter))
         else :
             # ajout d'une ligne
             self.listeDesTemps.append(donnee[1]) # ajout du temps.
