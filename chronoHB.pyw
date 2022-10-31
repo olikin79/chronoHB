@@ -1328,6 +1328,7 @@ def extract_ip():
 
 root = Tk() # initial box declaration
 root.title("ChronoHB")
+root.iconbitmap(r'favicon.ico')
 
 DroiteFrame = Frame(root)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(root)
