@@ -1327,7 +1327,7 @@ def extract_ip():
 
 
 root = Tk() # initial box declaration
-root.title("Cross HB")
+root.title("ChronoHB")
 
 DroiteFrame = Frame(root)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(root)
