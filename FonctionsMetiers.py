@@ -3024,10 +3024,24 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
     return retour
 
 def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge) :
-    for couple in DecompteParCategoriesDAge :
-        couple[1] += 1
-        if catFFA == couple[0] :
-            rangDansCategorie = couple[1]
+    # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
+    for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
+        # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
+        ## tester d'abord si la catégorie existe dans la liste.
+        present = False
+        for el in L :
+            if el[0] == catFFA:
+                present = True
+                break
+        ## si oui, faire le parcours suivant.
+        ## sinon, ne rien faire.
+        if present :
+            for couple in L :
+                couple[1] += 1
+                if catFFA == couple[0] :
+                    rangDansCategorie = couple[1]
+                    break
+            # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
             break
     return rangDansCategorie
 
@@ -3100,8 +3114,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     ### on traite les rangs dans les Groupements
     #keyList = []
     for nom in ResultatsGroupements :
-        DecompteParCategoriesDAge =[ ["M10",0 ], ["M9",0 ], ["M8",0 ], ["M7",0 ], ["M6",0 ], ["M5",0 ], ["M4",0 ], ["M3",0 ], ["M2",0 ], ["M1",0 ],\
-                                    ["M0", 0 ], ["SE",0 ], ["ES",0 ], ["JU",0 ], ["CA",0 ], ["MI",0 ], ["BE",0 ], ["PO",0 ], ["EA",0 ], ["BB",0 ]]
+        # on considère que la meilleure catégorie est SENIOR.
+        L1 = [ ["SE",0 ], ["ES",0 ], ["JU",0 ], ["CA",0 ], ["MI",0 ], ["BE",0 ], ["PO",0 ], ["EA",0 ], ["BB",0 ]]
+        L2 = [["SE",0 ] , ['M0', 0], ['M1', 0], ['M2', 0], ['M3', 0], ['M4', 0], ['M5', 0], ['M6', 0], ['M7', 0], ['M8', 0], ['M9', 0], ['M10', 0]]
+        DecompteParCategoriesDAge = [L1, L2]
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
         # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
@@ -4561,7 +4577,11 @@ def genereLigneTableauTEX(dossard) :
 ##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex() #+ supplVMA
         contenuRang = str(coureur.rang)
-        ligne = " {} \\hfill " + contenuRang  + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +" \\hfill {} &  {} \\hfill "\
+        if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat < coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
+            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.catFFA() + ")"
+        else :
+            contenuRangCat = ""
+        ligne = " {} \\hfill " + contenuRang  + contenuRangCat + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +" \\hfill {} &  {} \\hfill "\
             + coureur.classe + " \\hfill {} &  {} \\hfill " + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
             + " \\hfill {} \\\\\n\hline\n"
     else :

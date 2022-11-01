@@ -6,6 +6,11 @@ Manquent :
 Cela permettrait de mieux faire l'appel.
 
 
+Travail du 01/11/22 :
+- correctif rang dans catégorie tenant compte du fait qu'un sénior est forcément meilleur que des petits mais AUSSI des vétérans.
+- ajout du rang dans catégorie pour les 3 premiers de chaque catégorie dans les PDF générés.
+
+
 Travail du 31/10/22 :
 - correctif rang dans catégorie tenant compte de toutes les catégories inférieures. 
 Exemple : si un junior arrivé est le 2ème parmi les juniors mais qu'un cadet est arrivé avant lui dans la même course, je considère qu'il est 3ème junior !
