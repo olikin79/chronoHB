@@ -2507,29 +2507,35 @@ def generateImpressions() :
         #print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
             #print(ResultatsGroupements[challenge])
-            if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
-                print("Création du fichier du challenge", challenge)
-                with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
-                    f.write(creerFichierChallenge(challenge,enteteC))
-                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                f.close()
+            try :
+                if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
+                    print("Création du fichier du challenge", challenge)
+                    with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
+                        f.write(creerFichierChallenge(challenge,enteteC))
+                        f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                    f.close()
+            except :
+                print("Aucun résultat pour le challenge", challenge)
 
     ### générer les tex pour chaque groupement.
-    listeGroupements = listGroupementsCommences()
-    for nomGroupement  in listeGroupements :
-        # ajout d'une sécurité si aucune arrivée dans une course
-        aCreer = False
-        groupement = groupementAPartirDeSonNom(nomGroupement)
-        if groupement :
-            for nomCategorie in groupement.listeDesCourses :
-                if nomCategorie in ResultatsGroupements.keys() :
-                    aCreer = True
-                    break
-            if aCreer :
-                with open(TEXDIR+groupement.nom+ ".tex", 'w') as f :
-                    f.write(creerFichierCategories(groupement,entete))
-                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                f.close()
+    ### VOIR SI C'EST ENCORE UTILE CI-DESSOUS
+##    listeGroupements = listGroupementsCommences()
+##    for groupement  in listeGroupements :
+##        print("Groupement en cours de génération ",groupement.nom)
+##        # ajout d'une sécurité si aucune arrivée dans une course
+##        aCreer = False
+##        #groupement = groupementAPartirDeSonNom(nomGroupement)
+##        if groupement :
+##            for nomCategorie in groupement.listeDesCourses :
+##                if nomCategorie in ResultatsGroupements.keys() :
+##                    aCreer = True
+##                    break
+##            if aCreer :
+##                nomFichier = groupement.nom.replace(" ","-")
+##                with open(TEXDIR+nomFichier+ ".tex", 'w') as f :
+##                    f.write(creerFichierCategories(groupement,entete))
+##                    f.write("\n\\end{longtable}\\end{center}\\end{document}")
+##                f.close()
 
     # pour chaque fichier dans impressions , compiler.
     liste_fichiers_tex_complete=glob.glob(TEXDIR+'*.tex',recursive = True)
@@ -4445,7 +4451,7 @@ def creerFichierChallenge(challenge, entete):
 
 
 def creerFichierCategories(groupement, entete):
-    titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + groupement.nom + "} \\hfill {}}"
+    titre = "{\\Large {} \\hfill \\textbf{Course " + groupement.nom + "} \\hfill {}}"
     tableau = """
 \\begin{center}
 \\begin{longtable}{| p{1.7cm} | p{6cm} | p{1.5cm} | p{4cm} | p{4.3cm} |}
@@ -4455,7 +4461,7 @@ def creerFichierCategories(groupement, entete):
 \\hline
 \\endhead
 \n"""
-    Dossards = ResultatsGroupements[groupement.nom]
+    Dossards = ResultatsGroupements[groupement.nomStandard]
     for dossard in Dossards :
         if dossard in ArriveeDossards :
             tableau += genereLigneTableauTEX(dossard)
@@ -4466,17 +4472,17 @@ def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     tableau = """
 \\begin{center}
-\\begin{longtable}{| p{8cm} | p{1.7cm} | p{3.2cm} | p{4.3cm} |}
-%\\begin{tabular}{|*{4}{c|}}
+\\begin{longtable}{| p{7.7cm} | p{2.5cm} | p{3.2cm} | p{4.3cm} |}
+%\\begin{longtable}{| c | c | c | c |}
 \\hline
  {} \\hfill \\textbf{Nom Prénom } \\hfill {} & {}\\hfill \\textbf{Rang} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
 \\hline
 \\endhead
-\n"""
+"""
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
-        denomination = "Course " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
+        denomination = "Catégorie " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
         Dossards = ResultatsGroupements[nom]
         #print("Dossards:",Dossards)
         rangCourse = False
@@ -4505,7 +4511,8 @@ def creerFichierClasse(nom, entete, estGroupement):
     for dossard in Dossards :
         if Coureurs[dossard - 1].temps >= 0 :
             newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband, rangCourse)
-            if Coureurs[dossard - 1].temps > 0 or garderAbsDispAbandons or (not Coureurs[dossard - 1].absent and not Coureurs[dossard - 1].dispense and garderAbandons) :
+            if Coureurs[dossard - 1].temps > 0 or garderAbsDispAbandons or \
+               (not Coureurs[dossard - 1].absent and not Coureurs[dossard - 1].dispense and garderAbandons) :
             # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
                 tableau += newline
     return entete + "\n\n" + titre.replace("@nom@",denomination) + "\n\n" + tableau, ArrDispAbsAband
@@ -4562,7 +4569,15 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
                 ArrDispAbsAbandon[6] = ArrDispAbsAbandon[6] + 1
             else :
                 ArrDispAbsAbandon[7] = ArrDispAbsAbandon[7] + 1
-    ligne = " {} \\hfill " + coureur.prenom + " " + coureur.nom  + " \\hfill {} &  {} \\hfill " + contenuRang +" \\hfill {} &  {} \\hfill "\
+    if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
+        if coureur.rangCat == 1 :
+            chEME = "er "
+        else :
+            chEME = "ème "
+        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
+    else :
+        contenuRangCat = ""
+    ligne = " {} \\hfill " + coureur.prenom + " " + coureur.nom   + " \\hfill {} &  {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
             + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
             + " \\hfill {} \\\\\n\hline\n"
     return ligne, ArrDispAbsAbandon
@@ -4577,11 +4592,12 @@ def genereLigneTableauTEX(dossard) :
 ##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex() #+ supplVMA
         contenuRang = str(coureur.rang)
-        if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat < coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
-            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.catFFA() + ")"
+        if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
+            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.categorieFFA() + ")"
         else :
             contenuRangCat = ""
-        ligne = " {} \\hfill " + contenuRang  + contenuRangCat + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +" \\hfill {} &  {} \\hfill "\
+        ligne = " {} \\hfill " + contenuRang  + contenuRangCat + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +\
+                " \\hfill {} &  {} \\hfill "\
             + coureur.classe + " \\hfill {} &  {} \\hfill " + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
             + " \\hfill {} \\\\\n\hline\n"
     else :
@@ -4645,9 +4661,10 @@ def genereLigneTableauHTML(dossard) :
     else :
         ligne += str(coureur.rang) 
     ligne += "</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
-    if not CategorieDAge :
-        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
-    elif CategorieDAge == 2 and coureur.rang > 1 and coureur.rang != coureur.rangCat :
+##    if not CategorieDAge :
+##        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
+    if CategorieDAge == 2 and coureur.rang != coureur.rangCat :
+        print(coureur.nom, coureur.rangCat)
         medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat)
         if medailleMeilleurDeSaCategorie :
             ligne += " (" + medailleMeilleurDeSaCategorie + "" + coureur.categorieFFA()+")"
@@ -4655,8 +4672,8 @@ def genereLigneTableauHTML(dossard) :
     if not CategorieDAge :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
-        if CategorieDAge == 1 :
-            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat) + coureur.categorie(Parametres["CategorieDAge"]) 
+        if CategorieDAge == 1 and coureur.rang != coureur.rangCat :
+            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat) + coureur.categorieFFA() 
         elif CategorieDAge == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
             #if coureur.rang < 4 :
