@@ -1398,10 +1398,13 @@ class TopDepartFrame(Frame) :
             self.checkBoxBarDepart.forget()
             self.TopDepartLabel.forget()
             self.boutonPartez.forget()
+            
     def menuActualise(self) :
         self.departsAnnulesRecemment = False
+        
     def nettoieDepartsAnnules(self) :
         self.departsAnnulesRecemment = True
+        
     def topDepartAction(self):
         listeDeCoursesNonCommenceesNomsStandards = listGroupementsNonCommences()
         listeCochee = []
@@ -1427,7 +1430,7 @@ class TopDepartFrame(Frame) :
             self.TopDepartLabel.pack(side=TOP)
             self.checkBoxBarDepart.pack(side=TOP, fill=X)
             self.boutonPartez.pack(side=TOP)
-            self.parent.pack()
+            #self.parent.pack()
         else :
             self.TopDepartLabel.config(text="Il n'y a aucune course à lancer.")
             self.checkBoxBarDepart.forget()
@@ -1632,7 +1635,7 @@ tempsDialog=""
            
 zoneTopDepartBienPlacee = Frame(Affichageframe)
 
-zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
+#zoneTopDepartBienPlacee.pack(side=TOP, fill=X)
 zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
 
@@ -2253,21 +2256,44 @@ for c in Courses :
     Courses[c].initNomGroupement(Courses[c].categorie)
 
 
-def actualiseAffichageZoneDeDroite(erreursEnCours) :
+listGroupementsCommences = []
+lblDict={}
+
+fr = Frame(zoneAffichageDeparts)#, relief=GROOVE, bd=2)
+Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
+
+def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     '''on impose l'ordre d'affichage des frames à droite'''
     global listGroupementsCommences
+    zoneAffichageTV.forget()
+    zoneAffichageErreurs.forget()
+    zoneAffichageDeparts.forget()
+    zoneTopDepartBienPlacee.forget()
+    #zoneAffichageDeparts.forget()
+    fr.forget()
+    # affichage des top départs si besoin
+    if listNomsGroupementsNonCommences() :
+        zoneTopDepartBienPlacee.pack(side=TOP,fill=X)
     # les départs déjà donnés
     if listGroupementsCommences :
+        #zoneTopDepart.pack(side=TOP,fill=X)
+        fr.pack(side=TOP,fill=X)
         zoneAffichageDeparts.pack(side=TOP,fill=X)
-    else :
-        zoneAffichageDeparts.forget()
+##    else :
+##        zoneAffichageDeparts.forget()
+##        #zoneTopDepart.forget()
+##        zoneTopDepartBienPlacee.forget()
+##        fr.forget()
     # l'affichage TV paramétrable.
     zoneAffichageTV.pack(fill=X)
     # les erreurs en cours
     if erreursEnCours :
+        #print("erreur en cours non affichées temporairement")
         zoneAffichageErreurs.pack(side=TOP,fill=X)
-    else :
-        zoneAffichageErreurs.forget()
+##    else :
+##        zoneAffichageErreurs.forget()
+
+actualiseAffichageZoneDeDroite()
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
 
@@ -2282,7 +2308,8 @@ class Clock():
         #self.enPause = False
         self.compteurSauvegarde = 1
         self.auMoinsUnImport = False
-        self.delaiActualisation = 5 # en secondes
+        self.delaiActualisation = 3 # en secondes
+        self.affichageDeDroiteAActualiser = True
 ##        self.retour1 = []
 ##        self.retour2 = []
         self.erreursEnCours = []
@@ -2351,17 +2378,24 @@ class Clock():
             self.compteurSauvegarde = 1
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
+
+        # actualisation de l'affichage après les départs ou si départ annulé récemment.
+        if self.affichageDeDroiteAActualiser or zoneTopDepart.departsAnnulesRecemment :
+            actualiseAffichageZoneDeDroite(self.erreursEnCours)
+            self.affichageDeDroiteAActualiser = False
+        
+        # actualisation menu annulation départs si besoin
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
-
-        # actualisation de l'affichage après les départs
-        actualiseAffichageZoneDeDroite(self.erreursEnCours)
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 
+    def actualiserAffichageDeDroite(self, val) :
+        self.affichageDeDroiteAActualiser = bool(val)
+        
     def reinitErreursATraiter(self):
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
@@ -2498,6 +2532,7 @@ L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
 
 def actualiseToutLAffichage() :
     print("Actualise tout l'affichage")
+    actualiseAffichageZoneDeDroite()
     zoneTopDepart.actualise()
     actualiseAffichageDeparts()  
     actualiserDistanceDesCourses()
@@ -2510,11 +2545,7 @@ def actualiseToutLAffichage() :
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
-listGroupementsCommences = []
-lblDict={}
 
-fr = Frame(zoneAffichageDeparts)#, relief=GROOVE, bd=2)
-Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
 
 def onClick(grpe):
     #print(grpe)
@@ -2525,8 +2556,10 @@ def onClick(grpe):
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     
 
+tagActualiseTemps = False
+
 def actualiseAffichageDeparts():
-    global listGroupementsCommences, lblDict
+    global listGroupementsCommences, lblDict, tagActualiseTemps
     for grp in lblDict.keys() :
         lblDict[grp][2].destroy()
         #lblDict[grp][1].destroy()
@@ -2543,17 +2576,17 @@ def actualiseAffichageDeparts():
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
+    if not tagActualiseTemps :
         actualiseTempsAffichageDeparts()
         #zoneAffichageDeparts.pack(side=TOP,fill=X)
-        fr.pack()
-    else :
+        #fr.pack(side=TOP,fill=X)
+    #else :
         #zoneAffichageDeparts.forget()
-        fr.forget()
-
-tagActualiseTemps = False 
+        #fr.forget()
 
 def actualiseTempsAffichageDeparts():
     global listGroupementsCommences, lblDict, tagActualiseTemps
+    tagActualiseTemps = True
     for grp in lblDict.keys() :
         nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
         #print("-"+nomCourse+"-", "est dans ?", Courses)
@@ -2562,8 +2595,8 @@ def actualiseTempsAffichageDeparts():
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
         lblDict[grp][1].configure(text=tps)
-    if not tagActualiseTemps :
-        zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+        
     
 
 #### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -2575,10 +2608,10 @@ def actualiseTempsAffichageDeparts():
 def actualiseZoneAffichageTV() :
     listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
     checkBoxBarAffichage.actualise(listeDeGroupementsEtChallenge)
-    if Courses :
-        zoneAffichageTV.pack()
-    else :
-        zoneAffichageTV.forget()
+##    if Courses :
+##        zoneAffichageTV.pack()
+##    else :
+##        zoneAffichageTV.forget()
     #print(Resultats)
 
         

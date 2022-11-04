@@ -52,8 +52,6 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 - ESTHETIQUE :
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
-	* les menus de droite "topdepart", chronos des departs, affichageTV et erreurs peuvent s'afficher dans un ordre fluctuant.
-	Il faudrait tout regrouper dans une seule fonction qui les affiche ordonnés...
 	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
 	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
 	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
