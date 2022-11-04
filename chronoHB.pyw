@@ -2293,7 +2293,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
 ##    else :
 ##        zoneAffichageErreurs.forget()
 
-actualiseAffichageZoneDeDroite()
+
 
 #### FIN DE LA zone d'affichage des erreurs : boutons permettant de modifier les erreurs facilement.
 
@@ -2459,6 +2459,8 @@ def rejouerToutesLesActionsMemorisees() :
     timer.reinitErreursATraiter()
 
 rejouerToutesLesActionsMemorisees()
+
+
 
 def regenereAffichageGUI() :
     rejouerToutesLesActionsMemorisees()
@@ -3547,7 +3549,7 @@ GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
 DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
 
-
+actualiseAffichageZoneDeDroite()
 
 
 
@@ -3561,8 +3563,10 @@ root.mainloop() # enter the message loop
 Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 
 print("Fermeture de la BDD")
-# suppression sauvegarde inutile à chaque fermeture
+
+# suppression de la sauvegarde automatique vers db à la fermeture
 # ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
+dump_sauvegarde()
 
 try :
     MD.end()

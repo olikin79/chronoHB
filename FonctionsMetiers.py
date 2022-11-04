@@ -74,6 +74,11 @@ def creerDir(path) :
     return retour
 
 # enregistre les données de sauvegarde
+def dump_sauvegarde() :
+    d = open("Courses.db","wb")
+    pickle.dump(root, d)
+    d.close()
+
 # récupère les données de sauvegarde
 def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
     #global noSauvegarde
@@ -98,9 +103,7 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
             destination = "db"
     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
     nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
-    d = open("Courses.db","wb")
-    pickle.dump(root, d)
-    d.close()
+    dump_sauvegarde()
     if os.path.exists("Courses.db") :
         if destination != "" and creerDir(destination) :
             print("Création de la sauvegarde", nomFichierCopie)
