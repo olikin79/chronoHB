@@ -3561,7 +3561,8 @@ root.mainloop() # enter the message loop
 Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 
 print("Fermeture de la BDD")
-ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
+# suppression sauvegarde inutile à chaque fermeture
+# ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
 
 try :
     MD.end()
