@@ -4345,27 +4345,30 @@ def genereTableauHTML(courseName, chrono = False) :
     tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'><tbody>"
     #titre = "Catégorie " + Courses[courseName].label
     if estChallenge(courseName) :
-        # challenge par classe
-        i = 0
-        print("ResultatsGroupements",ResultatsGroupements)
-        while i < len(ResultatsGroupements[courseName]) :
-            #moy = Resultats[courseName][i].moyenneTemps
-            score = ResultatsGroupements[courseName][i].score
-            #print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
-            classe = ResultatsGroupements[courseName][i].nom
-            liste = ResultatsGroupements[courseName][i].listeCF + ResultatsGroupements[courseName][i].listeCG
-            tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td>"
-            if Parametres["CategorieDAge"] == 2 :
-                tableau += "<td class='etabC'>" + classe[3:] # pour l'UNSS, afin de regrouper les coureurs d'un même établissement pour une catégorie, le nom de la "classe" est préfixé : on enlève ce préfixe à l'affichage.
-            else :
-                tableau += "<td class='classeC'>" + classe
-            tableau += "</td><td class='detailC'><p>" # + '<div class="detailCdiv">'
-            tableau += listeNPremiersGF(ResultatsGroupements[courseName][i], htmlRetourLigne=True) #+ ", " + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) 
-            tableau += '</p></td>'
-            tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
-            #tableau += "<td class='moyC'>" + moy +"</td>"
-            tableau += "</tr>"
-            i += 1
+        if courseName in ResultatsGroupements.keys() : # on sécurise si le challenge est vide.
+            # challenge par classe
+            i = 0
+            print("Affichage du challenge sur la TV :",courseName)
+            while i < len(ResultatsGroupements[courseName]) :
+                #moy = Resultats[courseName][i].moyenneTemps
+                score = ResultatsGroupements[courseName][i].score
+                #print("Challenge",Resultats[courseName][i],Resultats[courseName][i].nom)
+                classe = ResultatsGroupements[courseName][i].nom
+                liste = ResultatsGroupements[courseName][i].listeCF + ResultatsGroupements[courseName][i].listeCG
+                tableau += "<tr><td class='rangC'>"+ str(i+1) +"</td>"
+                if Parametres["CategorieDAge"] == 2 :
+                    tableau += "<td class='etabC'>" + classe[3:] # pour l'UNSS, afin de regrouper les coureurs d'un même établissement pour une catégorie, le nom de la "classe" est préfixé : on enlève ce préfixe à l'affichage.
+                else :
+                    tableau += "<td class='classeC'>" + classe
+                tableau += "</td><td class='detailC'><p>" # + '<div class="detailCdiv">'
+                tableau += listeNPremiersGF(ResultatsGroupements[courseName][i], htmlRetourLigne=True) #+ ", " + listeNPremiers(ResultatsGroupements[courseName][i].listeCG) 
+                tableau += '</p></td>'
+                tableau += "<td class='totalC'>"+str(ResultatsGroupements[courseName][i].scoreFormate()) +"</td>"
+                #tableau += "<td class='moyC'>" + moy +"</td>"
+                tableau += "</tr>"
+                i += 1
+        else :
+            print("Impossible d'afficher le challenge vide sur la TV :",courseName)
     else :
         if chrono :
             tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
