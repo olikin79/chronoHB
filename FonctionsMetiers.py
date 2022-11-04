@@ -4664,7 +4664,7 @@ def genereLigneTableauHTML(dossard) :
 ##    if not CategorieDAge :
 ##        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
     if CategorieDAge == 2 and coureur.rang != coureur.rangCat :
-        print(coureur.nom, coureur.rangCat)
+        #print(coureur.nom, coureur.rangCat)
         medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat)
         if medailleMeilleurDeSaCategorie :
             ligne += " (" + medailleMeilleurDeSaCategorie + "" + coureur.categorieFFA()+")"
