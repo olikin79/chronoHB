@@ -3587,7 +3587,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             if dispense != None and coureur.dispense != dispense :
                 Coureurs[dossard-1].setDispense(dispense)
                 auMoinsUnChangement = True
-            if absent != None and and coureur.absent != absent :
+            if absent != None and coureur.absent != absent :
                 Coureurs[dossard-1].setAbsent(absent)
                 auMoinsUnChangement = True
             if coureur.commentaireArrivee != commentaireArrivee :
