@@ -4,6 +4,11 @@ Manquent :
 - dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
 Cela permettrait de mieux faire l'appel.
 
+Travail du 13/11/22 : 
+- actualisation du dossard UNSS
+- l'import référence uniquement les changements opérés sur les coureurs et
+ n'indique l'actualisation que s'il y a eu changement réel des caractéristiques du coureur.
+
 
 Travail du 04/11/22 :
 - l'annulation d'un départ réinitialise l'affichage à droite pour que les départs, paramètres TV, erreurs soient toujours bien ordonnés.
