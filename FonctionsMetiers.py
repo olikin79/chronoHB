@@ -3580,21 +3580,37 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature) :
         dossard = coureurExists(Coureurs, nom, prenom)
         if dossard :
+            auMoinsUnChangement = False
+            coureur = Coureurs[dossard-1]
+            # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-            if dispense != None :
+            if dispense != None and coureur.dispense != dispense :
                 Coureurs[dossard-1].setDispense(dispense)
-            if absent != None :
+                auMoinsUnChangement = True
+            if absent != None and and coureur.absent != absent :
                 Coureurs[dossard-1].setAbsent(absent)
-            Coureurs[dossard-1].setCommentaire(commentaireArrivee)
-##                if commentaireArrivee != "" :
-##                    print("mise à jour commentaire :",commentaireArrivee)
-            Coureurs[dossard-1].setClasse(classe)
-            Coureurs[dossard-1].setVMA(vma)
-            Coureurs[dossard-1].setNaissance(naissance)
-            Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
-            addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
-            print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
-            retour = [0,1,0]
+                auMoinsUnChangement = True
+            if coureur.commentaireArrivee != commentaireArrivee :
+                Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+                auMoinsUnChangement = True
+            if coureur.classe != classe :
+                Coureurs[dossard-1].setClasse(classe)
+                auMoinsUnChangement = True
+            if coureur.VMA != vma :
+                Coureurs[dossard-1].setVMA(vma)
+                auMoinsUnChangement = True
+            if coureur.naissance != naissance :
+                Coureurs[dossard-1].setNaissance(naissance)
+                auMoinsUnChangement = True
+            if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
+                Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
+                auMoinsUnChangement = True
+            if auMoinsUnChangement :
+                addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
+                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
+                retour = [0,1,0]
+            else :
+                retour = [0,0,0]
         else :
             dossard = len(Coureurs)+1
             Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
