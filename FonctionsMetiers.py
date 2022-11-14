@@ -265,7 +265,7 @@ def naissanceValide(naissance) :
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000):
+                 commentaireArrivee="", VMA=0, aImprimer=False, course="", scoreUNSS=1000000):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -289,22 +289,17 @@ class Coureur():#persistent.Persistent):
         self.commentaireArrivee = commentaireArrivee
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
-        self.categorieAuto = True
         self.__private_categorie = None
-        self.__private_categorie_manuelle = None
+        self.__private_categorie_manuelle = course
     def categorie(self, CategorieDAge=False):
-        try :
-            self.categorieAuto
-        except :
-            self.categorieAuto = True
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
         except:
             self.etablissement = ""
             self.etablissementNature = ""
-        if self.categorieAuto :
+        if not Parametres["CoursesManuelles"] :
             if self.__private_categorie == None :
-                if CategorieDAge :
+                if CategorieDAge > 0 :
                     if len(self.naissance) != 0 :
                         anneeNaissance = self.naissance[6:]
                         if CategorieDAge == 2 : ## UNSS
@@ -335,6 +330,8 @@ class Coureur():#persistent.Persistent):
         else :
             retour = str(round(self.scoreUNSS,1)).replace(".",",")
         return retour
+    def setCourse(self, c) :
+        self.__private_categorie_manuelle = c
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
@@ -844,7 +841,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -971,6 +968,9 @@ def chargerDonnees() :
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
     listeAffichageTV=Parametres["listeAffichageTV"]
+    if not "CoursesManuelles" in Parametres :
+        Parametres["CoursesManuelles"] = False
+    CoursesManuelles=Parametres["CoursesManuelles"]
     ##transaction.commit()
     return globals()
 
@@ -3570,20 +3570,24 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 1 - cas de courses organisées en fonction des catégories de la FFA
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
-def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
+def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course=""):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
     except :
         vma = "0"
         #print("complement",complement)
-    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature) :
+    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
         dossard = coureurExists(Coureurs, nom, prenom)
         if dossard :
             auMoinsUnChangement = False
             coureur = Coureurs[dossard-1]
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+            if course != coureur.categorie(Parametres["CategorieDAge"]) :
+                coureur.setCourse(course)
+                auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
                 Coureurs[dossard-1].setDispense(dispense)
                 auMoinsUnChangement = True
@@ -3607,13 +3611,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
-                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
+                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),course,")")
                 retour = [0,1,0]
             else :
                 retour = [0,0,0]
         else :
             dossard = len(Coureurs)+1
-            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer, course=course))
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
             addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
@@ -4769,6 +4773,7 @@ def traitementDesDonneesAImporter(donneesBrutes) :
             if "nom" in informations and "prénom" in informations and "sexe" in informations and \
             ((Parametres["CategorieDAge"] == 0 and "classe" in informations) \
              or (Parametres["CategorieDAge"] == 1 and "naissance" in informations) \
+             or (Parametres["CategorieDAge"] == 1 and "course" in informations) \
              or (Parametres["CategorieDAge"] == 2 and "naissance" in informations and "établissement" in informations and \
                  ("établissementtype" in informations or "type" in informations))) :
              # si infos indispensables dans tous les cas
@@ -5009,11 +5014,18 @@ def creerCoureur(listePerso, informations) :
             vma = 0
     if "commentairearrivée" in informations :
         comment = supprLF(infos["commentairearrivée"])
+    if "course" in informations :
+        try :
+            courseManuelle = supprLF(infos["course"])
+        except :
+            courseManuelle = ""
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
+                                               naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
+                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         retourCreationModifErreur = [0,0,0]
