@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.6"
+version="1.7"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -2849,13 +2849,36 @@ def updateZoneGroupements():
         pass
     GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
     affectationGroupementsFrame.pack(side=LEFT,fill=X)
-    GroupementsFrame.pack(side=TOP)
+    if not Parametres["CoursesManuelles"] :
+        GroupementsFrame.pack(side=TOP)
 
 
 lblInfoDistance = Label(affectationDesDistancesFrame)
 lblInfoDistance.pack()
 
 listeDesEntryGroupements = []
+
+def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
+    print("actualisation des Courses manuelles",Courses)
+    # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
+    nbreDeCoursesDesire = int(nbreCoursesDesire.get())
+    nbreDeCoursesActuel = len(Courses.keys())
+    if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
+        # il manque des courses
+        for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
+            addCourse("numéro " + str(i))
+    if nbreDeCoursesDesire <  nbreDeCoursesActuel :
+        ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
+        nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
+        i = 0
+        for cat in Courses.copy() :
+            i += 1
+            if nbreDeCoursesDesire < i :
+                # on efface la course et le groupement correspondant.
+                delCourse(cat)
+                supprimeCourseDuGroupementEtNettoieGroupements(cat)
+    # on actualise l'affichage par rapport à cela comme cela se fait dans les autres modes.
+    actualiserDistanceDesCourses()
 
 def actualiserDistanceDesCourses():
     updateZoneGroupements()
@@ -2867,11 +2890,18 @@ def actualiserDistanceDesCourses():
     listeDesEntryGroupements.clear()
     #print(Courses)
     if Groupements :
-        lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
+        if Parametres["CoursesManuelles"] :
+            lblNbreCoursesDesire.pack(side=TOP)
+            nbreCoursesDesire.pack(side=TOP)
+            lblInfoDistance.configure(text="")
+        else :
+            lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
         boutonRecopie.pack(side=TOP)
     else:
         lblInfoDistance.configure(text="")
         boutonRecopie.forget()
+        lblNbreCoursesDesire.forget()
+        nbreCoursesDesire.forget()
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
@@ -2892,6 +2922,15 @@ def actionBoutonRecopie() :
             zoneTexte.set(valeur)
  
             
+# utilisé uniquement si CoursesManuelles est True. Dans le cas contraire, pas de pack()
+lblNbreCoursesDesire = Label(affectationDesDistancesFrame, text="Combien souhaitez vous gérer de courses au total ?")
+nbreCoursesDesire = Combobox(affectationDesDistancesFrame, width=5, values=tuple(range(1,21)), state='readonly')
+if len(Courses.keys()) == 0 :
+    nbreCoursesDesire.set(1)
+else :
+    nbreCoursesDesire.set(len(Courses.keys()))
+nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
+
 
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
 boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
@@ -2901,7 +2940,10 @@ boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première
 def affecterDistances() :
     distanceDesCourses()
     #print("Affectation des distances à chaque course")
-    actualiserDistanceDesCourses()
+    if Parametres["CoursesManuelles"] :
+        actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    else :
+        actualiserDistanceDesCourses()
 
 def affecterParametres() :
     parametresDesCourses()

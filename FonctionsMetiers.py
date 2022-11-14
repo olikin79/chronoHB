@@ -27,7 +27,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.6"
+version = "1.7"
 
 LOGDIR="logs"
 
@@ -2194,6 +2194,7 @@ def supprimerFichier(file):
             print(texte)
 
 def selectPlusRecent(dossier,formatDuNom):
+    fichierSelectionne = None
     datePrecedente = 0
     for file in glob.glob(dossier + os.sep + formatDuNom,recursive = False) :
         if datePrecedente < os.path.getmtime(file) :
@@ -2222,7 +2223,9 @@ def nettoyerTousLesFichiersGeneres():
     ## effacer les bases de donnees superflues : toutes sauf la dernière.
     L = []
     for schema in ["*.db","*_DS.txt","*_ML.txt"] :
-        L.append(selectPlusRecent("db",schema))
+        fichierRecent = selectPlusRecent("db",schema)
+        if fichierRecent :
+            L.append(fichierRecent)
     ## effacer les fichiers de base de données automatiquement générés + fichiers de LOG
     L5 =glob.glob('db'+os.sep+'*.db',recursive = False)
     L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
@@ -2659,6 +2662,15 @@ def updateGroupements(categorie, placeInitiale, placeFinale):
         #for grp in Groupements :
         #    print(grp.nom,grp.listeDesCourses)
 
+def supprimeCourseDuGroupementEtNettoieGroupements(course):
+    """ Utilisé uniquement lors des courses manuelles où des courses sont identiques aux groupements. Les courses sont créées manuellement
+    et peuvent exister sans coureur dedans, ce qui n'arrive jamais sinon."""
+    i = 0
+    for g in Groupements :
+        if course in g.listeDesCourses :
+            g.removeCourse(course)
+            del Groupements[i]
+        i += 1
 
 def absentsDispensesAbandonsEnTex() :
     Labs = []
@@ -4193,6 +4205,8 @@ def delCourse(categorie) :
         else :
             print("Suppression de la course", categorie, "devenue inutile.")
             Courses.pop(categorie)
+            ### ICI, actualisation des groupements en supprimant les groupements qui n'ont que cette course.
+            
             ##transaction.commit()
     else :
         print("La course" , categorie, "n'existe pas. NE DEVRAIT PAS SURVENIR.")

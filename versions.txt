@@ -6,10 +6,6 @@ Cela permettrait de mieux faire l'appel.
 
 
 Manque pour la branche trail-rieutort :
-- paramètre des course : cacher la partie droite si CoursesManuelles == True
-- ajouter un combobox de 1 à 20 en fonction du nombre de courses souhaitées.
-- Remplir les champs avec "course 1", etc...
-=> à l'enregistrer, vider Courses puis remplir avec tous les champs non vides.
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
 
@@ -18,6 +14,9 @@ Travail du 14/11/22 : branche trail-rieutort
 - interface paramètres du cross pour catégories manuelles
 - import du paramètre "course" depuis CSV ou tableur.
 - modification ajout-modif coureur pour ajouter combobox
+- dans paramètres des courses, on cache la partie de gauche. On identifie les Courses aux groupements si CoursesManuelles==True.
+- ajout d'un combobox de 1 à 20 en fonction du nombre de courses souhaitées. Les champs des groupements se remplissent avec "numéro 1", etc...
+
 
 Travail du 13/11/22 : 
 - actualisation du dossard UNSS
