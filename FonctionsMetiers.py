@@ -1778,15 +1778,23 @@ def generateListCoureursPourSmartphone() :
         for coureur in Coureurs :
             try :
                 #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
-                #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description)
+                #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+                if CoursesManuelles :
+                    nomStandard = Courses[coureur.course].description
+                    c = groupementAPartirDUneCategorie(nomStandard).nom
+                else :
+                    c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+
                 result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
                          str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
-                         str(Courses[coureur.categorie(Parametres["CategorieDAge"])].description) + "," +\
+                         str(c) + "," +\
                          str(coureur.commentaireArrivee).replace(",",";") + \
                          "," + str(coureur.etablissement)
             except :
                 result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
                          "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
+                print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
+                print("course", Courses[coureur.course].description)
                 print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
                       str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
                       str(coureur.commentaireArrivee))
