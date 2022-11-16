@@ -290,36 +290,45 @@ class Coureur():#persistent.Persistent):
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
         self.__private_categorie = None
-        self.__private_categorie_manuelle = course
+        #self.__private_categorie_manuelle
+        if CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement.
+            self.course = course
+        else :
+            self.actualiseCategorie()
+    def actualiseCategorie(self) :
+        self.categorie(CategorieDAge)
     def categorie(self, CategorieDAge=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
+            self.course
         except:
             self.etablissement = ""
             self.etablissementNature = ""
-        if not Parametres["CoursesManuelles"] :
-            if self.__private_categorie == None :
-                if CategorieDAge > 0 :
-                    if len(self.naissance) != 0 :
-                        anneeNaissance = self.naissance[6:]
-                        if CategorieDAge == 2 : ## UNSS
-                             ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
-                             ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
-                            cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-                            # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                                # cat = "MI"
-                            # elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                                # cat = "CA"
-                            self.__private_categorie = cat + "-" + self.sexe
-                        else: ## catégories FFA
-                            #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                            self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
-                else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
-                    if len(self.classe) != 0 :
-                        self.__private_categorie = self.classe[0] + "-" + self.sexe
-            return self.__private_categorie
-        else :
-            return self.__private_categorie_manuelle
+        #if not Parametres["CoursesManuelles"] :
+        if self.__private_categorie == None :
+            if CategorieDAge > 0 :
+                if len(self.naissance) != 0 :
+                    anneeNaissance = self.naissance[6:]
+                    if CategorieDAge == 2 : ## UNSS
+                         ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
+                         ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
+                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
+##                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+##                            cat = "MI"
+##                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+##                            cat = "CA"
+                        self.__private_categorie = cat + "-" + self.sexe
+                    else: ## catégories FFA
+                        #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                        self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+            else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
+                if len(self.classe) != 0 :
+                    self.__private_categorie = self.classe[0] + "-" + self.sexe
+        if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+            self.course = self.categorie(CategorieDAge)
+        return self.__private_categorie
+        #else :
+        #    return self.__private_categorie_manuelle
     def categorieSansSexe(self) :
         return self.categorie(Parametres["CategorieDAge"])[:2]
     def categorieFFA(self) :
@@ -331,7 +340,10 @@ class Coureur():#persistent.Persistent):
             retour = str(round(self.scoreUNSS,1)).replace(".",",")
         return retour
     def setCourse(self, c) :
-        self.__private_categorie_manuelle = c
+        if CoursesManuelles :
+            self.course = c
+        else :
+            print("Aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
@@ -342,14 +354,14 @@ class Coureur():#persistent.Persistent):
         except :
             self.scoreUNSS = 1000000 # pour éviter qu'une erreur (non prévue) place le coureur dans les premiers.
             self.nbreArriveesGroupement = 0
-    def setCategorie(self, nouveauNom, CategorieDAge=False):
-        try :
-            self.__private_categorie_manuelle = str(nouveauNom)
-            self.categorieAuto = False
-        except:
-            print("nom de catégorie incorrect:", nouveauNom)
-    def setCategorieAuto(self):
-        self.categorieAuto = True
+##    def setCategorie(self, nouveauNom, CategorieDAge=False):
+##        try :
+##            self.__private_categorie_manuelle = str(nouveauNom)
+##            self.categorieAuto = False
+##        except:
+##            print("nom de catégorie incorrect:", nouveauNom)
+##    def setCategorieAuto(self):
+##        self.categorieAuto = True
     def setEtablissement(self,etab, nature):
         self.etablissement = etab
         self.etablissementNature = "CLG"
@@ -1556,8 +1568,8 @@ def listCategories():
     retour = []
     if len(Coureurs)!=0:
         for coureur in Coureurs :
-            if coureur.categorie(CategorieDAge) not in retour :
-                retour.append(coureur.categorie(CategorieDAge))
+            if coureur.course not in retour :
+                retour.append(coureur.course)
         retour.sort()
     return retour
 
@@ -1765,6 +1777,8 @@ def generateListCoureursPourSmartphone() :
         print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
         for coureur in Coureurs :
             try :
+                #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
+                #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description)
                 result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
                          str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
                          str(Courses[coureur.categorie(Parametres["CategorieDAge"])].description) + "," +\
@@ -3571,11 +3585,12 @@ def coureurExists(Coureurs, nom, prenom) :
         i += 1
     return retour
 
-def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
+def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LGT" or etablissementNature.upper() == "LP"
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
-             or (Parametres["CategorieDAge"] == 1 and naissanceValide(naissance)) \
+             or (Parametres["CategorieDAge"] == 1 and not Parametres["CoursesManuelles"] and naissanceValide(naissance)) \
+             or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and len(course)) \
              or (Parametres["CategorieDAge"] == 2 and naissanceValide(naissance) and etablissement and etablissementNatureValide))
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
@@ -3583,7 +3598,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course=""):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard=0):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
@@ -3591,39 +3606,41 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         vma = "0"
         #print("complement",complement)
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
-        dossard = coureurExists(Coureurs, nom, prenom)
+        if not dossard :
+            dossard = coureurExists(Coureurs, nom, prenom)
         if dossard :
             auMoinsUnChangement = False
             coureur = Coureurs[dossard-1]
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-            if course != coureur.categorie(Parametres["CategorieDAge"]) :
-                coureur.setCourse(course)
+            nomStandard = estDansGroupementsEnModeManuel(course)
+            if nomStandard != coureur.course :
+                coureur.setCourse(nomStandard)
                 auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
-                Coureurs[dossard-1].setDispense(dispense)
+                coureur.setDispense(dispense)
                 auMoinsUnChangement = True
             if absent != None and coureur.absent != absent :
-                Coureurs[dossard-1].setAbsent(absent)
+                coureur.setAbsent(absent)
                 auMoinsUnChangement = True
             if coureur.commentaireArrivee != commentaireArrivee :
-                Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+                coureur.setCommentaire(commentaireArrivee)
                 auMoinsUnChangement = True
             if coureur.classe != classe :
-                Coureurs[dossard-1].setClasse(classe)
+                coureur.setClasse(classe)
                 auMoinsUnChangement = True
             if coureur.VMA != vma :
-                Coureurs[dossard-1].setVMA(vma)
+                coureur.setVMA(vma)
                 auMoinsUnChangement = True
             if coureur.naissance != naissance :
-                Coureurs[dossard-1].setNaissance(naissance)
+                coureur.setNaissance(naissance)
                 auMoinsUnChangement = True
             if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
-                Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
+                coureur.setEtablissement(etablissement,etablissementNature)
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
-                addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
-                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),course,")")
+                addCourse(coureur.course)
+                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),"Course manuelle:",course,")")
                 retour = [0,1,0]
             else :
                 retour = [0,0,0]
@@ -3631,8 +3648,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             dossard = len(Coureurs)+1
             Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer, course=course))
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
-            addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")", "Course manuelle:", course)
+            addCourse(Coureurs[-1].course)
             retour = [1,0,0]
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
@@ -3642,66 +3659,75 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
 
-def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="", VMA="0", aImprimer = True):
-    try :
-        vma = float(VMA)
-    except :
-        vma = "0"
-    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature) :
-        Coureurs[dossard-1].setNom(nom)
-        Coureurs[dossard-1].setPrenom(prenom)
-        Coureurs[dossard-1].setSexe(sexe)
-        Coureurs[dossard-1].setAImprimer(aImprimer)
-        Coureurs[dossard-1].setCommentaire(commentaireArrivee)
-##                if commentaireArrivee != "" :
-##                    print("mise à jour commentaire :",commentaireArrivee)
-        Coureurs[dossard-1].setClasse(classe)
-        Coureurs[dossard-1].setVMA(vma)
-        Coureurs[dossard-1].setNaissance(naissance)
-        Coureurs[dossard-1].setEtablissement(etablissement,etablisemmentNature)
-        addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
-    else :
-        print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
+##def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="",\
+##                  VMA="0", aImprimer = True, course=""):
+##    try :
+##        vma = float(VMA)
+##    except :
+##        vma = "0"
+##    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
+##        coureur = Coureurs[dossard-1]
+##        coureur.setNom(nom)
+##        coureur.setPrenom(prenom)
+##        coureur.setSexe(sexe)
+##        coureur.setAImprimer(aImprimer)
+##        coureur.setCommentaire(commentaireArrivee)
+####                if commentaireArrivee != "" :
+####                    print("mise à jour commentaire :",commentaireArrivee)
+##        coureur.setClasse(classe)
+##        coureur.setVMA(vma)
+##        coureur.setNaissance(naissance)
+##        coureur.setEtablissement(etablissement,etablisemmentNature)
+##        coureur.actualiseCategorie()
+##        addCourse(coureur.course)
+##        nomStandard = estDansGroupementsEnModeManuel(course)
+##        if nomStandard != coureur.course :
+##            coureur.setCourse(nomStandard)
+##            auMoinsUnChangement = True
+##    else :
+##        print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
 
-def estDansGroupementsEnModeManuel(categorie):
+def estDansGroupementsEnModeManuel(course):
     retour = ""
     for g in Groupements :
-        if g.nom == categorie :
-            retour = c.nomStandard
+        if g.nom == course :
+            retour = g.nomStandard
             break
     return retour
 
-def addCourse(categorie) :
-    # si CoursesManuelles, les courses portent le nom "numéro i" comme entrée dans Courses.
-    # on doit trouver si une course existante c a pour propriété c.nom == categorie
-    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
-    if CoursesManuelles :
-        nomStandard = estDansGroupementsEnModeManuel(categorie)
-        if not nomStandard :
-            nomStandard = "numéro " + str(len(Courses.keys()))
-            print("Création de la course manuelle", nomStandard, " avec le nom :", categorie)
-            Groupements.append(Groupement(nomStandard,[nomStandard]))
-            Groupements[-1].setNom(categorie)
-            c = Course(nomStandard)
-            Courses.update({nomStandard : c})
-    else :
+def addCourse(course) :
+    ## TOUTE CETTE PARTIE EST REDEVENUE INUTILE CAR LE NOM STANDARD DE LA COURSE EST D2SORMAIS CONTENU DANS LA PROPRIETE COURSE DE L'OBJET COUREUR
+    ## Le fonctionnement de addCourse() redevient indépendant du type de course : manuelle ou automatique. Tout se fait dans l'objet Coureur()
+##    # si CoursesManuelles, les courses portent le nom "numéro i" comme entrée dans Courses.
+##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
+##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
+##    if CoursesManuelles :
+##        nomStandard = estDansGroupementsEnModeManuel(course)
+##        if not nomStandard :
+##            nomStandard = "numéro " + str(len(Courses.keys())+1)
+##            print("Création de la course manuelle", nomStandard, " avec le nom :", course)
+##            Groupements.append(Groupement(nomStandard,[nomStandard]))
+##            Groupements[-1].setNom(course)
+##            c = Course(nomStandard)
+##            Courses.update({nomStandard : c})
+##    else :
         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-        estPresent = False
-        for grpment in Groupements :
-            if categorie in grpment.listeDesCourses :
-                estPresent = True
-                break
-        if not estPresent:
-            print("Création du groupement ", categorie)
-            Groupements.append(Groupement(categorie,[categorie]))
-            #print("Groupements = ",[i.nom for i in Groupements])
-        # création de la course si elle n'existe pas.
-        #print(categorie, " est dans ", Courses,"?")
-        if categorie not in Courses :
-            print("Création de la course", categorie)
-            c = Course(categorie)
-            Courses.update({categorie : c})
-        #print("cat",Courses[categorie].categorie)
+    estPresent = False
+    for grpment in Groupements :
+        if course in grpment.listeDesCourses :
+            estPresent = True
+            break
+    if not estPresent:
+        print("Création du groupement ", course)
+        Groupements.append(Groupement(course,[course]))
+        #print("Groupements = ",[i.nom for i in Groupements])
+    # création de la course si elle n'existe pas.
+    #print(course, " est dans ", Courses,"?")
+    if course not in Courses :
+        print("Création de la course", course)
+        c = Course(course)
+        Courses.update({course : c})
+    #print("cat",Courses[course].categorie)
 
 
 
@@ -5071,166 +5097,166 @@ def supprLF(ch) :
 
 
 
-
-if __name__=="__main__":
-##    # Start the server in a new thread
-##    port = 8888
-##    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
-##    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-##    daemon.start()
-##    time.sleep(1)
-    while 1:
-        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
-        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
-        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
-        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
-        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
-        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
-        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
-        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
-        choice=choice.lower()
-        if choice=="l":
-            listerDonneesTerminal()
-        elif choice == "l1" :
-            print("Courses")
-            for cat in listCourses():
-                c = Courses[cat]
-                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
-        elif choice == "l2" :
-            print("ArriveeDossards")
-            listArriveeDossards()
-        elif choice == "l3" :
-            print("ArriveeTemps")
-            listArriveeTemps()
-        elif choice == 'l4' :
-            listCoureurs()
-        elif choice == "recup" :
-            recupCSVSIECLE()
-        elif choice == 'g2':
-            generateListCoureursPourSmartphone()
-        elif choice == 'g3':
-            generateDossards()
-##            mon_thread2=Thread(target=generateDossards)
-##            mon_thread2.start()
-        elif choice == 'g4' :
-            mon_thread=Thread(target=generateImpressions)
-            mon_thread.start()
-        elif choice =="test":
-            generateImpressions()
-        elif choice == "distall" :
-            saisie = input("Distance en km à affecter à toutes les courses :")
-            try :
-                d = float(saisie)
-                print(d)
-                setDistanceToutesCourses(d)
-            except:
-                print("Distance invalide : le séparateur décimal est un point")
-        elif choice == "dist" :
-            print("liste des courses", listCourses())
-            nom = input("Nom de la course :")
-            if nom in listCourses() :
-                saisie = input("Distance en km à affecter à " + nom + " : ")
-                try :
-                    d = float(saisie)
-                    setDistance( nom, d)
-                except:
-                    print("Distance invalide : le séparateur décimal est un point")
-        elif choice =="g":
-            genereResultatsCoursesEtClasses()
-            for key in Resultats :
-                if len(key) == 1 :
-                    print(key, " :")
-                    i=0
-                    while i < len(Resultats[key]) :
-                        score = Resultats[key][i].score
-                        classe = Resultats[key][i].nom
-                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
-                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
-                        for element in liste :
-                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
-                        i += 1
-                else :
-                    print(key , ":", Resultats[key])
-            genereAffichageTV(listCourses())
-##        elif choice=="t":
-##            listeDeCourses = listCourses()
-##            topDepart(listeDeCourses)
-        elif choice=="c0":
-            print(calculeTousLesTemps(True))
-        elif choice=="c":
-            calculeTousLesTemps()
-        elif choice=="d1":
-            dossard = input("Dossard :")
-            delCoureur(dossard)
-        elif choice=="d2":
-            dossard = input("Dossard :")
-            delArriveeDossard(dossard)
-        elif choice=="d3":
-            #listArriveeTemps()
-            temps = input("Temps Réel à supprimer :")
-            saisie = input("Dossard associé :")
-            if saisie == "" :
-                dossard = 0
-            else :
-                dossard = saisie
-            delArriveeTemps(temps, dossard)
-        elif choice=="d4":
-            #listArriveeTemps()
-            temps = input("Temps Réel dont il faut dissocier le dossard :")
-            #dissocieArriveeTemps(temps)
-            delDossardAffecteArriveeTemps(temps)
-        elif choice=="r":
-            delCoureurs()
-        elif choice == 'a4':
-            temps = float(input("Temps à affecter :"))
-            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
-            if dossard == "" :
-                delDossardAffecteArriveeTemps(temps)
-            else :
-                affecteDossardArriveeTemps(temps, dossard)
-        elif choice == 'I' :
-            imprimePDF('dossards/0-tousLesDossards.pdf')
-        elif choice == 'a3':
-            temps = input("Temps à ajouter :")
-            saisie = input("Dossard associé :")
-            if saisie == "" :
-                dossard = 0
-            else :
-                dossard = saisie
-            addArriveeTemps(temps, time.time(), time.time(),dossard)
-        elif choice=="a2":
-            dossard = input("Dossard :")
-            listArriveeDossards()
-            dossardPrecedent = input("Dossard précédent :")
-            if dossardPrecedent != "" :
-                addArriveeDossard(dossard, dossardPrecedent)
-            else :
-                addArriveeDossard(dossard)
-        elif choice=="a1":
-            nom=input("nom :")
-            prenom=input("prenom :")
-            sexe=input("sexe :")
-            classe=input("classe :")
-            addCoureur(nom, prenom, sexe, classe)
-
-        elif choice=="q":
-            break
-        elif choice == "i" :
-            print("on traite les données venant des smartphones")
-            traiterDonneesSmartphone()
-        elif choice == "i0" :
-            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
-            traiterDonneesSmartphone(True, True)
-            traiterDonneesLocales(True,True)
-        elif choice == "cross2021" :
-            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
-                fixerDepart(donnees[0],donnees[1])
-            root["LignesIgnoreesSmartphone"] = []
-            root["LignesIgnoreesLocal"] = []
-        elif choice == "teststats" :
-            testTMPStats()
-    ecrire_sauvegarde(sauvegarde)
-    ##transaction.commit()
-    # close database
-    #connection.close()
-    #db.close()
+##
+##if __name__=="__main__":
+####    # Start the server in a new thread
+####    port = 8888
+####    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
+####    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+####    daemon.start()
+####    time.sleep(1)
+##    while 1:
+##        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
+##        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
+##        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
+##        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
+##        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
+##        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
+##        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
+##        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
+##        choice=choice.lower()
+##        if choice=="l":
+##            listerDonneesTerminal()
+##        elif choice == "l1" :
+##            print("Courses")
+##            for cat in listCourses():
+##                c = Courses[cat]
+##                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
+##        elif choice == "l2" :
+##            print("ArriveeDossards")
+##            listArriveeDossards()
+##        elif choice == "l3" :
+##            print("ArriveeTemps")
+##            listArriveeTemps()
+##        elif choice == 'l4' :
+##            listCoureurs()
+##        elif choice == "recup" :
+##            recupCSVSIECLE()
+##        elif choice == 'g2':
+##            generateListCoureursPourSmartphone()
+##        elif choice == 'g3':
+##            generateDossards()
+####            mon_thread2=Thread(target=generateDossards)
+####            mon_thread2.start()
+##        elif choice == 'g4' :
+##            mon_thread=Thread(target=generateImpressions)
+##            mon_thread.start()
+##        elif choice =="test":
+##            generateImpressions()
+##        elif choice == "distall" :
+##            saisie = input("Distance en km à affecter à toutes les courses :")
+##            try :
+##                d = float(saisie)
+##                print(d)
+##                setDistanceToutesCourses(d)
+##            except:
+##                print("Distance invalide : le séparateur décimal est un point")
+##        elif choice == "dist" :
+##            print("liste des courses", listCourses())
+##            nom = input("Nom de la course :")
+##            if nom in listCourses() :
+##                saisie = input("Distance en km à affecter à " + nom + " : ")
+##                try :
+##                    d = float(saisie)
+##                    setDistance( nom, d)
+##                except:
+##                    print("Distance invalide : le séparateur décimal est un point")
+##        elif choice =="g":
+##            genereResultatsCoursesEtClasses()
+##            for key in Resultats :
+##                if len(key) == 1 :
+##                    print(key, " :")
+##                    i=0
+##                    while i < len(Resultats[key]) :
+##                        score = Resultats[key][i].score
+##                        classe = Resultats[key][i].nom
+##                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
+##                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
+##                        for element in liste :
+##                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
+##                        i += 1
+##                else :
+##                    print(key , ":", Resultats[key])
+##            genereAffichageTV(listCourses())
+####        elif choice=="t":
+####            listeDeCourses = listCourses()
+####            topDepart(listeDeCourses)
+##        elif choice=="c0":
+##            print(calculeTousLesTemps(True))
+##        elif choice=="c":
+##            calculeTousLesTemps()
+##        elif choice=="d1":
+##            dossard = input("Dossard :")
+##            delCoureur(dossard)
+##        elif choice=="d2":
+##            dossard = input("Dossard :")
+##            delArriveeDossard(dossard)
+##        elif choice=="d3":
+##            #listArriveeTemps()
+##            temps = input("Temps Réel à supprimer :")
+##            saisie = input("Dossard associé :")
+##            if saisie == "" :
+##                dossard = 0
+##            else :
+##                dossard = saisie
+##            delArriveeTemps(temps, dossard)
+##        elif choice=="d4":
+##            #listArriveeTemps()
+##            temps = input("Temps Réel dont il faut dissocier le dossard :")
+##            #dissocieArriveeTemps(temps)
+##            delDossardAffecteArriveeTemps(temps)
+##        elif choice=="r":
+##            delCoureurs()
+##        elif choice == 'a4':
+##            temps = float(input("Temps à affecter :"))
+##            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
+##            if dossard == "" :
+##                delDossardAffecteArriveeTemps(temps)
+##            else :
+##                affecteDossardArriveeTemps(temps, dossard)
+##        elif choice == 'I' :
+##            imprimePDF('dossards/0-tousLesDossards.pdf')
+##        elif choice == 'a3':
+##            temps = input("Temps à ajouter :")
+##            saisie = input("Dossard associé :")
+##            if saisie == "" :
+##                dossard = 0
+##            else :
+##                dossard = saisie
+##            addArriveeTemps(temps, time.time(), time.time(),dossard)
+##        elif choice=="a2":
+##            dossard = input("Dossard :")
+##            listArriveeDossards()
+##            dossardPrecedent = input("Dossard précédent :")
+##            if dossardPrecedent != "" :
+##                addArriveeDossard(dossard, dossardPrecedent)
+##            else :
+##                addArriveeDossard(dossard)
+##        elif choice=="a1":
+##            nom=input("nom :")
+##            prenom=input("prenom :")
+##            sexe=input("sexe :")
+##            classe=input("classe :")
+##            addCoureur(nom, prenom, sexe, classe)
+##
+##        elif choice=="q":
+##            break
+##        elif choice == "i" :
+##            print("on traite les données venant des smartphones")
+##            traiterDonneesSmartphone()
+##        elif choice == "i0" :
+##            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
+##            traiterDonneesSmartphone(True, True)
+##            traiterDonneesLocales(True,True)
+##        elif choice == "cross2021" :
+##            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
+##                fixerDepart(donnees[0],donnees[1])
+##            root["LignesIgnoreesSmartphone"] = []
+##            root["LignesIgnoreesLocal"] = []
+##        elif choice == "teststats" :
+##            testTMPStats()
+##    ecrire_sauvegarde(sauvegarde)
+##    ##transaction.commit()
+##    # close database
+##    #connection.close()
+##    #db.close()

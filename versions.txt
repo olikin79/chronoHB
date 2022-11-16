@@ -5,9 +5,17 @@ Manquent :
 Cela permettrait de mieux faire l'appel.
 
 
+Pour le 23/11 :
+retester si les minimes en avance en lycée sont bien en cadets et si les cadets en retard sont bien en minimes !
+commentaires dans la Coureur.categorie(..) inquiétants. Fait ailleurs ?
+
+
 Manque pour la branche trail-rieutort :
+- lors d'un deuxième import identique xlsx, provoque une erreur, à trouver...
+- la génération du fichier coureurs.txt provoque des erreurs, à trouver...
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-- faire en sorte que le nombre de courses ne puisse pas baisser (dans la combobox, le minimum  serait le nombre actuel de courses)
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
 
@@ -15,6 +23,10 @@ Travail du 15/11/22 : branche trail-rieutort
 - modification de addCoureur dans le cas CoursesManuelles==True pour créer des Courses perosnnalisées si elles n'existent pas. 
 Création d'une fonction qui retourne le nomStandard ("numéro 1", etc... à partir de celui fourni), utile pour actualiser les courses ou
  les créer si besoin.
+- la propriété "categorie" d'un Coureur redevient totalement automatique : on indique la propriété course manuellement si CoursesManuelles == True.
+Le reste du code est modifié en fonction.
+- le nombre de courses ne peut plus baisser (dans la combobox de choix du nombre de courses manuelles, le minimum est le nombre actuel de courses)
+- dans le menu de modif d'un coureur, le nom des courses manuelles apparaît et est modifiable.
 
 
 Travail du 14/11/22 : branche trail-rieutort

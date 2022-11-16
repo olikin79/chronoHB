@@ -2592,7 +2592,7 @@ def actualiseTempsAffichageDeparts():
     for grp in lblDict.keys() :
         nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
         #print("-"+nomCourse+"-", "est dans ?", Courses)
-        addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+        # SUPPRIME : s'il y a une erreur, la corriger et non pallier le problème !!! addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
         #print(listCoursesEtChallenges())
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
@@ -2862,21 +2862,24 @@ def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
     print("actualisation des Courses manuelles",Courses)
     # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
     nbreDeCoursesDesire = int(nbreCoursesDesire.get())
+    nbreCoursesDesire.configure(values=tuple(range(nbreDeCoursesDesire,21)))
     nbreDeCoursesActuel = len(Courses.keys())
     if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
         # il manque des courses
         for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
             addCourse("numéro " + str(i))
-    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
-        ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
-        nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
-        i = 0
-        for cat in Courses.copy() :
-            i += 1
-            if nbreDeCoursesDesire < i :
-                # on efface la course et le groupement correspondant.
-                delCourse(cat)
-                supprimeCourseDuGroupementEtNettoieGroupements(cat)
+    ### on ne permet pas de supprimer une course violemment pour éviter d'avoir des coureurs dont la course n'existe plus.
+    ### création à venir d'un bouton pour supprimer les courses sans coureur automatiquement.
+##    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
+##        ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
+##        nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
+##        i = 0
+##        for cat in Courses.copy() :
+##            i += 1
+##            if nbreDeCoursesDesire < i :
+##                # on efface la course et le groupement correspondant.
+##                delCourse(cat)
+##                supprimeCourseDuGroupementEtNettoieGroupements(cat)
     # on actualise l'affichage par rapport à cela comme cela se fait dans les autres modes.
     actualiserDistanceDesCourses()
 
@@ -3089,7 +3092,7 @@ class CoureurFrame(Frame) :
         else :
             self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
         self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
-        #self.comboBoxCategorie.bind("<KeyRelease>", self.reactiverBoutons)
+        self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         L = listCategories()
         self.comboBoxCategorie['values'] = L
         try :
@@ -3203,6 +3206,8 @@ class CoureurFrame(Frame) :
             self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
             self.etabC.set(coureur.etablissement)
             self.etabNatureC.set(coureur.etablissementNature)
+            if CoursesManuelles :
+                self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
             
@@ -3315,25 +3320,30 @@ class CoureurFrame(Frame) :
             self.vma = float(self.vmaE.get())
         except :
             self.vma = 0
+        if CoursesManuelles :
+            nomAffiche = self.comboBoxCategorie.get()
+            c = groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nomStandard
+        else :
+            c = ""
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get())
+                           etablissementNature = self.etabNatureC.get(), course=c)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c)
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
             doss = int(self.choixDossardCombo.get())
             if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss)
             else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
-                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss)
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.modif = False
