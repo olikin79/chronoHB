@@ -291,10 +291,10 @@ class Coureur():#persistent.Persistent):
         self.aImprimer = aImprimer
         self.__private_categorie = None
         #self.__private_categorie_manuelle
-        if CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement.
-            self.course = course
-        else :
-            self.actualiseCategorie()
+##        if CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement.
+##            self.course = addCourse(course)
+##        else :
+        self.actualiseCategorie()
     def actualiseCategorie(self) :
         self.categorie(CategorieDAge)
     def categorie(self, CategorieDAge=False):
@@ -3613,10 +3613,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             coureur = Coureurs[dossard-1]
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-            nomStandard = estDansGroupementsEnModeManuel(course)
-            if nomStandard != coureur.course :
-                coureur.setCourse(nomStandard)
-                auMoinsUnChangement = True
+            if CoursesManuelles :
+                nomStandard = estDansGroupementsEnModeManuel(course)
+                if not nomStandard :
+                    nomStandard = addCourse(course)
+                if nomStandard != coureur.course :
+                    coureur.setCourse(nomStandard)
+                    auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
                 coureur.setDispense(dispense)
                 auMoinsUnChangement = True
@@ -3646,10 +3649,10 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 retour = [0,0,0]
         else :
             dossard = len(Coureurs)+1
-            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer, course=course))
+            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")", "Course manuelle:", course)
-            addCourse(Coureurs[-1].course)
+            Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
@@ -3696,38 +3699,38 @@ def estDansGroupementsEnModeManuel(course):
     return retour
 
 def addCourse(course) :
-    ## TOUTE CETTE PARTIE EST REDEVENUE INUTILE CAR LE NOM STANDARD DE LA COURSE EST D2SORMAIS CONTENU DANS LA PROPRIETE COURSE DE L'OBJET COUREUR
-    ## Le fonctionnement de addCourse() redevient indépendant du type de course : manuelle ou automatique. Tout se fait dans l'objet Coureur()
 ##    # si CoursesManuelles, les courses portent le nom "numéro i" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
-##    if CoursesManuelles :
-##        nomStandard = estDansGroupementsEnModeManuel(course)
-##        if not nomStandard :
-##            nomStandard = "numéro " + str(len(Courses.keys())+1)
-##            print("Création de la course manuelle", nomStandard, " avec le nom :", course)
-##            Groupements.append(Groupement(nomStandard,[nomStandard]))
-##            Groupements[-1].setNom(course)
-##            c = Course(nomStandard)
-##            Courses.update({nomStandard : c})
-##    else :
+    if CoursesManuelles :
+        nomStandard = estDansGroupementsEnModeManuel(course)
+        if not nomStandard :
+            nomStandard = "numéro " + str(len(Courses.keys())+1)
+            print("Création de la course manuelle", nomStandard, " avec le nom :", course)
+            Groupements.append(Groupement(nomStandard,[nomStandard]))
+            Groupements[-1].setNom(course)
+            c = Course(nomStandard)
+            Courses.update({nomStandard : c})
+        return nomStandard
+    else :
         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-    estPresent = False
-    for grpment in Groupements :
-        if course in grpment.listeDesCourses :
-            estPresent = True
-            break
-    if not estPresent:
-        print("Création du groupement ", course)
-        Groupements.append(Groupement(course,[course]))
-        #print("Groupements = ",[i.nom for i in Groupements])
-    # création de la course si elle n'existe pas.
-    #print(course, " est dans ", Courses,"?")
-    if course not in Courses :
-        print("Création de la course", course)
-        c = Course(course)
-        Courses.update({course : c})
-    #print("cat",Courses[course].categorie)
+        estPresent = False
+        for grpment in Groupements :
+            if course in grpment.listeDesCourses :
+                estPresent = True
+                break
+        if not estPresent:
+            print("Création du groupement ", course)
+            Groupements.append(Groupement(course,[course]))
+            #print("Groupements = ",[i.nom for i in Groupements])
+        # création de la course si elle n'existe pas.
+        #print(course, " est dans ", Courses,"?")
+        if course not in Courses :
+            print("Création de la course", course)
+            c = Course(course)
+            Courses.update({course : c})
+        return course
+        #print("cat",Courses[course].categorie)
 
 
 
