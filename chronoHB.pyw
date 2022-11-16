@@ -2867,7 +2867,7 @@ def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
         # il manque des courses
         for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
             addCourse("numéro " + str(i))
-    if nbreDeCoursesDesire <  nbreDeCoursesActuel :
+    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
         ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
         nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
         i = 0

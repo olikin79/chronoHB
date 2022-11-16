@@ -6,8 +6,15 @@ Cela permettrait de mieux faire l'appel.
 
 
 Manque pour la branche trail-rieutort :
+- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
+- faire en sorte que le nombre de courses ne puisse pas baisser (dans la combobox, le minimum  serait le nombre actuel de courses)
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
+
+Travail du 15/11/22 : branche trail-rieutort
+- modification de addCoureur dans le cas CoursesManuelles==True pour créer des Courses perosnnalisées si elles n'existent pas. 
+Création d'une fonction qui retourne le nomStandard ("numéro 1", etc... à partir de celui fourni), utile pour actualiser les courses ou
+ les créer si besoin.
 
 
 Travail du 14/11/22 : branche trail-rieutort

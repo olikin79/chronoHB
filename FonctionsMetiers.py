@@ -3663,24 +3663,45 @@ def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etabl
     else :
         print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
 
-def addCourse(categorie) :
-    # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-    estPresent = False
-    for grpment in Groupements :
-        if categorie in grpment.listeDesCourses :
-            estPresent = True
+def estDansGroupementsEnModeManuel(categorie):
+    retour = ""
+    for g in Groupements :
+        if g.nom == categorie :
+            retour = c.nomStandard
             break
-    if not estPresent:
-        print("Création du groupement ", categorie)
-        Groupements.append(Groupement(categorie,[categorie]))
-        #print("Groupements = ",[i.nom for i in Groupements])
-    # création de la course si elle n'existe pas.
-    #print(categorie, " est dans ", Courses,"?")
-    if categorie not in Courses :
-        print("Création de la course", categorie)
-        c = Course(categorie)
-        Courses.update({categorie : c})
-    #print("cat",Courses[categorie].categorie)
+    return retour
+
+def addCourse(categorie) :
+    # si CoursesManuelles, les courses portent le nom "numéro i" comme entrée dans Courses.
+    # on doit trouver si une course existante c a pour propriété c.nom == categorie
+    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
+    if CoursesManuelles :
+        nomStandard = estDansGroupementsEnModeManuel(categorie)
+        if not nomStandard :
+            nomStandard = "numéro " + str(len(Courses.keys()))
+            print("Création de la course manuelle", nomStandard, " avec le nom :", categorie)
+            Groupements.append(Groupement(nomStandard,[nomStandard]))
+            Groupements[-1].setNom(categorie)
+            c = Course(nomStandard)
+            Courses.update({nomStandard : c})
+    else :
+        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+        estPresent = False
+        for grpment in Groupements :
+            if categorie in grpment.listeDesCourses :
+                estPresent = True
+                break
+        if not estPresent:
+            print("Création du groupement ", categorie)
+            Groupements.append(Groupement(categorie,[categorie]))
+            #print("Groupements = ",[i.nom for i in Groupements])
+        # création de la course si elle n'existe pas.
+        #print(categorie, " est dans ", Courses,"?")
+        if categorie not in Courses :
+            print("Création de la course", categorie)
+            c = Course(categorie)
+            Courses.update({categorie : c})
+        #print("cat",Courses[categorie].categorie)
 
 
 
@@ -4972,9 +4993,6 @@ def setParametres() :
     f.close()
 
 def creerCoureur(listePerso, informations) :
-##    if "Bastien" in listePerso :
-##        print("informations", informations)
-##        print("listePerso", listePerso)
     infos = {}
     i = 0
     while i < len(informations):

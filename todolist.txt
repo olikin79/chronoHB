@@ -38,6 +38,7 @@ Créer un affichage qui dépend de la longueur totale à afficher avec retour à
 - changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
 
 
+
 - ULTRA-PEU-PROBABLE (ignoré lors de l'implémentation de l'UNSS) :
 	* si on est en présence d'une course UNSS, qu'il n'y a que des cadets G et des juniors F (ou l'inverse), le challenge Lycée ne sera pas créé.
 Cela ne peut pas survenir vu qu'il y a toujours des cadets, cadettes, juniors et juniores sur une compétition UNSS.
