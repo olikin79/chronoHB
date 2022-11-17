@@ -4264,7 +4264,12 @@ def delCourse(categorie) :
             print("Suppression de la course", categorie, "devenue inutile.")
             Courses.pop(categorie)
             ### ICI, actualisation des groupements en supprimant les groupements qui n'ont que cette course.
-            
+            for g in Groupements :
+                if categorie in g.listeDesCourses :
+                    g.listeDesCourses.remove(categorie)
+                    if not g.listeDesCourses : # si le groupement est vide, on le vire
+                        Groupements.remove(g)
+                    break # une course ne peut être que dans un groupement. Poursuite du parcours inutile.
             ##transaction.commit()
     else :
         print("La course" , categorie, "n'existe pas. NE DEVRAIT PAS SURVENIR.")
