@@ -1,16 +1,9 @@
-A vérifier :
-- ok : les cadets en collège soient en minimes + challenge collège avec un seul cadet
-- ok : COL dans le fichier à la place de CLG . Idem pour LYC à la place de LGT
-
-
+POUR l'UNSS :
+- dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
+Cela permettrait de mieux faire l'appel.
 - le fichier listing devrait être organisé par établissement.
 - le double import du fichier UNSS ne fonctionne toujours pas.
 
-
-Manquent :
-- message à l'arrivée : <prenom>. Félicitations.
-- rentrer les distances.
-- vérifier que les filles juniors-seniors courent séparemment.
 
 
 A faire lundi 12H :
@@ -18,19 +11,14 @@ A faire lundi 12H :
 - remplir les en-têtes : licence, naissance, type, établissement.
 - raccourcir les noms de certains établissements : Lycée Rabelais par exemple.
 - penser à regrouper les juniors-séniors.
-
+- message à l'arrivée : <prenom>. Félicitations.
+- rentrer les distances.
+- vérifier si les filles juniors-seniors courent séparemment ou pas.
 
 
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
-- dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
-Cela permettrait de mieux faire l'appel.
-
-
-Pour le 23/11 :
-retester si les minimes en avance en lycée sont bien en cadets et si les cadets en retard sont bien en minimes !
-commentaires dans la Coureur.categorie(..) inquiétants. Fait ailleurs ?
 
 
 
@@ -39,7 +27,7 @@ Manque pour la branche trail-rieutort :
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
-
+-------------------------------------------------------------
 
 Travail du 17/11/22 :
 - correctif message incorrect lors d'un deuxième import stritement identique au précédent... Indiquait une erreur alors qu'il n'y en a pas.
