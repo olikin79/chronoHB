@@ -3,7 +3,7 @@ POUR l'UNSS :
 Cela permettrait de mieux faire l'appel.
 - le fichier listing devrait être organisé par établissement.
 - le double import du fichier UNSS ne fonctionne toujours pas.
-
+- la validation du menu de création de coureur n'exige pas l'établissement alors que c'est obligatoire pour l'UNSS.
 
 
 A faire lundi 12H :
