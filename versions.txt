@@ -11,14 +11,14 @@ commentaires dans la Coureur.categorie(..) inquiétants. Fait ailleurs ?
 
 
 Manque pour la branche trail-rieutort :
-- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
 
 
 Travail du 17/11/22 :
 - correctif message incorrect lors d'un deuxième import stritement identique au précédent... Indiquait une erreur alors qu'il n'y en a pas.
+- création d'une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), 
+actionnée par un bouton dédié en utilisant delCourse().
 
 
 Travail du 15/11/22 : branche trail-rieutort

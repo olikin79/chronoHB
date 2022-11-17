@@ -4238,6 +4238,22 @@ def delCourses():
 ##    else :
 ##        print("Courses commencées : impossible de supprimer les courses en cours.")
 
+def nettoieCoursesManuelles():
+    """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants"""
+    L = []
+    for c in Coureurs :
+        if not c.course in L :
+            L.append(c.course)
+    aSupprimer = []
+    for course in Courses :
+        if not course.categorie in L :
+            ## la course ne contient aucun inscrit.
+            aSupprimer.append(course.categorie)
+    for cat in ASupprimer :
+        delCourse(cat)
+            
+
+    
 def delCourse(categorie) :
     if categorie in Courses :
         c = Courses[categorie]
