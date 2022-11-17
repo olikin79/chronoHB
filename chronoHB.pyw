@@ -1495,7 +1495,7 @@ class AbsDispFrame(Frame) :
         else :
             self.tupleClasses = tuple(listClasses())
         self.listeCoureursDeLaClasse = []
-        self.choixClasseCombo = Combobox(self.parent, width=15, justify="center", state='readonly')
+        self.choixClasseCombo = Combobox(self.parent, width=45, justify="center", state='readonly')
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
         self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
@@ -1504,7 +1504,9 @@ class AbsDispFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        if Parametres["CategorieDAge"] :
+        if Parametres["CategorieDAge"] == 2 :
+            self.tupleClasses = tuple(listEtablissements())
+        elif Parametres["CategorieDAge"] == 1 :
             self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
@@ -1521,22 +1523,27 @@ class AbsDispFrame(Frame) :
     def actualiseAffichage(self) :
         if self.tupleClasses :
             self.choixClasseCombo.pack(side=TOP)
-            if Parametres["CategorieDAge"] :
+            if Parametres["CategorieDAge"] == 2 :
+                cat = "établissement"
+            elif Parametres["CategorieDAge"] ==1 :
                 cat = "catégorie"
             else :
                 cat = "classe"
-            self.TopDepartLabel.configure(text="Absents et dispensés par " + cat + " : sélectionner une classe dans le menu déroulant. Compléter les absents ou dispensés (enregistrement automatique).")
+            self.TopDepartLabel.configure(text="Absents et dispensés par " + cat + " : utiliser le menu déroulant. \
+Compléter les absents ou dispensés (enregistrement automatique).")
             self.comboBoxBarClasse.pack(side=TOP, expand=0)#fill=X)
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            if Parametres["CategorieDAge"] :
+            if Parametres["CategorieDAge"] == 2 :
+                self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
+            elif Parametres["CategorieDAge"] == 1 :
                 self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
             self.choixClasseCombo.forget()
-            self.TopDepartLabel.configure(text="Il n'y a aucune classe ou catégorie à afficher. Importer d'abord des données.")
+            self.TopDepartLabel.configure(text="Il n'y a aucun coureur à afficher. Importer d'abord des données.")
             self.comboBoxBarClasse.forget()
         #print(self.listeCoureursDeLaClasse[0])
 ##        self.listeAffichee = []

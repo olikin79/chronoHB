@@ -1552,6 +1552,15 @@ def listCourses():
     return retour
     ##transaction.commit()
 
+def listEtablissements():
+    retour = []
+    if len(Coureurs)!=0:
+        for coureur in Coureurs :
+            if coureur.etablissement not in retour :
+                retour.append(coureur.etablissement)
+        retour.sort()
+    return retour
+
 def listCategories():
     retour = []
     if len(Coureurs)!=0:
@@ -1607,6 +1616,13 @@ def listCoureursDUneCategorie(categorie):
     retour = []
     for coureur in Coureurs :
         if coureur.categorie(CategorieDAge) == categorie :
+            retour.append(coureur)
+    return retour
+
+def listCoureursDUnEtablissement(etablissement):
+    retour = []
+    for coureur in Coureurs :
+        if coureur.etablissement == etablissement :
             retour.append(coureur)
     return retour
 

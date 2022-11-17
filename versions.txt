@@ -1,6 +1,5 @@
 POUR l'UNSS :
-- dans class AbsDispFrame() lister les coureurs par établissement au lieu de catégories. 
-Cela permettrait de mieux faire l'appel.
+
 
 - le double import du fichier UNSS ne fonctionne toujours pas.
 - la validation du menu de création de coureur n'exige pas l'établissement alors que c'est obligatoire pour l'UNSS.
@@ -8,6 +7,7 @@ Cela permettrait de mieux faire l'appel.
 
 A faire lundi 12H :
 - =STXT(E2;2;2) pour créer la colonne sexe puis faire un copier-coller valeurs de la colonne sexe...
+- trier par ordre alphabétique de nom-prénom => cela triera le listing, l'affichage de l'appel, etc...
 - remplir les en-têtes : licence, naissance, type, établissement.
 - raccourcir les noms de certains établissements : Lycée Rabelais par exemple.
 - penser à regrouper les juniors-séniors.
@@ -19,6 +19,9 @@ A faire lundi 12H :
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
+- trier par ordre alphabétique les listes fournies par listCategories(), listClasses(), listEtablissements(), 
+listCoureursDUnEtablissement(), listCoureursDUneCategorie(), listCoureursDUneClasse().
+Actuellement, les retours sont triés par dossard, en fonction de l'import.
 
 
 
@@ -33,6 +36,7 @@ Travail du 17/11/22 :
 - correctif message incorrect lors d'un deuxième import stritement identique au précédent... Indiquait une erreur alors qu'il n'y en a pas.
 - correctifs divers pour l'import UNSS correct.
 - le fichier listing est organisé par établissement et utilise longtable à la place de tabular.
+- dans menu AbsDispFrame() on liste les coureurs par établissement. Cela permet de mieux faire l'appel.
 
 
 Travail du 15/11/22 : branche trail-rieutort
