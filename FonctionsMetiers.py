@@ -311,10 +311,10 @@ class Coureur():#persistent.Persistent):
                              ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                              ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
                             cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-                            # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                                # cat = "MI"
-                            # elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                                # cat = "CA"
+                            if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                                cat = "MI"
+                            elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                                cat = "CA"
                             self.__private_categorie = cat + "-" + self.sexe
                         else: ## catégories FFA
                             #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -2927,7 +2927,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
             nbreDeFillesNecessairesParEquipe = 0
             nbreDeGarsNecessairesParEquipe = 0
             nbreMaxdUnSexe = 5
-            categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+            categoriesLimitees = []# [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
         else :
             nbreDeFillesNecessairesParEquipe = 2
             nbreDeGarsNecessairesParEquipe = 2
@@ -3560,7 +3560,8 @@ def coureurExists(Coureurs, nom, prenom) :
     return retour
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
-    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LGT" or etablissementNature.upper() == "LP"
+    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "COL"\
+                                 or etablissementNature.upper() == "LYC" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and naissanceValide(naissance)) \
@@ -5002,6 +5003,10 @@ def creerCoureur(listePerso, informations) :
                 nature = supprLF(infos["type"])
             except :
                 nature = ""
+    if nature == "COL" :
+        nature = "CLG"
+    elif nature == "LYC" :
+        nature = "LG"
     if "vma" in informations :
         try :
             vma = float(infos["vma"].replace(",",".")) # on assure le coup si les VMA sont à virgule.
