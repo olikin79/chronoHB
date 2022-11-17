@@ -3585,6 +3585,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             coureur = Coureurs[dossard-1]
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+            if coureur.sexe != sexe :
+                Coureurs[dossard-1].setSexe(sexe)
+                auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
                 Coureurs[dossard-1].setDispense(dispense)
                 auMoinsUnChangement = True
