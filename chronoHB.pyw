@@ -2500,36 +2500,40 @@ Cela peut figer momentanément l'interface...")
 ##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
 ##            mon_threadter.join()
             ### bilan des données importées
-            chaineBilan = ""
-            if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
-                chaineBilan += "\nBilan :\n"
-                if BilanCreationModifErreur[0] :
-                    chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
-                if BilanCreationModifErreur[1] :
-                    chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
-                if BilanCreationModifErreur[2] :
-                    chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
-                chaineBilan += "\n"
+            if not BilanCreationModifErreur[0] and not BilanCreationModifErreur[1] and not BilanCreationModifErreur[2] : # les trois sont nuls. Même fichier.
+                reponse = showinfo("PAS D'IMPORT DE DONNEES","Le fichier "+nomFichier +" ne semble contenir aucun changement par rapport \
+au(x) précédent(s) import(s).")
             else :
-                retourImport = False # rien n'a été trouvé dans le fichier, Signaler l'erreur.
-            if retourImport :
-                actualiseToutLAffichage()
-                reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
-chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
-Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
-            else :
-                reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
-chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
-Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
-D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
-et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
-Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
-'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
-et 'VMA' (pour la VMA en km/h). \
-L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
-            #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
-            if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
-                os.startfile(filePath)
+                chaineBilan = ""
+                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
+                    chaineBilan += "\nBilan :\n"
+                    if BilanCreationModifErreur[0] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+                    if BilanCreationModifErreur[1] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+                    if BilanCreationModifErreur[2] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
+                    chaineBilan += "\n"
+                else :
+                    retourImport = False # Que des erreurs dans le fichier, le signaler.
+                if retourImport :
+                    actualiseToutLAffichage()
+                    reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
+    chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
+    Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
+                else :
+                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+    chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
+    Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
+    D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
+    et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
+    Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
+    'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
+    et 'VMA' (pour la VMA en km/h). \
+    L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
+                #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
+                if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
+                    os.startfile(filePath)
                 
 
 def actualiseToutLAffichage() :
