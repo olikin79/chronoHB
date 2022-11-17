@@ -1,3 +1,26 @@
+A vérifier :
+- ok : les cadets en collège soient en minimes + challenge collège avec un seul cadet
+- ok : COL dans le fichier à la place de CLG . Idem pour LYC à la place de LGT
+
+
+- le fichier listing devrait être organisé par établissement.
+- le double import du fichier UNSS ne fonctionne toujours pas.
+
+
+Manquent :
+- message à l'arrivée : <prenom>. Félicitations.
+- rentrer les distances.
+- vérifier que les filles juniors-seniors courent séparemment.
+
+
+A faire lundi 12H :
+- =STXT(E2;2;2) pour créer la colonne sexe puis faire un copier-coller valeurs de la colonne sexe...
+- remplir les en-têtes : licence, naissance, type, établissement.
+- raccourcir les noms de certains établissements : Lycée Rabelais par exemple.
+- penser à regrouper les juniors-séniors.
+
+
+
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
