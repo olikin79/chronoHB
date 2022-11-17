@@ -2051,9 +2051,11 @@ def generateDossard(coureur) :
     return fichierAOuvrir
 
 def alimenteListingPourClasse(nomClasse, file):
-    if Parametres["CategorieDAge"] :
+    if Parametres["CategorieDAge"] == 2 : # UNSS
+        denomination = "Etablissement"
+    elif Parametres["CategorieDAge"] == 1 : # catégories FFA
         denomination = "Catégorie"
-    else :
+    else : # cross du collège
         denomination = "Classe"
     debutTab = """{}\\hfill {}
 %\\fcolorbox{black}{gray!30}{
@@ -2068,7 +2070,7 @@ def alimenteListingPourClasse(nomClasse, file):
 
 \smallskip
 
-\\begin{tabular}{| p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth}|}
+\\begin{longtable}{| p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth}|}
 \\hline
 """
     file.write(debutTab)
@@ -2082,7 +2084,7 @@ def alimenteListingPourClasse(nomClasse, file):
             listeDeQuatreCoureursMax = CoureursParClasse[nomClasse][imin:imax]
         file.write(alimenteLignePourListingClasse(listeDeQuatreCoureursMax))
         ligne += 1
-    file.write("\n\\end{tabular}\n\n")
+    file.write("\n\\end{longtable}\n\n")
 
 def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
     retour = ""
@@ -2126,12 +2128,17 @@ CoureursParClasse = {}
 def CoureursParClasseUpdate():
     global CoureursParClasse
     CoureursParClasse.clear()
-    if CategorieDAge :
+    if CategorieDAge == 2 : # cas UNSS
+        for c in Coureurs :
+            if not c.etablissement in CoureursParClasse.keys() :
+                CoureursParClasse[c.etablissement]=[]
+            CoureursParClasse[c.etablissement].append(c)
+    elif CategorieDAge == 1 : # cas catégories d'age
         for c in Coureurs :
             if not c.categorie(True) in CoureursParClasse.keys() :
                 CoureursParClasse[c.categorie(True)]=[]
             CoureursParClasse[c.categorie(True)].append(c)
-    else :
+    else : # cas cross de collège
         for c in Coureurs :
             if not c.classe in CoureursParClasse.keys() :
                 CoureursParClasse[c.classe]=[]
