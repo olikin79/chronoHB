@@ -1,8 +1,3 @@
-POUR l'UNSS :
-- la validation du menu de création de coureur n'exige pas l'établissement alors que c'est obligatoire pour l'UNSS.
-Au pire, le coureur n'est pas créé, si on omet l'établissement. Les fonctions métiers qui tournent derrière fonctionnent.
-
-
 A faire lundi 12H :
 - =STXT(E2;2;2) pour créer la colonne sexe puis faire un copier-coller valeurs de la colonne sexe...
 - trier par ordre alphabétique de nom-prénom => cela triera le listing, l'affichage de l'appel, etc...
@@ -17,10 +12,6 @@ A faire lundi 12H :
 Manquent :
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
-- trier par ordre alphabétique les listes fournies par listCategories(), listClasses(), listEtablissements(), 
-listCoureursDUnEtablissement(), listCoureursDUneCategorie(), listCoureursDUneClasse().
-Actuellement, les retours sont triés par dossard, en fonction de l'import.
-
 
 
 Manque pour la branche trail-rieutort :
@@ -30,11 +21,16 @@ utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les gr
 
 -------------------------------------------------------------
 
+
 Travail du 17/11/22 :
 - correctif message incorrect lors d'un deuxième import stritement identique au précédent... Indiquait une erreur alors qu'il n'y en a pas.
 - correctifs divers pour l'import UNSS correct.
 - le fichier listing est organisé par établissement et utilise longtable à la place de tabular.
 - dans menu AbsDispFrame() on liste les coureurs par établissement. Cela permet de mieux faire l'appel.
+- la validation du menu de création de coureur n'exigeait pas l'établissement alors que c'est obligatoire pour l'UNSS.
+- trier par ordre alphabétique les listes fournies par listCoureursDUnEtablissement(), listCoureursDUneCategorie(), listCoureursDUneClasse(), listCoureursDUneCourse().
+Avant, les retours étaient triés par dossard, en fonction de l'import.
+- dans l'impression individuelle de dossards, dans le cas UNSS, sélection par établissement au lieu des catégories.
 
 
 Travail du 15/11/22 : branche trail-rieutort
