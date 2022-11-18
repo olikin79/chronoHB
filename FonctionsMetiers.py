@@ -3661,6 +3661,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
+                Coureurs[dossard-1].actualiseCategorie()
                 addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
                 print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
                 retour = [0,1,0]
