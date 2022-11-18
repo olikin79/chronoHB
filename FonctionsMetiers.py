@@ -1610,21 +1610,21 @@ def listCoureursDUneClasse(classe):
         for coureur in Coureurs :
             if coureur.classe == classe :
                 retour.append(coureur)
-    return retour
+    return triParNomPrenomCoureurs(retour)
 
 def listCoureursDUneCategorie(categorie):
     retour = []
     for coureur in Coureurs :
         if coureur.categorie(CategorieDAge) == categorie :
             retour.append(coureur)
-    return retour
+    return triParNomPrenomCoureurs(retour)
 
 def listCoureursDUnEtablissement(etablissement):
     retour = []
     for coureur in Coureurs :
         if coureur.etablissement == etablissement :
             retour.append(coureur)
-    return retour
+    return triParNomPrenomCoureurs(retour)
 
 def listCoureursDUneCourse(course):
     retour = []
@@ -1632,7 +1632,7 @@ def listCoureursDUneCourse(course):
         for coureur in Coureurs :
             if coureur.categorie() == course :
                 retour.append(coureur)
-    return retour
+    return triParNomPrenomCoureurs(retour)
 
 def listChallenges():
     ''' Un challenge existe uniquement pour les CategorieDAge==0 (cross du collège) ou 2 (UNSS) et si l'on trouve une course dont le nom standard est identique en G et en F'''
@@ -3261,6 +3261,13 @@ def estUneClasse(nom):
     """ Comme le nom des classes est libre, estUneClasse est vraie si n'est pas une course ou un groupement ET n'est pas un challenge (1 caractère)"""
     return len(nom) > 1 and (not estUneCourseOuUnGroupement(nom))
 
+def estSuperieurNPC(d1, d2):
+    if d1.nom == d2.nom :
+        # si les noms sont égaux, on compare les prénoms
+        return d1.prenom > d2.prenom
+    else :
+        return d1.nom > d2.nom
+
 def estSuperieurNP(d1, d2):
     if Coureurs[d1-1].nom == Coureurs[d2-1].nom :
         # si les noms sont égaux, on compare les prénoms
@@ -3305,6 +3312,9 @@ def estSuperieurSUNSS(E1, E2):
     else :
         return Coureurs[E1-1].scoreUNSS > Coureurs[E2-1].scoreUNSS
 
+def triParNomPrenomCoureurs(listeDeCoureurs):
+    return trifusionNPC(listeDeCoureurs)
+
 def triParNomPrenom(listeDeDossard):
     return trifusionNP(listeDeDossard)
 
@@ -3335,6 +3345,12 @@ def trifusionNP(T) :
     T2=[T[x] for x in range(len(T)//2,len(T))]
     return fusionNP(trifusionNP(T1),trifusionNP(T2))
 
+def trifusionNPC(T) :
+    if len(T)<=1 : return T
+    T1=[T[x] for x in range(len(T)//2)]
+    T2=[T[x] for x in range(len(T)//2,len(T))]
+    return fusionNPC(trifusionNPC(T1),trifusionNPC(T2))
+
 def trifusion(T) :
     if len(T)<=1 : return T
     T1=[T[x] for x in range(len(T)//2)]
@@ -3364,6 +3380,14 @@ def fusionNP(T1,T2) :
         return [T1[0]]+fusionNP(T1[1 :],T2)
     else :
         return [T2[0]]+fusionNP(T1,T2[1 :])
+
+def fusionNPC(T1,T2) :
+    if T1==[] :return T2
+    if T2==[] :return T1
+    if estSuperieurNPC(T2[0], T1[0]) :
+        return [T1[0]]+fusionNPC(T1[1 :],T2)
+    else :
+        return [T2[0]]+fusionNPC(T1,T2[1 :])
 
 def fusion(T1,T2) :
     if T1==[] :return T2
