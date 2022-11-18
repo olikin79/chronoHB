@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.6"
+version="1.61"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -3110,7 +3110,7 @@ class CoureurFrame(Frame) :
         resultat = ""
         s = self.sexeC.get()
         nature = self.etabNatureC.get()
-        print("nature",nature)
+        #print("nature",nature)
         if s ==  "G" or s == "F" and nature :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
@@ -3221,7 +3221,11 @@ class CoureurFrame(Frame) :
     def reactiverBoutons(self,event) :
         self.modif = True
         self.activerBoutons(event)
-        
+
+    def etablissementEstValide(self) : # retoune True si ce n'est pas un cross UNSS,
+        # retourne True si l'établissement et son type st remplis pour le cross UNSS : champ vide retourne False
+        return CategorieDAge != 2 or (len(self.etabC.get())>= 1 and len(self.etabNatureC.get())>= 1)
+    
     def activerBoutons(self,event) :
         """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
@@ -3232,11 +3236,14 @@ class CoureurFrame(Frame) :
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
                 ## on autorise la validation uniquement si la catégorie est correcte et si le nom et le prénom sont saisis
-                if self.nomE.get() and self.prenomE.get() :
+                if self.nomE.get() and self.prenomE.get() and self.etablissementEstValide() :
                     self.coureurBannul.pack(side=LEFT)
                     self.coureurBoksuivant.pack(side=LEFT)
+                else :
+                    self.coureurBannul.forget()
+                    self.coureurBoksuivant.forget()
             else :
-                if self.modif :
+                if self.modif and self.etablissementEstValide() :
                     self.coureurBannul.pack(side=LEFT)
                     self.coureurBoksuivant.pack(side=LEFT)
                 else :

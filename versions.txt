@@ -1,8 +1,6 @@
 POUR l'UNSS :
-
-
-- le double import du fichier UNSS ne fonctionne toujours pas.
 - la validation du menu de création de coureur n'exige pas l'établissement alors que c'est obligatoire pour l'UNSS.
+Au pire, le coureur n'est pas créé, si on omet l'établissement. Les fonctions métiers qui tournent derrière fonctionnent.
 
 
 A faire lundi 12H :
