@@ -356,7 +356,7 @@ class Coureur():#persistent.Persistent):
     def setEtablissement(self,etab, nature):
         self.etablissement = etab
         self.etablissementNature = "CLG"
-        if nature == "LGT" or nature == "LP" :
+        if nature == "LG" or nature == "LP" :
             self.etablissementNature = nature
     def setDossard(self, dossard) :
         try :
@@ -2932,6 +2932,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
+    #print("nom cat-etab",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
     nbreDeCoureursNecessairesParEquipe = 5
     tousLesGars = []
     toutesLesFilles = []
@@ -3013,7 +3014,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
                 # l'équipe en cours, qui restera donc incomplète.
                  break
 
-            # print(coureurSelectionne.nom, "sélectionné alors que unCoureurCategorieLimiteDejaSelectionne = ",unCoureurCategorieLimiteDejaSelectionne) 
+             #print(coureurSelectionne.nom, "sélectionné alors que unCoureurCategorieLimiteDejaSelectionne = ",unCoureurCategorieLimiteDejaSelectionne) 
             ## ETAPE AVANT DE BOUCLER (le coureurSelectionne à ce stade est différent de None.
             # le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
              #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
@@ -3204,6 +3205,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
+        #print(keyList)
         for nom in keyList :
             Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
@@ -3607,8 +3609,7 @@ def coureurExists(Coureurs, nom, prenom) :
     return retour
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
-    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "COL"\
-                                 or etablissementNature.upper() == "LYC" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
+    etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and naissanceValide(naissance)) \
@@ -3618,9 +3619,10 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 1 - cas de courses organisées en fonction des catégories de la FFA
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
-def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
+def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
     try :
-        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
+        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA,etablissement, etablissementNature)
         vma = float(VMA)
     except :
         vma = "0"
@@ -5035,27 +5037,37 @@ def creerCoureur(listePerso, informations) :
             clas = supprLF(infos["classe"])
         except :
             clas = ""
-    if "naissance" in informations :
+    if "naissance" in informations or "Date naiss." in informations :
         try :
             naiss = supprLF(infos["naissance"])
         except :
-            naiss = ""
-    if "établissement" in informations :
+            try :
+                naiss = supprLF(infos["Date naiss."])
+            except :
+                naiss = ""
+    if "établissement" in informations or "Nom étab." in informations :
         try :
             etab = supprLF(infos["établissement"])
         except :
-            etab = ""
-    if "établissementtype" in informations or "type" in informations:
+            try :
+                etab = supprLF(infos["Nom étab."])
+            except :
+                etab = ""
+    if "établissementtype" in informations or "type" in informations or "Type étab." in informations :
         try :
             nature = supprLF(infos["établissementtype"])
         except :
             try :
                 nature = supprLF(infos["type"])
             except :
-                nature = ""
+                try :
+                    nature = supprLF(infos["Type étab."])
+                except :
+                    nature = ""
+    #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
     if nature == "COL" :
         nature = "CLG"
-    elif nature == "LYC" :
+    if nature == "LYC" :
         nature = "LG"
     if "vma" in informations :
         try :
@@ -5068,7 +5080,9 @@ def creerCoureur(listePerso, informations) :
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp, commentaireArrivee=supprLF(comment), VMA=vma)
+        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
+                                               naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
+                                               commentaireArrivee=supprLF(comment), VMA=vma)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         retourCreationModifErreur = [0,0,0]
