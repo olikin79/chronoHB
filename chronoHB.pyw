@@ -1444,7 +1444,7 @@ class DossardsFrame(Frame) :
         self.parent = parent
         self.tupleClasses = tuple(listClasses())
         self.listeCoureursDeLaClasse = []
-        self.choixClasseCombo = Combobox(self.parent, width=15, justify="center")
+        self.choixClasseCombo = Combobox(self.parent, width=45, justify="center")
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
         self.comboBoxBarClasse = Buttonbar(self.parent, vertical=True)
@@ -1453,7 +1453,9 @@ class DossardsFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        if CategorieDAge :
+        if CategorieDAge == 2 :
+            self.tupleClasses = tuple(listEtablissements())
+        elif CategorieDAge == 1 :
             self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
@@ -1470,7 +1472,9 @@ class DossardsFrame(Frame) :
             self.comboBoxBarClasse.pack(side=TOP, expand=YES) # fill=X, 
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            if CategorieDAge :
+            if CategorieDAge == 2 :
+                self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
+            elif CategorieDAge == 1 :
                 self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
