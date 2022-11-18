@@ -296,6 +296,7 @@ class Coureur():#persistent.Persistent):
 ##        else :
         self.actualiseCategorie()
     def actualiseCategorie(self) :
+        self.__private_categorie = None
         self.categorie(CategorieDAge)
     def categorie(self, CategorieDAge=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
