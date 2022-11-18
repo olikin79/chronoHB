@@ -3669,7 +3669,7 @@ def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etabl
         Coureurs[dossard-1].setClasse(classe)
         Coureurs[dossard-1].setVMA(vma)
         Coureurs[dossard-1].setNaissance(naissance)
-        Coureurs[dossard-1].setEtablissement(etablissement,etablisemmentNature)
+        Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
         addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
     else :
         print("Il manque un paramètre obligatoire (valide) pour modifier le dossard", dossard,". nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
