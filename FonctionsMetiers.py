@@ -846,7 +846,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -973,6 +973,9 @@ def chargerDonnees() :
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
     listeAffichageTV=Parametres["listeAffichageTV"]
+    if not "CoursesManuelles" in Parametres :
+        Parametres["CoursesManuelles"] = False
+    CoursesManuelles=Parametres["CoursesManuelles"]
     ##transaction.commit()
     return globals()
 
@@ -3142,7 +3145,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 #print(Resultats)
             #else :
             #    print("Dossard au temps négatif ignoré", doss)
-    #print("Resultats",Resultats)
+    print("Resultats",Resultats)
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     ## ETAPE 2 : on alimente ResultatsGroupements, on affecte les rangs aux coureurs en fonction de leur rang d'arrivée dans le Groupement.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
@@ -3207,7 +3210,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
-        #print(keyList)
+        print(keyList)
         for nom in keyList :
             Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
