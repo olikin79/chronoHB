@@ -292,39 +292,41 @@ class Coureur():#persistent.Persistent):
         self.categorieAuto = True
         self.__private_categorie = None
         self.__private_categorie_manuelle = None
+    def actualiseCategorie(self) :
+        self.__private_categorie = None
+        self.categorie(CategorieDAge)
     def categorie(self, CategorieDAge=False):
-        try :
-            self.categorieAuto
-        except :
-            self.categorieAuto = True
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
+            self.course
         except:
             self.etablissement = ""
             self.etablissementNature = ""
-        if self.categorieAuto :
-            if self.__private_categorie == None :
-                if CategorieDAge :
-                    if len(self.naissance) != 0 :
-                        anneeNaissance = self.naissance[6:]
-                        if CategorieDAge == 2 : ## UNSS
-                             ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
-                             ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
-                            cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-                            if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                                cat = "MI"
-                            elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                                cat = "CA"
-                            self.__private_categorie = cat + "-" + self.sexe
-                        else: ## catégories FFA
-                            #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
-                            self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
-                else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
-                    if len(self.classe) != 0 :
-                        self.__private_categorie = self.classe[0] + "-" + self.sexe
-            return self.__private_categorie
-        else :
-            return self.__private_categorie_manuelle
+        #if not Parametres["CoursesManuelles"] :
+        if self.__private_categorie == None :
+            if CategorieDAge > 0 :
+                if len(self.naissance) != 0 :
+                    anneeNaissance = self.naissance[6:]
+                    if CategorieDAge == 2 : ## UNSS
+                         ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
+                         ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
+                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
+##                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+##                            cat = "MI"
+##                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+##                            cat = "CA"
+                        self.__private_categorie = cat + "-" + self.sexe
+                    else: ## catégories FFA
+                        #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
+                        self.__private_categorie = categorieAthletisme(anneeNaissance) + "-" + self.sexe
+            else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
+                if len(self.classe) != 0 :
+                    self.__private_categorie = self.classe[0] + "-" + self.sexe
+        if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+            self.course = self.categorie(CategorieDAge)
+        return self.__private_categorie
+        #else :
+        #    return self.__private_categorie_manuelle
     def categorieSansSexe(self) :
         return self.categorie(Parametres["CategorieDAge"])[:2]
     def categorieFFA(self) :
