@@ -294,7 +294,7 @@ class Coureur():#persistent.Persistent):
         self.__private_categorie_manuelle = None
     def actualiseCategorie(self) :
         self.__private_categorie = None
-        self.categorie(CategorieDAge)
+        return self.categorie(CategorieDAge)
     def categorie(self, CategorieDAge=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
@@ -311,10 +311,10 @@ class Coureur():#persistent.Persistent):
                          ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                          ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
                         cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-##                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-##                            cat = "MI"
-##                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-##                            cat = "CA"
+                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                            cat = "MI"
+                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                            cat = "CA"
                         self.__private_categorie = cat + "-" + self.sexe
                     else: ## catégories FFA
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -322,8 +322,8 @@ class Coureur():#persistent.Persistent):
             else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
-        if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
-            self.course = self.categorie(CategorieDAge)
+        #if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+        #    self.course = self.categorie(CategorieDAge)
         return self.__private_categorie
         #else :
         #    return self.__private_categorie_manuelle
@@ -3145,7 +3145,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 #print(Resultats)
             #else :
             #    print("Dossard au temps négatif ignoré", doss)
-    print("Resultats",Resultats)
+    #print("Resultats",Resultats)
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     ## ETAPE 2 : on alimente ResultatsGroupements, on affecte les rangs aux coureurs en fonction de leur rang d'arrivée dans le Groupement.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
@@ -3210,7 +3210,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
-        print(keyList)
+        #print(keyList)
         for nom in keyList :
             Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
@@ -3664,8 +3664,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
-                Coureurs[dossard-1].actualiseCategorie()
-                addCourse(Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]))
+                addCourse(Coureurs[dossard-1].actualiseCategorie())
                 print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
                 retour = [0,1,0]
             else :
