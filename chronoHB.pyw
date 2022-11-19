@@ -3147,6 +3147,7 @@ class CoureurFrame(Frame) :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = int(self.choixDossardCombo.get())
             coureur = Coureurs[doss-1]
+            #print(coureur.nom, "établissement",coureur.etablissement)
             self.nomE.insert(0, coureur.nom)
             self.prenomE.insert(0, coureur.prenom)
             if Parametres['CategorieDAge'] :

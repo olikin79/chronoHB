@@ -298,7 +298,6 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
-            self.course
         except:
             self.etablissement = ""
             self.etablissementNature = ""
@@ -324,6 +323,7 @@ class Coureur():#persistent.Persistent):
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
         #if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
         #    self.course = self.categorie(CategorieDAge)
+        #print(self.nom, "catégorie",self.__private_categorie)
         return self.__private_categorie
         #else :
         #    return self.__private_categorie_manuelle
@@ -356,6 +356,7 @@ class Coureur():#persistent.Persistent):
     def setCategorieAuto(self):
         self.categorieAuto = True
     def setEtablissement(self,etab, nature):
+        print("on fixe l'établissement pour", self.nom, ":",etab)
         self.etablissement = etab
         self.etablissementNature = "CLG"
         if nature == "LG" or nature == "LP" :
@@ -3640,31 +3641,32 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if coureur.sexe != sexe :
-                Coureurs[dossard-1].setSexe(sexe)
+                coureur.setSexe(sexe)
                 auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
-                Coureurs[dossard-1].setDispense(dispense)
+                coureur.setDispense(dispense)
                 auMoinsUnChangement = True
             if absent != None and coureur.absent != absent :
-                Coureurs[dossard-1].setAbsent(absent)
+                coureur.setAbsent(absent)
                 auMoinsUnChangement = True
             if coureur.commentaireArrivee != commentaireArrivee :
-                Coureurs[dossard-1].setCommentaire(commentaireArrivee)
+                coureur.setCommentaire(commentaireArrivee)
                 auMoinsUnChangement = True
             if coureur.classe != classe :
-                Coureurs[dossard-1].setClasse(classe)
+                coureur.setClasse(classe)
                 auMoinsUnChangement = True
             if coureur.VMA != vma :
-                Coureurs[dossard-1].setVMA(vma)
+                coureur.setVMA(vma)
                 auMoinsUnChangement = True
             if coureur.naissance != naissance :
-                Coureurs[dossard-1].setNaissance(naissance)
+                coureur.setNaissance(naissance)
                 auMoinsUnChangement = True
             if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
-                Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
+                #print(coureur.nom,"actualisé avec établissement initial",coureur.etablissement,"remplacé par",etablissement)
+                coureur.setEtablissement(etablissement,etablissementNature)
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
-                addCourse(Coureurs[dossard-1].actualiseCategorie())
+                addCourse(coureur.actualiseCategorie())
                 print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
                 retour = [0,1,0]
             else :
@@ -3677,7 +3679,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
             retour = [1,0,0]
     else :
-        print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
+        print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom, " ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
         retour = [0,0,1]
     return retour
 ##    except :
