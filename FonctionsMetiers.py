@@ -290,6 +290,7 @@ class Coureur():#persistent.Persistent):
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
         self.__private_categorie = None
+        self.actualiseCategorie()
         #self.__private_categorie_manuelle
 ##        if CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement.
 ##            self.course = addCourse(course)
@@ -301,7 +302,6 @@ class Coureur():#persistent.Persistent):
     def categorie(self, CategorieDAge=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
-            self.course
         except:
             self.etablissement = ""
             self.etablissementNature = ""
@@ -326,7 +326,7 @@ class Coureur():#persistent.Persistent):
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
         if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
-            self.course = self.categorie(CategorieDAge)
+            self.course = self.__private_categorie
         return self.__private_categorie
         #else :
         #    return self.__private_categorie_manuelle
@@ -4240,18 +4240,32 @@ def delCourses():
 ##        print("Courses commencées : impossible de supprimer les courses en cours.")
 
 def nettoieCoursesManuelles():
-    """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants"""
+    global Courses
+    """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
     L = []
     for c in Coureurs :
         if not c.course in L :
             L.append(c.course)
     aSupprimer = []
     for course in Courses :
-        if not course.categorie in L :
+        if not Courses[course].categorie in L :
             ## la course ne contient aucun inscrit.
-            aSupprimer.append(course.categorie)
-    for cat in ASupprimer :
+            aSupprimer.append(Courses[course].categorie)
+    for cat in aSupprimer :
         delCourse(cat)
+        print("Suppression de la course vide",cat)
+    # réindexation numéro 1, etc...
+    print(Courses)
+    print(Groupements)
+    i = 1
+    tmp = {}
+    for nom in Courses :
+        nouveauNom = "numéro " + str(i)
+        tmp[nouveauNom] = Courses[nom]
+        i+=1
+    # nettoyage
+    Courses = tmp
+        
             
 
     
