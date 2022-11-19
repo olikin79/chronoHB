@@ -265,7 +265,7 @@ def naissanceValide(naissance) :
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000):
+                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course=""):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -290,6 +290,8 @@ class Coureur():#persistent.Persistent):
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
         self.categorieAuto = True
+        self.course = course
+        self.categorie(CategorieDAge)
         self.__private_categorie = None
         self.__private_categorie_manuelle = None
     def actualiseCategorie(self) :
@@ -321,8 +323,8 @@ class Coureur():#persistent.Persistent):
             else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
-        #if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
-        #    self.course = self.categorie(CategorieDAge)
+        if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+            self.course = self.__private_categorie
         #print(self.nom, "catégorie",self.__private_categorie)
         return self.__private_categorie
         #else :
@@ -3735,7 +3737,10 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     doss = int(dossard)
     dossPrecedent = int(dossardPrecedent)
     coureur = Coureurs[doss-1]
-    infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+    if CategorieDAge :
+        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.categorie(Parametres["CategorieDAge"]) + ")."
+    else :
+        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
     message = ""
     retour = Erreur(0)
     if doss in ArriveeDossards :
@@ -3766,7 +3771,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
-        message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        message = "La course " + Coureurs[doss-1].course+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
