@@ -2366,6 +2366,8 @@ au(x) précédent(s) import(s).")
                 else :
                     retourImport = False # Que des erreurs dans le fichier, le signaler.
                 if retourImport :
+                    rejouerToutesLesActionsMemorisees()
+                    calculeTousLesTemps(True)
                     actualiseToutLAffichage()
                     reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
     chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
@@ -2820,6 +2822,7 @@ def tempsDesCoureurs():
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
     rejouerToutesLesActionsMemorisees()
+    calculeTousLesTemps(True)
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
