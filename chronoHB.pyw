@@ -3167,6 +3167,7 @@ class CoureurFrame(Frame) :
         #self.sexeE.delete(0, END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
+        self.etabC['values'] = tupleEtablissement()
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = int(self.choixDossardCombo.get())
@@ -3187,30 +3188,8 @@ class CoureurFrame(Frame) :
             self.etabNatureC.set(coureur.etablissementNature)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
-            
-    def actualiseAffichage(self) :
-        ### on desactive tout
-        self.cacherLesChamps()
-        ### on active ou non la combobox
-        if not self.ajoutCoureur :
-            self.choixDossardCombo.pack()
-        ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
-        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
-        if self.ajoutCoureur :
-            # cas où l'on ajoute manuellement un coureur
-            self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
-            self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
-        else :
-            # cas où on modifie un coureur existant
-            self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
-            self.coureurBoksuivant.configure(text="Valider")
-            # afficher le menu déroulant ici.
-            self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
-            self.choixDossardCombo['values']=self.tupleDesDossards
-            if self.tupleDesDossards :
-                self.choixDossardCombo.current(0)
+
+    def packChampsModificationCoureur(self) :
         #### on place les champs sans modif ultérieure.
         self.lblNom.pack()
         self.nomE.pack()
@@ -3240,6 +3219,44 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         ### on active ou non les boutons en bas en fonction du cas.
         self.activerBoutons(None)
+        
+        
+    def actualiseAffichage(self) :
+        ### on desactive tout
+        self.cacherLesChamps()
+        ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
+        self.lblCommentaireInfoAddCoureur.pack(side=TOP)
+        self.etabC['values'] = tupleEtablissement()
+        if not Coureurs :
+            if self.ajoutCoureur :
+                # cas où l'on ajoute manuellement un coureur
+                self.lblCommentaireInfoAddCoureur.configure(text=\
+                                         "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
+                self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+                self.packChampsModificationCoureur()
+            else :
+                self.choixDossardCombo.forget()
+                self.lblCommentaireInfoAddCoureur.configure(text=\
+                                         "Il n'y a aucun coureur dans la base de données. Importez en ou ajoutez en manuellement dans le menu en question.")
+        else :
+            if self.ajoutCoureur :
+                # cas où l'on ajoute manuellement un coureur
+                self.lblCommentaireInfoAddCoureur.configure(text=\
+                                         "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
+                self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
+            else : # il y a au moins un coureur dans la base à modifier
+                self.choixDossardCombo.pack()
+                # cas où on modifie un coureur existant
+                self.lblCommentaireInfoAddCoureur.configure(text=\
+                                         "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+                self.coureurBoksuivant.configure(text="Valider")
+                # afficher le menu déroulant ici.
+                self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+                self.choixDossardCombo['values']=self.tupleDesDossards
+                if self.tupleDesDossards :
+                    self.choixDossardCombo.current(0)
+            self.packChampsModificationCoureur()
+
         
     def actualiseBoutonImpression(self) :
         if self.ajoutCoureur :
@@ -3314,6 +3331,7 @@ class CoureurFrame(Frame) :
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
+        self.etabC['values'] = tupleEtablissement()
         self.modif = False
         self.activerBoutons(None)
         
