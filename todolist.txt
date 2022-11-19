@@ -20,6 +20,8 @@ un paramètre comme le changement de type de dossard ne s'actualise qu'après un
 (à confirmer) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
 correspondant. Il me semble que cela provoque un bug... Redémarrer chronoHB résoudrait le bug.
 
+(à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
+Exemple : réimport du cross HB 2022 dans la version 1.62
 
 
 NON PRIORITAIRES :
