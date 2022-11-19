@@ -1420,6 +1420,7 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
         actualiseAffichageDeparts()
+        actualiseAffichageZoneDeDroite()
         #ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
         checkBoxBarAffichage.change(True)
     def actualise(self) :
