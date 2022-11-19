@@ -1420,7 +1420,7 @@ class TopDepartFrame(Frame) :
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
         actualiseAffichageDeparts()
-        actualiseAffichageZoneDeDroite()
+        actualiseAffichageZoneDeDroite(timer.erreursEnCours)
         #ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
         checkBoxBarAffichage.change(True)
     def actualise(self) :
@@ -2259,7 +2259,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     #zoneAffichageDeparts.forget()
     fr.forget()
     # affichage des top départs si besoin
-    print(listNomsGroupementsNonCommences(),"listNomsGroupementsNonCommences")
+    #print(listNomsGroupementsNonCommences(),"listNomsGroupementsNonCommences")
     if listNomsGroupementsNonCommences() :
         zoneTopDepartBienPlacee.pack(side=TOP,fill=X)
     # les départs déjà donnés
@@ -2276,6 +2276,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     # l'affichage TV paramétrable.
     zoneAffichageTV.pack(fill=X)
     # les erreurs en cours
+    #print("erreurs en cours",erreursEnCours)
     if erreursEnCours :
         #print("erreur en cours non affichées temporairement")
         zoneAffichageErreurs.pack(side=TOP,fill=X)
@@ -2383,7 +2384,7 @@ au(x) précédent(s) import(s).")
 
 def actualiseToutLAffichage() :
     print("Actualise tout l'affichage")
-    actualiseAffichageZoneDeDroite()
+    # se fait dans le timer proprement : actualiseAffichageZoneDeDroite(timer.erreursEnCours)
     zoneTopDepart.actualise()
     actualiseAffichageDeparts()  
     actualiserDistanceDesCourses()
@@ -2416,7 +2417,6 @@ def actualiseAffichageDeparts():
         #lblDict[grp][1].destroy()
     lblDict.clear()
     listGroupementsCommences = listNomsGroupementsCommences()
-    print("coucou",listGroupementsCommences)
     if listGroupementsCommences : 
         for grp in listGroupementsCommences :
             lblFr = Frame(fr)
@@ -2427,12 +2427,13 @@ def actualiseAffichageDeparts():
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
+    else :
+        zoneAffichageDeparts.forget()
     if not tagActualiseTemps :
         actualiseTempsAffichageDeparts()
         #zoneAffichageDeparts.pack(side=TOP,fill=X)
         #fr.pack(side=TOP,fill=X)
-    #else :
-        #zoneAffichageDeparts.forget()
+
         #fr.forget()
 
 def actualiseTempsAffichageDeparts():
@@ -2476,6 +2477,8 @@ def construireMenuAnnulDepart():
         zoneTopDepart.menuActualise()
     # quand on annule un départ, il faut actualiser affichagedepart
     actualiseAffichageDeparts()
+    #actualiseAffichageZoneDeDroite(timer.erreursEnCours)
+    
 
 
 # timer 
@@ -2496,8 +2499,8 @@ class Clock():
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
+        self.dejaDesErreurs = False
         self.update_clock()
-        #self.sauvegardeDejaEnErreur = False
 
     def setPremiereExecution(self,valeur):
         try :
@@ -2519,11 +2522,10 @@ class Clock():
         traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
-            
-        self.premiereExecution = False
 
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
-##        for err in listeErreursATraiter :
+        #if self.actualiserAffichageDeDroite(True)
+##        for err in listeNouvellesErreursATraiter :
 ##            if err.numero : 
 ##                print("retour en erreur n°", err.numero, ":", err.description)
 
@@ -2560,10 +2562,11 @@ class Clock():
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
 
-        # actualisation de l'affichage après les départs ou si départ annulé récemment.
-        if self.affichageDeDroiteAActualiser or zoneTopDepart.departsAnnulesRecemment :
-            actualiseAffichageZoneDeDroite(self.erreursEnCours)
-            self.affichageDeDroiteAActualiser = False
+##        # actualisation de l'affichage après les départs ou si départ annulé récemment.
+##        if self.affichageDeDroiteAActualiser : # inutile : fait immédiatement lors e l'annulation. or zoneTopDepart.departsAnnulesRecemment :
+##            print("actualisation zone de droite",self.affichageDeDroiteAActualiser)
+##            actualiseAffichageZoneDeDroite(self.erreursEnCours)
+##            self.affichageDeDroiteAActualiser = False
         
         # actualisation menu annulation départs si besoin
         if zoneTopDepart.departsAnnulesRecemment :
@@ -2572,6 +2575,7 @@ class Clock():
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
+        self.premiereExecution = False
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 
     def actualiserAffichageDeDroite(self, val) :
@@ -2617,6 +2621,14 @@ class Clock():
         #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
+
+        #print("erreurs en cours",self.erreursEnCours, "deja des erreurs",self.dejaDesErreurs)
+        # actualisation de l'affichage si première exécution OU changement d'état des erreurs en cours (il y en avait et il n'y en a plus OU l'inverse).
+        if (self.dejaDesErreurs and not self.erreursEnCours) or (not self.dejaDesErreurs and self.erreursEnCours) or self.premiereExecution :
+            #print("actualisation zone de droite pour gestion des erreurs :",self.erreursEnCours)
+            actualiseAffichageZoneDeDroite(self.erreursEnCours)
+            self.affichageDeDroiteAActualiser = False
+            self.dejaDesErreurs = bool(self.erreursEnCours)
         
 timer=Clock(root, "tableau.maj")
 
@@ -3578,7 +3590,7 @@ GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
 DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
 
-actualiseAffichageZoneDeDroite()
+#actualiseAffichageZoneDeDroite()
 
 
 
