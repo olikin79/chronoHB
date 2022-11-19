@@ -3670,19 +3670,20 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             if auMoinsUnChangement :
                 addCourse(coureur.actualiseCategorie())
                 print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),")")
-                retour = [0,1,0]
+                retour = [0,1,0,0]
             else :
-                retour = [0,0,0]
+                # ligne strictement identique.
+                retour = [0,0,0,1]
         else :
             dossard = len(Coureurs)+1
             Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")")
             addCourse(Coureurs[-1].categorie(Parametres["CategorieDAge"]))
-            retour = [1,0,0]
+            retour = [1,0,0,0]
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom, " ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
-        retour = [0,0,1]
+        retour = [0,0,1,0]
     return retour
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
@@ -4825,13 +4826,14 @@ def traitementDesDonneesAImporter(donneesBrutes) :
     Crée les coureurs à partir des informations de chacun, si les données indispensables sont présentes.
     Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
     i=0
-    retour= False
-    BilanCreationModifErreur = [0,0,0]
+    #retour= False
+    BilanCreationModifErreur = [0,0,0,0] # nbres de [création, modif, erreurs, identiques]
     for row in donneesBrutes:
         if i == 0 :
             informations = [x.lower() for x in row]
-            print("Informations disponibles dans le fichier importé",informations)
-            if "nom" in informations and "prénom" in informations and "sexe" in informations and \
+            print("Informations disponibles dans le fichier importé",informations) # on accepte "cat" pour les fichiers OPUS UNSS qui contiennent le sexe dans cette information
+## les informations valides ou non, suffisantes ou non sont testées lors de chaque import de coureur.
+            if "nom" in informations and "prénom" in informations and "sexe" in informations  and \
             ((Parametres["CategorieDAge"] == 0 and "classe" in informations) \
              or (Parametres["CategorieDAge"] == 1 and "naissance" in informations) \
              or (Parametres["CategorieDAge"] == 2 and "naissance" in informations and "établissement" in informations and \
@@ -4840,43 +4842,44 @@ def traitementDesDonneesAImporter(donneesBrutes) :
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
              # 1 - cas de courses organisées en fonction des catégories de la FFA
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
-                retour = True
+                #retour = True
+                print("Les éléments obligatoires de la documentation de chronoHB sont bien présents par rapport à la configuration choisie :", informations)
             else :
-                print("Certains éléments obligatoires manquent dans le fichier fourni :", informations)
-                retour = False
-                break
+                print("Certains éléments obligatoires semblent manquer dans le fichier fourni (normal pour un cross UNSS où les champs sont non standards chronoHB) :", informations)
+                #retour = False
+                ### break
         else :
 ##             if i == 1 :
 ##                 print("Première ligne du fichier importé:")
 ##                 print(row)
              retourCreationModifErreur = creerCoureur(row, informations)
              #print("retour création :" ,retourCreationModifErreur)
-             for i in range(3) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
+             for i in range(4) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
                  #print(i,retourCreationModifErreur[i])
                  if retourCreationModifErreur[i] :
                     BilanCreationModifErreur[i] += 1
         i+=1
-    return retour,BilanCreationModifErreur
+    return BilanCreationModifErreur
 
 
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
-    retour,BilanCreationModifErreur = False,[0,0,0]
+    BilanCreationModifErreur = [0,0,0,0]
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            retour,BilanCreationModifErreur = recupXLSX(fichierSelectionne)
+            BilanCreationModifErreur = recupXLSX(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
-            retour,BilanCreationModifErreur = recupCSV(fichierSelectionne)
-    if retour :
-        print("IMPORT CSV ou XLSX TERMINE")
-        generateListCoureursPourSmartphone()
-        CoureursParClasseUpdate()
-        print("Liste des coureurs pour smartphone actualisée.")
+            BilanCreationModifErreur = recupCSV(fichierSelectionne)
+    #if retour :
+    print("IMPORT CSV ou XLSX TERMINE")
+    generateListCoureursPourSmartphone()
+    CoureursParClasseUpdate()
+    print("Liste des coureurs pour smartphone actualisée.")
         # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
-    else :
-        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
-    return retour,BilanCreationModifErreur
+##    else :
+##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
+    return BilanCreationModifErreur
 
 
 def recupXLSX(fichierSelectionne=""):
@@ -4912,26 +4915,26 @@ def recupXLSX(fichierSelectionne=""):
         #print(chaine)
         donneesBrutes.append(ligne)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-    retour,BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
+    BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
     wb_obj.close()
     #except :
     #    print("Erreur : probablement pas un fichier xlsx valide...")
-    return retour,BilanCreationModifErreur
+    return BilanCreationModifErreur
 
 
 def recupCSV(fichierSelectionne=""):
     ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
     #print("fichierSelectionne",fichierSelectionne)
-    retour,BilanCreationModifErreur = False,[0,0,0]
+    BilanCreationModifErreur = [0,0,0]
     try :
         with open(fichierSelectionne, encoding='utf-8') as csvfile:
             donneesBrutes = csv.reader(csvfile, delimiter=';')
             #print(donneesBrutes)
             ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-            retour,BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
+            BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
     except :
         print("Erreur : probablement un mauvais encodage...")
-    return retour,BilanCreationModifErreur
+    return BilanCreationModifErreur
 
 
 #### Import CSV ancienne génération (avant 2022)
@@ -5036,6 +5039,14 @@ def creerCoureur(listePerso, informations) :
     abse=False
     vma = 0
     comment = ""
+    if "sexe" in informations or "cat" in informations :
+        try :
+            sexe = supprLF(infos["sexe"])
+        except:
+            try :
+                sexe = supprLF(infos["cat"])[-1].upper() ### dans les fichiers OPUS UNSS, le sexe n'est pas indiqué : on le déduit de la dernière lettre de la catégorie
+            except :
+                sexe = ""
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
@@ -5049,23 +5060,23 @@ def creerCoureur(listePerso, informations) :
             clas = supprLF(infos["classe"])
         except :
             clas = ""
-    if "naissance" in informations or "Date naiss." in informations :
+    if "naissance" in informations or "date naiss." in informations :
         try :
             naiss = supprLF(infos["naissance"])
         except :
             try :
-                naiss = supprLF(infos["Date naiss."])
+                naiss = supprLF(infos["date naiss."])
             except :
                 naiss = ""
-    if "établissement" in informations or "Nom étab." in informations :
+    if "établissement" in informations or "nom étab." in informations :
         try :
             etab = supprLF(infos["établissement"])
         except :
             try :
-                etab = supprLF(infos["Nom étab."])
+                etab = supprLF(infos["nom étab."])
             except :
                 etab = ""
-    if "établissementtype" in informations or "type" in informations or "Type étab." in informations :
+    if "établissementtype" in informations or "type" in informations or "type étab." in informations :
         try :
             nature = supprLF(infos["établissementtype"])
         except :
@@ -5073,7 +5084,7 @@ def creerCoureur(listePerso, informations) :
                 nature = supprLF(infos["type"])
             except :
                 try :
-                    nature = supprLF(infos["Type étab."])
+                    nature = supprLF(infos["type étab."])
                 except :
                     nature = ""
     #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
@@ -5091,14 +5102,19 @@ def creerCoureur(listePerso, informations) :
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
+    if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and sexe : # trois informations essentielles OBLIGATOIRES
+        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                                commentaireArrivee=supprLF(comment), VMA=vma)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
-        retourCreationModifErreur = [0,0,0]
-##        print("Probablement une ligne vide dans le tableur ou csv. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"])
+##        if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
+##            print("Probablement une ligne inutile dans le tableur. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe )
+##            retourCreationModifErreur = [0,0,0,0]
+##        else :
+        print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
+        retourCreationModifErreur = [0,0,1,0]
+##        
     return retourCreationModifErreur
 
 

@@ -2337,7 +2337,7 @@ Cela peut figer momentanément l'interface...")
             file = open(filePath, "a")
             tmp = sys.stdout # sauvegarde de la sortie standard.
             sys.stdout = file
-            retourImport,BilanCreationModifErreur = recupImportNG(file_path)
+            BilanCreationModifErreur = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
             file.close()
             sys.stdout = tmp
@@ -2351,15 +2351,18 @@ Cela peut figer momentanément l'interface...")
 au(x) précédent(s) import(s).")
             else :
                 chaineBilan = ""
-                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
+                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] + BilanCreationModifErreur[3] : # s'il y a au moins une donnée correcte dans le fichier analysé
                     chaineBilan += "\nBilan :\n"
                     if BilanCreationModifErreur[0] :
-                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs ajoutés.\n"
                     if BilanCreationModifErreur[1] :
                         chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+                    if BilanCreationModifErreur[3] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[3]) + " coureurs strictement identiques.\n"
                     if BilanCreationModifErreur[2] :
                         chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
                     chaineBilan += "\n"
+                    retourImport = True # on ignore finalement le retour de recupImportNG puisque l'analyse de la liste BilanCreationModifErreur suffit
                 else :
                     retourImport = False # Que des erreurs dans le fichier, le signaler.
                 if retourImport :
