@@ -2865,6 +2865,9 @@ listeDesEntryGroupements = []
 def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
     print("actualisation des Courses manuelles",Courses)
     # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
+    if event == None : # on vient de nettoyer les courses vides, on impose le nouveau nombre
+        nbreCoursesDesire.configure(values=tuple(range(len(Courses.keys()),21)))
+        nbreCoursesDesire.set(len(Courses.keys()))
     nbreDeCoursesDesire = int(nbreCoursesDesire.get())
     nbreCoursesDesire.configure(values=tuple(range(nbreDeCoursesDesire,21)))
     nbreDeCoursesActuel = len(Courses.keys())
@@ -2903,10 +2906,13 @@ def actualiserDistanceDesCourses():
             lblInfoDistance.configure(text="")
         else :
             lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
-        boutonRecopie.pack(side=TOP)
+        boutonsParametresGroupementsFrame.pack(side=TOP)
+        if CoursesManuelles :
+            boutonNettoyage.pack(side=LEFT)
+        boutonRecopie.pack(side=LEFT)
     else:
         lblInfoDistance.configure(text="")
-        boutonRecopie.forget()
+        boutonsParametresGroupementsFrame.forget()
         lblNbreCoursesDesire.forget()
         nbreCoursesDesire.forget()
     for groupement in Groupements :
@@ -2938,10 +2944,14 @@ else :
     nbreCoursesDesire.set(len(Courses.keys()))
 nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
 
-
+def nettoieCourseManuellesAction() :
+    nettoieCoursesManuelles()
+    actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
-boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
-#boutonRecopie.pack(side=TOP)
+boutonsParametresGroupementsFrame = Frame(affectationDesDistancesFrame)
+boutonNettoyage = Button(boutonsParametresGroupementsFrame, text="Nettoyer les courses vides", command=nettoieCourseManuellesAction)
+boutonRecopie = Button(boutonsParametresGroupementsFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 
 
 def affecterDistances() :
