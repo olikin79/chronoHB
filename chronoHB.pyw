@@ -3068,7 +3068,7 @@ class CoureurFrame(Frame) :
         self.etabC['values'] = tupleEtablissement()
         self.etabC.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         self.lblEtabNature = Label(self.parent, text="Nature :")
-        self.etabNatureC = Combobox(self.parent, width=15, justify="center")
+        self.etabNatureC = Combobox(self.parent, width=15, justify="center", state='readonly')
         self.etabNatureC['values'] = ('CLG','LG','LP')
         self.etabNatureC.set("CLG")
         self.etabNatureC.bind("<<ComboboxSelected>>", self.reactiverBoutons)
