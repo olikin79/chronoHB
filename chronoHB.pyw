@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.61"
+version="1.62"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :

@@ -27,7 +27,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.6"
+version = "1.62"
 
 LOGDIR="logs"
 
@@ -2268,8 +2268,8 @@ def nettoyerTousLesFichiersGeneres():
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
-    print("Resultats avant impressions", Resultats)
-    print("Courses",Courses)
+    #print("Resultats avant impressions", ResultatsPourImpressions)
+    #print("Courses",Courses)
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
@@ -2347,11 +2347,11 @@ def generateImpressions() :
         denomination = "Classe"
     else :
         denomination = "Categorie"
-    for classe in Resultats :
+    for classe in ResultatsPourImpressions :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         if (Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G")) :
-            #print("Création du fichier de "+classe)
+            print("Création du fichier de "+classe)
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
             nomFichier = classe.replace(" ","_").replace("__","_")
             if ArrDispAbsAbandon[8] :
@@ -2429,7 +2429,7 @@ def generateImpressions() :
                         True
                     # si la classe a été générée, la catégorie également via les groupements ci-dessous
 
-    for classe in ResultatsGroupements :
+    for classe in ResultatsGroupementsPourImpressions :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
@@ -2717,6 +2717,8 @@ def absentsDispensesAbandonsEnTex() :
         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
+        elif Parametres["CategorieDAge"] == 1 : 
+            retour += c.categorie(CategorieDAge)
         else :
             retour += c.classe 
         retour += ")"
@@ -2732,6 +2734,8 @@ def absentsDispensesAbandonsEnTex() :
         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
+        elif Parametres["CategorieDAge"] == 1 : 
+            retour += c.categorie(CategorieDAge)
         else :
             retour += c.classe 
         retour += ")"
@@ -2747,6 +2751,8 @@ def absentsDispensesAbandonsEnTex() :
         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
+        elif Parametres["CategorieDAge"] == 1 : 
+            retour += c.categorie(CategorieDAge)
         else :
             retour += c.classe 
         retour += ")"
@@ -3085,6 +3091,9 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
             # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
             break
     return rangDansCategorie
+    
+ResultatsPourImpressions = {}
+ResultatsGroupementsPourImpressions = {}
 
 def genereResultatsCoursesEtClasses(premiereExecution = False) :
     """ procédure mettant à jour le dictionnaire Résultats et le rang de chaque coureur dans sa course"""
@@ -3093,7 +3102,9 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     retour = calculeTousLesTemps(premiereExecution)
     #print("calculeTousLesTemps : ",retour)
     Resultats.clear()
+    ResultatsPourImpressions.clear()
     ResultatsGroupements.clear()
+    ResultatsGroupementsPourImpressions.clear()
     #listeDesClasses = []
     # ETAPE 1 : on alimente Resultats avec les coureurs des classes (cross du collège), des catégories d'athlétisme, ou des catégories par établissement (UNSS)
     for coureur in Coureurs :
@@ -3106,33 +3117,41 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         ### ajout du coureur au groupement pour résultat du groupement.
         if groupement not in ResultatsGroupements :
             ResultatsGroupements[groupement] = []
+            ResultatsGroupementsPourImpressions[groupement] = []
         if coureur.temps > 0  : #si pas d'erreur, on l'ajoute not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
             ResultatsGroupements[groupement].append(doss)
+        ResultatsGroupementsPourImpressions[groupement].append(doss)
 ##        else :
 ##            coureur.setRang(0)
 
         ### ajout du coureur dans sa classe ou sa catégorie d'age.
         if Parametres["CategorieDAge"] == 0 :
             if classe not in Resultats :
+                ResultatsPourImpressions[classe] = []
                 Resultats[classe] = []
             #if classe not in listeDesClasses : ### raison d'être de cette liste à trouver ! Encore utile ? Je ne pense pas : commenté.
             #    listeDesClasses.append(classe)
             if coureur.temps != -1 :
                 # les coureurs au temps -1 sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
                 Resultats[classe].append(doss)
+            ResultatsPourImpressions[classe].append(doss)
         elif Parametres["CategorieDAge"] == 1 :
             if cat not in Resultats :
                 Resultats[cat] = []
+                ResultatsPourImpressions[cat] = []
             if coureur.temps != -1 : # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0 :
                 Resultats[cat].append(doss)
+            ResultatsPourImpressions[cat].append(doss)
         elif Parametres["CategorieDAge"] == 2 :
             if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # cas du challenge UNSS lycée qui mélange tous les lycéens !
                 ### cas particulier du challenge UNSS : on ajoute les résultats des LP et des LG même s'il n'y a aucun coureur.
                 ### Trop galère de tout changer sachant que les challenges ne correspondent pas à des catégories d'athlétisme du logiciel
                 if "LP-"  + str(etab) not in Resultats :
                     Resultats["LP-" + str(etab)] = []
+                    ResultatsPourImpressions["LP-" + str(etab)] = []
                 if "LG-" + str(etab) not in Resultats :
                     Resultats["LG-" + str(etab)] = []
+                    ResultatsPourImpressions["LG-" + str(etab)] = []
                 if coureur.etablissementNature.upper() == "LP" : # c'est un lycée pro.
                     nomDuResultat = "LP-" + str(etab)
                 else :
@@ -3141,11 +3160,13 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 nomDuResultat = str(coureur.categorieSansSexe()) + "-" + str(etab) # le challenge sera calculé entre les résultats de MI-Bourrillon, MI-Gevaudan, etc... Basé sur l'initiale de la catégorie.
             if nomDuResultat not in Resultats :
                 Resultats[nomDuResultat] = []
+                ResultatsPourImpressions[nomDuResultat] = []
             if coureur.temps > 0 :
                 # les coureurs au temps nul sont abs, disp ou abandons donc on doit les mettre  not coureur.absent and not coureur.dispense and coureur.temps != 0 :
                 Resultats[nomDuResultat].append(doss)
                 #print("Dossard ajouté ", doss,"dans Resultats[",nomDuResultat,"]")
                 #print(Resultats)
+            ResultatsPourImpressions[nomDuResultat].append(doss)
             #else :
             #    print("Dossard au temps négatif ignoré", doss)
     #print("Resultats",Resultats)
@@ -4571,22 +4592,31 @@ def creerFichierClasse(nom, entete, estGroupement):
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Catégorie " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
-        Dossards = ResultatsGroupements[nom]
-        #print("Dossards:",Dossards)
+        Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
+        #print("Dossards du groupement :",Dossards)
         rangCourse = False
-        if Parametres["CategorieDAge"] :
-            garderAbandons = False
+        if Parametres["CategorieDAge"] == 2 :
+            garderAbandons = True
+            garderAbsDispAbandons = True
+        elif Parametres["CategorieDAge"] == 1 :
+            garderAbandons = True
             garderAbsDispAbandons = False
         else :
             garderAbandons = False
             garderAbsDispAbandons = False
     else :
-        if Parametres["CategorieDAge"] :
+        if Parametres["CategorieDAge"] == 2 :
+            garderAbandons = True
+            garderAbsDispAbandons = True
+            rangCourse = True
+            denomination = "Catégorie " + nom
+            Dossards = triParTemps(ResultatsPourImpressions[nom])### listDossardsDUneCategorie(nom))
+        elif Parametres["CategorieDAge"] == 1 :
             garderAbandons = True
             garderAbsDispAbandons = False
             rangCourse = True
             denomination = "Catégorie " + nom
-            Dossards = triParTemps(Resultats[nom])### listDossardsDUneCategorie(nom))
+            Dossards = triParTemps(ResultatsPourImpressions[nom])### listDossardsDUneCategorie(nom))
         else :
             garderAbandons = True
             garderAbsDispAbandons = True
@@ -4594,11 +4624,13 @@ def creerFichierClasse(nom, entete, estGroupement):
             denomination = "Classe " + nom
             Dossards = triParNomPrenom(Resultats[nom]) # on trie par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom)
             # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
+        #print("Dossards de l'établissement :",Dossards)
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in Dossards :
         if Coureurs[dossard - 1].temps >= 0 :
             newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband, rangCourse)
+            #print("ArrDispAbsAband",ArrDispAbsAband)
             if Coureurs[dossard - 1].temps > 0 or garderAbsDispAbandons or \
                (not Coureurs[dossard - 1].absent and not Coureurs[dossard - 1].dispense and garderAbandons) :
             # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
@@ -4620,6 +4652,7 @@ def yATIlUneVMA(listeDeDossards) :
 def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
     coureur = Coureurs[dossard - 1]
+    #print("coureur",coureur.nom,coureur.temps)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
 ##        if coureur.VMA and coureur.VMA > coureur.vitesse :
@@ -5134,167 +5167,167 @@ def supprLF(ch) :
     return ch.replace("\n","")
 
 
-
-
-if __name__=="__main__":
-##    # Start the server in a new thread
-##    port = 8888
-##    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
-##    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-##    daemon.start()
-##    time.sleep(1)
-    while 1:
-        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
-        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
-        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
-        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
-        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
-        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
-        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
-        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
-        choice=choice.lower()
-        if choice=="l":
-            listerDonneesTerminal()
-        elif choice == "l1" :
-            print("Courses")
-            for cat in listCourses():
-                c = Courses[cat]
-                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
-        elif choice == "l2" :
-            print("ArriveeDossards")
-            listArriveeDossards()
-        elif choice == "l3" :
-            print("ArriveeTemps")
-            listArriveeTemps()
-        elif choice == 'l4' :
-            listCoureurs()
-        elif choice == "recup" :
-            recupCSVSIECLE()
-        elif choice == 'g2':
-            generateListCoureursPourSmartphone()
-        elif choice == 'g3':
-            generateDossards()
-##            mon_thread2=Thread(target=generateDossards)
-##            mon_thread2.start()
-        elif choice == 'g4' :
-            mon_thread=Thread(target=generateImpressions)
-            mon_thread.start()
-        elif choice =="test":
-            generateImpressions()
-        elif choice == "distall" :
-            saisie = input("Distance en km à affecter à toutes les courses :")
-            try :
-                d = float(saisie)
-                print(d)
-                setDistanceToutesCourses(d)
-            except:
-                print("Distance invalide : le séparateur décimal est un point")
-        elif choice == "dist" :
-            print("liste des courses", listCourses())
-            nom = input("Nom de la course :")
-            if nom in listCourses() :
-                saisie = input("Distance en km à affecter à " + nom + " : ")
-                try :
-                    d = float(saisie)
-                    setDistance( nom, d)
-                except:
-                    print("Distance invalide : le séparateur décimal est un point")
-        elif choice =="g":
-            genereResultatsCoursesEtClasses()
-            for key in Resultats :
-                if len(key) == 1 :
-                    print(key, " :")
-                    i=0
-                    while i < len(Resultats[key]) :
-                        score = Resultats[key][i].score
-                        classe = Resultats[key][i].nom
-                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
-                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
-                        for element in liste :
-                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
-                        i += 1
-                else :
-                    print(key , ":", Resultats[key])
-            genereAffichageTV(listCourses())
-##        elif choice=="t":
-##            listeDeCourses = listCourses()
-##            topDepart(listeDeCourses)
-        elif choice=="c0":
-            print(calculeTousLesTemps(True))
-        elif choice=="c":
-            calculeTousLesTemps()
-        elif choice=="d1":
-            dossard = input("Dossard :")
-            delCoureur(dossard)
-        elif choice=="d2":
-            dossard = input("Dossard :")
-            delArriveeDossard(dossard)
-        elif choice=="d3":
-            #listArriveeTemps()
-            temps = input("Temps Réel à supprimer :")
-            saisie = input("Dossard associé :")
-            if saisie == "" :
-                dossard = 0
-            else :
-                dossard = saisie
-            delArriveeTemps(temps, dossard)
-        elif choice=="d4":
-            #listArriveeTemps()
-            temps = input("Temps Réel dont il faut dissocier le dossard :")
-            #dissocieArriveeTemps(temps)
-            delDossardAffecteArriveeTemps(temps)
-        elif choice=="r":
-            delCoureurs()
-        elif choice == 'a4':
-            temps = float(input("Temps à affecter :"))
-            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
-            if dossard == "" :
-                delDossardAffecteArriveeTemps(temps)
-            else :
-                affecteDossardArriveeTemps(temps, dossard)
-        elif choice == 'I' :
-            imprimePDF('dossards/0-tousLesDossards.pdf')
-        elif choice == 'a3':
-            temps = input("Temps à ajouter :")
-            saisie = input("Dossard associé :")
-            if saisie == "" :
-                dossard = 0
-            else :
-                dossard = saisie
-            addArriveeTemps(temps, time.time(), time.time(),dossard)
-        elif choice=="a2":
-            dossard = input("Dossard :")
-            listArriveeDossards()
-            dossardPrecedent = input("Dossard précédent :")
-            if dossardPrecedent != "" :
-                addArriveeDossard(dossard, dossardPrecedent)
-            else :
-                addArriveeDossard(dossard)
-        elif choice=="a1":
-            nom=input("nom :")
-            prenom=input("prenom :")
-            sexe=input("sexe :")
-            classe=input("classe :")
-            addCoureur(nom, prenom, sexe, classe)
-
-        elif choice=="q":
-            break
-        elif choice == "i" :
-            print("on traite les données venant des smartphones")
-            traiterDonneesSmartphone()
-        elif choice == "i0" :
-            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
-            traiterDonneesSmartphone(True, True)
-            traiterDonneesLocales(True,True)
-        elif choice == "cross2021" :
-            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
-                fixerDepart(donnees[0],donnees[1])
-            root["LignesIgnoreesSmartphone"] = []
-            root["LignesIgnoreesLocal"] = []
-        elif choice == "teststats" :
-            testTMPStats()
-    ecrire_sauvegarde(sauvegarde)
-    ##transaction.commit()
-    # close database
-    #connection.close()
-    #db.close()
+##
+##
+##if __name__=="__main__":
+####    # Start the server in a new thread
+####    port = 8888
+####    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
+####    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+####    daemon.start()
+####    time.sleep(1)
+##    while 1:
+##        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
+##        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
+##        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
+##        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
+##        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
+##        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
+##        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
+##        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
+##        choice=choice.lower()
+##        if choice=="l":
+##            listerDonneesTerminal()
+##        elif choice == "l1" :
+##            print("Courses")
+##            for cat in listCourses():
+##                c = Courses[cat]
+##                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
+##        elif choice == "l2" :
+##            print("ArriveeDossards")
+##            listArriveeDossards()
+##        elif choice == "l3" :
+##            print("ArriveeTemps")
+##            listArriveeTemps()
+##        elif choice == 'l4' :
+##            listCoureurs()
+##        elif choice == "recup" :
+##            recupCSVSIECLE()
+##        elif choice == 'g2':
+##            generateListCoureursPourSmartphone()
+##        elif choice == 'g3':
+##            generateDossards()
+####            mon_thread2=Thread(target=generateDossards)
+####            mon_thread2.start()
+##        elif choice == 'g4' :
+##            mon_thread=Thread(target=generateImpressions)
+##            mon_thread.start()
+##        elif choice =="test":
+##            generateImpressions()
+##        elif choice == "distall" :
+##            saisie = input("Distance en km à affecter à toutes les courses :")
+##            try :
+##                d = float(saisie)
+##                print(d)
+##                setDistanceToutesCourses(d)
+##            except:
+##                print("Distance invalide : le séparateur décimal est un point")
+##        elif choice == "dist" :
+##            print("liste des courses", listCourses())
+##            nom = input("Nom de la course :")
+##            if nom in listCourses() :
+##                saisie = input("Distance en km à affecter à " + nom + " : ")
+##                try :
+##                    d = float(saisie)
+##                    setDistance( nom, d)
+##                except:
+##                    print("Distance invalide : le séparateur décimal est un point")
+##        elif choice =="g":
+##            genereResultatsCoursesEtClasses()
+##            for key in Resultats :
+##                if len(key) == 1 :
+##                    print(key, " :")
+##                    i=0
+##                    while i < len(Resultats[key]) :
+##                        score = Resultats[key][i].score
+##                        classe = Resultats[key][i].nom
+##                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
+##                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
+##                        for element in liste :
+##                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
+##                        i += 1
+##                else :
+##                    print(key , ":", Resultats[key])
+##            genereAffichageTV(listCourses())
+####        elif choice=="t":
+####            listeDeCourses = listCourses()
+####            topDepart(listeDeCourses)
+##        elif choice=="c0":
+##            print(calculeTousLesTemps(True))
+##        elif choice=="c":
+##            calculeTousLesTemps()
+##        elif choice=="d1":
+##            dossard = input("Dossard :")
+##            delCoureur(dossard)
+##        elif choice=="d2":
+##            dossard = input("Dossard :")
+##            delArriveeDossard(dossard)
+##        elif choice=="d3":
+##            #listArriveeTemps()
+##            temps = input("Temps Réel à supprimer :")
+##            saisie = input("Dossard associé :")
+##            if saisie == "" :
+##                dossard = 0
+##            else :
+##                dossard = saisie
+##            delArriveeTemps(temps, dossard)
+##        elif choice=="d4":
+##            #listArriveeTemps()
+##            temps = input("Temps Réel dont il faut dissocier le dossard :")
+##            #dissocieArriveeTemps(temps)
+##            delDossardAffecteArriveeTemps(temps)
+##        elif choice=="r":
+##            delCoureurs()
+##        elif choice == 'a4':
+##            temps = float(input("Temps à affecter :"))
+##            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
+##            if dossard == "" :
+##                delDossardAffecteArriveeTemps(temps)
+##            else :
+##                affecteDossardArriveeTemps(temps, dossard)
+##        elif choice == 'I' :
+##            imprimePDF('dossards/0-tousLesDossards.pdf')
+##        elif choice == 'a3':
+##            temps = input("Temps à ajouter :")
+##            saisie = input("Dossard associé :")
+##            if saisie == "" :
+##                dossard = 0
+##            else :
+##                dossard = saisie
+##            addArriveeTemps(temps, time.time(), time.time(),dossard)
+##        elif choice=="a2":
+##            dossard = input("Dossard :")
+##            listArriveeDossards()
+##            dossardPrecedent = input("Dossard précédent :")
+##            if dossardPrecedent != "" :
+##                addArriveeDossard(dossard, dossardPrecedent)
+##            else :
+##                addArriveeDossard(dossard)
+##        elif choice=="a1":
+##            nom=input("nom :")
+##            prenom=input("prenom :")
+##            sexe=input("sexe :")
+##            classe=input("classe :")
+##            addCoureur(nom, prenom, sexe, classe)
+##
+##        elif choice=="q":
+##            break
+##        elif choice == "i" :
+##            print("on traite les données venant des smartphones")
+##            traiterDonneesSmartphone()
+##        elif choice == "i0" :
+##            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
+##            traiterDonneesSmartphone(True, True)
+##            traiterDonneesLocales(True,True)
+##        elif choice == "cross2021" :
+##            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
+##                fixerDepart(donnees[0],donnees[1])
+##            root["LignesIgnoreesSmartphone"] = []
+##            root["LignesIgnoreesLocal"] = []
+##        elif choice == "teststats" :
+##            testTMPStats()
+##    ecrire_sauvegarde(sauvegarde)
+##    ##transaction.commit()
+##    # close database
+##    #connection.close()
+##    #db.close()
