@@ -56,6 +56,7 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 
 
 - ESTHETIQUE :
+	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
 	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
