@@ -4659,7 +4659,10 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
                 ArrDispAbsAbandon[7] = ArrDispAbsAbandon[7] + 1
     if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
         if coureur.rangCat == 1 :
-            chEME = "er "
+            if coureur.sexe == "G" :
+                chEME = "er "
+            else :
+                chEME = "ère "
         else :
             chEME = "ème "
         contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
@@ -4743,17 +4746,21 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
 
 def genereLigneTableauHTML(dossard) :
     coureur = Coureurs[dossard - 1]
+    if coureur.sexe=="G" :
+        masc = True
+    else :
+        masc = False
     ligne = "<tr><td class='rang'>"
     if coureur.rang < 4 :
-        ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
+        ligne += ajoutMedailleEnFonctionDuRang(coureur.rang, masculin=masc)
     else :
         ligne += str(coureur.rang) 
     ligne += "</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
 ##    if not CategorieDAge :
-##        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang)
+##        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang, masculin=masc)
     if CategorieDAge == 2 and coureur.rang != coureur.rangCat :
         #print(coureur.nom, coureur.rangCat)
-        medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+        medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat, masculin=masc)
         if medailleMeilleurDeSaCategorie :
             ligne += " (" + medailleMeilleurDeSaCategorie + "" + coureur.categorieFFA()+")"
     ligne += "</td>"
@@ -4761,21 +4768,25 @@ def genereLigneTableauHTML(dossard) :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
         if CategorieDAge == 1 and coureur.rang != coureur.rangCat :
-            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat) + coureur.categorieFFA() 
+            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat, masculin=masc) + coureur.categorieFFA() 
         elif CategorieDAge == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
             #if coureur.rang < 4 :
-            #    ligne += ajoutMedailleEnFonctionDuRang(coureur.rang)
+            #    ligne += ajoutMedailleEnFonctionDuRang(coureur.rang, masculin=masc)
         ligne += "</td>"
     ligne += "<td class='chrono'>" + coureur.tempsFormate() +"</td><td class='vitesse'>" + coureur.vitesseFormateeAvecVMA() + "</td></tr>"
     return ligne
 
-def ajoutMedailleEnFonctionDuRang(r) :
+def ajoutMedailleEnFonctionDuRang(r,masculin=True) :
     ''' on fournit le rang r (int), cela génère le code HTML nécessaire pour l'insertion de l'image'''
     ligne = ""
     if r < 4 :
         if r == 1 :
-            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="/media/or.webp" alt="(1er)">'
+            if masculin :
+                ordinal = "1er"
+            else :
+                ordinal = "1ère"
+            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="/media/or.webp" alt="(' + ordinal + ')">'
         elif r == 2 :
             ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/argent.webp" alt="(2ème)">'
         elif r == 3 :
