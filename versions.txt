@@ -10,8 +10,10 @@ A faire lundi 12H :
 
 
 Manquent :
+- si BDD vide et qu'on clique sur modification manuelle d'un coureur, devrait afficher qu'il n'y a pas de coureur.
 - si on supprime un coureur, peut-on le rajouter derrière ? A tester...
-- quand on corrige une erreur, il faudrait réactualiser tout l'affichage (pour que les catégories se mettent à jour, les coureurs arrivés avant le départ, etc...
+- quand on corrige une erreur, il faudrait réactualiser tout l'affichage 
+(pour que les catégories se mettent à jour, les coureurs arrivés avant le départ, etc...
 - idem après un import réussi.
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
@@ -27,7 +29,7 @@ utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les gr
 Travail du 19/11/22 :
 - la combobox type d'établissement mise en lecture seule : CLG, LG, LP.
 - les erreurs ne s'affichaient plus suite aux derniers développements sur l'ordre d'affichage. Corrigé.
-- actualisation ré-optimisée de l'affichage de droite, si changement.
+- actualisation ré-optimisée de l'affichage de droite, si changement (au niveau des départs ou des erreurs).
 
 
 Travail du 18/11/22 :
