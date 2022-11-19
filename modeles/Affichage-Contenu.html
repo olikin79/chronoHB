@@ -37,8 +37,8 @@ function changeTimeZone(date, ianatz) {
   return new Date(date.getTime() - diff); // needs to substract
 }
 function chrono(){
-                end = new Date() ;
-				//end = changeTimeZone(new Date(), 'Europe/Paris');
+                //end = new Date() ;
+				end = changeTimeZone(new Date(), 'UTC');
                 diff = end - start ;
                 diff = new Date(diff) ;
                 var msec = diff.getMilliseconds() ;
