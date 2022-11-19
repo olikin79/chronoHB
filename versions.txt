@@ -1,19 +1,27 @@
 A faire lundi 12H :
 - =STXT(E2;2;2) pour créer la colonne sexe puis faire un copier-coller valeurs de la colonne sexe...
 - trier par ordre alphabétique d'établissement => cela triera les dossards.
-- remplir les en-têtes : licence, naissance, type, établissement.
 - raccourcir les noms de certains établissements : Lycée Rabelais par exemple.
+
+Devenu inutile :
+- remplir les en-têtes : licence, naissance, type, établissement.
+
+A faire avant mercredi (jour du cross):
 - penser à regrouper les juniors-séniors.
 - message à l'arrivée : <prenom>. Félicitations.
 - rentrer les distances.
-- vérifier si les filles juniors-seniors courent séparemment ou pas.
+
+Le jour J :
+- vérifier si les filles juniors-seniors courent séparemment ou pas selon leur effectif.
 
 
 Manquent :
-- si BDD vide et qu'on clique sur modification manuelle d'un coureur, devrait afficher qu'il n'y a pas de coureur.
+- décalage du chronomètre sur la TV en fonction de l'heure d'été ou d'hiver.
+- nombre d'abandons incorrect
 - si on supprime un coureur, peut-on le rajouter derrière ? A tester...
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
+- si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 
 
 Manque pour la branche trail-rieutort :
@@ -27,7 +35,7 @@ Travail du 19/11/22 :
 - la combobox type d'établissement mise en lecture seule : CLG, LG, LP.
 - les erreurs ne s'affichaient plus suite aux derniers développements sur l'ordre d'affichage. Corrigé.
 - actualisation ré-optimisée de l'affichage de droite, si changement (au niveau des départs ou des erreurs).
-- import du fichier OPUS UNSS natif.
+- import du fichier OPUS UNSS natif possible.
 - quand on corrigeait une erreur, cela réactualisait tout l'affichage 
 (pour que les catégories se mettent à jour, les coureurs arrivés avant le départ, etc...)
 mais, quand on modifiait la catégorie d'un coureur pour rendre invalide son arrivée, cela ne recalculait rien ! Corrigé.
@@ -35,6 +43,7 @@ mais, quand on modifiait la catégorie d'un coureur pour rendre invalide son arr
 - actualisation du champ établissement après chaque saisie de coureur.
 - lors de toute saisie dans le champ établissement (combobox avec saisie manuelle possible), 
 le bouton "ok" n'apparaissait pas même si le coureur était valide. Corrigé.
+- si BDD vide et qu'on clique sur modification manuelle d'un coureur, affiche qu'il n'y a pas de coureur.
 
 Travail du 18/11/22 :
 - correction bug import d'un lycéen LGT : dans Coureur.setEtablissement(), "LGT" à la place de la dénomination "LG" adopté partout ailleurs !
