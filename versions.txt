@@ -10,9 +10,9 @@ A faire lundi 12H :
 
 
 Manquent :
+- actualisation du champ établissement après chaque saisie de coureur.
 - si BDD vide et qu'on clique sur modification manuelle d'un coureur, devrait afficher qu'il n'y a pas de coureur.
 - si on supprime un coureur, peut-on le rajouter derrière ? A tester...
-
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
 - la compatibilité ascendante avec d'anciennes sauvegardes à tester
 
