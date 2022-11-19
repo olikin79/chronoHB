@@ -2823,6 +2823,7 @@ def tempsDesCoureurs():
     GaucheFrameDossards.forget()
     rejouerToutesLesActionsMemorisees()
     calculeTousLesTemps(True)
+    ## décoche les cases, pourtant il faudrait actualiser les valeurs. actualiseZoneAffichageTV()
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
