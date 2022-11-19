@@ -16,12 +16,8 @@ Le jour J :
 
 
 Manquent :
-- décalage du chronomètre sur la TV en fonction de l'heure d'été ou d'hiver.
-- nombre d'abandons incorrect dans les statistiques.
-- si on supprime un coureur, peut-on le rajouter derrière ? A tester...
 - tester <etablissement> par le nom en question (implémenté dans le commentaire mais non testé)
-- la compatibilité ascendante avec d'anciennes sauvegardes à tester
-- si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
+- la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée...
 
 
 Manque pour la branche trail-rieutort :
@@ -45,6 +41,8 @@ mais, quand on modifiait la catégorie d'un coureur pour rendre invalide son arr
 le bouton "ok" n'apparaissait pas même si le coureur était valide. Corrigé.
 - si BDD vide et qu'on clique sur modification manuelle d'un coureur, affiche qu'il n'y a pas de coureur.
 - ajout de la médaille en fonction du rang féminisé si besoin.
+- décalage du chronomètre sur la TV en fonction de l'heure d'été ou d'hiver.
+- correctif nombre d'absents, de dispensés et d'abandons était incorrect dans les statistiques.
 
 
 Travail du 18/11/22 :
