@@ -3105,7 +3105,7 @@ class CoureurFrame(Frame) :
             self.lblCat = Label(self.parent, text="Course", fg='black')
         else :
             self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
-        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
+        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center")#, state='readonly') #Entry(self.parent)
         self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         L = listCategories()
         self.comboBoxCategorie['values'] = L
@@ -3221,6 +3221,7 @@ class CoureurFrame(Frame) :
             self.etabC.set(coureur.etablissement)
             self.etabNatureC.set(coureur.etablissementNature)
             if CoursesManuelles :
+                self.comboBoxCategorie.config(values=listNomGroupements())
                 self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
@@ -3241,7 +3242,7 @@ class CoureurFrame(Frame) :
         else :
             # cas où on modifie un coureur existant
             self.lblCommentaireInfoAddCoureur.configure(text=\
-                                     "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+                                     "Modifier les caractéristiques du coureur correspondant en sélectionnant son numéro de dossard.")
             self.coureurBoksuivant.configure(text="Valider")
             # afficher le menu déroulant ici.
             self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))

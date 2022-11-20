@@ -615,6 +615,11 @@ class Groupement():
             print("nom choisi:",nomChoisi)
             self.nom = str(nomChoisi)
             self.manuel = True
+    def setNomStandard(self, nomChoisi):
+        if CoursesManuelles : # Cette méthode ne doit pas être utilisée en dehors des coursesManuelles et du processus de réindexation.
+        # les noms standards doivent être fixes dans tous les autres cas.
+            print("nomStandard choisi:",nomChoisi, "pour remplacer",self.nomStandard)
+            self.nomStandard = str(nomChoisi)
     def setDistance(self, distance):
         self.distance = float(distance)
         ### il faut actualiser les distances de toutes les courses du groupement. Sinon, les calculs de vitesse tombent à l'eau.
@@ -629,6 +634,10 @@ class Groupement():
                 self.nomStandard = self.nomStandard + " / " + str(nomCourse)
         if not self.manuel :
             self.nom = self.nomStandard
+    def setListeDesCourses(self,liste):
+        if CoursesManuelles : # utilisable uniquement pour la réindexation des coursesManuelles.
+            # sinon, ne pas utiliser au risque de tout casser, d'où la protection posée ici.
+            self.listeDesCourses = liste
     def addCourse(self, nomCourse):
         # on ajoute le nom de la course dans le groupement
         self.listeDesCourses.append(nomCourse)
@@ -1735,6 +1744,13 @@ def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
 def listNomsGroupementsEtChallenges(nomStandard = False):
     retour = listNomsGroupements(nomStandard)
     retour += listChallenges()
+    return retour
+
+
+def listNomGroupements():
+    retour = []
+    for groupement in Groupements :
+        retour.append(groupement.nom)
     return retour
 
 def listGroupementsCommences():
@@ -4242,29 +4258,47 @@ def delCourses():
 def nettoieCoursesManuelles():
     global Courses
     """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
+    # recherche des courses avec coureurs mises dans L
     L = []
     for c in Coureurs :
         if not c.course in L :
             L.append(c.course)
-    aSupprimer = []
-    for course in Courses :
-        if not Courses[course].categorie in L :
-            ## la course ne contient aucun inscrit.
-            aSupprimer.append(Courses[course].categorie)
-    for cat in aSupprimer :
-        delCourse(cat)
-        print("Suppression de la course vide",cat)
-    # réindexation numéro 1, etc...
-    print(Courses)
-    print(Groupements)
+    # création de CoursesNew et GroupementsNew
+    newCourses = {}
+    newGroupements = []
     i = 1
-    tmp = {}
     for nom in Courses :
-        nouveauNom = "numéro " + str(i)
-        tmp[nouveauNom] = Courses[nom]
-        i+=1
-    # nettoyage
-    Courses = tmp
+        if nom in L : # si il y a des coureurs, on la copie
+            nouveauNom = "numéro " + str(i)
+            newCourses[nouveauNom] = Courses[nom]
+            newCourses[nouveauNom].setNomGroupement(nouveauNom)
+            newGroupements.append(groupementAPartirDeSonNom(nom, nomStandard=True))
+            newGroupements[-1].setNomStandard(nouveauNom)
+            newGroupements[-1].setListeDesCourses([nouveauNom])
+            i+=1
+    # nettoyage avec garbage collector
+    Courses = newCourses
+    Groupements = newGroupements
+    # # recherche des courses vides mises dans aSupprimer
+    # aSupprimer = []
+    # for course in Courses :
+        # if not Courses[course].categorie in L :
+            # ## la course ne contient aucun inscrit.
+            # aSupprimer.append(Courses[course].categorie)
+    # for cat in aSupprimer :
+        # delCourse(cat)
+        # print("Suppression de la course vide",cat)
+    # # réindexation numéro 1, etc...
+    # print(Courses)
+    # print(Groupements)
+    # i = 1
+    # tmp = {}
+    # for nom in Courses :
+        # nouveauNom = "numéro " + str(i)
+        # tmp[nouveauNom] = Courses[nom]
+        # i+=1
+    # # nettoyage
+    # Courses = tmp
         
             
 
