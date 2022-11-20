@@ -2881,13 +2881,13 @@ def dossardSuivantDansArriveeDossards(dossard):
     except:
         return -1
 
-def listCoureurs():
-    if len(Coureurs)==0:
-        print("There are no Coureurs.")
-        return
-    for coureur in Coureurs :
-        print(coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.naissance, coureur.classe, coureur.absent, \
-              coureur.dispense, coureur.tempsFormate(), coureur.rang, coureur.commentaireArrivee, coureur.vitesseFormateeAvecVMA())
+# def listCoureurs():
+    # if len(Coureurs)==0:
+        # print("There are no Coureurs.")
+        # return
+    # for coureur in Coureurs :
+        # print(coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.naissance, coureur.classe, coureur.absent, \
+              # coureur.dispense, coureur.tempsFormate(), coureur.rang, coureur.commentaireArrivee, coureur.vitesseFormateeAvecVMA())
 
 def listArriveeDossards():
     if len(ArriveeDossards)==0:
