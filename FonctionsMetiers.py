@@ -2076,23 +2076,23 @@ def generateDossard(coureur) :
 
 def alimenteListingPourClasse(nomClasse, file):
     if Parametres["CategorieDAge"] == 2 : # UNSS
-        denomination = "Etablissement"
+        denomination = ""
     elif Parametres["CategorieDAge"] == 1 : # catégories FFA
         denomination = "Catégorie"
     else : # cross du collège
         denomination = "Classe"
     debutTab = """{}\\hfill {}
 %\\fcolorbox{black}{gray!30}{
-\\begin{minipage}{0.9\\textwidth}
+%\\begin{minipage}{0.9\\textwidth}
 \\Huge
-{}\\hfill {}
+\\begin{center}
 \\textbf{""" + denomination + " " + nomClasse + """}
-{}\\hfill {}
-\\end{minipage}
+\\end{center}
+%\\end{minipage}
 %}
-{}\\hfill {}
+%{}\\hfill {}
 
-\smallskip
+%\smallskip
 
 \\begin{longtable}{| p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth}|}
 \\hline
