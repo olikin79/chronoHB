@@ -2192,8 +2192,10 @@ def onClickE(err):
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
-        if CategorieDAge :
-            saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
+        if CategorieDAge ==2 :
+            saisieAbsDisp(Coureurs[err.dossard-1].etablissement)
+        elif CategorieDAge == 1 :
+            saisieAbsDisp(Coureurs[err.dossard-1].course)
         else :
             saisieAbsDisp(Coureurs[err.dossard-1].classe)
     elif err.numero == 431 or err.numero == 211 :
