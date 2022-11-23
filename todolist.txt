@@ -23,6 +23,8 @@ correspondant. Cela provoque un bug... Redémarrer chronoHB résout le bug.
 (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
 
+(à tester) : l'archivage contient-il les vidéos ? on dirait que non!
+
 
 NON PRIORITAIRES :
 - FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
