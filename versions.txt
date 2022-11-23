@@ -1,29 +1,3 @@
-A faire lundi 12H :
-- trier par ordre alphabétique d'établissement => cela triera les dossards générés pour que les établissements soient séparés dans la pile.
-- raccourcir les noms de certains établissements : Lycée Rabelais, Peytavin, T. Roussel par exemple.
-
-
-Devenu inutile dans la version 1.62 :
-- =STXT(E2;2;2) pour créer la colonne sexe puis faire un copier-coller valeurs de la colonne sexe...
-- remplir les en-têtes : licence, naissance, type, établissement.
-
-A faire avant mercredi (jour du cross):
-- penser à regrouper les juniors-séniors.
-- message à l'arrivée : <prenom>. Félicitations.
-- rentrer les distances.
-
-Le jour J :
-- vérifier si les filles juniors-seniors courent séparemment ou pas selon leur effectif.
-
-
-Manque pour import le listing UNSS ou des extraits : 
-- accepter "catégorie" en plus de "cat" pour extraire le sexe du fichier UNSS.
-- idem pour "nom établissement" à la place de "établissement"
-- idem pour "type 2 établissement" à la place de "type"
-- idem pour "date de naissance" à la place de naissance.
-Est ce bien utile ? Vite remplacé à la main !
-
-
 Manque pour la branche trail-rieutort :
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
