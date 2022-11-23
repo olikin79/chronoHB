@@ -39,7 +39,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -70,7 +70,27 @@ from functools import partial
 
 generateListCoureursPourSmartphone()
 
+##class ScrollFrame(Frame):
+##    def __init__(self, parent):
+##        super().__init__(parent) # create a frame (self)
+##
+##        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")          #place canvas on self
+##        self.viewPort = Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets 
+##        self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview) #place a scrollbar on self 
+##        self.canvas.configure(yscrollcommand=self.vsb.set)                          #attach scrollbar action to scroll of canvas
+##
+##        self.vsb.pack(side="right", fill="y")                                       #pack scrollbar to right of self
+##        self.canvas.pack(side="left", fill="both", expand=True)                     #pack canvas to left of self and expand to fil
+##        self.canvas_window = self.canvas.create_window((4,4), window=self.viewPort, anchor="nw",            #add view port frame to canvas
+##                                  tags="self.viewPort")
+##
+##        self.canvas.configure(scrollregion=self.canvas.bbox("all"))                 #whenever the size of the frame changes, alter the scroll region respectively.
+##        self.viewPort.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+##        self.canvas.create_window((0, 0), window=self.viewPort, anchor="nw")
+##        self.canvas.configure(yscrollcommand=self.vsb.set)
+        
 
+            
 class ScrollFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent) # create a frame (self)
@@ -920,7 +940,7 @@ class ButtonBoxDossards(Frame):
 ##                #print(self.coureur.nom + "présent")
         #self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
         nomAffiche = coureur.nom + " " + coureur.prenom
-        self.combobox = Button(self, text= nomAffiche, command=genererUnDossard, width = 30)
+        self.combobox = Button(self, text= nomAffiche, command=genererUnDossard, width = 20)
         #self.lbl = Label(self, text=nomAffiche)
         #self.checkbuttons.append(chk)
         self.combobox.pack(side=TOP, expand=YES) # à la verticale
@@ -1162,8 +1182,8 @@ class EntryGroupement(Frame):
 
 
 
-class Combobar(Frame):
-    def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+class Combobar(ScrollFrame):
+    def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W, nombreColonnes = 6):
         Frame.__init__(self, parent)
         self.vertical = vertical
         self.anchor=anchor
@@ -1171,6 +1191,7 @@ class Combobar(Frame):
         self.checkbuttons = []
         self.side = side
         self.fr = []
+        self.nombreColonnes = nombreColonnes
         self.actualise(picks)
     def state(self):
         return [var.get() for var in self.vars]
@@ -1193,46 +1214,15 @@ class Combobar(Frame):
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
         n=len(picks)
-        N = 6 # on organise sur N colonnes
-        quotientParN = n//N
-        resteModuloN = n%N
-        if resteModuloN == 1 : ### on pourrait créer un truc générique pour organiser sur N colonnes. A voir plus tard.
-            m=1
-            k=1
-            l=1
-            j=1
-            i=1
-        elif resteModuloN == 2 :
-            m=1
-            k=2
-            l=2
-            j=2
-            i=2
-        elif resteModuloN == 3 :
-            m=1
-            k=2
-            l=3
-            j=3
-            i=3
-        elif resteModuloN == 4 :
-            m=1
-            k=2
-            l=3
-            j=4
-            i=4
-        elif resteModuloN == 5 :
-            m=1
-            k=2
-            l=3
-            j=4
-            i=5
-        else :
-            m=0
-            k=0
-            l=0
-            j=0
-            i=0
-        IndicesDesChangementsDeColonne = [quotientParN + m, 2*quotientParN + k , 3*quotientParN + l, 4*quotientParN + j, 5*quotientParN + i ]
+        quotientParN = n//self.nombreColonnes
+        resteModuloN = n%self.nombreColonnes
+        IndicesDesChangementsDeColonne = []
+        for i in range(1,self.nombreColonnes) :
+            if resteModuloN < i :
+                decalage = resteModuloN
+            else :
+                decalage = i
+            IndicesDesChangementsDeColonne.append(i*quotientParN + decalage)    
         i = 1
         for pick in picks:
             var = StringVar()
@@ -1252,8 +1242,8 @@ class Combobar(Frame):
                 fr.pack(side=TOP)
 
 
-class Buttonbar(Frame):
-    def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+class Buttonbar(ScrollFrame):
+    def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W, nombreColonnes = 8):
         Frame.__init__(self, parent)
         self.vertical = vertical
         self.anchor=anchor
@@ -1261,6 +1251,7 @@ class Buttonbar(Frame):
         self.checkbuttons = []
         self.side = side
         self.fr = []
+        self.nombreColonnes = nombreColonnes
         self.actualise(picks)
     def state(self):
         return [var.get() for var in self.vars]
@@ -1283,18 +1274,15 @@ class Buttonbar(Frame):
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
         n=len(picks)
-        quotientParTrois = n//3
-        resteModuloTrois = n%3
-        if resteModuloTrois == 1 :
-            m=1
-            k=1
-        elif resteModuloTrois == 2 :
-            m=1
-            k=2
-        else :
-            m=0
-            k=0
-        IndicesDesChangementsDeColonne = [quotientParTrois + m, 2*quotientParTrois + k ]
+        quotientParN = n//self.nombreColonnes
+        resteModuloN = n%self.nombreColonnes
+        IndicesDesChangementsDeColonne = []
+        for i in range(1,self.nombreColonnes) :
+            if resteModuloN < i :
+                decalage = resteModuloN
+            else :
+                decalage = i
+            IndicesDesChangementsDeColonne.append(i*quotientParN + decalage)    
         i = 1
         for pick in picks:
             var = StringVar()
@@ -1443,6 +1431,22 @@ class TopDepartFrame(Frame) :
 class DossardsFrame(Frame) :
     def __init__(self, parent):
         self.parent = parent
+        # pour rendre scrollable la frame
+##        self.canvas = Canvas(self, borderwidth=0, background="#ffffff")          #place canvas on self
+##        self.viewPort = Frame(self.canvas, background="#ffffff")                    #place a frame on the canvas, this frame will hold the child widgets 
+##        self.vsb = Scrollbar(self, orient="vertical", command=self.canvas.yview) #place a scrollbar on self 
+##        self.canvas.configure(yscrollcommand=self.vsb.set)                          #attach scrollbar action to scroll of canvas
+##
+##        self.vsb.pack(side="right", fill="y")                                       #pack scrollbar to right of self
+##        self.canvas.pack(side="left", fill="both", expand=True)                     #pack canvas to left of self and expand to fil
+##        self.canvas_window = self.canvas.create_window((4,4), window=self.viewPort, anchor="nw",            #add view port frame to canvas
+##                                  tags="self.viewPort")
+##
+##        self.canvas.configure(scrollregion=self.canvas.bbox("all"))                 #whenever the size of the frame changes, alter the scroll region respectively.
+##        self.viewPort.bind("<Configure>",lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+##        self.canvas.create_window((0, 0), window=self.viewPort, anchor="nw")
+##        self.canvas.configure(yscrollcommand=self.vsb.set)
+        # fin pour rendre scrollable
         self.tupleClasses = tuple(listClasses())
         self.listeCoureursDeLaClasse = []
         self.choixClasseCombo = Combobox(self.parent, width=45, justify="center")
