@@ -15,15 +15,31 @@ Même schéma pour ArriveeTemps, ArriveeTempsAffectes, ArriveeDossards,
 
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
-un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
 
-(confirmé) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
+
+
+MOYENNEMENT PRIORITAIRES :
+- rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
+
+- rajouter une coche sur l'affichage TV lorsque le premier coureur de la course en question est scanné. 
+Cela permettrait de pallier les oublis de l'opérateur.
+
+- pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
+
+- sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
+Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
+c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
+puis agir si besoin puis revenir à l'écran classique.
+
+- un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
+
+- (confirmé) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
 correspondant. Cela provoque un bug... Redémarrer chronoHB résout le bug.
 
-(à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
+- (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
 
-(à tester) : l'archivage contient-il les vidéos ? on dirait que non!
+- (à tester) : l'archivage contient-il les vidéos ? on dirait que non!
 
 
 NON PRIORITAIRES :
@@ -31,11 +47,6 @@ NON PRIORITAIRES :
 si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
 si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
 ou un nouveau temps ajouté ensuite la font disparaître.
-
-- si le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
-Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
-c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
-puis agir si besoin puis revenir à l'écran classique.
 
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
@@ -60,6 +71,8 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 
 
 - ESTHETIQUE :
+	* les boutons des vidéos ne se déplacent pas vers le haut ou le bas quand la scrollbar de monTableau est utilisée 
+		(ou se décale toute seule avec les nouvelles arrivées)
 	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
@@ -78,12 +91,7 @@ A TESTER :
 
 
 
-FONCTIONNALITES MANQUANTES dans chronoHB.py :
-PRIORITAIRES :
-- permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
-les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
-Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
-de vérification et de laisser les coureurs concernés loin des installations.
+FONCTIONNALITES MANQUANTES dans chronoHB.py à plus long terme :
 
 	
 MOYENNEMENT PRIORITAIRE :
@@ -115,6 +123,10 @@ Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une b
 
 
 A PLUS LONG TERME :
+- permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
+les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
+Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
+de vérification et de laisser les coureurs concernés loin des installations.
 - faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
 (interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
 Ainsi, quand on effectue un tri par colonne, actuellement, j'ai mis 3 chiffres tout le temps. Développement court qui devra se baser sur la méthode formateSurNChiffres() 
