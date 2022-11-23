@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.62"
+version="1.63"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -39,7 +39,7 @@ CoureursParClasse = {}
 
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
