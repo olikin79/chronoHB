@@ -11,6 +11,7 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
 Même schéma pour ArriveeTemps, ArriveeTempsAffectes, ArriveeDossards, 
 
+- pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
 
 
 BUGS RESTANTS dans chronoHB :
