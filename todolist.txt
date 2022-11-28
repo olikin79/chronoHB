@@ -13,20 +13,20 @@ Même schéma pour ArriveeDossards,
 
 Utilisé : les fonctions d'accès créées transformeront le paramètre fourni en une chaine de caractères et testeront si le dernier
 caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce sera la course A par défaut.
-1. len(Coureurs)						pour 1, nbreCoureurs() devra faire le travail.
-2. Coureurs[doss-1]						pour 2, getCoureur(doss) devra faire le travail
-3. i = 0								pour 3 et 4, une fonction listCoureurs() devrait faire l'affaire.
+1. len(Coureurs)						pour 1, la propriété nombreDeCoureurs devra faire le travail.
+2. Coureurs[doss-1]						pour 2, recuperer(doss) devra faire le travail
+3. i = 0								pour 3 et 4, une fonction liste() devrait faire l'affaire.
     while i < len (Coureurs) :
         coureur = Coureurs[i]
 4. for coureur in Coureurs
 5. dossard = len(Coureurs)+1							pour 5. difficile de connaître le numéro de dossard sans connaitre la course à l'avance.
    Coureurs.append(Coureur(dossard, nom, prenom, ...))			du coup, cela serait réservé au seul cas des CoursesManuelles.
-																ajouterDansCoureurs(Coureur) à créer : le coureur, une fois ajouté se voit affecter
-   Coureurs[-1].setCourse(addCourse(course))					son numéro de dossard automatiquement par ajouterDansCoureurs() elle-même et elle retourne
-																ce dossard. Cela peut servir ici pour la ligne qui suit.
+																ajouter(coureur) à créer : le coureur, une fois ajouté se voit affecter
+   Coureurs[-1].setCourse(addCourse(course))					son numéro de dossard automatiquement par ajouter(coureur) elle-même 
+																et elle retourne ce dossard. Cela peut servir ici pour la ligne qui suit.
 																
 6. doss = int(dossard)					à supprimer systématiquement.
-7. del Coureurs[doss-1]					pour 7. créer supprimerDeCoureurs(doss) qui ferait le travail et retournerait un code de succès ou d'erreur.
+7. del Coureurs[doss-1]					pour 7. créer effacer(doss) ou effacer(coureur) qui ferait le travail et retournerait un code de succès ou d'erreur.
 
 Migration :
 si isinstance(Coureurs,list) alors le transformer en dictionnaire.

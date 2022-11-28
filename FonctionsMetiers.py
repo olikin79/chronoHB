@@ -215,6 +215,72 @@ def recupere_sauvegarde(sauvegardeChoisie) :
 ####        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
 ##        return nomFichierCopie
 
+class DictionnaireDeCoureurs(dict) :
+    def __init__(self, AncienneListeAImporter=[]):
+        super().__init__()
+        self.nombreDeCoureurs = len(AncienneListeAImporter)
+        self["A"]=AncienneListeAImporter
+        self["CoureursElimines"] = {"A" : []}
+    def recuperer(self, dossard) :
+        doss = str(dossard)
+        if doss[-1].isalpha():
+            # nouvelle implémentation des dossards
+            cle = doss[-1].upper()
+            c = self[cle][int(doss[:-1])-1]
+        else :
+            # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
+            c = self["A"][int(doss)-1]
+        return c
+    def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
+        L = []
+        for e in self.keys() :
+            indicesLibres = self["CoureursElimines"][e]
+            Ltmp = list(self[e])
+            for ind in indicesLibres :
+                Ltmp.pop(ind)
+            L += Ltmp
+        return L
+    def effacerTout(self) :
+        self.clear()
+        self.__init__()
+    def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
+        # ajout dans le premier coureur vide de la course.
+        if not course in self.keys() :
+            self[course] = []
+            self["CoureursElimines"][course]=[]
+        if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
+            premierIndiceLibre = self["CoureursElimines"][course].pop(0)
+            coureur.setDossard(str(premierIndiceLibre) + course) # on fixe le dossard du coureur
+            self[course][premierIndiceLibre]= coureur
+            return str(premierIndiceLibre) + course
+        else : # aucun indice libre, on ajoute à la fin
+            coureur.setDossard(str(len(self[course])) + course) # on fixe le dossard du coureur
+            self[course].append(coureur)
+            return str(len(self[course])-1) + course
+    def effacer(self,element) :
+        if isinstance(element, Coureur):
+            # c'est un coureur que l'on cherche à effacer
+            for c in self.list() :
+                if c.nom == element.nom and c.prenom == element.prenom :
+                    doss = c.dossard
+                    break
+            self.effacer(doss)
+        elif isinstance(element, str) :
+            # c'est un dossard que l'on cherche
+            doss = str(element)
+            if doss[-1].isalpha():
+                # nouvelle implémentation des dossards
+                cle = doss[-1].upper()
+                indice = int(doss[:-1])-1
+            else :
+                # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
+                cle = "A"
+                indice = int(doss)-1
+            self[cle][indice] = Coureur("","","","") # coureur vide mis à la place.
+            self["CoureursElimines"][cle].append(indice)
+            self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
+        
+
 class Erreur():
     """ Une erreur de chronoHB"""
     def __init__(self, numero, courteDescription="", elementConcerne=""):
@@ -264,7 +330,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
+    def __init__(self, nom, prenom, sexe, dossard = 0, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, course="", scoreUNSS=1000000):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
@@ -370,7 +436,10 @@ class Coureur():#persistent.Persistent):
             self.etablissementNature = nature
     def setDossard(self, dossard) :
         try :
-            self.dossard = int(dossard)
+            doss = str(dossard)
+            if doss[-1].isalpha() :
+                int(doss[:-1])
+                self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
         except :
             self.dossard = 0
     def setVMA(self, VMA) :
@@ -3674,7 +3743,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 retour = [0,0,0]
         else :
             dossard = len(Coureurs)+1
-            Coureurs.append(Coureur(dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+            Coureurs.append(Coureur( nom, prenom, sexe,dossard, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")", "Course manuelle:", course)
             Coureurs[-1].setCourse(addCourse(course))
@@ -3687,7 +3756,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
 
-##def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="",\
+##def modifyCoureur(dossard, nom, prenom, sexe,  classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="",\
 ##                  VMA="0", aImprimer = True, course=""):
 ##    try :
 ##        vma = float(VMA)
