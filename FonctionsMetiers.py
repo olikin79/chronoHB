@@ -434,7 +434,7 @@ class Coureur():#persistent.Persistent):
     def tempsFormate(self) :
         #print(self.dossard,self.nom,self.temps)
         if self.temps > 0 : # ajouté suite au coureurVide utile pour affiché le temps potentiel du prochain coureur. 
-            partieDecimale = str(round(((self.temps - int(self.temps))*100)))
+            partieDecimale = str(int(((self.temps - int(self.temps))*100)))
             if len(partieDecimale) == 1 :
                 partieDecimale = "0" + partieDecimale
             #print(self.nom,self.dossard,self.temps)
@@ -4655,6 +4655,8 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     #print("coureur",coureur.nom,coureur.temps)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
+        if coureur.nom == "DORCE" :
+            print("temps de dorce", coureur.temps, "formaté", contenuTemps)
 ##        if coureur.VMA and coureur.VMA > coureur.vitesse :
 ##            supplVMA = " (" + str(int(coureur.vitesse/coureur.VMA*100)) + "\% VMA)"
 ##        else :
@@ -4701,9 +4703,12 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
         contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
     else :
         contenuRangCat = ""
-    ligne = " {} \\hfill " + coureur.prenom + " " + coureur.nom   + " \\hfill {} &  {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
+    ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} &  {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
             + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
-            + " \\hfill {} \\\\\n\hline\n"
+            + " \\hfill {} \\\\\n"
+    if CategorieDAge == 2 : #cas du cross UNSS
+        ligne += "\n {} \\hfill ("+ coureur.etablissement + ")"   + " \\hfill {} &  & & \\\\\n"
+    ligne += "\hline\n"
     return ligne, ArrDispAbsAbandon
 
 def genereLigneTableauTEX(dossard) :

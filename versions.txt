@@ -5,6 +5,11 @@ utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les gr
 
 -------------------------------------------------------------
 
+Travail du 29/11/22 :
+- ajout de l'établissement dans les fichiers pdf de courses générés pour les cross UNSS.
+- correction d'un léger bug d'affichage lié au formatage du temps quand le temps obtenu était x,999 secondes qui était affiché "x s 100''".
+
+
 Travail du 19/11/22 :
 - la combobox type d'établissement mise en lecture seule : CLG, LG, LP.
 - les erreurs ne s'affichaient plus suite aux derniers développements sur l'ordre d'affichage. Corrigé.
