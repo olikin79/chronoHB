@@ -265,7 +265,7 @@ def naissanceValide(naissance) :
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course=""):
+                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence=""):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
         if len(prenom)>=2 :
@@ -291,6 +291,7 @@ class Coureur():#persistent.Persistent):
         self.aImprimer = aImprimer
         self.categorieAuto = True
         self.course = course
+        self.setLicence(licence)
         self.categorie(CategorieDAge)
         self.__private_categorie = None
         self.__private_categorie_manuelle = None
@@ -303,6 +304,10 @@ class Coureur():#persistent.Persistent):
         except:
             self.etablissement = ""
             self.etablissementNature = ""
+        try : # compatibilité ascendante avec les anciennes sauvegardes
+            self.licence
+        except :
+            self.setLicence("")
         #if not Parametres["CoursesManuelles"] :
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
@@ -331,6 +336,12 @@ class Coureur():#persistent.Persistent):
         #    return self.__private_categorie_manuelle
     def categorieSansSexe(self) :
         return self.categorie(Parametres["CategorieDAge"])[:2]
+    def setLicence(self,licence):
+        self.licence = str(licence)
+        try :
+            self.etablissementNoUNSS  = self.licence[:7]
+        except :
+            self.etablissementNoUNSS = ""
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
     def scoreUNSSFormate(self) :
@@ -1661,7 +1672,8 @@ def listChallenges():
             if NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
                 ### en théorie, il faudrait créer le challenge même s'il n'y a que des filles cadettes et des garçons juniors. 
                 ### Actuellement, c'est un "bug" qui n'apparaitra jamais car il y a toujours des coureurs en cadets et junior dans les deux sexes.
-                if Parametres["CategorieDAge"]== 2 and NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
+                if Parametres["CategorieDAge"]== 2 and \
+                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
                     # on ajoute les deux challenges LP et LG violemment.
                     if "LP" not in retour :
                         retour.append("LP")
@@ -2226,6 +2238,7 @@ def supprimerFichier(file):
 
 def selectPlusRecent(dossier,formatDuNom):
     datePrecedente = 0
+    fichierSelectionne = ""
     for file in glob.glob(dossier + os.sep + formatDuNom,recursive = False) :
         if datePrecedente < os.path.getmtime(file) :
             datePrecedente = os.path.getmtime(file)
@@ -3649,7 +3662,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = ""):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA,etablissement, etablissementNature)
         vma = float(VMA)
@@ -3677,6 +3690,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if coureur.classe != classe :
                 coureur.setClasse(classe)
+                auMoinsUnChangement = True
+            if coureur.licence != licence :
+                coureur.setLicence(licence)
                 auMoinsUnChangement = True
             if coureur.VMA != vma :
                 coureur.setVMA(vma)
@@ -3710,7 +3726,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
 
-def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="", VMA="0", aImprimer = True):
+def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="",\
+                  VMA="0", aImprimer = True, licence = ""):
     try :
         vma = float(VMA)
     except :
@@ -3724,6 +3741,7 @@ def modifyCoureur(dossard, nom, prenom, sexe, classe='', etablissement="", etabl
 ##                if commentaireArrivee != "" :
 ##                    print("mise à jour commentaire :",commentaireArrivee)
         Coureurs[dossard-1].setClasse(classe)
+        Coureurs[dossard-1].setLicence(licence)
         Coureurs[dossard-1].setVMA(vma)
         Coureurs[dossard-1].setNaissance(naissance)
         Coureurs[dossard-1].setEtablissement(etablissement,etablissementNature)
@@ -4527,6 +4545,11 @@ def creerFichierChallenge(challenge, entete):
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
         score = ResultatsGroupements[challenge][i].score
         classe = ResultatsGroupements[challenge][i].nom
+        if CategorieDAge == 2 : ## pour l'UNSS , on ajoute le numéro d'établissement
+            L = ResultatsGroupements[challenge][i].listeCG + ResultatsGroupements[challenge][i].listeCF
+            #print("etablissementNoUNSS",L)
+            #print(L[0].etablissementNoUNSS)
+            classe += " ("+ L[0].etablissementNoUNSS +") "
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
         #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
@@ -5089,6 +5112,7 @@ def creerCoureur(listePerso, informations) :
     abse=False
     vma = 0
     comment = ""
+    lic = ""
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
@@ -5110,6 +5134,14 @@ def creerCoureur(listePerso, informations) :
             clas = supprLF(infos["classe"])
         except :
             clas = ""
+    if "licence" in informations or "n° licence" in informations  :
+        try :
+            lic = supprLF(infos["licence"])
+        except :
+            try :
+                lic = supprLF(infos["n° licence"])
+            except :
+                lic = ""
     if "naissance" in informations or "date naiss." in informations :
         try :
             naiss = supprLF(infos["naissance"])
@@ -5155,7 +5187,7 @@ def creerCoureur(listePerso, informations) :
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and sexe : # trois informations essentielles OBLIGATOIRES
         retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                               commentaireArrivee=supprLF(comment), VMA=vma)
+                                               commentaireArrivee=supprLF(comment), VMA=vma, licence = lic)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
 ##        if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
