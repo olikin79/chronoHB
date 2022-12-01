@@ -29,6 +29,7 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 7. del Coureurs[doss-1]					pour 7. créer effacer(doss) ou effacer(coureur) qui ferait le travail et retournerait un code de succès ou d'erreur.
 8. coureurExists(Coureurs, nom, prenom) à remplacer par une méthode intégrée self.existe(coureur)
 
+- limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
 
 
 Migration :
