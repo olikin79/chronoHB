@@ -15,6 +15,11 @@ Manque pour la branche trail-rieutort :
 
 
 
+Travail du 02/12/22 : branche class Coureurs-ArriveesDossards
+- Tests, compléments et correction du travail du 29/11/22. Toutes les méthodes ont été testées et protégées.
+Il reste à faire de même pour l'implémentation de ArriveeDossards : idem mais avec des dossards contenus et non des Coureurs.
+Puis remplacer toutes les occurences de Coureurs dans tout le code (voir todolist).
+
 
 Travail du 29/11/22 : branche class Coureurs-ArriveesDossards
 - ajout d'une classe héritée de dict : DictionnaireDeCoureurs avec la propriété nombreDeCoureurs et les 

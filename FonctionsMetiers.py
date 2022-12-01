@@ -223,49 +223,57 @@ class DictionnaireDeCoureurs(dict) :
         self["CoureursElimines"] = {"A" : []}
     def recuperer(self, dossard) :
         doss = str(dossard)
-        if doss[-1].isalpha():
-            # nouvelle implémentation des dossards
-            cle = doss[-1].upper()
-            c = self[cle][int(doss[:-1])-1]
-        else :
-            # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
-            c = self["A"][int(doss)-1]
+        try : 
+            if doss[-1].isalpha():
+                # nouvelle implémentation des dossards
+                cle = doss[-1].upper()
+                c = self[cle][int(doss[:-1])-1]
+            else :
+                # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
+                c = self["A"][int(doss)-1]
+        except :
+            c = ""
         return c
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
         for e in self.keys() :
-            indicesLibres = self["CoureursElimines"][e]
-            Ltmp = list(self[e])
-            for ind in indicesLibres :
-                Ltmp.pop(ind)
-            L += Ltmp
+            if e != "CoureursElimines" :
+                indicesLibres = self["CoureursElimines"][e]
+                Ltmp = list(self[e])
+                for ind in indicesLibres :
+                    Ltmp.pop(ind)
+                L += Ltmp
         return L
     def effacerTout(self) :
         self.clear()
         self.__init__()
     def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
-        if not course in self.keys() :
-            self[course] = []
-            self["CoureursElimines"][course]=[]
-        if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
-            premierIndiceLibre = self["CoureursElimines"][course].pop(0)
-            coureur.setDossard(str(premierIndiceLibre) + course) # on fixe le dossard du coureur
-            self[course][premierIndiceLibre]= coureur
-            return str(premierIndiceLibre) + course
-        else : # aucun indice libre, on ajoute à la fin
-            coureur.setDossard(str(len(self[course])) + course) # on fixe le dossard du coureur
-            self[course].append(coureur)
-            return str(len(self[course])-1) + course
-    def effacer(self,element) :
+        if not self.existe(coureur) :
+            if not course in self.keys() :
+                self[course] = []
+                self["CoureursElimines"][course]=[]
+            if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
+                premierIndiceLibre = self["CoureursElimines"][course].pop(0)
+                coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
+                self[course][premierIndiceLibre]= coureur
+                return str(premierIndiceLibre) + course
+            else : # aucun indice libre, on ajoute à la fin
+                coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
+                self[course].append(coureur)
+                return str(len(self[course])-1) + course
+        else :
+            print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
+    def existe(self,element):
+        """Retourne 0 si le coureur n'existe pas et son dossard sinon"""
+        retour = 0
         if isinstance(element, Coureur):
-            # c'est un coureur que l'on cherche à effacer
-            for c in self.list() :
-                if c.nom == element.nom and c.prenom == element.prenom :
-                    doss = c.dossard
+            # c'est un coureur que l'on cherche à trouver
+            for c in self.liste() :
+                if c.nom.lower() == element.nom.lower() and c.prenom.lower() == element.prenom.lower() :
+                    retour = c.dossard
                     break
-            self.effacer(doss)
-        elif isinstance(element, str) :
+        else :
             # c'est un dossard que l'on cherche
             doss = str(element)
             if doss[-1].isalpha():
@@ -276,9 +284,47 @@ class DictionnaireDeCoureurs(dict) :
                 # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
                 cle = "A"
                 indice = int(doss)-1
-            self[cle][indice] = Coureur("","","","") # coureur vide mis à la place.
-            self["CoureursElimines"][cle].append(indice)
-            self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
+            if indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
+                retour = self[cle][indice].dossard
+        return retour
+    def effacer(self,element) :
+        try :
+            if isinstance(element, Coureur):
+                # c'est un coureur que l'on cherche à effacer
+                for c in self.liste() :
+                    if c.nom.lower() == element.nom.lower() and c.prenom.lower() == element.prenom.lower() :
+                        doss = c.dossard
+                        break
+                self.effacer(doss)
+            else :
+                # c'est un dossard que l'on cherche
+                doss = str(element)
+                if doss[-1].isalpha():
+                    # nouvelle implémentation des dossards
+                    cle = doss[-1].upper()
+                    indice = int(doss[:-1])-1
+                else :
+                    # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
+                    cle = "A"
+                    indice = int(doss)-1
+                self[cle][indice] = Coureur("","","","") # coureur vide mis à la place.
+                self["CoureursElimines"][cle].append(indice)
+                self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
+        except :
+            if isinstance(element, Coureur):
+                print("Impossible d'effacer l'élément", element.nom, element.prenom, "des Coureurs actuels")
+            else :
+                print("Impossible d'effacer l'élément", element, "des Coureurs actuels")
+    def afficher(self) :
+        for course in self.keys() :
+            if course != "CoureursElimines" :
+                print("Course",course)
+                indicesLibres = self["CoureursElimines"][course]
+                i = 0
+                for coureur in self[course] :
+                    if not i in indicesLibres :
+                        print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
+                    i += 1
         
 
 class Erreur():
@@ -5248,165 +5294,30 @@ def supprLF(ch) :
 
 
 ##
-##if __name__=="__main__":
-####    # Start the server in a new thread
-####    port = 8888
-####    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
-####    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-####    daemon.start()
-####    time.sleep(1)
-##    while 1:
-##        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
-##        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
-##        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
-##        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
-##        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
-##        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
-##        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
-##        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
-##        choice=choice.lower()
-##        if choice=="l":
-##            listerDonneesTerminal()
-##        elif choice == "l1" :
-##            print("Courses")
-##            for cat in listCourses():
-##                c = Courses[cat]
-##                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
-##        elif choice == "l2" :
-##            print("ArriveeDossards")
-##            listArriveeDossards()
-##        elif choice == "l3" :
-##            print("ArriveeTemps")
-##            listArriveeTemps()
-##        elif choice == 'l4' :
-##            listCoureurs()
-##        elif choice == "recup" :
-##            recupCSVSIECLE()
-##        elif choice == 'g2':
-##            generateListCoureursPourSmartphone()
-##        elif choice == 'g3':
-##            generateDossards()
-####            mon_thread2=Thread(target=generateDossards)
-####            mon_thread2.start()
-##        elif choice == 'g4' :
-##            mon_thread=Thread(target=generateImpressions)
-##            mon_thread.start()
-##        elif choice =="test":
-##            generateImpressions()
-##        elif choice == "distall" :
-##            saisie = input("Distance en km à affecter à toutes les courses :")
-##            try :
-##                d = float(saisie)
-##                print(d)
-##                setDistanceToutesCourses(d)
-##            except:
-##                print("Distance invalide : le séparateur décimal est un point")
-##        elif choice == "dist" :
-##            print("liste des courses", listCourses())
-##            nom = input("Nom de la course :")
-##            if nom in listCourses() :
-##                saisie = input("Distance en km à affecter à " + nom + " : ")
-##                try :
-##                    d = float(saisie)
-##                    setDistance( nom, d)
-##                except:
-##                    print("Distance invalide : le séparateur décimal est un point")
-##        elif choice =="g":
-##            genereResultatsCoursesEtClasses()
-##            for key in Resultats :
-##                if len(key) == 1 :
-##                    print(key, " :")
-##                    i=0
-##                    while i < len(Resultats[key]) :
-##                        score = Resultats[key][i].score
-##                        classe = Resultats[key][i].nom
-##                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
-##                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
-##                        for element in liste :
-##                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
-##                        i += 1
-##                else :
-##                    print(key , ":", Resultats[key])
-##            genereAffichageTV(listCourses())
-####        elif choice=="t":
-####            listeDeCourses = listCourses()
-####            topDepart(listeDeCourses)
-##        elif choice=="c0":
-##            print(calculeTousLesTemps(True))
-##        elif choice=="c":
-##            calculeTousLesTemps()
-##        elif choice=="d1":
-##            dossard = input("Dossard :")
-##            delCoureur(dossard)
-##        elif choice=="d2":
-##            dossard = input("Dossard :")
-##            delArriveeDossard(dossard)
-##        elif choice=="d3":
-##            #listArriveeTemps()
-##            temps = input("Temps Réel à supprimer :")
-##            saisie = input("Dossard associé :")
-##            if saisie == "" :
-##                dossard = 0
-##            else :
-##                dossard = saisie
-##            delArriveeTemps(temps, dossard)
-##        elif choice=="d4":
-##            #listArriveeTemps()
-##            temps = input("Temps Réel dont il faut dissocier le dossard :")
-##            #dissocieArriveeTemps(temps)
-##            delDossardAffecteArriveeTemps(temps)
-##        elif choice=="r":
-##            delCoureurs()
-##        elif choice == 'a4':
-##            temps = float(input("Temps à affecter :"))
-##            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
-##            if dossard == "" :
-##                delDossardAffecteArriveeTemps(temps)
-##            else :
-##                affecteDossardArriveeTemps(temps, dossard)
-##        elif choice == 'I' :
-##            imprimePDF('dossards/0-tousLesDossards.pdf')
-##        elif choice == 'a3':
-##            temps = input("Temps à ajouter :")
-##            saisie = input("Dossard associé :")
-##            if saisie == "" :
-##                dossard = 0
-##            else :
-##                dossard = saisie
-##            addArriveeTemps(temps, time.time(), time.time(),dossard)
-##        elif choice=="a2":
-##            dossard = input("Dossard :")
-##            listArriveeDossards()
-##            dossardPrecedent = input("Dossard précédent :")
-##            if dossardPrecedent != "" :
-##                addArriveeDossard(dossard, dossardPrecedent)
-##            else :
-##                addArriveeDossard(dossard)
-##        elif choice=="a1":
-##            nom=input("nom :")
-##            prenom=input("prenom :")
-##            sexe=input("sexe :")
-##            classe=input("classe :")
-##            addCoureur(nom, prenom, sexe, classe)
-##
-##        elif choice=="q":
-##            break
-##        elif choice == "i" :
-##            print("on traite les données venant des smartphones")
-##            traiterDonneesSmartphone()
-##        elif choice == "i0" :
-##            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
-##            traiterDonneesSmartphone(True, True)
-##            traiterDonneesLocales(True,True)
-##        elif choice == "cross2021" :
-##            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
-##                fixerDepart(donnees[0],donnees[1])
-##            root["LignesIgnoreesSmartphone"] = []
-##            root["LignesIgnoreesLocal"] = []
-##        elif choice == "teststats" :
-##            testTMPStats()
-##    ecrire_sauvegarde(sauvegarde)
-##    ##transaction.commit()
-##    # close database
-##    #connection.close()
-##    #db.close()
+if __name__=="__main__":
+    print("création du dictionnaire")
+    C = DictionnaireDeCoureurs()
+    C.effacerTout()
+    print("ajout de coureurs")
+    C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
+    C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
+    C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
+    C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
+    Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
+    C.ajouter(Cmath,"B")
+    C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
+    C.afficher()
+    print(C.recuperer("2B").prenom)
+    C.effacer(Cmath)
+    C.effacer("1B")
+    C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
+    C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
+    C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
+    #print(C.liste())
+    C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
+    #C.effacer("1D")
+    C.afficher()
+    print(C.recuperer("3B").prenom)
+    print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
+    print(C.existe(3))
+    print(C.existe(7))
