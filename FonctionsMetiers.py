@@ -221,6 +221,8 @@ class DictionnaireDeCoureurs(dict) :
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self["A"]=AncienneListeAImporter
         self["CoureursElimines"] = {"A" : []}
+    def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
+        self["A"]=AncienneListeAImporter
     def recuperer(self, dossard) :
         doss = str(dossard)
         try : 
@@ -257,13 +259,17 @@ class DictionnaireDeCoureurs(dict) :
                 premierIndiceLibre = self["CoureursElimines"][course].pop(0)
                 coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
                 self[course][premierIndiceLibre]= coureur
+                self.nombreDeCoureurs += 1
                 return str(premierIndiceLibre) + course
             else : # aucun indice libre, on ajoute à la fin
                 coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
                 self[course].append(coureur)
+                self.nombreDeCoureurs += 1
                 return str(len(self[course])-1) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
+    def cles(self):
+        return self.keys().remove("CoureursElimines")
     def existe(self,element):
         """Retourne 0 si le coureur n'existe pas et son dossard sinon"""
         retour = 0
@@ -308,6 +314,7 @@ class DictionnaireDeCoureurs(dict) :
                     cle = "A"
                     indice = int(doss)-1
                 self[cle][indice] = Coureur("","","","") # coureur vide mis à la place.
+                self.nombreDeCoureurs -= 1
                 self["CoureursElimines"][cle].append(indice)
                 self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
         except :
@@ -325,14 +332,15 @@ class DictionnaireDeCoureurs(dict) :
                     if not i in indicesLibres :
                         print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
                     i += 1
-        
+
+
 
 class Erreur():
     """ Une erreur de chronoHB"""
     def __init__(self, numero, courteDescription="", elementConcerne=""):
         self.numero = numero
         self.description = courteDescription
-        if isinstance(elementConcerne,int) : # c'est un dossard.
+        if isinstance(elementConcerne,str) : # c'est un dossard.
             self.dossard = elementConcerne
             self.temps = 0.0
         elif isinstance(elementConcerne,float) : # c'est un temps.
@@ -488,6 +496,12 @@ class Coureur():#persistent.Persistent):
                 self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
         except :
             self.dossard = 0
+    def getDossard(self) :
+        if CoursesManuelles :
+            retour = self.dossard
+        else :
+            retour = self.dossard[:-1] # on élimine la lettre pour les affichages, etc...
+        return retour
     def setVMA(self, VMA) :
         try :
             self.VMA = float(VMA)
@@ -993,8 +1007,12 @@ def chargerDonnees() :
     # get the data, creating an empty mapping if necessary
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
-        root["Coureurs"] = []
+        root["Coureurs"] = {}
     Coureurs=root["Coureurs"]
+    tagConvertionEnCours = False
+    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
+        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
+        tagConvertionEnCours = True
     if not "Courses" in root :
         #print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
@@ -1025,6 +1043,19 @@ def chargerDonnees() :
     if not "ArriveeDossards" in root :
         root["ArriveeDossards"] = []
     ArriveeDossards=root["ArriveeDossards"]
+    if tagConvertionEnCours :
+        ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
+        i = 0
+        while i < len(ArriveeDossards) :
+            ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
+            i += 1
+        i = 0
+        while i < len(ArriveeTempsAffectes) :
+            if ArriveeTempsAffectes[i] > 0 :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
+            else :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
+            i += 1
     if not "LignesIgnoreesSmartphone" in root :
         root["LignesIgnoreesSmartphone"] = []
     LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
@@ -1542,8 +1573,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
     action = listeAction[1]
-    dossard = int(listeAction[2])
-    if dossard > 0 : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+    dossard = str(listeAction[2])
+    if dossard != "0" or dossard != "-1" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
@@ -1594,7 +1625,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)
     elif listeAction[0] =="dossard" :
-        dossardPrecedent = int(listeAction[3])
+        dossardPrecedent = str(listeAction[3])
         try :
             uid = int(listeAction[4])
         except :
@@ -1904,35 +1935,36 @@ def fixerDepart(nomGroupement,temps):
 
 
 def generateListCoureursPourSmartphone() :
-    fichierDonneesSmartphone = "Coureurs.txt"
-    with open(fichierDonneesSmartphone, 'w') as f :
-        print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
-        for coureur in Coureurs :
-            try :
-                #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
-                #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
-                if CoursesManuelles :
-                    nomStandard = Courses[coureur.course].description
-                    c = groupementAPartirDUneCategorie(nomStandard).nom
-                else :
-                    c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+    fichierDonneesSmartphone = "Coureurs"
+    print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
+    for lettre in Coureurs.cles() :
+        with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
+            for coureur in Coureurs[lettre] :
+                try :
+                    #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+                    if CoursesManuelles :
+                        nomStandard = Courses[coureur.course].description
+                        c = groupementAPartirDUneCategorie(nomStandard).nom
+                    else :
+                        c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
 
-                result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
-                         str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
-                         str(c) + "," +\
-                         str(coureur.commentaireArrivee).replace(",",";") + \
-                         "," + str(coureur.etablissement)
-            except :
-                result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
-                         "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
-                print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
-                print("course", Courses[coureur.course].description)
-                print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
-                      str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
-                      str(coureur.commentaireArrivee))
-            result += "\n"
-            f.write(result)
-    f.close()
+                    result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
+                             str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
+                             str(c) + "," +\
+                             str(coureur.commentaireArrivee).replace(",",";") + \
+                             "," + str(coureur.etablissement)
+                except :
+                    result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
+                             "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
+                    print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    print("course", Courses[coureur.course].description)
+                    print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
+                          str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
+                          str(coureur.commentaireArrivee))
+                result += "\n"
+                f.write(result)
+        f.close()
 
 def generateQRcode(n) :
     osCWD = os.getcwd()
@@ -2972,7 +3004,7 @@ def dossardPrecedentDansArriveeDossards(dossard):
         print("Pas de dossards arrivés.")
         return -1
     try :
-        n = ArriveeDossards.index(int(dossard))
+        n = ArriveeDossards.index(str(dossard))
         if n == 0 :
             return 0
         else :
@@ -2988,7 +3020,7 @@ def dossardSuivantDansArriveeDossards(dossard):
         print("Pas de dossards arrivés.")
         return -1
     try :
-        n = ArriveeDossards.index(int(dossard))
+        n = ArriveeDossards.index(str(dossard))
         if n+1 == len(ArriveeDossards) :
             return 0
         else :
@@ -3549,14 +3581,14 @@ def dupliqueTemps(tps):
         return dupliqueTemps(nouveauTps)
 
 
-def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard=0) :
+def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0") :
     """ ajoute un temps dans la liste par ordre croissant pour que ArriveeTemps reste toujours croissante
     par rapport au tempsReel (heure d'arrivée du coureur sur le serveur (pour gérer plusieurs clients en décalage horaire).
     Doit prendre garde au temps mesuré sur le smartphone pour qu'un temps ne soit pas importé deux fois."""
     CodeRetour = Erreur(201)
     newTps = dupliqueTemps(Temps(tempsCoureur, tempsClient, tempsServeur))
 ##    if tempsClientIsNotInArriveeTemps(newTps) :
-    doss = int(dossard)
+    doss = str(dossard)
     n = len(ArriveeTemps)
     if n == 0 : # si c'est le premier temps, on l'ajoute.
         ArriveeTemps.append(newTps)
@@ -3580,7 +3612,7 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard=0) :
             ArriveeTemps.insert(0,newTps)
             ArriveeTempsAffectes.insert(0,doss)
             CodeRetour = Erreur(0)
-    if dossard != 0 :# si on affecte un dossard, cela peut avoir des conséquences sur des associations temps-coureur antérieures. On recalculera tout.
+    if dossard != "0" :# si on affecte un dossard, cela peut avoir des conséquences sur des associations temps-coureur antérieures. On recalculera tout.
         Parametres["calculateAll"] = True
 ##    else :
 ##        CodeRetour = "Le temps à ajouter est déjà dans la liste des temps d'arrivée. Situation impossible avec les smartphones et l'interface normalement."
@@ -3590,14 +3622,14 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard=0) :
 ##def delDossardAffecteArriveeTemps(tempsCoureur) :
 ##    return affecteDossardArriveeTemps(tempsCoureur)
 
-def affecteDossardArriveeTemps(tempsCoureur, dossard=0) :
+def affecteDossardArriveeTemps(tempsCoureur, dossard="0") :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsCoureur
     (utile uniquement pour les requêtes venant des smartphones.
     Appelé avec le temps seul, efface le dossard affecté. """
     CodeRetour = Erreur(311)
-    doss = int(dossard)
+    doss = str(dossard)
     n = len(ArriveeTemps)
-    message = "Temps coureur cherché : " + str(tempsCoureur) + " pour affectation du dossard " + str(doss) + "."
+    message = "Temps coureur cherché : " + str(tempsCoureur) + " pour affectation du dossard " + doss + "."
     CodeRetour = Erreur(311, message , elementConcerne=tempsCoureur )
     if n != 0 :
         while n > 0 :
@@ -3612,14 +3644,14 @@ def affecteDossardArriveeTemps(tempsCoureur, dossard=0) :
     #transaction.commit()
     return CodeRetour
 
-def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
+def affecteDossardArriveeTempsLocal(tempsReel, dossard="0") :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsReel.
     (utile pour une affectation du temps depuis l'interface graphique du serveur)
     Appelé avec le temps seul, efface le dossard affecté. """
-    doss = int(dossard)
+    doss = str(dossard)
     n = len(ArriveeTemps)
     temps = Temps(tempsReel, 0, 0)
-    message = "Temps cherché : " + str(temps.tempsReel) + " soit " + temps.tempsReelFormate() + " pour affectation du dossard " + str(doss) + "."
+    message = "Temps cherché : " + str(temps.tempsReel) + " soit " + temps.tempsReelFormate() + " pour affectation du dossard " + doss + "."
     CodeRetour = Erreur(312, message , elementConcerne=tempsReel )
     print(message)
     if n != 0 :
@@ -3638,24 +3670,24 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard=0) :
     return CodeRetour
 
 
-def delArriveeTempsClient(tempsCoureur, dossard=0) :
+def delArriveeTempsClient(tempsCoureur, dossard="0") :
     """ les temps sont classés par tempsReel (sur le serveur) par ordre croissant
     supprime UN tempsCoureur (mesuré côté clients donc pas forcément dans l'ordre croissant) dans la liste éventuellement associé au dossard précisé (ou non)."""
-    dossard = int(dossard)
+    dossard = str(dossard)
     tempsASupprimer = float(tempsCoureur)
     n = len(ArriveeTemps)
     tpsDejaPresent = ArriveeTemps[n-1]
     codeRetour = "1"
     while n > 0 : # suppression du parcours conditionnel vu que la liste n'est pas triée par tempsCoureur : and tpsDejaPresent.tempsCoureur >= tempsASupprimer :
         tpsDejaPresent = ArriveeTemps[n-1]
-        if dossard == 0 :
+        if dossard == "0" :
             if tpsDejaPresent.tempsCoureur == tempsASupprimer :
                 del ArriveeTemps[n-1]
                 del ArriveeTempsAffectes[n-1]
                 codeRetour = ""
                 break
         else :
-            doss = int(dossard)
+            doss = str(dossard)
             if tpsDejaPresent.tempsCoureur == tempsASupprimer and doss == ArriveeTempsAffectes[n-1] :
                 del ArriveeTemps[n-1]
                 del ArriveeTempsAffectes[n-1]
@@ -3672,24 +3704,24 @@ def delArriveeTempsClient(tempsCoureur, dossard=0) :
         #print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
     return Erreur(0) # la suppression constitue une correction d'erreur et ne doit donc jamais en signaler une # codeRetour
 
-def delArriveeTemps(tempsCoureur, dossard=0) :
+def delArriveeTemps(tempsCoureur, dossard="0") :
     """ supprime UN temps dans la liste par ordre croissant éventuellement associé au dossard précisé (ou non)."""
     codeRetour = ""
-    dossard = int(dossard)
+    dossard = str(dossard)
     tempsASupprimer = float(tempsCoureur)
     n = len(ArriveeTemps)
     tpsDejaPresent = ArriveeTemps[n-1]
     codeRetour = "1"
     while n > 0 and tpsDejaPresent.tempsReel >= tempsASupprimer :
         tpsDejaPresent = ArriveeTemps[n-1]
-        if dossard == 0 :
+        if dossard == "0" :
             if tpsDejaPresent.tempsReel == tempsASupprimer :
                 del ArriveeTemps[n-1]
                 del ArriveeTempsAffectes[n-1]
                 codeRetour = ""
                 break
         else :
-            doss = int(dossard)
+            doss = str(dossard)
             if tpsDejaPresent.tempsReel == tempsASupprimer and doss == ArriveeTempsAffectes[n-1] :
                 del ArriveeTemps[n-1]
                 del ArriveeTempsAffectes[n-1]
@@ -3738,7 +3770,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard=0):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard="0"):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
@@ -3746,9 +3778,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         vma = "0"
         #print("complement",complement)
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
-        if not dossard :
+        if dossard == "0" :
             dossard = coureurExists(Coureurs, nom, prenom)
-        if dossard :
+        if dossard != "0" :
             auMoinsUnChangement = False
             coureur = Coureurs[dossard-1]
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
@@ -3783,13 +3815,16 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 addCourse(coureur.course)
-                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),"Course manuelle:",course,")")
+                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
+                      commentaireArrivee, " (catégorie :", Coureurs[dossard-1].categorie(Parametres["CategorieDAge"]),"Course manuelle:",course,")")
                 retour = [0,1,0]
             else :
                 retour = [0,0,0]
         else :
-            dossard = len(Coureurs)+1
-            Coureurs.append(Coureur( nom, prenom, sexe,dossard, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, vma, aImprimer))
+            dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
+                                                etablissementNature=etablissementNature, absent=absent,\
+                                                dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma, aImprimer=aImprimer,\
+                                                course=course))
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, " (catégorie :", Coureurs[-1].categorie(Parametres["CategorieDAge"]),")", "Course manuelle:", course)
             Coureurs[-1].setCourse(addCourse(course))
@@ -3878,10 +3913,10 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     """ajoute un dossard sur la ligne d'arrivée dans l'ordre si non précisé. Si l'index est précisé, insère à l'endroit précisé par dossardPrecedent
         si dossardPrécedent vaut 0, insère en première position.
         Retourne 0 s'il n'y a pas d'erreur."""
-    doss = int(dossard)
-    dossPrecedent = int(dossardPrecedent)
+    doss = str(dossard)
+    dossPrecedent = str(dossardPrecedent)
     coureur = Coureurs[doss-1]
-    infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+    infos = "dossard " + dossard + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
     message = ""
     retour = Erreur(0)
     if doss in ArriveeDossards :
@@ -3899,7 +3934,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
                     # return message
-    elif doss > len(Coureurs) or doss < 1 :
+    elif Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
         retour=Erreur(411,message,elementConcerne=doss)
@@ -3912,15 +3947,15 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs[doss-1].categorie(Parametres["CategorieDAge"])].depart :
-        message = "La course " + Coureurs[doss-1].categorie(Parametres["CategorieDAge"])+ " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        message = "La course " + Coureurs[doss-1].course + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
-    if dossPrecedent == -1 : # CAS COURANT : ajoute à la suite
+    if dossPrecedent == "-1" : # CAS COURANT : ajoute à la suite
         #position = len(ArriveeDossards)
         ArriveeDossards.append(doss)
         #print("Dossard arrivé :",doss)
-    elif dossPrecedent == 0 : # insère au début de liste
+    elif dossPrecedent == "0" : # insère au début de liste
         #print("insertion en début de liste d'arrivée")
         #position = 0
         ArriveeDossards.insert(0 , doss)
@@ -3982,13 +4017,15 @@ def calculeTousLesTemps(reinitialise = False):
     derniereLigneStabilisee = ligneTableauGUI[1]
     #print("DerniereLigneStabilisee au début",derniereLigneStabilisee, "i=", i, "j=",j,"retour",retour)
     #print("len(ArriveeDossards)",len(ArriveeDossards), "len(ArriveeTemps)",len(ArriveeTemps))
-    while j < len(ArriveeDossards) and i < len(ArriveeTemps): # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
+    while j < len(ArriveeDossards) and i < len(ArriveeTemps):
+        # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
         doss = ArriveeDossards[j]
         #print(ligneTableauGUI,"dossard", doss, reinitialise)
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i]
-        if dossardAffecteAuTps != 0 and dossardAffecteAuTps <= len(Coureurs) :# 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
+        if dossardAffecteAuTps != "0" and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
+            # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
                 # tout est désormais bien calé entre les deux listes aux indices i et j qui se correspondent à ce stade.
@@ -4012,7 +4049,7 @@ def calculeTousLesTemps(reinitialise = False):
                 #decalage = iTrouve - i
                 #i = iTrouve
                 if chronosInutilesAvantLeDossard != doss :
-                    message = "Il y a un (des) chrono(s) inutilisé(s) juste avant le dossard " + str(doss) + "."
+                    message = "Il y a un (des) chrono(s) inutilisé(s) juste avant le dossard " + doss + "."
                     retour.append(Erreur(321,message, elementConcerne=doss))
                     chronosInutilesAvantLeDossard = doss
                 #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps)
@@ -4211,7 +4248,7 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
         if arrivee- depart < 0 :
             coureur.setTemps(0)
             #print("Temps calculé pour le coureur ", coureur.nom, " négatif :", arrivee , "-", depart, "=" , arrivee- depart, " dossard:", doss)
-            message = "Le coureur " + coureur.nom + " " + coureur.prenom + " (" + str(doss) + ") a un temps négatif :\nDépart (" + str(categ.categorie)  +") : " + str(categ.departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
+            message = "Le coureur " + coureur.nom + " " + coureur.prenom + " (" + doss + ") a un temps négatif :\nDépart (" + str(categ.categorie)  +") : " + str(categ.departFormate())  + " / Arrivée : "+ str(formaterTempsALaSeconde(arrivee))
             retour.append(Erreur(211,message, elementConcerne=doss))
             print(message)
             # test pour afficher les erreurs dans l'interface GUI :
@@ -4254,15 +4291,16 @@ def tupleEtablissement() :
             L.append(c.etablissement)
     return tuple(L)
 
-def reindexDossards(numeroInitial) :
-    """ Réindexe tous les numéros de dossards des coureurs en cas d'insertion ou de suppression dans la liste Coureurs. Le dossard doit toujours être égal à l'index + 1 """
-    if not Parametres["CourseCommencee"] :
-        i = numeroInitial
-        while i < len(Coureurs) :
-            coureur = Coureurs[i]
-            #print("on rénumérote les dossards pour", coureur.nom, coureur.prenom)
-            coureur.setDossard(i+1)
-            i += 1
+##def reindexDossards(numeroInitial) :
+##    """ Réindexe tous les numéros de dossards des coureurs en cas d'insertion ou de suppression dans la liste Coureurs.\
+##    Le dossard doit toujours être égal à l'index + 1 """
+##    if not Parametres["CourseCommencee"] :
+##        i = numeroInitial
+##        while i < len(Coureurs) :
+##            coureur = Coureurs[i]
+##            #print("on rénumérote les dossards pour", coureur.nom, coureur.prenom)
+##            coureur.setDossard(i+1)
+##            i += 1
 
 
 def delCoureur(dossard):
@@ -4271,15 +4309,15 @@ def delCoureur(dossard):
         if doss-1 < len(Coureurs) :
             categorie = Coureurs[doss - 1].categorie(Parametres["CategorieDAge"])
             del Coureurs[doss-1]
-            reindexDossards(doss-1)
+            # plus besoin car les dossards correspondront toujours avec le nouveau dictionnaire Coureurs : reindexDossards(doss-1)
             delCourse(categorie)
-            print("Coureur effacé :", dossard,". Dossards réindexés.")
+            print("Coureur effacé :", dossard,".")
         else :
             print("le dossard fourni n'existe pas :",dossard)
 
 def delArriveeDossard(dossard):
 ##    PasDErreur = False
-    doss = int(dossard)
+    doss = str(dossard)
     if not Parametres["CourseCommencee"] :
         try :
             Coureurs[doss -1].setTemps(0)
@@ -5299,6 +5337,9 @@ if __name__=="__main__":
     C = DictionnaireDeCoureurs()
     C.effacerTout()
     print("ajout de coureurs")
+    #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
+    print("ArriveeDossards",ArriveeDossards)
+    print("ArriveeTempsAffectes",ArriveeTempsAffectes)
     C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
     C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
     C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
