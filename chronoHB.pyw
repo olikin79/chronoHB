@@ -304,7 +304,7 @@ class MonTableau(Frame):
                         if p.match(saisie) :
                             try :
                                 dossard = int(saisie)
-                                if len(Coureurs) > dossard and dossard >= 0:
+                                if Coureurs.nombreDeCoureurs > dossard and dossard >= 0:
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -595,8 +595,8 @@ class MonTableau(Frame):
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         else :
-            if Coureurs[doss-1].rang :
-                ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+            if Coureurs.recuperer(doss).rang :
+                ligneAAjouter[self.colonneRang] = Coureurs.recuperer(doss).rang
             else :
                 ligneAAjouter[self.colonneRang] = "?"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
@@ -2200,11 +2200,12 @@ def onClickE(err):
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 421 :
-        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
+        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
+              Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
         if CategorieDAge :
-            saisieAbsDisp(Coureurs[err.dossard-1].categorie(CategorieDAge))
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).categorie(CategorieDAge))
         else :
-            saisieAbsDisp(Coureurs[err.dossard-1].classe)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).classe)
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
@@ -2820,7 +2821,7 @@ def parametresDesCourses():
 def actualiseEtatBoutonsRadioConfig():
     # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
     svRadio.set(str(Parametres["CategorieDAge"]))
-    if len(Coureurs) :
+    if Coureurs.nombreDeCoureurs :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
         rb3.configure(state='disabled')
@@ -2990,8 +2991,8 @@ def imprimerDossardsNonImprimes() :
             if reponse :
                 print(listeDesDossardsGeneres)
                 for n in listeDesDossardsGeneres :
-                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                    Coureurs[n-1].setAImprimer(False)
+                    print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    Coureurs.recuperer(n).setAImprimer(False)
         else :
             print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
     else :
@@ -3205,8 +3206,8 @@ class CoureurFrame(Frame) :
         self.commentaireArriveeE.delete(0, END)
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
-            doss = int(self.choixDossardCombo.get())
-            coureur = Coureurs[doss-1]
+            doss = str(self.choixDossardCombo.get())
+            coureur = Coureurs.recuperer(doss)
             self.nomE.insert(0, coureur.nom)
             self.prenomE.insert(0, coureur.prenom)
             if Parametres['CategorieDAge'] :
@@ -3245,7 +3246,7 @@ class CoureurFrame(Frame) :
                                      "Modifier les caractéristiques du coureur correspondant en sélectionnant son numéro de dossard.")
             self.coureurBoksuivant.configure(text="Valider")
             # afficher le menu déroulant ici.
-            self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+            self.tupleDesDossards = tuple(range(1,Coureurs.nombreDeCoureurs + 1))
             self.choixDossardCombo['values']=self.tupleDesDossards
             if self.tupleDesDossards :
                 self.choixDossardCombo.current(0)

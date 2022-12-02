@@ -1,0 +1,558 @@
+1,AINE,Mathieu,,BE-G,BE-G,,Collège André Chamson
+2,BOISSIER,Natane,,BE-G,BE-G,,Collège André Chamson
+3,CANILHAC,Nathan,,BE-G,BE-G,,Collège André Chamson
+4,VAN ELST,Nathael,,BE-G,BE-G,,Collège André Chamson
+5,NAVECTH,Gabriel,,MI-G,MI-G,,Collège André Chamson
+6,GRAND,Bastien,,MI-G,MI-G,,Collège André Chamson
+7,REILHAN,Noam,,MI-G,MI-G,,Collège André Chamson
+8,PIALOT,Tom,,MI-G,MI-G,,Collège André Chamson
+9,PIALOT,Emilien,,MI-G,MI-G,,Collège André Chamson
+10,CLAMENS,Loic,,BE-G,BE-G,,Collège André Chamson
+11,COUTURIER-BERMEO,Ixim,,BE-G,BE-G,,Collège André Chamson
+12,CARTAYRADE,Gabin,,BE-G,BE-G,,Collège André Chamson
+13,ALBARIC,Joseph,,BE-G,BE-G,,Collège des 3 vallées
+14,ARMAND,Elois,,BE-G,BE-G,,Collège des 3 vallées
+15,BECAMEL AVESQUE,Théo,,BE-G,BE-G,,Collège des 3 vallées
+16,BLARD,Matéo,,BE-G,BE-G,,Collège des 3 vallées
+17,COUDERC,Jules,,BE-G,BE-G,,Collège des 3 vallées
+18,FERNANDEZ,Kilyan,,BE-G,BE-G,,Collège des 3 vallées
+19,GEULJANS,Noa,,BE-G,BE-G,,Collège des 3 vallées
+20,GRAVIER LOUAVER,Icham,,BE-G,BE-G,,Collège des 3 vallées
+21,LABAUME,Manoé,,BE-G,BE-G,,Collège des 3 vallées
+22,LAMBOLEY,Anton,,BE-G,BE-G,,Collège des 3 vallées
+23,LABEAUME,Thomas,,BE-G,BE-G,,Collège des 3 vallées
+24,PALMIER,Matteo,,BE-G,BE-G,,Collège des 3 vallées
+25,ROUS GRATAS,Jonathan,,BE-G,BE-G,,Collège des 3 vallées
+26,WEYN,Damien,,BE-G,BE-G,,Collège des 3 vallées
+27,ALVES,Yanis,,BE-G,BE-G,,Collège des 3 vallées
+28,BOUSQUET,Mathilde,,PO-F,PO-F,,Collège des 3 vallées
+29,HÉBRARD,Clémentine,,BE-F,BE-F,,Collège des 3 vallées
+30,MONET,Marthe,,BE-F,BE-F,,Collège des 3 vallées
+31,ROUME,Lilou,,BE-F,BE-F,,Collège des 3 vallées
+32,PASCAL,Mélissa,,BE-F,BE-F,,Collège des 3 vallées
+33,BOUSQUET,Arthus,,MI-G,MI-G,,Collège des 3 vallées
+34,COURCOL,Simon,,MI-G,MI-G,,Collège des 3 vallées
+35,DUFETEL,Valentin,,MI-G,MI-G,,Collège des 3 vallées
+36,PASTRE,Yanis,,MI-G,MI-G,,Collège des 3 vallées
+37,ROUCHY,Clément,,MI-G,MI-G,,Collège des 3 vallées
+38,TIREL,Guilhem,,MI-G,MI-G,,Collège des 3 vallées
+39,CATHELINEAU,Agathe,,MI-F,MI-F,,Collège des 3 vallées
+40,GRASSIN,Délya,,MI-F,MI-F,,Collège des 3 vallées
+41,CHAMBON,Louise,,MI-F,MI-F,,Collège des 3 vallées
+42,BLANC,Killian,,MI-G,MI-G,,Collège du Trenze
+43,HERNANDEZ,Gabriel,,MI-G,MI-G,,Collège du Trenze
+44,NICOT_PRESSE,Nicolas,,MI-G,MI-G,,Collège du Trenze
+45,TBIBI,Elyas,,MI-G,MI-G,,Collège du Trenze
+46,MALET,Théo,,BE-G,BE-G,,Collège Haut-Gévaudan
+47,SEGUR,Thibault,,BE-G,BE-G,,Collège Haut-Gévaudan
+48,SERRUYS,Eytan,,BE-G,BE-G,,Collège Haut-Gévaudan
+49,CERTES,Dylan,,BE-G,BE-G,,Collège Haut-Gévaudan
+50,GAZEL-GOGUILLON,Julian,,BE-G,BE-G,,Collège Haut-Gévaudan
+51,GREZES,Sean,,BE-G,BE-G,,Collège Haut-Gévaudan
+52,LORDIER,Mathy,,BE-G,BE-G,,Collège Haut-Gévaudan
+53,PEREZ,Esteban,,BE-G,BE-G,,Collège Haut-Gévaudan
+54,PUGET,Valentin,,BE-G,BE-G,,Collège Haut-Gévaudan
+55,TONDUT,Clement,,BE-G,BE-G,,Collège Haut-Gévaudan
+56,BADINGA,William,,BE-G,BE-G,,Collège Haut-Gévaudan
+57,CHAULIAC,Maxime,,BE-G,BE-G,,Collège Haut-Gévaudan
+58,RAMADIER,Yann,,BE-G,BE-G,,Collège Haut-Gévaudan
+59,TROCELLIER,Felix,,BE-G,BE-G,,Collège Haut-Gévaudan
+60,CRUVEILLER-GRELICHE,Louise,,BE-F,BE-F,,Collège Haut-Gévaudan
+61,POIRIER,Anais,,BE-F,BE-F,,Collège Haut-Gévaudan
+62,VIGIER,Alisée,,BE-F,BE-F,,Collège Haut-Gévaudan
+63,PULL,Lalie,,BE-F,BE-F,,Collège Haut-Gévaudan
+64,CHINGAN,Yâlhisaï,,BE-F,BE-F,,Collège Haut-Gévaudan
+65,GIORDANENGO,Lena,,BE-F,BE-F,,Collège Haut-Gévaudan
+66,MERLE,Philomene,,BE-F,BE-F,,Collège Haut-Gévaudan
+67,POLITI,Jade,,BE-F,BE-F,,Collège Haut-Gévaudan
+68,BOULLE,Marie-lou,,BE-F,BE-F,,Collège Haut-Gévaudan
+69,MYLY,Salomé,,BE-F,BE-F,,Collège Haut-Gévaudan
+70,BROCHAND,Gandy,,BE-F,BE-F,,Collège Haut-Gévaudan
+71,DELALANDE,Emma,,BE-F,BE-F,,Collège Haut-Gévaudan
+72,RAMADIER,Célia,,BE-F,BE-F,,Collège Haut-Gévaudan
+73,BRUN,Berenice,,BE-F,BE-F,,Collège Haut-Gévaudan
+74,PAULHAC,Louis,,BE-G,BE-G,,Collège Haut-Gévaudan
+75,ANRIFADJATI,Anthony,,MI-G,MI-G,,Collège Haut-Gévaudan
+76,CERTES,Nathan,,MI-G,MI-G,,Collège Haut-Gévaudan
+77,CERTES,Rémi,,MI-G,MI-G,,Collège Haut-Gévaudan
+78,DELMAS,Nicolas,,MI-G,MI-G,,Collège Haut-Gévaudan
+79,DOUSTEYSSIER,Gabin,,MI-G,MI-G,,Collège Haut-Gévaudan
+80,HALLE,Mathieu,,MI-G,MI-G,,Collège Haut-Gévaudan
+81,RUAT,Clement,,MI-G,MI-G,,Collège Haut-Gévaudan
+82,BRECHET,Axel,,MI-G,MI-G,,Collège Haut-Gévaudan
+83,MULOT,Théo,,MI-G,MI-G,,Collège Haut-Gévaudan
+84,ROUVEYRE,Elouan,,MI-G,MI-G,,Collège Haut-Gévaudan
+85,GRAVEJAT,Nathan,,MI-G,MI-G,,Collège Haut-Gévaudan
+86,MYLY,Morgane,,MI-F,MI-F,,Collège Haut-Gévaudan
+87,BOURRIER,Anais,,MI-F,MI-F,,Collège Haut-Gévaudan
+88,TARDIEU,Lila,,MI-F,MI-F,,Collège Haut-Gévaudan
+89,BONHOMME,Anouck,,MI-F,MI-F,,Collège Haut-Gévaudan
+90,BOUQUET,Lise,,MI-F,MI-F,,Collège Haut-Gévaudan
+91,VAISSADE,Alexis,,MI-G,MI-G,,Collège Haut-Gévaudan
+92,PULL,Nina,,MI-F,MI-F,,Collège Haut-Gévaudan
+93,BESTION,Anael,,MI-G,MI-G,,Collège Haut-Gévaudan
+94,BUFFIERE,Morgan,,BE-G,BE-G,,Collège Haut-Gévaudan
+95,MARLOT,Arthur,62,BE-G,BE-G,,Collège Henri Bourrillon
+96,RANC,Lyam,62,BE-G,BE-G,,Collège Henri Bourrillon
+97,ANCEY,Maud,45,BE-F,BE-F,,Collège Henri Bourrillon
+98,DORCE,Salomé,53,BE-F,BE-F,,Collège Henri Bourrillon
+99,OSMONT,Méloë,55,BE-F,BE-F,,Collège Henri Bourrillon
+100,PHOTHIRATH,Eva,53,BE-F,BE-F,,Collège Henri Bourrillon
+101,AMBLARD,Lenny,44,MI-G,MI-G,,Collège Henri Bourrillon
+102,BECKER,Robin,44,MI-G,MI-G,,Collège Henri Bourrillon
+103,DORCE,Solal,33,MI-G,MI-G,,Collège Henri Bourrillon
+104,LAFON,Nathan,33,MI-G,MI-G,,Collège Henri Bourrillon
+105,MOUNTALI,Ornel,44,MI-G,MI-G,,Collège Henri Bourrillon
+106,RANC,Néo,43,MI-G,MI-G,,Collège Henri Bourrillon
+107,SUAU,Kyllian,43,MI-G,MI-G,,Collège Henri Bourrillon
+108,BERNARD,Chloe,33,MI-F,MI-F,,Collège Henri Bourrillon
+109,TOUSSAINT,Lucie,43,MI-F,MI-F,,Collège Henri Bourrillon
+110,MALBREL,Jeanne,33,MI-F,MI-F,,Collège Henri Bourrillon
+111,LAFON,Romain,65,BE-G,BE-G,,Collège Henri Bourrillon
+112,CHENU,Apoline,53,BE-F,BE-F,,Collège Henri Bourrillon
+113,CHAPON,Charlène,,BE-F,BE-F,,Collège Henri Bourrillon
+114,LEFORT,Iulia,,BE-F,BE-F,,Collège Henri Bourrillon
+115,ORLHAC,Anaïs,65,BE-F,BE-F,,Collège Henri Bourrillon
+116,RICHARD,Antoine,33,MI-G,MI-G,,Collège Henri Bourrillon
+117,MARTINS,Lilou,45,MI-F,MI-F,,Collège Henri Bourrillon
+118,LAMOLLE,Elea,45,MI-F,MI-F,,Collège Henri Bourrillon
+119,SIMONETTI,Callen-chadi,63,PO-G,PO-G,,Collège Henri Bourrillon
+120,BORSON LESCURE,Elie,6,BE-G,BE-G,,Collège Henri Bourrillon
+121,CAYROCHE,Baptiste,65,BE-G,BE-G,,Collège Henri Bourrillon
+122,BOUTAVIN,Enaël,65,BE-G,BE-G,,Collège Henri Bourrillon
+123,ALIBERT,Timéo,65,BE-G,BE-G,,Collège Henri Bourrillon
+124,CORBIERE,Lucian,65,BE-G,BE-G,,Collège Henri Bourrillon
+125,CHABERT,Leo,55,BE-G,BE-G,,Collège Henri Bourrillon
+126,LEPRINCE,Arthur,54,BE-G,BE-G,,Collège Henri Bourrillon
+127,WERNER LOUDCHER,Antonin,65,BE-G,BE-G,,Collège Henri Bourrillon
+128,FOURNIER,Timo,55,BE-G,BE-G,,Collège Henri Bourrillon
+129,TONDUT,Loïc,67,BE-G,BE-G,,Collège Henri Bourrillon
+130,GERVAIS,Lohan,56,BE-G,BE-G,,Collège Henri Bourrillon
+131,SOLAK,Alperen,54,BE-G,BE-G,,Collège Henri Bourrillon
+132,SANCHEZ,Lohan,,BE-G,BE-G,,Collège Henri Bourrillon
+133,CATALANO,Keny,56,BE-G,BE-G,,Collège Henri Bourrillon
+134,BRIOUDE,Yann,56,BE-G,BE-G,,Collège Henri Bourrillon
+135,LARGUIER,Justin,,BE-G,BE-G,,Collège Henri Bourrillon
+136,ROUMEJON,Mathis,54,BE-G,BE-G,,Collège Henri Bourrillon
+137,MEJEAN,Gabriel,,BE-G,BE-G,,Collège Henri Bourrillon
+138,GELY,Léo,,BE-G,BE-G,,Collège Henri Bourrillon
+139,ALMERAS,Maxence,52,BE-G,BE-G,,Collège Henri Bourrillon
+140,DOREMUS,Gabriel,66,BE-G,BE-G,,Collège Henri Bourrillon
+141,SAINTENAC,Florent,62,BE-G,BE-G,,Collège Henri Bourrillon
+142,SAINTENAC,Samuel,,BE-G,BE-G,,Collège Henri Bourrillon
+143,THAN,Benoit,62,BE-G,BE-G,,Collège Henri Bourrillon
+144,QUILES,Maël,52,BE-G,BE-G,,Collège Henri Bourrillon
+145,VIDAL,Gaël,52,BE-G,BE-G,,Collège Henri Bourrillon
+146,ALLE,Aymeric,62,BE-G,BE-G,,Collège Henri Bourrillon
+147,SALVAT,Loan,67,BE-G,BE-G,,Collège Henri Bourrillon
+148,SOUSTELLE,Romane,53,BE-F,BE-F,,Collège Henri Bourrillon
+149,FOURNIER,Naël,46,BE-G,BE-G,,Collège Henri Bourrillon
+150,VERNAY,Anaïs,63,BE-F,BE-F,,Collège Henri Bourrillon
+151,MARRE,Lison,65,BE-F,BE-F,,Collège Henri Bourrillon
+152,VIDAL,Zoe,65,BE-F,BE-F,,Collège Henri Bourrillon
+153,ROUGE,Naia,65,BE-F,BE-F,,Collège Henri Bourrillon
+154,KOPP,Erine,52,BE-F,BE-F,,Collège Henri Bourrillon
+155,RENON,Lila,54,BE-F,BE-F,,Collège Henri Bourrillon
+156,MAURIN,Alizée,55,BE-F,BE-F,,Collège Henri Bourrillon
+157,FILIERE,Manon,62,BE-F,BE-F,,Collège Henri Bourrillon
+158,GINGEMBRE,Sophie,42,MI-F,MI-F,,Collège Henri Bourrillon
+159,BRASSAC,Marilou,45,MI-F,MI-F,,Collège Henri Bourrillon
+160,RICHER,Margot,45,MI-F,MI-F,,Collège Henri Bourrillon
+161,OLIVEIRA,Léna,43,MI-F,MI-F,,Collège Henri Bourrillon
+162,ROUGE,Loula,43,MI-F,MI-F,,Collège Henri Bourrillon
+163,TRAUCHESSEC,Justine,43,MI-F,MI-F,,Collège Henri Bourrillon
+164,SINEKAVE,Maëlys,3,MI-F,MI-F,,Collège Henri Bourrillon
+165,JOUFFRE,Leonie,45,MI-F,MI-F,,Collège Henri Bourrillon
+166,TICHET,Eliott,56,MI-G,MI-G,,Collège Henri Bourrillon
+167,BOURGEOIS-DEGENEVE,Nino,43,MI-G,MI-G,,Collège Henri Bourrillon
+168,LE ROLLE,Gabin,45,MI-G,MI-G,,Collège Henri Bourrillon
+169,TRAUCHESSEC,Louis,46,MI-G,MI-G,,Collège Henri Bourrillon
+170,PONS,Loris,47,MI-G,MI-G,,Collège Henri Bourrillon
+171,GERBAL,Evan,43,MI-G,MI-G,,Collège Henri Bourrillon
+172,PROUX HAIDARA,Mathis,43,MI-G,MI-G,,Collège Henri Bourrillon
+173,LASCARAY,Vincent,34,MI-G,MI-G,,Collège Henri Bourrillon
+174,MONTANER,Zlatan,45,MI-G,MI-G,,Collège Henri Bourrillon
+175,GAZAGNE,Mael,45,MI-G,MI-G,,Collège Henri Bourrillon
+176,MAYMARD,Gael,45,MI-G,MI-G,,Collège Henri Bourrillon
+177,BREDOW,Malone,,MI-G,MI-G,,Collège Henri Bourrillon
+178,ESCURIER,Robin,33,MI-G,MI-G,,Collège Henri Bourrillon
+179,COULOMB,Paulin,65,BE-G,BE-G,,Collège Henri Bourrillon
+180,BECKER,Tristan,63,BE-G,BE-G,,Collège Henri Bourrillon
+181,CRUSCO,Roman,63,BE-G,BE-G,,Collège Henri Bourrillon
+182,DIAS,Gabriel,63,BE-G,BE-G,,Collège Henri Bourrillon
+183,ROUSSON,Enzo,67,BE-G,BE-G,,Collège Henri Bourrillon
+184,CRUEGHE,Jeanne,56,BE-F,BE-F,,Collège Henri Bourrillon
+185,MARTY,Hermance,53,BE-F,BE-F,,Collège Henri Bourrillon
+186,PRIEUR,Teiva,67,BE-F,BE-F,,Collège Henri Bourrillon
+187,VINCENT,Adèle,,BE-F,BE-F,,Collège Henri Bourrillon
+188,MIRAOUI,Mélia,33,MI-F,MI-F,,Collège Henri Bourrillon
+189,SIGLER,Thomas,43,MI-G,MI-G,,Collège Henri Bourrillon
+190,LAMET,Yann,42,MI-G,MI-G,,Collège Henri Bourrillon
+191,EL AZZOUZI,Adam,45,MI-G,MI-G,,Collège Henri Bourrillon
+192,BONNAL,Elie,45,MI-G,MI-G,,Collège Henri Bourrillon
+193,BEAUMEL,Tom,38,MI-G,MI-G,,Collège Henri Bourrillon
+194,AL ALI,Ali,46,MI-G,MI-G,,Collège Henri Bourrillon
+195,BONHOMME,Enzo,37,MI-G,MI-G,,Collège Henri Bourrillon
+196,FERRIER,Mathis,35,MI-G,MI-G,,Collège Henri Bourrillon
+197,LIUBARENKO,Illia,44,MI-G,MI-G,,Collège Henri Bourrillon
+198,MAURIN,Clement,37,MI-G,MI-G,,Collège Henri Bourrillon
+199,MICHAU,Nsoah,52,MI-G,MI-G,,Collège Henri Bourrillon
+200,THAN,Sambath,48,MI-G,MI-G,,Collège Henri Bourrillon
+201,LEFORT,Aliocha,,MI-G,MI-G,,Collège Henri Bourrillon
+202,MOLINIER,Jonas,42,MI-G,MI-G,,Collège Henri Bourrillon
+203,PEIXOTO,Léandro,48,MI-G,MI-G,,Collège Henri Bourrillon
+204,EYVAZZADE,Hasan,44,MI-G,MI-G,,Collège Henri Bourrillon
+205,BOURLET,Noa,53,BE-G,BE-G,,Collège Henri Bourrillon
+206,MASSON,Zoe,52,BE-F,BE-F,,Collège Henri Bourrillon
+207,VELAY,Tristan,38,MI-G,MI-G,,Collège Henri Bourrillon
+208,DUBOIS,Linette,32,MI-F,MI-F,,Collège Henri Bourrillon
+209,ZAHRA,Noa,63,BE-G,BE-G,,Collège Henri Bourrillon
+210,GARREL,Mathieu,67,BE-G,BE-G,,Collège Henri Bourrillon
+211,PAUC,Kelyan,54,BE-G,BE-G,,Collège Henri Bourrillon
+212,TOULOUSE,Martin,62,BE-G,BE-G,,Collège Henri Bourrillon
+213,BOUKKAFEL,Wael,62,BE-G,BE-G,,Collège Henri Bourrillon
+214,TESAURI,Sacha,64,BE-G,BE-G,,Collège Henri Bourrillon
+215,DA SILVA,Oriane,62,BE-F,BE-F,,Collège Henri Bourrillon
+216,BUISSON,Heloise,62,BE-F,BE-F,,Collège Henri Bourrillon
+217,DEPOISIER,Corentin,42,MI-G,MI-G,,Collège Henri Bourrillon
+218,MORENO,Lilou,48,MI-F,MI-F,,Collège Henri Bourrillon
+219,SOLIGNAC-LUCAS,Mathilde,43,MI-F,MI-F,,Collège Henri Bourrillon
+220,PEYTAVIN.,Thibaut,35,MI-G,MI-G,,Collège Henri Bourrillon
+221,BRESSIEUX,Paulin,35,MI-G,MI-G,,Collège Henri Bourrillon
+222,ABINAL,Gautier,,BE-G,BE-G,,Collège Henri Bourrillon
+223,LE NOVERE-DRAGONNIE,Maelie,,BE-F,BE-F,,Collège Henri Bourrillon
+224,FAYET,Maëlle,44,MI-F,MI-F,,Collège Henri Bourrillon
+225,BILY,Timéo,,BE-G,BE-G,,Collège Henri Gamala
+226,COZZOLI,Angelo,,BE-G,BE-G,,Collège Henri Gamala
+227,GAUSI,Hugo,,BE-G,BE-G,,Collège Henri Gamala
+228,GRISON,Eric,,BE-G,BE-G,,Collège Henri Gamala
+229,MACHET,Lena,,BE-F,BE-F,,Collège Henri Gamala
+230,BERTHEZENE BERTOLOTTI,Thimeo,,MI-G,MI-G,,Collège Henri Gamala
+231,GESTI,Dylan,,MI-G,MI-G,,Collège Henri Gamala
+232,CEBELIEU,Abeba,,MI-F,MI-F,,Collège Henri Gamala
+233,DOUBA-ZIMMERMAN,Kali,,MI-F,MI-F,,Collège Henri Gamala
+234,PROBST,Emma,,MI-F,MI-F,,Collège Henri Gamala
+235,VERDELHAN,Elise,,MI-F,MI-F,,Collège Henri Gamala
+236,MARTINEZ,Mathis,,MI-G,MI-G,,Collège Henri Gamala
+237,ASSANT,Theobald,,BE-G,BE-G,,Collège Henri Rouvière
+238,ANDRE,Ewan,,BE-G,BE-G,,Collège Henri Rouvière
+239,BADUEL,Marceau,,BE-G,BE-G,,Collège Henri Rouvière
+240,BALLESTER-PINNA,Mathéo,,BE-G,BE-G,,Collège Henri Rouvière
+241,CHAFFARD,Théo,,BE-G,BE-G,,Collège Henri Rouvière
+242,COSTECALDE-FAVIER,Nino,,BE-G,BE-G,,Collège Henri Rouvière
+243,FERRIER,Robin,,BE-G,BE-G,,Collège Henri Rouvière
+244,GIBERT,Mael,,BE-G,BE-G,,Collège Henri Rouvière
+245,JAFFUEL,Nathan,,BE-G,BE-G,,Collège Henri Rouvière
+246,PAES,Renan,,BE-G,BE-G,,Collège Henri Rouvière
+247,PARONNEAU-DE POTTER,Kaleyn,,BE-G,BE-G,,Collège Henri Rouvière
+248,PEAN,Raphael,,BE-G,BE-G,,Collège Henri Rouvière
+249,REBILLET,Max,,BE-G,BE-G,,Collège Henri Rouvière
+250,SOUAIFI,Yannick,,BE-G,BE-G,,Collège Henri Rouvière
+251,WOZNIAK,Batiste,,BE-G,BE-G,,Collège Henri Rouvière
+252,BOISSET,Clémence,,BE-F,BE-F,,Collège Henri Rouvière
+253,BONNAL,Gaelle,,BE-F,BE-F,,Collège Henri Rouvière
+254,BOUCHET-SEBELIN,Juliette,,BE-F,BE-F,,Collège Henri Rouvière
+255,CAILLAULT,Noor,,BE-F,BE-F,,Collège Henri Rouvière
+256,DA COSTA - MOURGUES,Estrella,,BE-F,BE-F,,Collège Henri Rouvière
+257,MASSADOR,Lou,,BE-F,BE-F,,Collège Henri Rouvière
+258,NEGRON,Sonia,,BE-F,BE-F,,Collège Henri Rouvière
+259,RICHARD-COLANGE,Lilou,,BE-F,BE-F,,Collège Henri Rouvière
+260,ARBOUSSET,Tonin,,MI-G,MI-G,,Collège Henri Rouvière
+261,ARGELIES,Nathan,,MI-G,MI-G,,Collège Henri Rouvière
+262,AUBERT,Jonathan,,MI-G,MI-G,,Collège Henri Rouvière
+263,CARANDANTE,Noa,,MI-G,MI-G,,Collège Henri Rouvière
+264,FRIDA,Younes,,MI-G,MI-G,,Collège Henri Rouvière
+265,GOMEZ,Celestin,,MI-G,MI-G,,Collège Henri Rouvière
+266,HARO,Timothée,,MI-G,MI-G,,Collège Henri Rouvière
+267,KIGANGA-SIROKO,Camron,,MI-G,MI-G,,Collège Henri Rouvière
+268,LAUPIES,Gabin,,MI-G,MI-G,,Collège Henri Rouvière
+269,PENSATO-GLEYZE,Angelo,,MI-G,MI-G,,Collège Henri Rouvière
+270,RICARD,Louka,,MI-G,MI-G,,Collège Henri Rouvière
+271,SANZ,Théo,,MI-G,MI-G,,Collège Henri Rouvière
+272,VIEUX,Tom,,MI-G,MI-G,,Collège Henri Rouvière
+273,BONNAL,Zoé,,MI-F,MI-F,,Collège Henri Rouvière
+274,CHAMBON,Hanaé,,MI-F,MI-F,,Collège Henri Rouvière
+275,DIET,Clara,,MI-F,MI-F,,Collège Henri Rouvière
+276,FERRIER,Margot,,MI-F,MI-F,,Collège Henri Rouvière
+277,GIVRY,Camille,,MI-F,MI-F,,Collège Henri Rouvière
+278,NEGRON,Mélanie,,MI-F,MI-F,,Collège Henri Rouvière
+279,PETIT,Cassandra,,MI-F,MI-F,,Collège Henri Rouvière
+280,PEYTAVIN,Ludivine,,MI-F,MI-F,,Collège Henri Rouvière
+281,VIDAL,Chloé,,MI-F,MI-F,,Collège Henri Rouvière
+282,CHAZE,Margot,5B,BE-F,BE-F,,Collège Marcel Pierrel
+283,FERRIER,Ambre,6A,BE-F,BE-F,,Collège Marcel Pierrel
+284,VIGOUROUX,Noëla,5A,BE-F,BE-F,,Collège Marcel Pierrel
+285,COMBETTE DALLE,Juliette,5A,BE-F,BE-F,,Collège Marcel Pierrel
+286,SANCHEZ PERICHON,Malia,5A,BE-F,BE-F,,Collège Marcel Pierrel
+287,MALLAHI,Louisa,5B,BE-F,BE-F,,Collège Marcel Pierrel
+288,ALLANCHE,Juia,6B,BE-F,BE-F,,Collège Marcel Pierrel
+289,HANAUER,Tess,6B,BE-F,BE-F,,Collège Marcel Pierrel
+290,ANGLES,Margot,5A,BE-F,BE-F,,Collège Marcel Pierrel
+291,BORIE,Lucia,6B,BE-F,BE-F,,Collège Marcel Pierrel
+292,DE AMARAL,Sarah,6A,BE-F,BE-F,,Collège Marcel Pierrel
+293,DELMAS,Romane,5B,BE-F,BE-F,,Collège Marcel Pierrel
+294,NOZERAC,Roza,6A,BE-F,BE-F,,Collège Marcel Pierrel
+295,DOS SANTOS,Hugo,5A,BE-G,BE-G,,Collège Marcel Pierrel
+296,ZERRIK,Anas,5A,BE-G,BE-G,,Collège Marcel Pierrel
+297,LADDE,Titouan,5B,BE-G,BE-G,,Collège Marcel Pierrel
+298,DENIS,Théo,5A,BE-G,BE-G,,Collège Marcel Pierrel
+299,SALENDRES,Zian,6A,BE-G,BE-G,,Collège Marcel Pierrel
+300,ABRGRALL,Elouan,6B,BE-G,BE-G,,Collège Marcel Pierrel
+301,STANIKZAI,Wahidullah,5B,BE-G,BE-G,,Collège Marcel Pierrel
+302,SOARES,Paolo,6B,BE-G,BE-G,,Collège Marcel Pierrel
+303,PIGEON LE BEURRIER,Mino,5B,BE-G,BE-G,,Collège Marcel Pierrel
+304,MAAD-MOUKRIMI,Ismail,5A,BE-G,BE-G,,Collège Marcel Pierrel
+305,CAUSSE,Thomas,5B,BE-G,BE-G,,Collège Marcel Pierrel
+306,ABGRALL,Maïwenn,4B,MI-F,MI-F,,Collège Marcel Pierrel
+307,CREPEAU,Zoelie,4B,MI-F,MI-F,,Collège Marcel Pierrel
+308,HANAUER,Eva,4B,MI-F,MI-F,,Collège Marcel Pierrel
+309,HECART,Chloe,3B,MI-F,MI-F,,Collège Marcel Pierrel
+310,LAGLOIRE,Solène,3B,MI-F,MI-F,,Collège Marcel Pierrel
+311,LAIGUEGLIA,Camille,3A,MI-F,MI-F,,Collège Marcel Pierrel
+312,LAIGUEGLIA,Marion,3A,MI-F,MI-F,,Collège Marcel Pierrel
+313,MAURAND,Ninon,3C,MI-F,MI-F,,Collège Marcel Pierrel
+314,COLLIN,Lilou,3B,MI-F,MI-F,,Collège Marcel Pierrel
+315,BRILHAULT,Célia,4B,MI-F,MI-F,,Collège Marcel Pierrel
+316,WOLFF,Chana,4A,MI-F,MI-F,,Collège Marcel Pierrel
+317,BERTIN - AMEILBONNE,Louan,4C,MI-G,MI-G,,Collège Marcel Pierrel
+318,BREUIL-CARREL,Paul,4B,MI-G,MI-G,,Collège Marcel Pierrel
+319,CARMES POUGET,Rubin,4B,MI-G,MI-G,,Collège Marcel Pierrel
+320,CATALANO,Tristan,3C,MI-G,MI-G,,Collège Marcel Pierrel
+321,DUMAS,Timéo,4B,MI-G,MI-G,,Collège Marcel Pierrel
+322,GAILLARD,Maxime,4B,MI-G,MI-G,,Collège Marcel Pierrel
+323,HERBERA,Yoan,3C,MI-G,MI-G,,Collège Marcel Pierrel
+324,LADDE,Lorris,3B,MI-G,MI-G,,Collège Marcel Pierrel
+325,LAMY,Noah,3B,MI-G,MI-G,,Collège Marcel Pierrel
+326,LYONNET,Hubert,3A,MI-G,MI-G,,Collège Marcel Pierrel
+327,RIVEMALE,Adrien,4B,MI-G,MI-G,,Collège Marcel Pierrel
+328,ROUVIERE,Elliot,3C,MI-G,MI-G,,Collège Marcel Pierrel
+329,RICHARD,Baptiste,4A,MI-G,MI-G,,Collège Marcel Pierrel
+330,DELPLANQUE,Simon,,BE-G,BE-G,,Collège Marthe Dupeyron
+331,LE BOUCHER,Raphaël,,BE-G,BE-G,,Collège Marthe Dupeyron
+332,MIALHE,Paul-andré,,BE-G,BE-G,,Collège Marthe Dupeyron
+333,MIALHE,Valentin,,BE-G,BE-G,,Collège Marthe Dupeyron
+334,PEYRONNEL,Melvyn,,BE-G,BE-G,,Collège Marthe Dupeyron
+335,RAOUX AMELOOT,Cyriaque,,BE-G,BE-G,,Collège Marthe Dupeyron
+336,SABATIER,Dorian,,BE-G,BE-G,,Collège Marthe Dupeyron
+337,SICARD,Priam,,BE-G,BE-G,,Collège Marthe Dupeyron
+338,SIRVAIN,Mathias,,BE-G,BE-G,,Collège Marthe Dupeyron
+339,SOULIER,Baptiste,,BE-G,BE-G,,Collège Marthe Dupeyron
+340,BONHOMME,Lilie,,BE-F,BE-F,,Collège Marthe Dupeyron
+341,LHERMET,Manon,,BE-F,BE-F,,Collège Marthe Dupeyron
+342,PANEL,Isia,,BE-F,BE-F,,Collège Marthe Dupeyron
+343,POUDEVIGNE,Anaïs,,BE-F,BE-F,,Collège Marthe Dupeyron
+344,BERTHIER,Tony,,MI-G,MI-G,,Collège Marthe Dupeyron
+345,BROQUERIE,Noham,,MI-G,MI-G,,Collège Marthe Dupeyron
+346,HAMON,Samuel,,MI-G,MI-G,,Collège Marthe Dupeyron
+347,PEYRONNEL,Nolan,,MI-G,MI-G,,Collège Marthe Dupeyron
+348,ROUX,Simon,,MI-G,MI-G,,Collège Marthe Dupeyron
+349,SAUZON,Luka,,MI-G,MI-G,,Collège Marthe Dupeyron
+350,VERNEREY,Théo,,MI-G,MI-G,,Collège Marthe Dupeyron
+351,CARRIERE,Ninon,,MI-F,MI-F,,Collège Marthe Dupeyron
+352,DAUDET,Romane,,MI-F,MI-F,,Collège Marthe Dupeyron
+353,GIBERT,Louna,,MI-F,MI-F,,Collège Marthe Dupeyron
+354,LHERMET,Louane,,MI-F,MI-F,,Collège Marthe Dupeyron
+355,SICARD,Mélissa,,MI-F,MI-F,,Collège Marthe Dupeyron
+356,CARUEL,Louis,,BE-G,BE-G,,Collège Odilon-Barrot
+357,CASADO COSTE,Paul,,BE-G,BE-G,,Collège Odilon-Barrot
+358,COMBES,Robin,,BE-G,BE-G,,Collège Odilon-Barrot
+359,THOMAS MARTINEZ,Ethan,,BE-G,BE-G,,Collège Odilon-Barrot
+360,SOUCHON,Samuel,,BE-G,BE-G,,Collège Odilon-Barrot
+361,FERRIER,Gabriel,,MI-G,MI-G,,Collège Odilon-Barrot
+362,LOUCHE,Maël,,MI-G,MI-G,,Collège Odilon-Barrot
+363,GLEMP,Angus,,MI-G,MI-G,,Collège Odilon-Barrot
+364,PAULET,Maxime,,MI-G,MI-G,,Collège Odilon-Barrot
+365,CHAPTAL,Mathis,,BE-G,BE-G,,Collège Pierre Delmas
+366,COUDERC,Pierre,,BE-G,BE-G,,Collège Pierre Delmas
+367,CHARBONNUI,Mathis,,BE-G,BE-G,,Collège Pierre Delmas
+368,PRETESEILLE,Ewan,,BE-G,BE-G,,Collège Pierre Delmas
+369,SEITZ,Logan,,BE-G,BE-G,,Collège Pierre Delmas
+370,DELGRANGE,Toan,,BE-G,BE-G,,Collège Pierre Delmas
+371,CARBO,Lenny,,MI-G,MI-G,,Collège Pierre Delmas
+372,BROUDIC,Paul,4eme,MI-G,MI-G,,Collège Pierre Delmas
+373,PELLESCHI,Enzo,,MI-G,MI-G,,Collège Pierre Delmas
+374,CASTAN,Siméon,,BE-G,BE-G,,Collège Sport Nature
+375,ENGELVIN,Baptiste,,BE-G,BE-G,,Collège Sport Nature
+376,GOMAR,Léo,,BE-G,BE-G,,Collège Sport Nature
+377,MAS,Noa,,BE-G,BE-G,,Collège Sport Nature
+378,MONTIALOUX,Elian,,BE-G,BE-G,,Collège Sport Nature
+379,MOYSE,Lorick,,BE-G,BE-G,,Collège Sport Nature
+380,NASSIVERA,Ronan,,BE-G,BE-G,,Collège Sport Nature
+381,PAGES,Elijah,,BE-G,BE-G,,Collège Sport Nature
+382,PAGES,Rémy,,BE-G,BE-G,,Collège Sport Nature
+383,PARAYRE,Maël,,BE-G,BE-G,,Collège Sport Nature
+384,POLICARPO,Achille,,BE-G,BE-G,,Collège Sport Nature
+385,TURLAN,Hugo,,BE-G,BE-G,,Collège Sport Nature
+386,TURLAN,Lucas,,BE-G,BE-G,,Collège Sport Nature
+387,VAISSIERE,Esteban,,BE-G,BE-G,,Collège Sport Nature
+388,ALIX,Manon,,BE-F,BE-F,,Collège Sport Nature
+389,BLANC,Romane,,BE-F,BE-F,,Collège Sport Nature
+390,CLEDES MATTAUER,Elyna,,BE-F,BE-F,,Collège Sport Nature
+391,COGOLUEGNES,Alycia,,BE-F,BE-F,,Collège Sport Nature
+392,FAGES,Cali,,BE-F,BE-F,,Collège Sport Nature
+393,GALTIER,Lana,,BE-F,BE-F,,Collège Sport Nature
+394,GAUDRY,Maëlys,,BE-F,BE-F,,Collège Sport Nature
+395,JOURNET,Noémie,,BE-F,BE-F,,Collège Sport Nature
+396,LEGENDRE,Lucie,,BE-F,BE-F,,Collège Sport Nature
+397,PRADEILLES,Anaïs,,BE-F,BE-F,,Collège Sport Nature
+398,RODRIGUES TREMOLET,Mélissa,,BE-F,BE-F,,Collège Sport Nature
+399,ROLLAND,Emma,,BE-F,BE-F,,Collège Sport Nature
+400,AZEMA,Artùs,,MI-G,MI-G,,Collège Sport Nature
+401,COSTES,Maël,,MI-G,MI-G,,Collège Sport Nature
+402,DUBROCA,Colin,,MI-G,MI-G,,Collège Sport Nature
+403,LEGRAND,Simon,,MI-G,MI-G,,Collège Sport Nature
+404,MIDON,Antonin,,MI-G,MI-G,,Collège Sport Nature
+405,MONTIALOUX,Enzo,,MI-G,MI-G,,Collège Sport Nature
+406,RODRIGUES TREMOLET,Jérémi,,MI-G,MI-G,,Collège Sport Nature
+407,CASTAN,Judith,,MI-F,MI-F,,Collège Sport Nature
+408,COGOLUEGNES,Eloïse,,MI-F,MI-F,,Collège Sport Nature
+409,GAUDRY,Nyla,,MI-F,MI-F,,Collège Sport Nature
+410,MAS,Zoé,,MI-F,MI-F,,Collège Sport Nature
+411,PRANLONG,Lucie,,MI-F,MI-F,,Collège Sport Nature
+412,QUERO,Thaïs,,MI-F,MI-F,,Collège Sport Nature
+413,RIVIERE,Klervie,,MI-F,MI-F,,Collège Sport Nature
+414,RUAULT,Camille,,MI-F,MI-F,,Collège Sport Nature
+415,REVERSAT,Méline,,BE-F,BE-F,,Collège Sport Nature
+416,BESSIERES,Alice,,MI-F,MI-F,,Collège Sport Nature
+417,LECAILLE,Anselme,,BE-G,BE-G,,Collège Sport Nature
+418,DZIUBAN,Oleski,,BE-G,BE-G,,Collège Sport Nature
+419,GALTIER,Martin,,BE-G,BE-G,,Collège Sport Nature
+420,MOURGUES,Luna,,BE-F,BE-F,,Collège Sport Nature
+421,CORNEILLE MARTIN,Noham,,CA-G,CA-G,,Lycée Chaptal
+422,LOISON,Raphaël,,CA-G,CA-G,,Lycée Chaptal
+423,MOULIN,Lorris,,CA-G,CA-G,,Lycée Chaptal
+424,OLIVIER,Johan,,CA-G,CA-G,,Lycée Chaptal
+425,CRUZ,Mael,,CA-G,CA-G,,Lycée Chaptal
+426,SOARES,Théo,,CA-G,CA-G,,Lycée Chaptal
+427,ROLLAND,Thomas,,CA-G,CA-G,,Lycée Chaptal
+428,CARTAYRADE,Elena,,CA-F,CA-F,,Lycée Chaptal
+429,BOISSET,Léa,,CA-F,CA-F,,Lycée Chaptal
+430,METRAL,Raphael,,JU-G,JU-G,,Lycée Chaptal
+431,COULOMB,Léa,,JU-F,JU-F,,Lycée Chaptal
+432,DUBREUIL,Maëlys,,JU-F,JU-F,,Lycée Chaptal
+433,SCHEIDECKER,Héloïse,,JU-F,JU-F,,Lycée Chaptal
+434,BELIER,Robin,,CA-G,CA-G,,Lycée Chaptal
+435,REFRÉGÉ,Louis,,CA-G,CA-G,,Lycée Chaptal
+436,HERRGOTT,Siloé,,CA-F,CA-F,,Lycée Chaptal
+437,CASTELL,Manon,,CA-F,CA-F,,Lycée Chaptal
+438,JEAN,Naëlle,,CA-F,CA-F,,Lycée Chaptal
+439,FRAISSE,Ysée,,JU-F,JU-F,,Lycée Chaptal
+440,BAILLAT,Martin,,CA-G,CA-G,,Lycée Chaptal
+441,BESSON,Alexandre,,CA-G,CA-G,,Lycée Chaptal
+442,LHOMMEDE,Naël,,CA-G,CA-G,,Lycée Chaptal
+443,MARTINEZ,Timéo,,CA-G,CA-G,,Lycée Chaptal
+444,MARTY,Mathis,,CA-G,CA-G,,Lycée Chaptal
+445,DAOUDI,Diego,,CA-G,CA-G,,Lycée Chaptal
+446,VIVIANI,Lucas,,CA-G,CA-G,,Lycée Chaptal
+447,NAVARRO,Maxence,,CA-G,CA-G,,Lycée Chaptal
+448,MURA,Louison,,CA-G,CA-G,,Lycée Chaptal
+449,SALEL-ERUNSAL,Evahn,,CA-G,CA-G,,Lycée Chaptal
+450,ARDELEAN,Marie,,CA-F,CA-F,,Lycée Chaptal
+451,CHAPTAL,Jeanne,,CA-F,CA-F,,Lycée Chaptal
+452,CHARBONNEL,Rosane,,CA-F,CA-F,,Lycée Chaptal
+453,JAFFUER--MERIC,Tristan,,CA-G,CA-G,,Lycée Emile Peytavin
+454,JAFFUER-MERIC,Nathan,,CA-G,CA-G,,Lycée Emile Peytavin
+455,LEGRAND,Justin,,CA-G,CA-G,,Lycée Emile Peytavin
+456,POUVREAU,Sacha,,CA-G,CA-G,,Lycée Emile Peytavin
+457,TOUAMI--CAUSSE,Kerouann,,CA-G,CA-G,,Lycée Emile Peytavin
+458,VAN ELST,Anthony,,CA-G,CA-G,,Lycée Emile Peytavin
+459,BRIOUDE,Romane,,CA-F,CA-F,,Lycée Emile Peytavin
+460,GRANIER,Ayleen,,CA-F,CA-F,,Lycée Emile Peytavin
+461,BAYLE,Léo,,JU-G,JU-G,,Lycée Emile Peytavin
+462,LIDON,Chloé,,JU-F,JU-F,,Lycée Emile Peytavin
+463,BOSC,Terence,,CA-G,CA-G,,Lycée Emile Peytavin
+464,CHARRADE,Ethan,,CA-G,CA-G,,Lycée Emile Peytavin
+465,LEDOUX,Jules,,CA-G,CA-G,,Lycée Emile Peytavin
+466,BOUCHET SEBELIN,Almir,,JU-G,JU-G,,Lycée Emile Peytavin
+467,CATRIN,Maël,,JU-G,JU-G,,Lycée Emile Peytavin
+468,CHOURRAU,Lola,,JU-F,JU-F,,Lycée Emile Peytavin
+469,DELON,Jeanne,,JU-F,JU-F,,Lycée Emile Peytavin
+470,JULIEN,Chiara,,JU-F,JU-F,,Lycée Emile Peytavin
+471,LLINARES,Chiara,,JU-F,JU-F,,Lycée Emile Peytavin
+472,ALIX,Yoann,,CA-G,CA-G,,Lycée Emile Peytavin
+473,SOUCHON,Bastien,,CA-G,CA-G,,Lycée Emile Peytavin
+474,DASSONNEVILLE,Hugo,,CA-G,CA-G,,Lycée Emile Peytavin
+475,SOBLECHERO,Lucas,,CA-G,CA-G,,Lycée Emile Peytavin
+476,PHILIPPE,Garance,,CA-F,CA-F,,Lycée Emile Peytavin
+477,BENEZET,Timéo,2GT,CA-G,CA-G,,Lycée François Rabelais
+478,BOUCHARINC,Maxime,STAV 1,CA-G,CA-G,,Lycée François Rabelais
+479,MATOUG,Hugo,STAV 1,CA-G,CA-G,,Lycée François Rabelais
+480,PRUNIERE,Florian,STAV 1,CA-G,CA-G,,Lycée François Rabelais
+481,JACQUET,Matheo,GPN 1,JU-G,JU-G,,Lycée François Rabelais
+482,CLAVERIE,Bastien,,CA-G,CA-G,,Lycée François Rabelais
+483,PASTOR,Adan,,CA-G,CA-G,,Lycée François Rabelais
+484,LAURENS,Simon,STAV 1,CA-G,CA-G,,Lycée François Rabelais
+485,BOULET,Alexis,,CA-G,CA-G,,Lycée François Rabelais
+486,MOTET,Louise,1ere Bac Pro,CA-F,CA-F,,Lycée François Rabelais
+487,NICOLET,Lana,GPN 1,JU-F,JU-F,,Lycée François Rabelais
+488,SEGUR,Oceane,2nd GT,CA-F,CA-F,,Lycée François Rabelais
+489,BONNEFOUX,Eliot,,CA-G,CA-G,,Lycée Théophile Roussel
+490,BOUSSUGE,Paul,,CA-G,CA-G,,Lycée Théophile Roussel
+491,CHARBONNIER,Victor,,CA-G,CA-G,,Lycée Théophile Roussel
+492,CHASSARIC,Romain,,CA-G,CA-G,,Lycée Théophile Roussel
+493,DEL RIO CALVO,Charles,,CA-G,CA-G,,Lycée Théophile Roussel
+494,ENGELVIN,Clément,,CA-G,CA-G,,Lycée Théophile Roussel
+495,LUSSAN,Victor,,CA-G,CA-G,,Lycée Théophile Roussel
+496,METRAL,Guilhem,,CA-G,CA-G,,Lycée Théophile Roussel
+497,MICHEL,Clovis,,CA-G,CA-G,,Lycée Théophile Roussel
+498,NDOUMA GINESTE,Noah,,CA-G,CA-G,,Lycée Théophile Roussel
+499,OCHUDLO,Theo,,CA-G,CA-G,,Lycée Théophile Roussel
+500,RAYNAL,Simon,,CA-G,CA-G,,Lycée Théophile Roussel
+501,RAZON,Jonas,,CA-G,CA-G,,Lycée Théophile Roussel
+502,SAINT CHELY,Mateo,,CA-G,CA-G,,Lycée Théophile Roussel
+503,SEGALA,Solal,,CA-G,CA-G,,Lycée Théophile Roussel
+504,TICHIT,Ethan,,CA-G,CA-G,,Lycée Théophile Roussel
+505,VAN DE MOORTELE,César,,CA-G,CA-G,,Lycée Théophile Roussel
+506,VIALLETON,Valentin,,CA-G,CA-G,,Lycée Théophile Roussel
+507,ARNAL,Jade,,CA-F,CA-F,,Lycée Théophile Roussel
+508,BLAVETTE DE MATOS,Gaïane,,CA-F,CA-F,,Lycée Théophile Roussel
+509,BOUSSUGE,Charlotte,,CA-F,CA-F,,Lycée Théophile Roussel
+510,CERTES,Manon,,CA-F,CA-F,,Lycée Théophile Roussel
+511,CHAPUS,Adele,,CA-F,CA-F,,Lycée Théophile Roussel
+512,FAGES,Chloé,,CA-F,CA-F,,Lycée Théophile Roussel
+513,GAILLARD,Ines,,CA-F,CA-F,,Lycée Théophile Roussel
+514,ODOUARD,Andréa,,CA-F,CA-F,,Lycée Théophile Roussel
+515,AUREL,Evan,,JU-G,JU-G,,Lycée Théophile Roussel
+516,BRUGERON,Quentin,,JU-G,JU-G,,Lycée Théophile Roussel
+517,FERRA,Clément,,JU-G,JU-G,,Lycée Théophile Roussel
+518,GERVAIS,Maxence,,JU-G,JU-G,,Lycée Théophile Roussel
+519,HERBERA,Theo,,JU-G,JU-G,,Lycée Théophile Roussel
+520,MAZAUDIER,Mathis,,JU-G,JU-G,,Lycée Théophile Roussel
+521,NAUMANN,Rémi,,JU-G,JU-G,,Lycée Théophile Roussel
+522,PIGEON,Lucas,,JU-G,JU-G,,Lycée Théophile Roussel
+523,PONS,Gabin,,ES-G,ES-G,,Lycée Théophile Roussel
+524,TOUZET,Jeremy,,JU-G,JU-G,,Lycée Théophile Roussel
+525,ARNAUDON,Celia,,JU-F,JU-F,,Lycée Théophile Roussel
+526,BERNIER,Auxane,,JU-F,JU-F,,Lycée Théophile Roussel
+527,BOUDON,Marilys,,JU-F,JU-F,,Lycée Théophile Roussel
+528,BOYER,Louise,,JU-F,JU-F,,Lycée Théophile Roussel
+529,BRUNET,Laurianne,,JU-F,JU-F,,Lycée Théophile Roussel
+530,CELLIER,Amandine,,JU-F,JU-F,,Lycée Théophile Roussel
+531,CHASSARIC,Laurine,,JU-F,JU-F,,Lycée Théophile Roussel
+532,MOURGUES,Scarlette,,JU-F,JU-F,,Lycée Théophile Roussel
+533,PAGES,Maelis,,JU-F,JU-F,,Lycée Théophile Roussel
+534,RAYNAL,Lisa,,JU-F,JU-F,,Lycée Théophile Roussel
+535,SANMARTI,Nina,,SE-F,SE-F,,Lycée Théophile Roussel
+536,KONATE,Saindou,,MI-G,MI-G,,Collège Henri Rouvière
+537,DIABY,Bazoumana,,JU-G,JU-G,,Collège Henri Rouvière
+538,MIAH,Jeblu,,CA-G,CA-G,,Collège Henri Rouvière
+539,ABU BAKKAR,Siddiq,,CA-G,CA-G,,Collège Henri Rouvière
+540,SYED MOHAMMAD,Misbah,,CA-G,CA-G,,Collège Henri Rouvière
+541,HOSSAIN,Jaber,,JU-G,JU-G,,Collège Henri Rouvière
+542,CAMILLERI,Bastien,,BE-G,BE-G,,Collège Haut-Gévaudan
+543,COUDERC,Bastien,,CA-G,CA-G,,Lycée Emile Peytavin
+544,TROCELLIER,Titouan,,MI-G,MI-G,,Collège Marcel Pierrel
+545,BRAGER,Antoine,,JU-G,JU-G,,Lycée Emile Peytavin
+546,PICARD,Bastien,,JU-G,JU-G,,Lycée Emile Peytavin
+547,ANFRAY,Alix,,CA-F,CA-F,,Lycée Théophile Roussel
+548,BEAUMEVIEILLE,Matéo,,BE-G,BE-G,,Collège Henri Bourrillon
+549,EL BOUJADI,Younes,,BE-G,BE-G,,Collège Henri Bourrillon
+550,NEGRE,Manuel,,MI-G,MI-G,,Collège Henri Bourrillon
+551,PERTUS,Enzo,,BE-G,BE-G,,Collège Henri Bourrillon
+552,COMBES,Anthony,,MI-G,MI-G,,Collège Odilon-Barrot
+553,BEAUMEVIEILLE,Lucas,,MI-G,MI-G,,Collège Henri Bourrillon
+554,BOUREMEL,Noé,,BE-G,BE-G,,Collège Henri Bourrillon
+555,GAZAOUI,Yanis,,BE-G,BE-G,,Collège Henri Bourrillon
+556,DAOUDOU,Elidjah,,BE-G,BE-G,,Collège Henri Bourrillon
+557,ANCAY,Clémentine,,CA-F,CA-F,,Lycée Chaptal
+558,DIVERNY,Juliette,,MI-F,MI-F,,Collège Henri Bourrillon
