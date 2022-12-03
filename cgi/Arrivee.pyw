@@ -151,6 +151,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
     lettre = "A"
     if dossard and dossard[-1].isalpha() : # compatibilité avec l'ancienne application.
         lettre = dossard[-1].upper()
+        dossard = dossard[:-1]
     donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
         tpsCoureurSTR = form.getvalue("tpsCoureur")
