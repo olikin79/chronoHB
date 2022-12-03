@@ -34,9 +34,14 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 - limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
 
 
-##### penser à modifier le scritp cgi pour qu'il utilise le fichier CoureursA.txt , etc...
+A tester :
+- ajout-suppression des temps et dossards depuis l'ancienne version du smartphone : ok.
+- apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
-faire en sorte que l'absence de dossard affecté engendre un tiret et non un zéro !
+Bug introduits :
+- gestion des erreurs sur l'interface : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface. 
+Tester si c'est général à toutes les erreurs.
+- tous les dossards générés en pdf portent le numéro 1.
 
 
 BUGS RESTANTS dans chronoHB :
@@ -53,6 +58,9 @@ NON PRIORITAIRES :
 si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
 si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
 ou un nouveau temps ajouté ensuite la font disparaître.
+
+- Dans les paramètres, si CoursesManuelles, ajouter une entry numériques afin de demander combien de QR-codes créer par course,
+ si souhait d'imprimer les QR-codes séparément, sans le nom des coureurs dessus.
 
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
