@@ -3939,7 +3939,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
                     #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                     # Désormais, le retour est vide pour que l'interface ne se bloque plus sur cette erreur précise.
                     # return message
-    elif Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
+    elif not Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
         message = "Numéro de dossard incorrect :\n"  + infos
         print(message)
         retour=Erreur(411,message,elementConcerne=doss)
