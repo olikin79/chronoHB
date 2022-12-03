@@ -1048,11 +1048,12 @@ def chargerDonnees() :
         ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
         i = 0
         while i < len(ArriveeDossards) :
-            ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
+            if not str(ArriveeDossards[i])[-1].isalpha() : # sécurité si lancé plusieurs fois
+                ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
             i += 1
         i = 0
         while i < len(ArriveeTempsAffectes) :
-            if ArriveeTempsAffectes[i] > 0 :
+            if str(ArriveeTempsAffectes[i]) != 0 and not str(ArriveeTempsAffectes[i])[-1].isalpha() :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
             else :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
@@ -1390,7 +1391,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
         nom = str(coureur.nom)[0].upper()+ str(coureur.nom)[1:].lower()
     else :
         nom = str(coureur.nom).upper()
-    if not dossardAffecte :
+    if dossardAffecte == "0" :
         dossardAffecte = "-"
     if coureur.rang :
         rang = coureur.rang
@@ -1413,7 +1414,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
             tempsDuCoureur = "-"
         else :
             tempsDuCoureur = "Nég. ou nul."
-    if coureur.dossard != 0 :
+    if coureur.dossard != "0" :
         dossard = coureur.dossard
     else :
         dossard = "-"
