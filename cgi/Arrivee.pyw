@@ -65,9 +65,10 @@ def addInstruction(liste) :
 def ligneIndice(fichier, noLigne):
     """ retourne la ligne noLigne du fichier contenant le dossard n° noLigne"""
     retour = None
+    #print(fichier,noLigne)
     with open(fichier, 'r') as f:
         for ind, line in enumerate(f):
-            if ind == noLigne-1:
+            if ind == int(noLigne) - 1:
                 #L.append(line)
                 retour = line
                 break
@@ -118,6 +119,7 @@ def estNumeroDossardCredible(dossard) :
             #lettre = dossard[-1].isalpha().upper()
             numero = dossard[:-1]
             if str(numero).isnumeric() and int(numero) > 0 and int(numero) < 10000:
+                retour = True
         else : # anciens dossards entièrement numériques
             if str(dossard).isnumeric() and int(dossard) > 0 and int(dossard) < 10000:
                 retour = True
