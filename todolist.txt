@@ -36,7 +36,7 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 
 ##### penser à modifier le scritp cgi pour qu'il utilise le fichier CoureursA.txt , etc...
 
-
+faire en sorte que l'absence de dossard affecté engendre un tiret et non un zéro !
 
 
 BUGS RESTANTS dans chronoHB :
