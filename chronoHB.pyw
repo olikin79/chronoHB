@@ -2490,13 +2490,15 @@ Cela peut figer momentanément l'interface...")
             filePath = LOGDIR + os.sep + "dernierImport.txt"
             if os.path.exists(filePath) :
                 os.remove(filePath)
-            file = open(filePath, "a")
-            tmp = sys.stdout # sauvegarde de la sortie standard.
-            sys.stdout = file
+            if not DEBUG :
+                file = open(filePath, "a")
+                tmp = sys.stdout # sauvegarde de la sortie standard.
+                sys.stdout = file
             retourImport,BilanCreationModifErreur = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
-            file.close()
-            sys.stdout = tmp
+            if not DEBUG :
+                file.close()
+                sys.stdout = tmp
 ##            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
 ##            mon_threadter.start()
 ##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
