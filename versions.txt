@@ -15,6 +15,13 @@ Manque pour la branche trail-rieutort :
 
 
 
+Travail du 03/12/22 : 
+- corrections de bugs introduits la veille.
+- modification de l'interface smartphone afin d'autoriser des dossards non numériques.
+- modification de l'interface smartphone afin d'autoriser des saisies au clavier non numériques si les courses manuelles sont activées.
+- si CoursesManuelles alors création d'un listing de 400 QR-codes (1A-200A et 1B-200B) pour impressions cross Rieutort
+
+
 Travail du 02/12/22 : branche class Coureurs-ArriveesDossards
 - Tests, compléments et correction du travail du 29/11/22. Toutes les méthodes ont été testées et protégées.
 Il reste à faire de même pour l'implémentation de ArriveeDossards : idem mais avec des dossards contenus et non des Coureurs.
