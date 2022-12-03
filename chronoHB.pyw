@@ -600,6 +600,7 @@ class MonTableau(Frame):
             else :
                 ligneAAjouter[self.colonneRang] = "?"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
+        ligneAAjouter[self.colonneDossard] = Coureurs.recuperer(doss).getDossard()
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
 ##        print("temps de la ligne", ligne)
 ##        print(donnee)

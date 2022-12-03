@@ -42,6 +42,8 @@ Bug introduits :
 - gestion des erreurs sur l'interface : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface. 
 Tester si c'est général à toutes les erreurs.
 - tous les dossards générés en pdf portent le numéro 1.
+- dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
+- idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
 
 
 BUGS RESTANTS dans chronoHB :
