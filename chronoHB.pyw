@@ -303,8 +303,8 @@ class MonTableau(Frame):
                         p = re.compile('[0-9]*')
                         if p.match(saisie) :
                             try :
-                                dossard = int(saisie)
-                                if Coureurs.nombreDeCoureurs > dossard and dossard >= 0:
+                                dossard = str(saisie)
+                                if Coureurs.existe(dossard) :
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -582,16 +582,16 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[self.colonneDossard] == 0 : # si pas de coureur, pas de dossard à l'affichage.
+        if donnee[self.colonneDossard] == "0" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        doss = int(donnee[self.colonneDossard])
+        doss = str(donnee[self.colonneDossard])
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
-        if doss == 0:
+        if doss == "0":
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         else :
