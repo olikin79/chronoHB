@@ -118,10 +118,10 @@ def estNumeroDossardCredible(dossard) :
         if dossard[-1].isalpha() : # nouveaux dossards
             #lettre = dossard[-1].isalpha().upper()
             numero = dossard[:-1]
-            if str(numero).isnumeric() and int(numero) > 0 and int(numero) < 10000:
+            if str(numero).isnumeric() and int(numero) > 0 and int(numero) < 40000:
                 retour = True
         else : # anciens dossards entièrement numériques
-            if str(dossard).isnumeric() and int(dossard) > 0 and int(dossard) < 10000:
+            if str(dossard).isnumeric() and int(dossard) > 0 and int(dossard) < 40000:
                 retour = True
     return retour
 
@@ -276,7 +276,8 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         paramsLigne=lireParametres()
         print("CC,"+paramsLigne.split(";")[0])  # CC = Catégories par Classe
         # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
-        #                                              fixé à 0 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
+        #                                              fixé à 00 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
+                                                    #  fixé à 01 si les courses sont manuelles.
 
 local = form.getvalue("local")
 nature = form.getvalue("nature").lower()
