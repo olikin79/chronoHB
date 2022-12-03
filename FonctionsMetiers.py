@@ -219,10 +219,15 @@ class DictionnaireDeCoureurs(dict) :
     def __init__(self, AncienneListeAImporter=[]):
         super().__init__()
         self.nombreDeCoureurs = len(AncienneListeAImporter)
-        self["A"]=AncienneListeAImporter
+        self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
+        # actualiser les dossards de tous les coureurs déjà présents 
+        for c in self["A"] :
+            doss = str(c.dossard)
+            if not doss[-1].isalpha():
+                c.setDossard(doss + "A")
     def recuperer(self, dossard) :
         doss = str(dossard)
         try : 
@@ -495,6 +500,9 @@ class Coureur():#persistent.Persistent):
             if doss[-1].isalpha() :
                 int(doss[:-1])
                 self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
+            else :
+                int(doss)
+                self.dossard = doss + "A" # si rien n'est spécifié, c'est la course A.
         except :
             self.dossard = 0
     def getDossard(self) :
@@ -993,7 +1001,7 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1141,6 +1149,9 @@ def chargerDonnees() :
     if not "CoursesManuelles" in Parametres :
         Parametres["CoursesManuelles"] = False
     CoursesManuelles=Parametres["CoursesManuelles"]
+    if not "nbreDossardsAGenererPourCourseManuelles" in Parametres :
+        Parametres["nbreDossardsAGenererPourCourseManuelles"] = False
+    nbreDossardsAGenererPourCourseManuelles=Parametres["nbreDossardsAGenererPourCourseManuelles"]
     ##transaction.commit()
     return globals()
 
@@ -1991,10 +2002,21 @@ def generateQRcode(n) :
 
 def generateQRcodes() :
     print("Création des QR-codes nécessaires")
-    i = 1
-    while i <= Coureurs.nombreDeCoureurs :
-        generateQRcode(i)
+    i = 0
+    L = Coureurs.liste()
+    while i < len(L) :
+        generateQRcode(L[i].dossard)
         i += 1
+    print("Fin de la création des QR-codes.")
+    
+def generateQRcodesCoursesManuelles() :
+    print("Création des QR-codes nécessaires pour les coursesManuelles")
+    L = Coureurs.cles()
+    for lettre in L :
+        i = 1
+        while i < Parametres["nbreDossardsAGenererPourCourseManuelles"] :
+            generateQRcode(str(i) + lettre)
+            i += 1
     print("Fin de la création des QR-codes.")
 
 
@@ -2069,10 +2091,20 @@ def generateDossardsNG() :
             alimenteListingPourClasse(nomClasse, fL)
             if nomClasse != L[:-1] :
                 fL.write("\\newpage\n\n")
-            else :
-                fL.write("\\end{document}")
     fL.close()
     listeCategories.append("0-listing")
+    if CoursesManuelles :
+        generateQRcodesCoursesManuelles()
+        fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
+        ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
+        with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
+            L = Coureurs.cles()
+            for nomCourse in L :
+                alimenteListingPourCourse(nomCourse, fL)
+                if nomCourse != L[:-1] :
+                    fL.write("\n\\newpage\n\n")
+        fL.close()
+        listeCategories.append(fichier)
     #print(listeCategories)
     # pour chaque fichier dans listeCategories , ajouter le end document.
     for file in listeCategories :
@@ -2084,6 +2116,7 @@ def generateDossardsNG() :
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
 
+#print("Coureur 2",Coureurs.recuperer("2A").dossard)
 
 ##def generateDossards() :
 ##    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
@@ -2272,6 +2305,25 @@ def alimenteListingPourClasse(nomClasse, file):
         file.write(alimenteLignePourListingClasse(listeDeQuatreCoureursMax))
         ligne += 1
     file.write("\n\\end{tabular}\n\n")
+    
+def alimenteListingPourCourse(nomCourse, file):
+    if Parametres["CategorieDAge"] :
+        denomination = "Catégorie"
+    else :
+        denomination = "Classe"
+    debutTab = """
+\\begin{longtable}{ p{0.49\\textwidth}  p{0.49\\textwidth}}
+"""
+    file.write(debutTab)
+    doss = 1
+    while doss < Parametres["nbreDossardsAGenererPourCourseManuelles"] :
+        file.write("\\includegraphics[width=\\linewidth]{" + str(doss) + nomCourse + "}")
+        if doss % 2 == 0 :
+            file.write("\\\\\n")
+        else :
+            file.write(" & ")
+        doss += 1
+    file.write("\n\\end{longtable}\n\n")
 
 def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
     retour = ""
@@ -5257,11 +5309,14 @@ def setParam(parametre, valeur) :
 
 def setParametres() :
     if Parametres["CategorieDAge"] :
-        CA = "0"
+        if CoursesManuelles : 
+            crossParClasse = "2"
+        else :
+            crossParClasse = "0"
     else :
-        CA = "1"
+        crossParClasse = "1"
     with open("params.txt", 'w') as f:
-        f.write(CA)  # à compléter avec d'autres paramètres si besoin de les envoyer vers le smartphone.
+        f.write(crossParClasse)  # à compléter avec d'autres paramètres si besoin de les envoyer vers le smartphone.
     f.close()
 
 def creerCoureur(listePerso, informations) :
