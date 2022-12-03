@@ -112,10 +112,16 @@ def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
         return "NT,Il n'y a aucun coureur sur le serveur."
     
 def estNumeroDossardCredible(dossard) :
-    if str(dossard).isnumeric() and dossard > 0 :
-        return True
-    else :
-        return False
+    retour = False
+    if dossard :
+        if dossard[-1].isalpha() : # nouveaux dossards
+            #lettre = dossard[-1].isalpha().upper()
+            numero = dossard[:-1]
+            if str(numero).isnumeric() and int(numero) > 0 and int(numero) < 10000:
+        else : # anciens dossards entièrement numériques
+            if str(dossard).isnumeric() and int(dossard) > 0 and int(dossard) < 10000:
+                retour = True
+    return retour
 
 def lireMessageDefaut() :
     with open("messageDefaut.txt", 'r') as f:
@@ -140,7 +146,10 @@ def formateClasse(classe) :
 
 def generateMessage(dossard, nature, action, uid, noTransmission):     
     global local
-    donnees = "Coureurs.txt"
+    lettre = "A"
+    if dossard and dossard[-1].isalpha() : # compatibilité avec l'ancienne application.
+        lettre = dossard[-1].upper()
+    donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
         tpsCoureurSTR = form.getvalue("tpsCoureur")
         tpsCoureur = time.mktime(time.strptime(tpsCoureurSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsCoureurSTR[-2:])/100)
@@ -273,10 +282,10 @@ try :
     action = form.getvalue("action").lower()
 except:
     action = ""
-try :
-    dossard = int(form.getvalue("dossard"))
-except:
-    dossard = form.getvalue("dossard") # cas d'un QRcode scanné par erreur non numérique.
+#try :
+#    dossard = str(form.getvalue("dossard"))
+#except:
+dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
 try :
     uid = int(form.getvalue("UID"))
 except:
