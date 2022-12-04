@@ -19,7 +19,7 @@ Travail du 03/12/22 :
 - corrections de bugs introduits la veille.
 - modification de l'interface smartphone afin d'autoriser des dossards non numériques.
 - modification de l'interface smartphone afin d'autoriser des saisies au clavier non numériques si les courses manuelles sont activées.
-- si CoursesManuelles alors création d'un listing de 400 QR-codes (1A-200A et 1B-200B) pour impressions cross Rieutort
+- si CoursesManuelles alors création d'un listing de 100 QR-codes (1A-100A et 1B-100B) pour impressions cross Rieutort
 
 
 Travail du 02/12/22 : branche class Coureurs-ArriveesDossards
