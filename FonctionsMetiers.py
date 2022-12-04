@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 version = "1.7"
 
@@ -255,7 +255,7 @@ class DictionnaireDeCoureurs(dict) :
         self.__init__()
     def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
-        if not self.existe(coureur) :
+        if self.existe(coureur) == "0" :
             if not course in self.keys() :
                 self[course] = []
                 self["CoureursElimines"][course]=[]
@@ -277,8 +277,8 @@ class DictionnaireDeCoureurs(dict) :
         L.remove("CoureursElimines")
         return L
     def existe(self,element):
-        """Retourne 0 si le coureur n'existe pas et son dossard sinon"""
-        retour = 0
+        """Retourne "0" si le coureur n'existe pas et son dossard sinon"""
+        retour = "0"
         if isinstance(element, Coureur):
             # c'est un coureur que l'on cherche à trouver
             for c in self.liste() :
@@ -329,15 +329,14 @@ class DictionnaireDeCoureurs(dict) :
             else :
                 print("Impossible d'effacer l'élément", element, "des Coureurs actuels")
     def afficher(self) :
-        for course in self.keys() :
-            if course != "CoureursElimines" :
-                print("Course",course)
-                indicesLibres = self["CoureursElimines"][course]
-                i = 0
-                for coureur in self[course] :
-                    if not i in indicesLibres :
-                        print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
-                    i += 1
+        for course in self.cles() :
+            print("Course",course)
+            indicesLibres = self["CoureursElimines"][course]
+            i = 0
+            for coureur in self[course] :
+                if not i in indicesLibres :
+                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
+                i += 1
 
 
 
@@ -416,6 +415,7 @@ class Coureur():#persistent.Persistent):
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
         self.__private_categorie = None
+        self.course = course
         self.actualiseCategorie()
         #self.__private_categorie_manuelle
 ##        if CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement.
@@ -431,6 +431,10 @@ class Coureur():#persistent.Persistent):
         except:
             self.etablissement = ""
             self.etablissementNature = ""
+        try :
+            self.course
+        except :
+            self.course = ""
         #if not Parametres["CoursesManuelles"] :
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
@@ -1016,7 +1020,7 @@ def chargerDonnees() :
     # get the data, creating an empty mapping if necessary
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
-        root["Coureurs"] = {}
+        root["Coureurs"] = DictionnaireDeCoureurs()
     Coureurs=root["Coureurs"]
     tagConvertionEnCours = False
     if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
@@ -1150,7 +1154,7 @@ def chargerDonnees() :
         Parametres["CoursesManuelles"] = False
     CoursesManuelles=Parametres["CoursesManuelles"]
     if not "nbreDossardsAGenererPourCourseManuelles" in Parametres :
-        Parametres["nbreDossardsAGenererPourCourseManuelles"] = False
+        Parametres["nbreDossardsAGenererPourCourseManuelles"] = 120
     nbreDossardsAGenererPourCourseManuelles=Parametres["nbreDossardsAGenererPourCourseManuelles"]
     ##transaction.commit()
     return globals()
@@ -1173,8 +1177,6 @@ else :
 ##
 ##PORT = 8888
 ##server_address = ("", PORT)
-
-
 
 
 
@@ -1875,6 +1877,7 @@ def listNomsGroupementsCommences(nomStandard = False):
     return retour
 
 def listNomsGroupementsNonCommences(nomStandard = False):
+    #print("listNomsGroupementsNonCommences",Courses)
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
@@ -1972,6 +1975,7 @@ def generateListCoureursPourSmartphone() :
                     result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
                              "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
                     print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    print("Courses.keys()", Courses.keys())
                     print("course", Courses[coureur.course].description)
                     print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
                           str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
@@ -2064,7 +2068,7 @@ def generateDossardsNG() :
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
         for coureur in Coureurs.liste() :
             if not coureur.dispense and not coureur.absent :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
+                cat = coureur.course#categorie(Parametres["CategorieDAge"])
                 groupementNom = groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
                 #print("cat =",cat, "   groupementNom=",groupementNom)
                 groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
@@ -2076,9 +2080,10 @@ def generateDossardsNG() :
                     cl = coureur.classe #"Classe : " + coureur.classe
                 else :
                     cl = ""
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
-                                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
+                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
+                    .replace("@dossard@",coureur.getDossard()).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
+                    .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                    .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
                 f.write(chaineComplete)
                 with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
                     fileCat.write(chaineComplete+ "\n\n")
@@ -2093,11 +2098,16 @@ def generateDossardsNG() :
                 fL.write("\\newpage\n\n")
     fL.close()
     listeCategories.append("0-listing")
+    #### création des QR-codes pour le cross de Rieutort
     if CoursesManuelles :
+        with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
+            enteteQR = f.read()
+        f.close()
         generateQRcodesCoursesManuelles()
         fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
         ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
         with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
+            fL.write(enteteQR + "\n\n")
             L = Coureurs.cles()
             for nomCourse in L :
                 alimenteListingPourCourse(nomCourse, fL)
@@ -2312,14 +2322,32 @@ def alimenteListingPourCourse(nomCourse, file):
     else :
         denomination = "Classe"
     debutTab = """
-\\begin{longtable}{ p{0.49\\textwidth}  p{0.49\\textwidth}}
+\\begin{longtable}{p{10cm} p{10cm}}
+\\endhead
 """
     file.write(debutTab)
+    partie1 = """\\begin{minipage}{\\linewidth} {}
+
+\\smallskip
+{}\\hfill {} {\\footnotesize """
+    partie2 = """ } {}\\hfill {}
+    
+\\medskip
+{}\\hfill {} \\includegraphics[width=8cm]{QRcodes/"""
+    partie3 = """.pdf} {}\\hfill {}
+    
+\\bigskip
+\\vfill
+{}
+\\end{minipage}"""
     doss = 1
-    while doss < Parametres["nbreDossardsAGenererPourCourseManuelles"] :
-        file.write("\\includegraphics[width=\\linewidth]{" + str(doss) + nomCourse + "}")
+    while doss <= Parametres["nbreDossardsAGenererPourCourseManuelles"] :
+        #file.write("\\includegraphics[width=\\linewidth]{QRcodes/" + str(doss) + nomCourse + ".pdf}")
+        file.write(partie1 + str(doss) + nomCourse + partie2 +  str(doss) + nomCourse + partie3 )
         if doss % 2 == 0 :
             file.write("\\\\\n")
+            if doss % 6 == 0 :
+                file.write("\n\\newpage\n")
         else :
             file.write(" & ")
         doss += 1
@@ -3803,7 +3831,7 @@ def delArriveeTemps(tempsCoureur, dossard="0") :
 ##    return codeRetour
 
 
-def coureurExists(Coureurs, nom, prenom) :
+def coureurExists(nom, prenom) :
     return Coureurs.existe(Coureur(nom, prenom, "G"))
     # retour = 0
     # i=0
@@ -3835,8 +3863,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         #print("complement",complement)
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
         if dossard == "0" :
-            dossard = coureurExists(Coureurs, nom, prenom)
-        if dossard != "0" :
+            dossard = coureurExists(nom, prenom)
+            #print("retour de coureurExists",dossard)
+        if str(dossard) != "0" :
             auMoinsUnChangement = False
             coureur = Coureurs.recuperer(dossard)
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
@@ -3849,6 +3878,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                     coureur.setCourse(nomStandard)
                     auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
+                print("coureur",coureur.nom)
                 coureur.setDispense(dispense)
                 auMoinsUnChangement = True
             if absent != None and coureur.absent != absent :
@@ -3878,13 +3908,35 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             else :
                 retour = [0,0,0]
         else :
+            if CoursesManuelles : 
+            ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
+            ####    Si non, on la crée et on récupère la lettre.
+            ####    lettreCourse = ...
+                trouve = False
+                a = 1
+                for g in Groupements :
+                    if g.nomStandard == course :
+                        trouve = True
+                        break
+                    a += 1
+                if not trouve :
+                    addCourse(course)
+                lettreCourse = chr(a+64) 
+                # récupération du nom standard de la course
+                nomStandard = estDansGroupementsEnModeManuel(course)
+                if not nomStandard :
+                    nomStandard = addCourse(course)
+            else :
+                lettreCourse = "A"
             dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
-                                                dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma, aImprimer=aImprimer,\
-                                                course=course))
+                                                dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
+                                                aImprimer=aImprimer,\
+                                                course=nomStandard), lettreCourse)
+            ##print("dossard récupéré:",dossard)
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature,\
-            " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature)
+            #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
     else :
