@@ -34,6 +34,7 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 - limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
 
 
+
 A tester :
 - ajout-suppression des temps et dossards depuis l'ancienne version du smartphone : ok.
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
