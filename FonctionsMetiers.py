@@ -2018,7 +2018,7 @@ def generateQRcodesCoursesManuelles() :
     L = Coureurs.cles()
     for lettre in L :
         i = 1
-        while i < Parametres["nbreDossardsAGenererPourCourseManuelles"] :
+        while i <= Parametres["nbreDossardsAGenererPourCourseManuelles"] :
             generateQRcode(str(i) + lettre)
             i += 1
     print("Fin de la création des QR-codes.")
@@ -2109,6 +2109,9 @@ def generateDossardsNG() :
         with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
             fL.write(enteteQR + "\n\n")
             L = Coureurs.cles()
+            Coureurs.afficher()
+            print("Affichage des Coureurs pour comprendre")
+            print("Clés",Coureurs.cles())
             for nomCourse in L :
                 alimenteListingPourCourse(nomCourse, fL)
                 if nomCourse != L[:-1] :
@@ -2336,6 +2339,7 @@ def alimenteListingPourCourse(nomCourse, file):
 {}\\hfill {} \\includegraphics[width=8cm]{QRcodes/"""
     partie3 = """.pdf} {}\\hfill {}
     
+\\vspace{0.8cm}
 \\bigskip
 \\vfill
 {}
