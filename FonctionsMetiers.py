@@ -252,6 +252,9 @@ class DictionnaireDeCoureurs(dict) :
         return L
     def effacerTout(self) :
         self.clear()
+        for file in glob.glob("Coureurs?.txt") :
+            print("Suppression du fichier", file)
+            os.remove(file)
         self.__init__()
     def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
