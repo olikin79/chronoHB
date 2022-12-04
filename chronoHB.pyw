@@ -2654,13 +2654,17 @@ def effaceDonneesGUI ():
 
 
 def generateDossardsArrierePlan():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
+        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessage)
         mon_thread.start()
 
 def generateDossardsArrierePlanNG():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
+        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessageNG)
         mon_thread.start()
