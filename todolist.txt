@@ -39,6 +39,7 @@ A tester :
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
 Bug introduits :
+- dans paramètres des courses, si la base est vide, cela devrait créer une course numéro 1 pour que le menu s'affiche.
 - gestion des erreurs sur l'interface : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface. 
 Tester si c'est général à toutes les erreurs.
 - tous les dossards générés en pdf portent le numéro 1.

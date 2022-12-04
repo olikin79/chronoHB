@@ -33,11 +33,6 @@ if not os.path.exists(LOGDIR) :
 
 CoureursParClasse = {}
 
-### déjà initialisé dans fonctionsMetiers.py
-### tableauGUI = []
-### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
-
-
 #### DEBUG
 DEBUG = True
 
@@ -2495,6 +2490,8 @@ Cela peut figer momentanément l'interface...")
                 tmp = sys.stdout # sauvegarde de la sortie standard.
                 sys.stdout = file
             retourImport,BilanCreationModifErreur = recupImportNG(file_path)
+            #print("Affichage des Coureurs juste après l'importation")
+            #Coureurs.afficher()
             # fin de la redirection des logs temporaire
             if not DEBUG :
                 file.close()
