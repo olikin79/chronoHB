@@ -3250,7 +3250,10 @@ class CoureurFrame(Frame) :
                                      "Modifier les caractéristiques du coureur correspondant en sélectionnant son numéro de dossard.")
             self.coureurBoksuivant.configure(text="Valider")
             # afficher le menu déroulant ici.
-            self.tupleDesDossards = tuple(range(1,Coureurs.nombreDeCoureurs + 1))
+            L = []
+            for c in Coureurs.liste() :
+                L.append(c.getDossard())
+            self.tupleDesDossards = tuple(L)
             self.choixDossardCombo['values']=self.tupleDesDossards
             if self.tupleDesDossards :
                 self.choixDossardCombo.current(0)
