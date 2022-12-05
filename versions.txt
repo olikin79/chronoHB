@@ -15,6 +15,10 @@ Manque pour la branche trail-rieutort :
 
 
 
+Travail du 04/12/22 :
+- lorsque l'on effaçait les coureurs depuis le menu, cela ne supprimait pas CoursesA.txt, CoursesB.txt etc... Corrigé.
+
+
 Travail du 03/12/22 : 
 - corrections de bugs introduits la veille.
 - modification de l'interface smartphone afin d'autoriser des dossards non numériques.
