@@ -46,9 +46,10 @@ Tester si c'est général à toutes les erreurs.
 - tous les dossards générés en pdf portent le numéro 1.
 - dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
 - idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
-- lorsque l'on efface les coureurs depuis le menu, cela ne supprime par CoursesA.txt, CoursesB.txt etc... A modifier.
 - lors de la génération du fichier pour les QR-codes de Rieutort, il génère des dossards C alors qu'il n'y a que deux courses ! Bizarre.
-
+- en mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok, etc...
+et notamment le changement de course devrait provoquer la création d'un nouveau dossard et donc l'actualisation de la combobox 
+avec les nouveaux dossards.
 
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
