@@ -51,6 +51,7 @@ Tester si c'est général à toutes les erreurs.
 et notamment le changement de course devrait provoquer la création d'un nouveau dossard et donc l'actualisation de la combobox 
 avec les nouveaux dossards.
 
+
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
 un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
