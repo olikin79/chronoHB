@@ -41,16 +41,17 @@ A tester :
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
 Bug introduits :
+- dans Arrivee.pyw, la recherche par nom ne s'effectue pas dans tous les fichiers... C'est un problème à résoudre en parcourant tous les fichiers
+ou en créant un unique fichier Coureurs.txt qui contient tous les coureurs de toutes les courses, uniquement pour cela.
 - dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
-- gestion des erreurs sur l'interface : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface. 
-Tester si c'est général à toutes les erreurs.
+- gestion des erreurs sur l'interface : plus aucune erreur ne s'affiche : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface, 
+course non partie, ...
 - dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
 - idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
-- tester s'il y a un problème à affecter un coureur à une autre course : du coup, son dossard ne correspondra pas à la course.
-Quel impact éventuel sur la suite du processus ? Il faudrait qu'il n'y en ait aucun.
-- en mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok, etc...
-et notamment le changement de course devrait provoquer la création d'un nouveau dossard et donc l'actualisation de la combobox 
-avec les nouveaux dossards.
+- tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : du coup, son dossard ne correspondra pas à la course.
+Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du bon temps se fait dans le tableau.
+- En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok que de
+façon aléatoire (des fois, le changement de nom, de prénom, ne suffit pas. D'autres fois, seul le sexe permet d'afficher le bouton ok., etc...
 
 
 BUGS RESTANTS dans chronoHB :
