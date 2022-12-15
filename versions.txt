@@ -20,6 +20,7 @@ Bugs divers corrigés (introduits lors de la refonte du coeur du système de dos
 - lors de la génération du fichier de QR-codes, il génèrait des dossards C alors qu'il n'y avait que deux courses !
 - correctif export en pdf des résultats.
 - correctif si dossard saisi en minuscule. La casse venant du smartphone et sur l'interface GUI n'aura aucune conséquence...
+On autorise la saisie de lettres dans la colonne dossards affectés sur l'interface GUI.
 
 
 Travail du 04/12/22 :
