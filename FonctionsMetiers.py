@@ -4074,7 +4074,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
-    elif not Courses[Coureurs.recuperer(doss).categorie(Parametres["CategorieDAge"])].depart :
+    elif not Courses[Coureurs.recuperer(doss).course].depart :
         message = "La course " + Coureurs.recuperer(doss).course + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
@@ -4365,7 +4365,7 @@ def categorieDuDernierDepart() :
 def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee, tpsNonSaisi=False):
     arrivee = tps.tempsReel
     coureur = Coureurs.recuperer(doss)
-    cat = coureur.categorie(Parametres["CategorieDAge"])
+    cat = coureur.course # categorie(Parametres["CategorieDAge"])
     retour = []
     try :
         categ = Courses[cat]
@@ -4832,6 +4832,7 @@ def yATIlUCoureurArrive(groupement) :
     retour = False
     #print(ResultatsGroupements)
     try :
+        print("ResultatsGroupements",ResultatsGroupements)
         Dossards = ResultatsGroupements[groupement]
         for dossard in Dossards :
             if dossard in ArriveeDossards :
