@@ -163,7 +163,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
                     chdossard = ""
-                    dossard = 0
+                    dossard = "0"
                 else :
                     chdossard =  "avec le dossard " + str(dossard)
             else :
@@ -186,9 +186,9 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 else :
                     print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
             else :
-                dossard = 0
+                dossard = "0"
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
-        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
+        addInstruction([nature,action,dossard.upper(), tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
@@ -223,10 +223,10 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                                            replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss).\
                                            replace("<etablissement>",etablissement)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
+                        addInstruction([nature,action,dossard.upper(), dossardPrecedent,uid, noTransmission])
                     elif action == "del" :
                         print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
-                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
+                        addInstruction([nature,action,dossard.upper(), dossardPrecedent,uid, noTransmission])
                     else :
                         print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
             elif action == "recherche" :
