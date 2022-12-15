@@ -1,10 +1,3 @@
-#!"C:\Users\olikin\AppData\Local\Programs\Python\Python39\pythonw.exe" -u
-# coding: utf-8
-
-
-#!/usr/local/bin/pythonw
-#/usr/bin/pythonw
-
 import time
 tpsServeur = time.time()
 # on récupère l'heure locale le plus tôt possible après la requête afin de calculer un éventuel décalage entre le client et le serveur le plus précis possible.
@@ -35,10 +28,6 @@ tpsServeur = time.time()
 
 
 from os import path
-
-## Les commentaires personnalisés par coureur sont possibles dans les données CSV à importer. Il restera à implémenter leur modification dans l'interface.
-##listeDossardsCommetairePersonnalise = [1]
-##listeCommentairesPersonnalises = ["Bravo, pour une fois, tu as franchi la ligne."]
 
 import sys
 sys.stderr = sys.stdout
@@ -151,7 +140,11 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
     lettre = "A"
     if dossard and dossard[-1].isalpha() : # compatibilité avec l'ancienne application.
         lettre = dossard[-1].upper()
-        dossard = dossard[:-1]
+        noDossard = dossard[:-1]
+    elif dossard :
+        noDossard = int(dossard)
+    else :
+        noDossard = ""
     donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
         tpsCoureurSTR = form.getvalue("tpsCoureur")
@@ -166,7 +159,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         secondes = tpsCoureurSTR[15:17]
         if estNumeroDossardCredible(dossard) :
             if path.exists(donnees) :
-                ligneBrute = ligneIndice(donnees, dossard)
+                ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
                     chdossard = ""
@@ -184,7 +177,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         elif action == "affecte" :
             if estNumeroDossardCredible(dossard) :
                 if path.exists(donnees) :
-                    ligneBrute = ligneIndice(donnees, dossard)
+                    ligneBrute = ligneIndice(donnees, noDossard)
                     if ligneBrute == None :
                         print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
                         dossard = 0
@@ -199,7 +192,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
-                ligneBrute = ligneIndice(donnees, dossard)
+                ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
                 else :
@@ -256,7 +249,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
             print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
     elif nature == "identite" :
         if action == "info" :
-            ligneBrute = ligneIndice(donnees, dossard)
+            ligneBrute = ligneIndice(donnees, noDossard)
             if ligneBrute == None :
                 print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
             else :
