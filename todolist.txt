@@ -48,14 +48,20 @@ ou en créant un unique fichier Coureurs.txt qui contient tous les coureurs de t
 course non partie, ...
 - dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
 - idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
-- tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : du coup, son dossard ne correspondra pas à la course.
+- tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : 
+du coup, son dossard ne correspondra pas à la course.
 Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du bon temps se fait dans le tableau.
 - En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok que de
 façon aléatoire (des fois, le changement de nom, de prénom, ne suffit pas. D'autres fois, seul le sexe permet d'afficher le bouton ok., etc...
+- dans l'affichage GUI, l'absence de dossard affecté provoque l'affichage 100B : trouver pourquoi...
+- lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel.
+- lors de l'export tableur, la course n'est pas exportée dans le fichier tableur créé.
 
 
 BUGS RESTANTS dans chronoHB :
 PRIORITAIRES :
+l'affichage sur la TV a un décalage horaire (si on est en heure d'hiver)
+
 un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
 
 (à confirmer) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
