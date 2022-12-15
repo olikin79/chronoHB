@@ -3110,7 +3110,7 @@ class CoureurFrame(Frame) :
             self.lblCat = Label(self.parent, text="Course", fg='black')
         else :
             self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
-        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center")#, state='readonly') #Entry(self.parent)
+        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
         self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
         L = listCategories()
         self.comboBoxCategorie['values'] = L
@@ -3211,23 +3211,25 @@ class CoureurFrame(Frame) :
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = str(self.choixDossardCombo.get())
-            coureur = Coureurs.recuperer(doss)
-            self.nomE.insert(0, coureur.nom)
-            self.prenomE.insert(0, coureur.prenom)
-            if Parametres['CategorieDAge'] :
-                self.classeE.insert(0, coureur.naissance)
-            else :
-                self.classeE.insert(0, coureur.classe)
-            self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
-            self.sexeC.set(coureur.sexe)
-            #self.sexeE.insert(0, coureur.sexe)
-            self.vmaE.insert(0, coureur.VMA)
-            self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
-            self.etabC.set(coureur.etablissement)
-            self.etabNatureC.set(coureur.etablissementNature)
-            if CoursesManuelles :
-                self.comboBoxCategorie.config(values=listNomGroupements())
-                self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
+            print("dossard:",doss)
+            if doss : # la combobox n'est pas vide 
+                coureur = Coureurs.recuperer(doss)
+                self.nomE.insert(0, coureur.nom)
+                self.prenomE.insert(0, coureur.prenom)
+                if Parametres['CategorieDAge'] :
+                    self.classeE.insert(0, coureur.naissance)
+                else :
+                    self.classeE.insert(0, coureur.classe)
+                self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
+                self.sexeC.set(coureur.sexe)
+                #self.sexeE.insert(0, coureur.sexe)
+                self.vmaE.insert(0, coureur.VMA)
+                self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
+                self.etabC.set(coureur.etablissement)
+                self.etabNatureC.set(coureur.etablissementNature)
+                if CoursesManuelles :
+                    self.comboBoxCategorie.config(values=listNomGroupements())
+                    self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
             
@@ -3237,6 +3239,7 @@ class CoureurFrame(Frame) :
         ### on active ou non la combobox
         if not self.ajoutCoureur :
             self.choixDossardCombo.pack()
+            #self.choixDossardCombo.current(0)
         ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
         self.lblCommentaireInfoAddCoureur.pack(side=TOP)
         if self.ajoutCoureur :
@@ -3359,8 +3362,8 @@ class CoureurFrame(Frame) :
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
-            doss = int(self.choixDossardCombo.get())
-            if Parametres['CategorieDAge'] :
+            doss = self.choixDossardCombo.get()
+            if Parametres['CategorieDAge'] : # cas de l'UNSS
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
                               etablissementNature = self.etabNatureC.get(), course = c, dossard = doss)

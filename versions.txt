@@ -15,6 +15,12 @@ Manque pour la branche trail-rieutort :
 
 
 
+Travail du 15/12/22 :
+Bugs divers corrigés (introduits lors de la refonte du coeur du système de dossards fin novembre-début décembre.
+- lors de la génération du fichier de QR-codes, il génèrait des dossards C alors qu'il n'y avait que deux courses !
+
+
+
 Travail du 04/12/22 :
 - lorsque l'on effaçait les coureurs depuis le menu, cela ne supprimait pas CoursesA.txt, CoursesB.txt etc... Corrigé.
 

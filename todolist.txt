@@ -1,6 +1,6 @@
 EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
-- générer un pdf avec 6 qrcodes par page.
-- faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
+- (FAIT) générer un pdf avec 6 qrcodes par page.
+- (FAIT) faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
 Ce ne serait plus la catégorie qui donnerait la course mais une propriété (à créer) du coureur.
 Dans les paramètres, une checkbox permettrait de choisir "courses en fonction des catégories ou non".
 Un champ Entry apparaîtrait en cas de choix "courses manuelles" qui engendrerait l'apparition d'un combobox dans ajout-modif de coureur lié à une propriété
@@ -11,6 +11,7 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
 Même schéma pour ArriveeDossards, 
 
+FAIT :
 Utilisé : les fonctions d'accès créées transformeront le paramètre fourni en une chaine de caractères et testeront si le dernier
 caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce sera la course A par défaut.
 1. len(Coureurs)						pour 1, la propriété nombreDeCoureurs devra faire le travail.
@@ -31,7 +32,7 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 8. coureurExists(Coureurs, nom, prenom) à remplacer par une méthode intégrée self.existe(coureur)
 
 
-- limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
+- (FAIT) limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
 
 
 
@@ -40,13 +41,13 @@ A tester :
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
 Bug introduits :
-- dans paramètres des courses, si la base est vide, cela devrait créer une course numéro 1 pour que le menu s'affiche.
+- dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
 - gestion des erreurs sur l'interface : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface. 
 Tester si c'est général à toutes les erreurs.
-- tous les dossards générés en pdf portent le numéro 1.
 - dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
 - idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
-- lors de la génération du fichier pour les QR-codes de Rieutort, il génère des dossards C alors qu'il n'y a que deux courses ! Bizarre.
+- tester s'il y a un problème à affecter un coureur à une autre course : du coup, son dossard ne correspondra pas à la course.
+Quel impact éventuel sur la suite du processus ? Il faudrait qu'il n'y en ait aucun.
 - en mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok, etc...
 et notamment le changement de course devrait provoquer la création d'un nouveau dossard et donc l'actualisation de la combobox 
 avec les nouveaux dossards.

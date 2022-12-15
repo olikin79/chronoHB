@@ -258,7 +258,7 @@ class DictionnaireDeCoureurs(dict) :
         self.__init__()
     def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
-        if self.existe(coureur) == "0" :
+        if self.existe(coureur) == "" :
             if not course in self.keys() :
                 self[course] = []
                 self["CoureursElimines"][course]=[]
@@ -280,8 +280,9 @@ class DictionnaireDeCoureurs(dict) :
         L.remove("CoureursElimines")
         return L
     def existe(self,element):
-        """Retourne "0" si le coureur n'existe pas et son dossard sinon"""
-        retour = "0"
+        """Retourne "" si le coureur n'existe pas et son dossard sinon"""
+        #print("existe(self,",element,")")
+        retour = ""
         if isinstance(element, Coureur):
             # c'est un coureur que l'on cherche à trouver
             for c in self.liste() :
@@ -1675,7 +1676,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     return retour
 
 def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
-    cat = Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])
+    cat = Coureurs.recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     Courses[cat].setARegenererPourImpression(True)
     #print("nom groupement de la catégorie", cat, ":", Courses[cat].nomGroupement)
@@ -3766,32 +3767,33 @@ def delArriveeTempsClient(tempsCoureur, dossard="0") :
     dossard = str(dossard)
     tempsASupprimer = float(tempsCoureur)
     n = len(ArriveeTemps)
-    tpsDejaPresent = ArriveeTemps[n-1]
-    codeRetour = "1"
-    while n > 0 : # suppression du parcours conditionnel vu que la liste n'est pas triée par tempsCoureur : and tpsDejaPresent.tempsCoureur >= tempsASupprimer :
+    if n > 0 :
         tpsDejaPresent = ArriveeTemps[n-1]
-        if dossard == "0" :
-            if tpsDejaPresent.tempsCoureur == tempsASupprimer :
-                del ArriveeTemps[n-1]
-                del ArriveeTempsAffectes[n-1]
-                codeRetour = ""
-                break
-        else :
-            doss = str(dossard)
-            if tpsDejaPresent.tempsCoureur == tempsASupprimer and doss == ArriveeTempsAffectes[n-1] :
-                del ArriveeTemps[n-1]
-                del ArriveeTempsAffectes[n-1]
-                codeRetour = ""
-                break
-        n -= 1
-    if codeRetour == "" and not Parametres["calculateAll"] :
-        print("on regénère tout le tableau")
-        #DonneesAAfficher.reinit() # on regénère le tableau GUI
-        Parametres["calculateAll"] = True
-        #transaction.commit()
-    #else :
-        #codeRetour = ""
-        #print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
+        codeRetour = "1"
+        while n > 0 : # suppression du parcours conditionnel vu que la liste n'est pas triée par tempsCoureur : and tpsDejaPresent.tempsCoureur >= tempsASupprimer :
+            tpsDejaPresent = ArriveeTemps[n-1]
+            if dossard == "0" :
+                if tpsDejaPresent.tempsCoureur == tempsASupprimer :
+                    del ArriveeTemps[n-1]
+                    del ArriveeTempsAffectes[n-1]
+                    codeRetour = ""
+                    break
+            else :
+                doss = str(dossard)
+                if tpsDejaPresent.tempsCoureur == tempsASupprimer and doss == ArriveeTempsAffectes[n-1] :
+                    del ArriveeTemps[n-1]
+                    del ArriveeTempsAffectes[n-1]
+                    codeRetour = ""
+                    break
+            n -= 1
+        if codeRetour == "" and not Parametres["calculateAll"] :
+            print("on regénère tout le tableau")
+            #DonneesAAfficher.reinit() # on regénère le tableau GUI
+            Parametres["calculateAll"] = True
+            #transaction.commit()
+        #else :
+            #codeRetour = ""
+            #print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
     return Erreur(0) # la suppression constitue une correction d'erreur et ne doit donc jamais en signaler une # codeRetour
 
 def delArriveeTemps(tempsCoureur, dossard="0") :
@@ -3861,7 +3863,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard="0"):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard=""):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
         vma = float(VMA)
@@ -3869,21 +3871,29 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         vma = "0"
         #print("complement",complement)
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
-        if dossard == "0" :
+        if dossard == "" :
             dossard = coureurExists(nom, prenom)
             #print("retour de coureurExists",dossard)
-        if str(dossard) != "0" :
+        if str(dossard) != "" :
+            ### on actualise des propriétés du coureur.
             auMoinsUnChangement = False
             coureur = Coureurs.recuperer(dossard)
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if CoursesManuelles :
+                print("course",course, "coureur.course",coureur.course)
                 nomStandard = estDansGroupementsEnModeManuel(course)
                 if not nomStandard :
                     nomStandard = addCourse(course)
                 if nomStandard != coureur.course :
                     coureur.setCourse(nomStandard)
                     auMoinsUnChangement = True
+            if nom != coureur.nom :
+                coureur.setNom(nom)
+                auMoinsUnChangement = True
+            if prenom != coureur.prenom :
+                coureur.setPrenom(prenom)
+                auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
                 print("coureur",coureur.nom)
                 coureur.setDispense(dispense)
@@ -3915,6 +3925,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             else :
                 retour = [0,0,0]
         else :
+            ### on crée le coureur (il n'a pas encore de numéro de dossard)
             if CoursesManuelles : 
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
@@ -3922,7 +3933,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 trouve = False
                 a = 1
                 for g in Groupements :
-                    if g.nomStandard == course :
+                    if g.nom == course :
                         trouve = True
                         break
                     a += 1
@@ -3931,8 +3942,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettreCourse = chr(a+64) 
                 # récupération du nom standard de la course
                 nomStandard = estDansGroupementsEnModeManuel(course)
-                if not nomStandard :
-                    nomStandard = addCourse(course)
+                # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
+                    #nomStandard = addCourse(course)
             else :
                 lettreCourse = "A"
             dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
@@ -3942,7 +3953,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 course=nomStandard), lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature)
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course", lettreCourse)
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
@@ -3985,7 +3996,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 def estDansGroupementsEnModeManuel(course):
     retour = ""
     for g in Groupements :
-        if g.nom == course :
+        if g.nomStandard == course :
             retour = g.nomStandard
             break
     return retour
@@ -3997,7 +4008,7 @@ def addCourse(course) :
     if CoursesManuelles :
         nomStandard = estDansGroupementsEnModeManuel(course)
         if not nomStandard :
-            nomStandard = "numéro " + str(len(Courses.keys())+1)
+            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
             print("Création de la course manuelle", nomStandard, " avec le nom :", course)
             Groupements.append(Groupement(nomStandard,[nomStandard]))
             Groupements[-1].setNom(course)
