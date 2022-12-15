@@ -56,6 +56,7 @@ façon aléatoire (des fois, le changement de nom, de prénom, ne suffit pas. D'
 - dans l'affichage GUI, l'absence de dossard affecté provoque l'affichage 100B : trouver pourquoi...
 - lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel.
 - lors de l'export tableur, la course n'est pas exportée dans le fichier tableur créé.
+- dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
 
 
 BUGS RESTANTS dans chronoHB :
@@ -86,6 +87,14 @@ La class Coureur() permet déjà le cumul, je pense...
 Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne. Actuellement, on coupe en deux les combobox.
 
 - changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
+
+- l'optimisation de la non regénération des pdf n'a pas lieu pour les courses manuelles. Il faudrait reprendre la ligne env .2575 de generateImpressions()
+casOuOnSupprime = (aSupprimer) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
+et utiliser le nom au lieu du nom standard... Quelle incidence sur le reste ?
+
 
 
 
