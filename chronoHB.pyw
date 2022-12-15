@@ -238,15 +238,19 @@ class MonTableau(Frame):
 ##                    retour = 15
 ##            return retour
         def testVal(content,acttyp, column):
-            #print("column pour tester le contenu", column)
+            print("column pour tester le contenu", column)
             if acttyp == '1' or acttyp == '0' : #input
                 if content :
                     inStr = content[-1:]
                 else :
                     inStr = ""
                 #print("Contenu : ", content,"Saisie:",inStr)
-                if inStr not in ["-", ":", "", "\n"] and not inStr.isdigit() :
-                    return False
+                if column == "#2" : # saisie d'une heure de passage
+                    if inStr not in [":", "", "\n"] and not inStr.isdigit() :
+                        return False
+                elif column == "#3" : # saisie d'un numéro de dossard uniquement
+                    if inStr not in ["-", "", "\n"] and not inStr.isdigit() and not inStr.isalpha() :
+                        return False
             else :
                 print("action non prévue :", acttyp,"saisie :",inStr)
             return True
