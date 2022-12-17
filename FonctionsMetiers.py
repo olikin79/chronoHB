@@ -239,7 +239,7 @@ class DictionnaireDeCoureurs(dict) :
                 # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
                 c = self["A"][int(doss)-1]
         except :
-            c = ""
+            c = Coureur("","","") # on retourne un objet Coureur mais vide.
         return c
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
@@ -302,6 +302,7 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
+        print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
         try :
@@ -393,7 +394,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, nom, prenom, sexe, dossard = "0", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
+    def __init__(self, nom, prenom, sexe, dossard = "", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, course="", scoreUNSS=1000000):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
@@ -504,20 +505,23 @@ class Coureur():#persistent.Persistent):
             self.etablissementNature = nature
     def setDossard(self, dossard) :
         try :
-            doss = str(dossard)
-            if doss[-1].isalpha() :
-                int(doss[:-1])
-                self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
+            if dossard != "" :
+                doss = str(dossard).upper()
+                if doss[-1].isalpha() :
+                    int(doss[:-1])
+                    self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
+                else :
+                    int(doss)
+                    self.dossard = doss + "A" # si rien n'est spécifié, c'est la course A.
             else :
-                int(doss)
-                self.dossard = doss + "A" # si rien n'est spécifié, c'est la course A.
+                self.dossard = ""
         except :
-            self.dossard = 0
-    def getDossard(self) :
-        if CoursesManuelles :
+            self.dossard = ""
+    def getDossard(self, avecLettre=True) :
+        if avecLettre :
             retour = self.dossard
         else :
-            retour = self.dossard[:-1] # on élimine la lettre pour les affichages, etc...
+            retour = self.dossard[:-1] # on élimine la lettre pour les affichages GUI ou autre, etc...
         return retour
     def setVMA(self, VMA) :
         try :
@@ -1465,7 +1469,7 @@ ResultatsGroupements = {} # dictionnaire des résultats calculés qui sera regé
 # 3. un challenge par classe (key = "6", "5", ) : la valeur est une EquipeClasse (class à définir dont les médthoes permettront le calcul du barème)
 
 ##DonneesAAfficher = TableauGUI()
-coureurVide = Coureur("", "", "", "0")
+coureurVide = Coureur("", "", "")
 
 ### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on reinitialise la course.
 def traiterToutesDonnees():
@@ -4059,7 +4063,7 @@ def formateDossardNG(doss) :
             doss = str(doss) + "A"
         else :
             doss = str(doss).upper()
-    return doss
+    return doss.replace(" ","")
 
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
     """ajoute un dossard sur la ligne d'arrivée dans l'ordre si non précisé. Si l'index est précisé, insère à l'endroit précisé par dossardPrecedent
