@@ -54,7 +54,7 @@ Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du
 - En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok que de
 façon aléatoire (des fois, le changement de nom, de prénom, ne suffit pas. D'autres fois, seul le sexe permet d'afficher le bouton ok., etc...
 - dans l'affichage GUI, l'absence de dossard affecté provoque l'affichage 100B : trouver pourquoi...
-- lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel.
+- lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
 - lors de l'export tableur, la course n'est pas exportée dans le fichier tableur créé.
 - dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
 
