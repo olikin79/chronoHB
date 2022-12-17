@@ -1610,6 +1610,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             noTransmission = 0
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
+        #print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
         if not noTransmission in UIDPrecedents[uid] :
             if action == "add" :
                 retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
@@ -2685,7 +2686,7 @@ def generateImpressions() :
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
         if CoursesManuelles :
-            nomCourse = Courses[classe].nom
+            nomCourse = Courses[classe].nomGroupement
         else :
             nomCourse = classe
         print("Création du fichier de "+classe + " : " + nomCourse)
@@ -4045,26 +4046,27 @@ def addCourse(course) :
         return course
         #print("cat",Courses[course].categorie)
 
-
+def formateDossardNG(doss) :
+    if doss :
+        if not str(doss)[-1].isalpha(): # si le dernier caractère n'est pas une lettre, on ajoute le A. Sinon, on s'assure de la présence de majuscules.
+            doss = str(doss) + "A"
+        else :
+            doss = str(doss).upper()
+    return doss
 
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
     """ajoute un dossard sur la ligne d'arrivée dans l'ordre si non précisé. Si l'index est précisé, insère à l'endroit précisé par dossardPrecedent
         si dossardPrécedent vaut 0, insère en première position.
         Retourne 0 s'il n'y a pas d'erreur."""
-    doss = str(dossard).upper()
-    dossPrecedent = str(dossardPrecedent).upper()
+    doss = formateDossardNG(dossard)
+    dossPrecedent = formateDossardNG(dossardPrecedent)
     coureur = Coureurs.recuperer(doss)
     infos = "dossard " + dossard + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
     message = ""
     retour = Erreur(0)
     if doss in ArriveeDossards :
         ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise.
-        ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, etc...
-        # if doss == ArriveeDossards[-1] : # si deux ajouts successifs du même dossard, ignoré
-            # message = "Dossard" + str(doss) + "envoyé deux fois successivement par le smartphone : problème de communication wifi."
-            # print(message)
-            # retour=Erreur(0,message,elementConcerne=doss)
-        # else :
+        ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, y compris si ces deux transmissions ne sont pas dans deux lignes consécutives de DonneesSmartphone.txt, etc...
         message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(401,message,elementConcerne=doss)
@@ -4089,11 +4091,13 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
-    if dossPrecedent == "-1" : # CAS COURANT : ajoute à la suite
+    print("dossard precéent:",dossPrecedent)
+    print("ArriveeDossards",ArriveeDossards)
+    if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
         #position = len(ArriveeDossards)
         ArriveeDossards.append(doss)
         #print("Dossard arrivé :",doss)
-    elif dossPrecedent == "0" : # insère au début de liste
+    elif dossPrecedent == "0A" : # insère au début de liste
         #print("insertion en début de liste d'arrivée")
         #position = 0
         ArriveeDossards.insert(0 , doss)
@@ -4460,7 +4464,7 @@ def delCoureur(dossard):
 
 def delArriveeDossard(dossard):
 ##    PasDErreur = False
-    doss = str(dossard).upper()
+    doss = formateDossardNG(dossard)
     if not Parametres["CourseCommencee"] :
         try :
             Coureurs.recuperer(doss).setTemps(0)
@@ -4833,6 +4837,7 @@ def genereTableauHTML(courseName, chrono = False) :
             tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
         else :
             Dossards = ResultatsGroupements[courseName]
+            #print("ArriveeDossards",ArriveeDossards)
             for dossard in Dossards :
                 if dossard.upper() in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
                     tableau += genereLigneTableauHTML(dossard.upper())
@@ -4842,7 +4847,7 @@ def yATIlUCoureurArrive(groupement) :
     retour = False
     #print(ResultatsGroupements)
     try :
-        print("ResultatsGroupements",ResultatsGroupements)
+        # Fonctionne même si ResultatsGroupements contient les dossards des absents, dispensés et abandons... D'où la raison du parcours de ArriveeDossards.
         Dossards = ResultatsGroupements[groupement]
         for dossard in Dossards :
             if dossard.upper() in ArriveeDossards :
