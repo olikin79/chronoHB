@@ -393,7 +393,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, nom, prenom, sexe, dossard = 0, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
+    def __init__(self, nom, prenom, sexe, dossard = "0", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, course="", scoreUNSS=1000000):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
@@ -1465,7 +1465,7 @@ ResultatsGroupements = {} # dictionnaire des résultats calculés qui sera regé
 # 3. un challenge par classe (key = "6", "5", ) : la valeur est une EquipeClasse (class à définir dont les médthoes permettront le calcul du barème)
 
 ##DonneesAAfficher = TableauGUI()
-coureurVide = Coureur("", "", "", "", "")
+coureurVide = Coureur("", "", "", "0")
 
 ### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on reinitialise la course.
 def traiterToutesDonnees():
@@ -1957,8 +1957,13 @@ def fixerDepart(nomGroupement,temps):
 
 
 def generateListCoureursPourSmartphone() :
+    """ on génère désormais un fichier CoureursA.txt, CoureursB.txt, etc... par course pour une recherche rapide à la n-ème ligne des coordonnées du coureur en fonction de son dossard.
+        on ajoute Coureurs.txt qui contient tous les coureurs de toutes les courses pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
+    """
+    fichierDonneesSmartphoneAvecTousLesCoureurs = "Coureurs.txt"
     fichierDonneesSmartphone = "Coureurs"
     print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
+    fComplet = open(fichierDonneesSmartphoneAvecTousLesCoureurs, 'w')
     for lettre in Coureurs.cles() :
         with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
             for coureur in Coureurs[lettre] :
@@ -1987,7 +1992,9 @@ def generateListCoureursPourSmartphone() :
                           str(coureur.commentaireArrivee))
                 result += "\n"
                 f.write(result)
+                fComplet.write(result)
         f.close()
+    fComplet.close()
 
 def generateQRcode(n) :
     osCWD = os.getcwd()
@@ -4253,7 +4260,7 @@ def calculeTousLesTemps(reinitialise = False):
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
     #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
-        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j

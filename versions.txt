@@ -18,7 +18,8 @@ Manque pour la branche trail-rieutort :
 Travail du 17/12/22 : 
 - correction de bugs dans addArriveeDossard et delArriveeDossard 
 => on peut de nouveau avancer ou reculer un dossard sur la ligne d'arrivée depuis le smartphone ou l'interface GUI.
-
+- dans Arrivee.pyw, la recherche par nom-prénom-classe-catégorie ne s'effectuait pas dans tous les fichiers CoureursA.txt, CoureursB.txt...
+Problème résolu en créant un unique fichier Coureurs.txt qui contient tous les coureurs de toutes les courses, uniquement pour cela.
 
 Travail du 15/12/22 :
 Bugs divers corrigés (introduits lors de la refonte du coeur du système de dossards fin novembre-début décembre.
@@ -26,6 +27,8 @@ Bugs divers corrigés (introduits lors de la refonte du coeur du système de dos
 - correctif export en pdf des résultats.
 - correctif si dossard saisi en minuscule. La casse venant du smartphone et sur l'interface GUI n'aura aucune conséquence...
 On autorise la saisie de lettres dans la colonne dossards affectés sur l'interface GUI.
+- dans la entry pour affecter un dossard à un temps, seuls les chiffres étaient autorisés. Il fallait autoriser une lettre finale.
+- idem dans l'interface de smartphone : on peut désormais affecter un dossard avec une lettre à un temps.
 
 
 Travail du 04/12/22 :

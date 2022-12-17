@@ -82,11 +82,12 @@ def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
                 #print(ligne)
                 if nom.lower() in nomL.lower() and prenom.lower() in prenomL.lower() and classe.lower() in classeL.lower()  and categorie.lower() in categorieL.lower():
                     ReferenceTrouvee += 1
-                    DossardTrouve = int(ligne[0])
+                    DossardTrouve = str(ligne[0])
+                    ligneTrouvee = ind + 1
             if ReferenceTrouvee == 0 :
                 return "NT,La saisie ne correspond à aucun coureur. Pour une recherche plus efficace, saisir des morceaux du nom ou du prénom sans accent par exemple."
             elif ReferenceTrouvee == 1 :
-                ligneBrute = ligneIndice(fichier, DossardTrouve)
+                ligneBrute = ligneIndice(fichier, ligneTrouvee)
                 ligne = ligneBrute.split(",")
                 doss = ligne[0]
                 nom = ligne[1]
@@ -137,10 +138,12 @@ def formateClasse(classe) :
 
 def generateMessage(dossard, nature, action, uid, noTransmission):     
     global local
+    ## protection contre les espaces éventuellement saisis
+    dossard = dossard.replace(" ","")
     lettre = "A"
-    if dossard and dossard[-1].isalpha() : # compatibilité avec l'ancienne application.
+    if len(dossard)>0 and not dossard[-1].isdigit() : # compatibilité avec l'ancienne application.
         lettre = dossard[-1].upper()
-        noDossard = dossard[:-1]
+        noDossard = int(dossard[:-1])
     elif dossard :
         noDossard = int(dossard)
     else :
@@ -242,7 +245,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 categorie = tpsCoureurSTR = form.getvalue("categorie")
                 if categorie == "0" :
                     categorie = ""
-                print(rechercheCoureur(donnees, nom, prenom, classe, categorie))
+                print(rechercheCoureur("Coureurs.txt", nom, prenom, classe, categorie))
             else :
                 print("Le dossard", dossard, "n'existe pas.")
         else :
@@ -279,10 +282,9 @@ try :
     action = form.getvalue("action").lower()
 except:
     action = ""
-#try :
-#    dossard = str(form.getvalue("dossard"))
-#except:
 dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
+if dossard == None :
+    dossard = "" 
 try :
     uid = int(form.getvalue("UID"))
 except:

@@ -1,15 +1,5 @@
 EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
-- (FAIT) générer un pdf avec 6 qrcodes par page.
-- (FAIT) faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
-Ce ne serait plus la catégorie qui donnerait la course mais une propriété (à créer) du coureur.
-Dans les paramètres, une checkbox permettrait de choisir "courses en fonction des catégories ou non".
-Un champ Entry apparaîtrait en cas de choix "courses manuelles" qui engendrerait l'apparition d'un combobox dans ajout-modif de coureur lié à une propriété
-Coureur.course, qui pourrait être importée via le tableur ou CSV.
-Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la partie droite prendrait alors en compte ce nouveau paramètre.
-
-- Idéalement, les dossards coderaient 1A, 2A, 3A pour la première course, 1B, 2B, ... pour la 2ème course. 
-Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
-Même schéma pour ArriveeDossards, 
+- Coureurs est devenue un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...} 
 
 FAIT :
 Utilisé : les fonctions d'accès créées transformeront le paramètre fourni en une chaine de caractères et testeront si le dernier
@@ -41,13 +31,12 @@ A tester :
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
 Bug introduits :
-- dans Arrivee.pyw, la recherche par nom ne s'effectue pas dans tous les fichiers... C'est un problème à résoudre en parcourant tous les fichiers
-ou en créant un unique fichier Coureurs.txt qui contient tous les coureurs de toutes les courses, uniquement pour cela.
+- dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
+La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
+- quand on ajoute un coureur dans une course manuelle existante, il recrée parfois une nouvelle course dans Coureurs... A creuser.
 - dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
 - gestion des erreurs sur l'interface : plus aucune erreur ne s'affiche : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface, 
 course non partie, ...
-- dans la entry pour affecter un dossard à un temps, seuls les chiffres sont autorisés. Il faudrait autoriser une lettre finale.
-- idem dans l'interface de smartphone : vérifier que l'on peut affecter un dossard avec une lettre à un temps.
 - tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : 
 du coup, son dossard ne correspondra pas à la course.
 Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du bon temps se fait dans le tableau.
