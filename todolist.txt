@@ -31,21 +31,24 @@ A tester :
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 
 Bug introduits :
+- quand on ajoute un coureur dans une course manuelle existante, il recrée parfois une nouvelle course dans Coureurs... A creuser.
+- les lettres ne devront plus être affichées sur les pdf générés ni l'affichage TV dans tous les cas mais resteront dans le fonctionnement sous-jacent.
+	=> utilisation de Coureur.getDossard(avecLettre=False) à privilégier.
 - dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
 La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
-- quand on ajoute un coureur dans une course manuelle existante, il recrée parfois une nouvelle course dans Coureurs... A creuser.
-- dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
 - gestion des erreurs sur l'interface : plus aucune erreur ne s'affiche : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface, 
 course non partie, ...
+- dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
+- dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
+- dans l'affichage TV, à l'heure d'hiver, il y a un décalage horaire d'une heure sur le temps de course. Toujours pas réglé cette affaire.
 - tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : 
 du coup, son dossard ne correspondra pas à la course.
 Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du bon temps se fait dans le tableau.
 - En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoque plus l'affichage du bouton ok que de
 façon aléatoire (des fois, le changement de nom, de prénom, ne suffit pas. D'autres fois, seul le sexe permet d'afficher le bouton ok., etc...
-- dans l'affichage GUI, l'absence de dossard affecté provoque l'affichage 100B : trouver pourquoi...
 - lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
 - lors de l'export tableur, la course n'est pas exportée dans le fichier tableur créé.
-- dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
+
 
 
 BUGS RESTANTS dans chronoHB :
