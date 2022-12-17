@@ -20,6 +20,8 @@ Travail du 17/12/22 :
 => on peut de nouveau avancer ou reculer un dossard sur la ligne d'arrivée depuis le smartphone ou l'interface GUI.
 - dans Arrivee.pyw, la recherche par nom-prénom-classe-catégorie ne s'effectuait pas dans tous les fichiers CoureursA.txt, CoureursB.txt...
 Problème résolu en créant un unique fichier Coureurs.txt qui contient tous les coureurs de toutes les courses, uniquement pour cela.
+- le coureur vide a un dossard vide pour compatibilité ascendante (correctif d'affichage).
+- les lettres ne seront plus affichées sur l'interface GUI pour les courses non manuelles mais resteront dans le fonctionnement sous-jacent.
 
 Travail du 15/12/22 :
 Bugs divers corrigés (introduits lors de la refonte du coeur du système de dossards fin novembre-début décembre.
