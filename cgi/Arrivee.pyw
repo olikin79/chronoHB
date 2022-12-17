@@ -136,17 +136,27 @@ def formateClasse(classe) :
             retour = classe[0] + "ème " + classe[1:]
     return retour
 
+def formateDossardNG(doss) :
+    if doss :
+        if not str(doss)[-1].isalpha(): # si le dernier caractère n'est pas une lettre, on ajoute le A. Sinon, on s'assure de la présence de majuscules.
+            doss = str(doss) + "A"
+        else :
+            doss = str(doss).upper()
+    return doss.replace(" ","")
+
 def generateMessage(dossard, nature, action, uid, noTransmission):     
     global local
     ## protection contre les espaces éventuellement saisis
-    dossard = dossard.replace(" ","")
-    lettre = "A"
-    if len(dossard)>0 and not dossard[-1].isdigit() : # compatibilité avec l'ancienne application.
+    dossard = formateDossardNG(dossard)
+    #lettre = "A"
+    #if len(dossard)>0 and not dossard[-1].isdigit() : # compatibilité avec l'ancienne application.
+    if dossard :
         lettre = dossard[-1].upper()
         noDossard = int(dossard[:-1])
-    elif dossard :
-        noDossard = int(dossard)
+    #elif dossard :
+    #    noDossard = int(dossard)
     else :
+        lettre = "A"
         noDossard = ""
     donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
@@ -191,7 +201,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
             else :
                 dossard = "0"
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
-        addInstruction([nature,action,dossard.upper(), tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
+        addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
@@ -226,10 +236,10 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                                            replace("<classe>",formateClasse(classe)).replace("<categorie>",categorieLisible).replace("<dossard>",doss).\
                                            replace("<etablissement>",etablissement)
                             print("DI,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",", messageVocal , "," + str(doss) + ",")
-                        addInstruction([nature,action,dossard.upper(), dossardPrecedent,uid, noTransmission])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
                     elif action == "del" :
                         print("Le dossard", dossard, "correspondant à" , prenom, nom, "est supprimé de l'arrivée.")
-                        addInstruction([nature,action,dossard.upper(), dossardPrecedent,uid, noTransmission])
+                        addInstruction([nature,action,dossard, dossardPrecedent,uid, noTransmission])
                     else :
                         print("Action incorrecte provenant du smartphone : nature 'dossard' et action", action)
             elif action == "recherche" :
