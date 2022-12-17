@@ -193,6 +193,8 @@ class MonTableau(Frame):
                 self.colonneTemps = i
             elif el == "Chrono" :
                 self.colonneChrono = i
+            elif el == "Doss. Aff." :
+                self.colonneDossAff = i
             i += 1
         #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
@@ -588,6 +590,7 @@ class MonTableau(Frame):
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = str(donnee[self.colonneDossard])
+        c = Coureurs.recuperer(doss)
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
         if doss == "0":
@@ -595,11 +598,14 @@ class MonTableau(Frame):
             ligneAAjouter[self.colonneRang] = '-'
         else :
             if Coureurs.recuperer(doss).rang :
-                ligneAAjouter[self.colonneRang] = Coureurs.recuperer(doss).rang
+                ligneAAjouter[self.colonneRang] = c.rang
             else :
-                ligneAAjouter[self.colonneRang] = "?"
+                ligneAAjouter[self.colonneRang] = "-"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
-        ligneAAjouter[self.colonneDossard] = Coureurs.recuperer(doss).getDossard()
+        ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
+        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=CoursesManuelles)
+        if ligneAAjouter[self.colonneDossAff] != "-" and not CoursesManuelles :
+            ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
 ##        print("temps de la ligne", ligne)
 ##        print(donnee)
