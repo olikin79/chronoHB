@@ -3380,7 +3380,11 @@ class CoureurFrame(Frame) :
         else :
             #self.boutonsFrame.forget()
             doss = self.choixDossardCombo.get()
-            if Parametres['CategorieDAge'] : # cas de l'UNSS
+            if CoursesManuelles : # cas des courses manuelles
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
+                              etablissementNature = self.etabNatureC.get(), course = nomAffiche, dossard = doss)
+            elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
                               etablissementNature = self.etabNatureC.get(), course = c, dossard = doss)
