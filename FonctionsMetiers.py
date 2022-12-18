@@ -4102,8 +4102,8 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
-    print("dossard precéent:",dossPrecedent)
-    print("ArriveeDossards",ArriveeDossards)
+    #print("dossard precéent:",dossPrecedent)
+    #print("ArriveeDossards",ArriveeDossards)
     if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
         #position = len(ArriveeDossards)
         ArriveeDossards.append(doss)
@@ -4264,7 +4264,7 @@ def calculeTousLesTemps(reinitialise = False):
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
     #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
-        print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
