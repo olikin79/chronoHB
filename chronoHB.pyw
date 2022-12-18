@@ -1009,12 +1009,12 @@ class EntryCourse(Frame):
             self.entryNom.insert(0,str(self.nomCourse))
         def memoriseValeurNomBind(event) :
             ch = self.entryNom.get()
-            if len(ch) < 2 :
-                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
-            else :
-                self.nomCourse = ch
-                updateNomGroupement(self.groupement.nomStandard,ch)
-                actualiseToutLAffichage()
+##            if len(ch) < 2 :
+##                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
+##            else :
+            self.nomCourse = ch
+            updateNomGroupement(self.groupement.nomStandard,ch)
+            actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
@@ -2349,9 +2349,9 @@ class Clock():
         self.premiereExecution = False
 
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
-##        for err in listeErreursATraiter :
-##            if err.numero : 
-##                print("retour en erreur n°", err.numero, ":", err.description)
+        for err in listeNouvellesErreursATraiter :
+            if err.numero : 
+                print("retour en erreur n°", err.numero, ":", err.description)
 
         # maj affichage.
 ##        if tableauGUI :
@@ -2878,7 +2878,10 @@ lblInfoDistance.pack()
 listeDesEntryGroupements = []
 
 def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
+    global Courses, Groupements
     print("actualisation des Courses manuelles",Courses)
+    if len(Courses.keys()) == 0 :
+        addCourse("A")
     # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
     if event == None : # on vient de nettoyer les courses vides, on impose le nouveau nombre
         nbreCoursesDesire.configure(values=tuple(range(len(Courses.keys()),21)))
@@ -2889,7 +2892,7 @@ def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
     if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
         # il manque des courses
         for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
-            addCourse("numéro " + str(i))
+            addCourse(chr(64+i))
     ### on ne permet pas de supprimer une course violemment pour éviter d'avoir des coureurs dont la course n'existe plus.
     ### création à venir d'un bouton pour supprimer les courses sans coureur automatiquement.
 ##    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
@@ -2913,7 +2916,8 @@ def actualiserDistanceDesCourses():
     for x in listeDesEntryGroupements :
         x.destroy()
     listeDesEntryGroupements.clear()
-    #print(Courses)
+    print("Courses",Courses)
+    print("GRoupements", Groupements)
     if Groupements :
         if Parametres["CoursesManuelles"] :
             lblNbreCoursesDesire.pack(side=TOP)
@@ -2960,7 +2964,8 @@ else :
 nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
 
 def nettoieCourseManuellesAction() :
-    nettoieCoursesManuelles()
+    global Courses, Groupements
+    Courses, Groupements = nettoieCoursesManuelles()
     actualiserDistanceDesCoursesAvecCoursesManuelles(None)
     
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
