@@ -342,6 +342,19 @@ class DictionnaireDeCoureurs(dict) :
                 if not i in indicesLibres :
                     print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
                 i += 1
+    def reindexer(self,transcription) :
+        """ réindexe les entrées de ce dictionnaire et tous les dossards qu'ils contiennent"""
+        for ancienNom in transcription.keys() :
+            if transcription[ancienNom] != ancienNom :
+                self[transcription[ancienNom]] = self[ancienNom]
+                del self[ancienNom]
+                # on change les dossards de tous les coureurs de cette course
+                for c in self[transcription[ancienNom]] :
+                    c.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
+        # INUTILE CAR FAIT CI-AVANT nettoyage des noms vides vides dans ce dictionnaire
+##        for nom in self.cles() :
+##            if not self[nom] : # si c'est vide, on élimine.
+##                del self[nom]
 
 
 
@@ -1976,8 +1989,8 @@ def generateListCoureursPourSmartphone() :
                     #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                     #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
                     if CoursesManuelles :
-                        print("Nom : " , coureur.nom)
-                        print("course :",coureur.course)
+                        #print("Nom : " , coureur.nom)
+                        #print("course :",coureur.course)
                         nomStandard = Courses[coureur.course].description
                         c = groupementAPartirDUneCategorie(nomStandard).nom
                     else :
@@ -3890,7 +3903,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
                temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard=""):
     try :
-        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA)
+        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
     except :
         vma = "0"
@@ -3906,12 +3919,14 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if CoursesManuelles :
-                print("course",course, "coureur.course",coureur.course)
-                nomStandard = estDansGroupementsEnModeManuel(course)
-                if not nomStandard :
-                    nomStandard = addCourse(course)
-                if nomStandard != coureur.course :
-                    coureur.setCourse(nomStandard)
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course, avecCreation=False)
+                print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
+##                nomStandard = estDansGroupementsEnModeManuel(course)
+##                if not nomStandard :
+##                    nomStandard = addCourse(course)
+                if lettreCourse != coureur.course :
+                    addCourse(course)
+                    coureur.setCourse(lettreCourse)
                     auMoinsUnChangement = True
             if nom != coureur.nom :
                 coureur.setNom(nom)
@@ -3955,18 +3970,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
-                trouve = False
-                a = 1
-                for g in Groupements :
-                    if g.nom == course :
-                        trouve = True
-                        break
-                    a += 1
-                if not trouve :
-                    addCourse(course)
-                lettreCourse = chr(a+64) 
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)
                 # récupération du nom standard de la course
-                nomStandard = estDansGroupementsEnModeManuel(course)
+                # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
                     #nomStandard = addCourse(course)
             else :
@@ -3975,10 +3981,10 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=nomStandard), lettreCourse)
+                                                course=lettreCourse), lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course", lettreCourse)
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course", lettreCourse, " (",course,")")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
@@ -3989,6 +3995,20 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
+
+def lettreCourseEnModeCoursesManuelles(course, avecCreation=True) :
+    """ retourne la lettre correspondant au nom d'une course en mode CoursesManuelles
+        Si la course n'existe pas, la crée et retourne sa lettre."""
+    trouve = False
+    a = 1
+    for g in Groupements :
+        if g.nom == course :
+            trouve = True
+            break
+        a += 1
+    if avecCreation and not trouve :
+        addCourse(course)
+    return chr(a+64)
 
 ##def modifyCoureur(dossard, nom, prenom, sexe,  classe='', etablissement="", etablissementNature = "", naissance="", commentaireArrivee="",\
 ##                  VMA="0", aImprimer = True, course=""):
@@ -4027,19 +4047,21 @@ def estDansGroupementsEnModeManuel(course):
     return retour
 
 def addCourse(course) :
-##    # si CoursesManuelles, les courses portent le nom "numéro i" comme entrée dans Courses.
+##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
     if CoursesManuelles :
-        nomStandard = estDansGroupementsEnModeManuel(course)
-        if not nomStandard :
-            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-            print("Création de la course manuelle", nomStandard, " avec le nom :", course)
-            Groupements.append(Groupement(nomStandard,[nomStandard]))
+        lettreCourse = lettreCourseEnModeCoursesManuelles(course, avecCreation=False)
+##        nomStandard = estDansGroupementsEnModeManuel(course)
+##        if not nomStandard :
+##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
+        if lettreCourse not in Courses.keys() :
+            print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
+            Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
-            c = Course(nomStandard)
-            Courses.update({nomStandard : c})
-        return nomStandard
+            c = Course(lettreCourse)
+            Courses.update({lettreCourse : c})
+        return lettreCourse
     else :
         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
         estPresent = False
@@ -4580,42 +4602,28 @@ def nettoieCoursesManuelles():
     # création de CoursesNew et GroupementsNew
     newCourses = {}
     newGroupements = []
+    transcription = {} # dictionnaire pour traduire les anciens noms en nouveaux noms de course
     i = 1
     for nom in Courses :
         if nom in L : # si il y a des coureurs, on la copie
-            nouveauNom = "numéro " + str(i)
+            nouveauNom = chr(64 + i)
+            transcription[nom] = nouveauNom # destiné à garder une trace du changement pour la réindexatoin de tous les coureurs qui suit.
             newCourses[nouveauNom] = Courses[nom]
             newCourses[nouveauNom].setNomGroupement(nouveauNom)
             newGroupements.append(groupementAPartirDeSonNom(nom, nomStandard=True))
             newGroupements[-1].setNomStandard(nouveauNom)
             newGroupements[-1].setListeDesCourses([nouveauNom])
             i+=1
+    # réindexation des noms de courses des coureurs
+    for c in Coureurs.liste() :
+        c.setCourse(transcription[c.course])
+    Coureurs.reindexer(transcription)
     # nettoyage avec garbage collector
     Courses = newCourses
     Groupements = newGroupements
+    Coureurs.afficher()
     #print(newCourses, newGroupements, Courses, Groupements)
-    return Courses, Groupements
-    # # recherche des courses vides mises dans aSupprimer
-    # aSupprimer = []
-    # for course in Courses :
-        # if not Courses[course].categorie in L :
-            # ## la course ne contient aucun inscrit.
-            # aSupprimer.append(Courses[course].categorie)
-    # for cat in aSupprimer :
-        # delCourse(cat)
-        # print("Suppression de la course vide",cat)
-    # # réindexation numéro 1, etc...
-    # print(Courses)
-    # print(Groupements)
-    # i = 1
-    # tmp = {}
-    # for nom in Courses :
-        # nouveauNom = "numéro " + str(i)
-        # tmp[nouveauNom] = Courses[nom]
-        # i+=1
-    # # nettoyage
-    # Courses = tmp
-        
+    return Courses, Groupements        
             
 
     
