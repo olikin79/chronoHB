@@ -302,7 +302,7 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
-        print("Le coureur ", element, "existe",retour)
+        #print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
         try :
@@ -1812,7 +1812,8 @@ def listCoureursDUneCourse(course):
     return retour
 
 def listChallenges():
-    ''' Un challenge existe uniquement pour les CategorieDAge==0 (cross du collège) ou 2 (UNSS) et si l'on trouve une course dont le nom standard est identique en G et en F'''
+    ''' Un challenge existe uniquement pour les CategorieDAge==0 (cross du collège) ou 2 (UNSS)
+    et si l'on trouve une course dont le nom standard est identique en G et en F'''
     listeCourses = []
     retour = []
     if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
@@ -1975,6 +1976,8 @@ def generateListCoureursPourSmartphone() :
                     #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                     #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
                     if CoursesManuelles :
+                        print("Nom : " , coureur.nom)
+                        print("course :",coureur.course)
                         nomStandard = Courses[coureur.course].description
                         c = groupementAPartirDUneCategorie(nomStandard).nom
                     else :
@@ -1988,9 +1991,9 @@ def generateListCoureursPourSmartphone() :
                 except :
                     result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
                              "," + "," +str(coureur.commentaireArrivee) + "," + str(coureur.etablissement)
-                    print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
-                    print("Courses.keys()", Courses.keys())
-                    print("course", Courses[coureur.course].description)
+                    #print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    #print("Courses.keys()", Courses.keys())
+                    #print("course", Courses[coureur.course].description)
                     print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
                           str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
                           str(coureur.commentaireArrivee))
@@ -4567,7 +4570,7 @@ def delCourses():
 ##        print("Courses commencées : impossible de supprimer les courses en cours.")
 
 def nettoieCoursesManuelles():
-    global Courses
+    global Courses, Groupements
     """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
     # recherche des courses avec coureurs mises dans L
     L = []
@@ -4590,6 +4593,8 @@ def nettoieCoursesManuelles():
     # nettoyage avec garbage collector
     Courses = newCourses
     Groupements = newGroupements
+    #print(newCourses, newGroupements, Courses, Groupements)
+    return Courses, Groupements
     # # recherche des courses vides mises dans aSupprimer
     # aSupprimer = []
     # for course in Courses :
