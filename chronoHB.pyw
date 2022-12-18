@@ -2545,6 +2545,8 @@ au(x) précédent(s) import(s).")
                 #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
                 if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
                     os.startfile(filePath)
+            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
+            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
                 
 
 def actualiseToutLAffichage() :
