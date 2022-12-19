@@ -676,6 +676,7 @@ class Course():#persistent.Persistent):
         self.temps = 0
         self.depart = False
     def initNomGroupement(self, cat) :
+        #print("categorie",cat) 
         self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
@@ -3901,7 +3902,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard=""):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, course="", dossard="") : #, courseDonneeSousSonNomStandard = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
@@ -3919,13 +3920,17 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if CoursesManuelles :
+##                if courseDonneeSousSonNomStandard :
+##                    lettreCourse = course
+##                    course = 
+##                else :
                 lettreCourse = lettreCourseEnModeCoursesManuelles(course, avecCreation=False)
                 print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
 ##                nomStandard = estDansGroupementsEnModeManuel(course)
 ##                if not nomStandard :
 ##                    nomStandard = addCourse(course)
                 if lettreCourse != coureur.course :
-                    addCourse(course)
+                    addCourse(course) # création si besoin de la course
                     coureur.setCourse(lettreCourse)
                     auMoinsUnChangement = True
             if nom != coureur.nom :
@@ -3957,7 +3962,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 coureur.setEtablissement(etablissement,etablissementNature)
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
-                addCourse(coureur.course)
+                addCourse(course)
                 print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
                       commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
                       "Course manuelle:",course,")")
@@ -4055,7 +4060,8 @@ def addCourse(course) :
 ##        nomStandard = estDansGroupementsEnModeManuel(course)
 ##        if not nomStandard :
 ##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-        if lettreCourse not in Courses.keys() :
+        print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
+        if not lettreCourse in Courses :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
