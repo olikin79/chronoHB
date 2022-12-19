@@ -38,7 +38,6 @@ Bug introduits :
 La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
 - gestion des erreurs sur l'interface : plus aucune erreur ne s'affiche : ajout de deux fois le même dossard n'affiche plus l'erreur sur l'interface, 
 course non partie, ...
-- dans paramètres des courses, si la base est vide, cela devrait créer une course A pour que le menu s'affiche.
 - dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
 - dans l'affichage TV, à l'heure d'hiver, il y a un décalage horaire d'une heure sur le temps de course. Toujours pas réglé cette affaire.
 - tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : 
