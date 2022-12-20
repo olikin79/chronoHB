@@ -676,7 +676,7 @@ class Course():#persistent.Persistent):
         self.temps = 0
         self.depart = False
     def initNomGroupement(self, cat) :
-        #print("categorie",cat) 
+        print("categorie",cat) 
         self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
@@ -3930,7 +3930,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##                if not nomStandard :
 ##                    nomStandard = addCourse(course)
                 if lettreCourse != coureur.course :
-                    addCourse(course) # création si besoin de la course
+                    # fAIT plus loin : addCourse(course) # création si besoin de la course
                     coureur.setCourse(lettreCourse)
                     auMoinsUnChangement = True
             if nom != coureur.nom :
