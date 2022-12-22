@@ -349,8 +349,9 @@ class DictionnaireDeCoureurs(dict) :
                 self[transcription[ancienNom]] = self[ancienNom]
                 del self[ancienNom]
                 # on change les dossards de tous les coureurs de cette course
-                for c in self[transcription[ancienNom]] :
-                    c.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
+                for coureur in self[transcription[ancienNom]] :
+                    coureur.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
+                    coureur.setCourse(transcription[ancienNom]) # si la course est définie manuellement, on impose son nouveau nom.
         # INUTILE CAR FAIT CI-AVANT nettoyage des noms vides vides dans ce dictionnaire
 ##        for nom in self.cles() :
 ##            if not self[nom] : # si c'est vide, on élimine.
@@ -492,7 +493,7 @@ class Coureur():#persistent.Persistent):
         if CoursesManuelles :
             self.course = c
         else :
-            print("Aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
+            print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
@@ -677,7 +678,7 @@ class Course():#persistent.Persistent):
         self.depart = False
     def initNomGroupement(self, cat) :
         print("categorie",cat) 
-        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
+        self.nomGroupement = groupementAPartirDUneCategorie(cat).nomStandard #ancien
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
         self.nomGroupement = str(nomDonne)
@@ -1990,10 +1991,13 @@ def generateListCoureursPourSmartphone() :
                     #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                     #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
                     if CoursesManuelles :
-                        #print("Nom : " , coureur.nom)
-                        #print("course :",coureur.course)
-                        nomStandard = Courses[coureur.course].description
-                        c = groupementAPartirDUneCategorie(nomStandard).nom
+##                        print("Nom : " , coureur.nom)
+##                        print("course :",coureur.course)
+##                        print("Description:",Courses[coureur.course].description)
+##                        print("Groupements",listNomGroupements())
+##                        nomStandard = Courses[coureur.course].description
+##                        c = groupementAPartirDUneCategorie(nomStandard).nom
+                        c = Courses[coureur.course].description
                     else :
                         c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
 
@@ -2919,7 +2923,7 @@ def nomGroupementAPartirDUneCategorie(categorie):
     return retour
 
 def groupementAPartirDUneCategorie(categorie):
-    """ retourne un objet groupement à partir d'un nom de catégorie"""
+    """ retourne un objet groupement à partir d'un nom de catégorie ou de course"""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     # retour = None
     # for groupement in Groupements :
@@ -2931,7 +2935,8 @@ def groupementAPartirDUneCategorie(categorie):
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
-        #print(Courses[categorie].nomGroupement)
+        print("Croupements",Groupements)
+        print("nomGroupement",Courses[categorie].nomGroupement)
         retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
@@ -3975,7 +3980,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
-                lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+                lettreCourse = addCourse(course) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
@@ -3989,7 +3994,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 course=lettreCourse), lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course", lettreCourse, " (",course,")")
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
+                  lettreCourse, " (",course,")")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
@@ -4060,12 +4066,12 @@ def addCourse(course) :
 ##        nomStandard = estDansGroupementsEnModeManuel(course)
 ##        if not nomStandard :
 ##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-        print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
+        #print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
         if not lettreCourse in Courses :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
-            c = Course(lettreCourse)
+            c = Course(course)
             Courses.update({lettreCourse : c})
         return lettreCourse
     else :
