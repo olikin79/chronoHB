@@ -933,7 +933,7 @@ def formaterTempsALaSeconde(tps) :
 
 def formaterTempsPourHTML(tps) :
     #print("test",eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",",")))
-    return eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.localtime(tps)).replace(",0",",")) + [nbreCentiemes(tps)*10]
+    return eval(time.strftime("[%Y,%m,%d,%H,%M,%S]",time.gmtime(tps)).replace(",0",",")) + [nbreCentiemes(tps)*10]
 
 def formaterDuree(tps, HMS=True) :
     partieDecimale = str(round(((tps - int(tps))*100)))

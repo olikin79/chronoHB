@@ -26,6 +26,9 @@ Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand 
 (il manquait la catégorie dans le contenu du tableau si le coureur n'avait pas de médaille pour sa performance dans une catégorie supérieure). Corrigé.
 - correctif en-têtes des statistiques pour ne pas construire de tableau par catégorie dans le cas CourseManuelles.
 - lors de l'export tableur en mode CoursesManuelles, la course n'était pas exportée dans le fichier tableur créé.
+- dans l'affichage TV, à l'heure d'hiver, il y avait un décalage horaire d'une heure sur le temps de course.
+Corrigé en exportant l'heure GMT depuis le code python et en faisant la différence heureGMT - heure de départ sur le navigateur.
+Ainsi, quelque soit le fuseau horaire du navigateur qui affiche, il affichera toujours la bonne durée de course, heure d'été ou d'hiver !
 
 
 Travail du 18/12/22 :
