@@ -52,7 +52,7 @@ Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du
 
 
 
-BUGS RESTANTS dans chronoHB :
+BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
 l'affichage sur la TV a un décalage horaire (si on est en heure d'hiver)
 
