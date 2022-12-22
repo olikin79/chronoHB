@@ -15,6 +15,9 @@ Manque pour la branche trail-rieutort :
 
 Travail du 22/12/22 :
 - calculeTousLesTemps ne fonctionnait plus bien après avoir affecté des dossards à des temps puis les avoir annulés. Corrigé.
+- correctif non affichage des erreurs dans l'interface GUI. Lignes commentées par erreur dans un précédent commit.
+- En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoquait plus l'affichage du bouton ok pour des filles et
+cela souhaitait un type d'établissement (cross UNSS) même pour des categories de course qui n'avaient rien à voir.
 
 
 Travail du 18/12/22 :
