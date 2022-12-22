@@ -13,6 +13,8 @@ commentaires dans la Coureur.categorie(..) inquiétants. Fait ailleurs ?
 Manque pour la branche trail-rieutort :
 - tester toute la suite : impression des dossards, déroulement des courses,...
 
+Travail du 22/12/22 :
+- calculeTousLesTemps ne fonctionnait plus bien après avoir affecté des dossards à des temps puis les avoir annulés. Corrigé.
 
 
 Travail du 18/12/22 :
