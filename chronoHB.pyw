@@ -3197,9 +3197,13 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeC.get()
-        nature = self.etabNatureC.get()
+        if CoursesManuelles :
+            nature = self.comboBoxCategorie.get()
+        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            ### A tester...
+            nature = self.etabNatureC.get()
         #print("nature",nature)
-        if s ==  "G" or s == "F" and nature :
+        if (s ==  "G" or s == "F") and nature :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
                 if len(anneeNaissance) == 4 :
@@ -3327,12 +3331,13 @@ class CoureurFrame(Frame) :
         """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
+        print("resultat" , resultat)
         # on affiche la catégorie en fonction des contenus.
         if resultat :
             if Parametres["CoursesManuelles"] :
-                self.lblCat.configure(text="Course", fg='black')
+                self.lblCat.configure(text="Catégorie : " + resultat + "\nCourse :", fg='black')
             else :
-                self.lblCat.configure(text="Catégorie : " + resultat, fg='red')
+                self.lblCat.configure(text="Catégorie : " + resultat, fg='black')
             self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
@@ -3349,7 +3354,7 @@ class CoureurFrame(Frame) :
                     self.coureurBoksuivant.forget()
         else :
             if Parametres["CoursesManuelles"] :
-                self.lblCat.configure(text="Course", fg='black')
+                self.lblCat.configure(text="Course :", fg='black')
             else :
                 self.lblCat.configure(text="Catégorie : inconnue", fg='red')
             self.actualiseBoutonImpression()
