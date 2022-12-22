@@ -22,6 +22,9 @@ cela souhaitait un type d'établissement (cross UNSS) même pour des categories 
 C'était suite à l'utilisation du nomStandard pour les noms de groupements dans coureur.course. 
 Corrigé pour s'adapter au nouveau fonctionnement (noms standards utilisés systématiquement en arrière plan).
 Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand la course sera lancée. Verrouillé actuellement.
+- dans l'affichage TV en mode CoursesManuelles, le tableau n'était pas correct 
+(il manquait la catégorie dans le contenu du tableau si le coureur n'avait pas de médaille pour sa performance dans une catégorie supérieure). Corrigé.
+- correctif en-têtes des statistiques pour ne pas construire de tableau par catégorie dans le cas CourseManuelles.
 
 
 Travail du 18/12/22 :
