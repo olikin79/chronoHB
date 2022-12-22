@@ -2258,9 +2258,10 @@ def actualiseAffichageErreurs(listErreursEnCours):
 ##print(Groupements[0].nom,Groupements[0].nomStandard)
 ##print(Courses["SE-G"].nomGroupement)
 
-#print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
-for c in Courses :
-    Courses[c].initNomGroupement(Courses[c].categorie)
+#print("correctif Course.nomGroupements incorrects dans precedentes versions.\
+                #\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
+##for c in Courses :
+##    Courses[c].initNomGroupement(Courses[c].categorie)
 
 
 listGroupementsCommences = []
