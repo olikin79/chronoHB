@@ -27,7 +27,6 @@ caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce
 
 
 A tester :
-- ajout-suppression des temps et dossards depuis l'ancienne version du smartphone : ok.
 - apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
 - vers la ligne 3203 de chronoHB.pyw, chercher le commentaire "### A tester..." : 
 il faudra tester le menu d'ajout de coureur pour les quatre types de catégories d'âge (0, 1 en mode manuel ou automatique et 2) afin 
@@ -35,27 +34,17 @@ de vérifier que les critères de validation d'une saisie soient corrects et que
 et uniquement celles-ci.
 
 
-Bug introduits (prioritaires pour le 07/01 :
-- dans l'affichage TV en mode CoursesManuelles, le tableau n'est pas correct (il manque la catégorie dans le contenu du tableau)
-- dans l'affichage TV, à l'heure d'hiver, il y a un décalage horaire d'une heure sur le temps de course. Toujours pas réglé cette affaire.
-- les lettres ne devront plus être affichées sur les pdf générés ni l'affichage TV dans tous les cas mais resteront dans le fonctionnement sous-jacent.
-	=> utilisation de Coureur.getDossard(avecLettre=False) à privilégier.
-
 Autres bugs introduits :
 - dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
 La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
-- tester s'il y a un problème à affecter un coureur ayant un dossard B à une autre course (la A par exemple) : 
-du coup, son dossard ne correspondra pas à la course.
-Quel impact éventuel sur la suite du processus ? Je pense aucun... Le calcul du bon temps se fait dans le tableau.
+
 - lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
-- lors de l'export tableur, la course n'est pas exportée dans le fichier tableur créé.
+
 
 
 
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
-l'affichage sur la TV a un décalage horaire (si on est en heure d'hiver)
-
 un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
 
 (à confirmer) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
