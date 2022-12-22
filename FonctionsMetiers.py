@@ -2631,6 +2631,28 @@ def generateImpressions() :
         denomination = "Categorie"
     if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
+        enTeteDesStatistiquesParCategories = """\textbf{Statistiques par @categorie@ :}
+
+\begin{center}
+\begin{tabular}{|*{11}{c|}}
+\hline
+
+\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{@categorie@ }}}
+  & 
+  \multicolumn{2}{|c|}{\textbf{Arrivés} } 
+  & 
+  \multicolumn{2}{|c|}{\textbf{Dispensés} }
+  & 
+  \multicolumn{2}{|c|}{\textbf{Absents} }
+  & 
+  \multicolumn{2}{|c|}{\textbf{Abandons} }
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Moyenne}}} 
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Médiane}}} \\
+  \cline{2-9}
+\multicolumn{1}{|c|}{} & F & G & F & G &F & G &F & G & \multicolumn{1}{|c|}{} & \multicolumn{1}{|c|}{}
+ \\
+\hline"""
+        fstats.write(enTeteDesStatistiquesParCategories)
         for classe in Resultats :
             #print(classe,"est traité pour création tex", Resultats[classe])
             # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
@@ -5179,8 +5201,11 @@ def genereLigneTableauHTML(dossard) :
     if not CategorieDAge :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
-        if CategorieDAge == 1 and coureur.rang != coureur.rangCat :
-            ligne += "<td class='classe'>"+ajoutMedailleEnFonctionDuRang(coureur.rangCat) + coureur.categorieFFA() 
+        if CategorieDAge == 1 :
+            ligne += "<td class='classe'>"
+            if coureur.rang != coureur.rangCat :
+                ligne += ajoutMedailleEnFonctionDuRang(coureur.rangCat)
+            ligne += coureur.categorieFFA()
         elif CategorieDAge == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
             #if coureur.rang < 4 :
