@@ -2935,8 +2935,8 @@ def groupementAPartirDUneCategorie(categorie):
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
-        print("Croupements",Groupements)
-        print("nomGroupement",Courses[categorie].nomGroupement)
+        #print("Croupements",Groupements)
+        #print("nomGroupement",Courses[categorie].nomGroupement)
         retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
