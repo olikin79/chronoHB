@@ -603,6 +603,7 @@ class MonTableau(Frame):
                 ligneAAjouter[self.colonneRang] = "-"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
+        #print("Dossard affecté",ligneAAjouter[self.colonneDossAff])
         ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=CoursesManuelles)
         if ligneAAjouter[self.colonneDossAff] != "-" and not CoursesManuelles :
             ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
@@ -2248,9 +2249,9 @@ def actualiseAffichageErreurs(listErreursEnCours):
                 errBouton.pack(side=TOP)
                 #lblFrE.pack(side=TOP)
                 lblListE.append(errBouton)#[lblTemps,lblFrE]
-        #zoneAffichageErreurs.pack(side=TOP,fill=X)
-    #else :
-        #zoneAffichageErreurs.forget()
+        zoneAffichageErreurs.pack(side=TOP,fill=X)
+    else :
+        zoneAffichageErreurs.forget()
 
 
 
@@ -2350,9 +2351,9 @@ class Clock():
         self.premiereExecution = False
 
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
-        for err in listeNouvellesErreursATraiter :
-            if err.numero : 
-                print("retour en erreur n°", err.numero, ":", err.description)
+##        for err in listeNouvellesErreursATraiter :
+##            if err.numero : 
+##                print("retour en erreur n°", err.numero, ":", err.description)
 
         # maj affichage.
 ##        if tableauGUI :
@@ -2441,7 +2442,7 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
-        #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
+        #print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
         
