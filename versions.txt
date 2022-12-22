@@ -29,6 +29,8 @@ Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand 
 - dans l'affichage TV, à l'heure d'hiver, il y avait un décalage horaire d'une heure sur le temps de course.
 Corrigé en exportant l'heure GMT depuis le code python et en faisant la différence heureGMT - heure de départ sur le navigateur.
 Ainsi, quelque soit le fuseau horaire du navigateur qui affiche, il affichera toujours la bonne durée de course, heure d'été ou d'hiver !
+- Coureurs.ajouter() retourne le bon numéro de dossard
+- En mode Courses manuelles, après saisie, indique le numéro de dossard affecté pour pouvoir donner le dossard physiquement à la personne.
 
 
 Travail du 18/12/22 :

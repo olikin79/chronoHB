@@ -258,6 +258,7 @@ class DictionnaireDeCoureurs(dict) :
         self.__init__()
     def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
+        # retourne le dossard affecté
         if self.existe(coureur) == "" :
             if not course in self.keys() :
                 self[course] = []
@@ -267,12 +268,12 @@ class DictionnaireDeCoureurs(dict) :
                 coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
                 self[course][premierIndiceLibre]= coureur
                 self.nombreDeCoureurs += 1
-                return str(premierIndiceLibre) + course
+                return str(premierIndiceLibre+1) + course
             else : # aucun indice libre, on ajoute à la fin
                 coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
                 self[course].append(coureur)
                 self.nombreDeCoureurs += 1
-                return str(len(self[course])-1) + course
+                return str(len(self[course])) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
     def cles(self):

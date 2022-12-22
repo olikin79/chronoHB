@@ -3378,9 +3378,11 @@ class CoureurFrame(Frame) :
         #print("c",c)
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
                            etablissementNature = self.etabNatureC.get(), course=c)
+                message = "Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " portera le dossard " + doss + " (course " +c + ")." 
+                reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c)
