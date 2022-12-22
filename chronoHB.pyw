@@ -3131,7 +3131,7 @@ class CoureurFrame(Frame) :
             self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
         self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
         self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
-        L = listCategories()
+        L = listNomGroupements()
         self.comboBoxCategorie['values'] = L
         try :
             self.comboBoxCategorie.set(L[0])
@@ -3331,11 +3331,11 @@ class CoureurFrame(Frame) :
         """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
-        print("resultat" , resultat)
+        #print("resultat" , resultat)
         # on affiche la catégorie en fonction des contenus.
         if resultat :
             if Parametres["CoursesManuelles"] :
-                self.lblCat.configure(text="Catégorie : " + resultat + "\nCourse :", fg='black')
+                self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
             else :
                 self.lblCat.configure(text="Catégorie : " + resultat, fg='black')
             self.lblCat.configure(text="Catégorie : " + resultat)
@@ -3372,9 +3372,10 @@ class CoureurFrame(Frame) :
             self.vma = 0
         if CoursesManuelles :
             nomAffiche = self.comboBoxCategorie.get()
-            c = groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nomStandard
+            c = groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
         else :
             c = ""
+        #print("c",c)
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
