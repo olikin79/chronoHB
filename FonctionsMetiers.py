@@ -349,9 +349,8 @@ class DictionnaireDeCoureurs(dict) :
                 self[transcription[ancienNom]] = self[ancienNom]
                 del self[ancienNom]
                 # on change les dossards de tous les coureurs de cette course
-                for coureur in self[transcription[ancienNom]] :
-                    coureur.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
-                    coureur.setCourse(transcription[ancienNom]) # si la course est définie manuellement, on impose son nouveau nom.
+                for c in self[transcription[ancienNom]] :
+                    c.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
         # INUTILE CAR FAIT CI-AVANT nettoyage des noms vides vides dans ce dictionnaire
 ##        for nom in self.cles() :
 ##            if not self[nom] : # si c'est vide, on élimine.
@@ -493,7 +492,7 @@ class Coureur():#persistent.Persistent):
         if CoursesManuelles :
             self.course = c
         else :
-            print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
+            print("Aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
     def setScoreUNSS(self, nbreArriveesGroupement) :
         try :
             if self.etablissementNature and self.etablissementNature[0].upper() == "L" : # si la nature de l'établissement est non vide et si c'est un lycée
@@ -678,7 +677,7 @@ class Course():#persistent.Persistent):
         self.depart = False
     def initNomGroupement(self, cat) :
         print("categorie",cat) 
-        self.nomGroupement = groupementAPartirDUneCategorie(cat).nomStandard #ancien
+        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
         self.nomGroupement = str(nomDonne)
@@ -1423,11 +1422,11 @@ def alimenteTableauGUI (tableauGUI, coureur, temps, dossardAffecte, ligneAjoutee
 
 def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
     #print(len(self.lignes)+1)
-    if len(coureur.nom)>=2 :
+    if len(coureur.nom)>=1 :
         nom = str(coureur.nom)[0].upper()+ str(coureur.nom)[1:].lower()
     else :
         nom = str(coureur.nom).upper()
-    if dossardAffecte == "0" :
+    if dossardAffecte == "0" or dossardAffecte == "0A" :
         dossardAffecte = "-"
     if coureur.rang :
         rang = coureur.rang
@@ -1450,12 +1449,13 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
             tempsDuCoureur = "-"
         else :
             tempsDuCoureur = "Nég. ou nul."
-    if coureur.dossard != "0" :
-        dossard = coureur.dossard
-    else :
+    if coureur.nom == "" : # le coureur vide n'a pas de dossard
         dossard = "-"
+    else :
+        dossard = coureur.dossard
     #Noligne = formateNoLigne(ligneAjoutee)
     #return [ligneAjoutee , temps.tempsCoureurFormate(), dossardAffecte, temps.tempsReelFormate() , nom, coureur.prenom, coureur.dossard, coureur.tempsFormate(),categorie, rang, vitesse]
+    #print("retour formatligneGUI :" , [ligneAjoutee , temps, dossardAffecte, nom, coureur.prenom, coureur.dossard, coureur.classe, tempsDuCoureur,categorie, rang, vitesse])
     return [ligneAjoutee , temps, dossardAffecte, nom, coureur.prenom, coureur.dossard, coureur.classe, tempsDuCoureur,categorie, rang, vitesse]
 ##        self.lignes.append(ligneAAjouter)
 ##        print("ajout de la ligne", ligneAAjouter)
@@ -1991,13 +1991,10 @@ def generateListCoureursPourSmartphone() :
                     #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                     #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
                     if CoursesManuelles :
-##                        print("Nom : " , coureur.nom)
-##                        print("course :",coureur.course)
-##                        print("Description:",Courses[coureur.course].description)
-##                        print("Groupements",listNomGroupements())
-##                        nomStandard = Courses[coureur.course].description
-##                        c = groupementAPartirDUneCategorie(nomStandard).nom
-                        c = Courses[coureur.course].description
+                        #print("Nom : " , coureur.nom)
+                        #print("course :",coureur.course)
+                        nomStandard = Courses[coureur.course].description
+                        c = groupementAPartirDUneCategorie(nomStandard).nom
                     else :
                         c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
 
@@ -2923,7 +2920,7 @@ def nomGroupementAPartirDUneCategorie(categorie):
     return retour
 
 def groupementAPartirDUneCategorie(categorie):
-    """ retourne un objet groupement à partir d'un nom de catégorie ou de course"""
+    """ retourne un objet groupement à partir d'un nom de catégorie"""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     # retour = None
     # for groupement in Groupements :
@@ -2935,8 +2932,7 @@ def groupementAPartirDUneCategorie(categorie):
     #print("Groupement trouvé :", groupement.nom, groupement.listeDesCourses)
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
-        print("Croupements",Groupements)
-        print("nomGroupement",Courses[categorie].nomGroupement)
+        #print(Courses[categorie].nomGroupement)
         retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
@@ -3980,7 +3976,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
-                lettreCourse = addCourse(course) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
@@ -3994,8 +3990,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 course=lettreCourse), lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
-            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
-                  lettreCourse, " (",course,")")
+            print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course", lettreCourse, " (",course,")")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour = [1,0,0]
@@ -4066,12 +4061,12 @@ def addCourse(course) :
 ##        nomStandard = estDansGroupementsEnModeManuel(course)
 ##        if not nomStandard :
 ##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-        #print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
+        print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
         if not lettreCourse in Courses :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
-            c = Course(course)
+            c = Course(lettreCourse)
             Courses.update({lettreCourse : c})
         return lettreCourse
     else :
@@ -4214,7 +4209,7 @@ def calculeTousLesTemps(reinitialise = False):
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i].upper()
-        if dossardAffecteAuTps != "0" and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
+        if dossardAffecteAuTps != "0A" and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
@@ -4301,7 +4296,7 @@ def calculeTousLesTemps(reinitialise = False):
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
     #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
-        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
