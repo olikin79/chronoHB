@@ -1423,11 +1423,11 @@ def alimenteTableauGUI (tableauGUI, coureur, temps, dossardAffecte, ligneAjoutee
 
 def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
     #print(len(self.lignes)+1)
-    if len(coureur.nom)>=2 :
+    if len(coureur.nom)>=1 :
         nom = str(coureur.nom)[0].upper()+ str(coureur.nom)[1:].lower()
     else :
         nom = str(coureur.nom).upper()
-    if dossardAffecte == "0" :
+    if dossardAffecte == "0A" or dossardAffecte == "0" :
         dossardAffecte = "-"
     if coureur.rang :
         rang = coureur.rang
