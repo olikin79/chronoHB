@@ -4214,7 +4214,7 @@ def calculeTousLesTemps(reinitialise = False):
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = ArriveeTempsAffectes[i].upper()
-        if dossardAffecteAuTps != "0" and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
+        if (dossardAffecteAuTps != "0" and dossardAffecteAuTps != "0A") and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
