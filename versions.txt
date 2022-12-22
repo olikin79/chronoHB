@@ -25,6 +25,7 @@ Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand 
 - dans l'affichage TV en mode CoursesManuelles, le tableau n'était pas correct 
 (il manquait la catégorie dans le contenu du tableau si le coureur n'avait pas de médaille pour sa performance dans une catégorie supérieure). Corrigé.
 - correctif en-têtes des statistiques pour ne pas construire de tableau par catégorie dans le cas CourseManuelles.
+- lors de l'export tableur en mode CoursesManuelles, la course n'était pas exportée dans le fichier tableur créé.
 
 
 Travail du 18/12/22 :

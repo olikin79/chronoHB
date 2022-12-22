@@ -3371,8 +3371,8 @@ class CoureurFrame(Frame) :
         except :
             self.vma = 0
         if CoursesManuelles :
-            nomAffiche = self.comboBoxCategorie.get()
-            c = groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
+            #nomAffiche = self.comboBoxCategorie.get()
+            c = self.comboBoxCategorie.get() # groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
         else :
             c = ""
         #print("c",c)
