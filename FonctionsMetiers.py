@@ -1381,8 +1381,11 @@ def exportXLSX():
         if Parametres["CategorieDAge"] == 0 :
             worksheet.write('K' + str(ligne), coureur.classe)
         elif Parametres["CategorieDAge"] == 1 :
-            cat = coureur.categorie(Parametres["CategorieDAge"])
-            groupement = nomGroupementAPartirDUneCategorie(cat)
+            if CoursesManuelles :
+                groupement = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
+            else :
+                cat = coureur.categorie(Parametres["CategorieDAge"])
+                groupement = nomGroupementAPartirDUneCategorie(cat)
             worksheet.write('K' + str(ligne), groupement)
         elif Parametres["CategorieDAge"] == 2 :
             cat = coureur.categorie(Parametres["CategorieDAge"])
