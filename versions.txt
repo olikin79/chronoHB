@@ -18,6 +18,10 @@ Travail du 22/12/22 :
 - correctif non affichage des erreurs dans l'interface GUI. Lignes commentées par erreur dans un précédent commit.
 - En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoquait plus l'affichage du bouton ok pour des filles et
 cela souhaitait un type d'établissement (cross UNSS) même pour des categories de course qui n'avaient rien à voir.
+- quand on ajoute un coureur dans une course manuelle existante, il recréait une nouvelle course dans Coureurs... 
+C'était suite à l'utilisation du nomStandard pour les noms de groupements dans coureur.course. 
+Corrigé pour s'adapter au nouveau fonctionnement (noms standards utilisés systématiquement en arrière plan).
+Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand la course sera lancée. Verrouillé actuellement.
 
 
 Travail du 18/12/22 :
