@@ -3993,12 +3993,12 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 addCourse(course)
-                print("Coureur actualisé", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
+                print("Coureur actualisé", Coureurs.recuperer(dossard), nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
                       commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
                       "Course manuelle:",course,")")
-                retour = [0,1,0]
+                retour, d = [0,1,0], Coureurs.recuperer(dossard)
             else :
-                retour = [0,0,0]
+                retour, d = [0,0,0], Coureurs.recuperer(dossard)
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
             if CoursesManuelles : 
@@ -4023,11 +4023,11 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                   lettreCourse, " (",course,")")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
-            retour = [1,0,0]
+            retour, d = [1,0,0], dossard
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
-        retour = [0,0,1]
-    return retour
+        retour,d  = [0,0,1], ""
+    return retour, d
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
