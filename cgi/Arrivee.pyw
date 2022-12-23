@@ -1,10 +1,3 @@
-#!"C:\Users\olikin\AppData\Local\Programs\Python\Python39\pythonw.exe" -u
-# coding: utf-8
-
-
-#!/usr/local/bin/pythonw
-#/usr/bin/pythonw
-
 import time
 tpsServeur = time.time()
 # on récupère l'heure locale le plus tôt possible après la requête afin de calculer un éventuel décalage entre le client et le serveur le plus précis possible.
@@ -36,10 +29,6 @@ tpsServeur = time.time()
 
 from os import path
 
-## Les commentaires personnalisés par coureur sont possibles dans les données CSV à importer. Il restera à implémenter leur modification dans l'interface.
-##listeDossardsCommetairePersonnalise = [1]
-##listeCommentairesPersonnalises = ["Bravo, pour une fois, tu as franchi la ligne."]
-
 import sys
 sys.stderr = sys.stdout
 sys.stdout.reconfigure(encoding='utf-8')
@@ -65,9 +54,10 @@ def addInstruction(liste) :
 def ligneIndice(fichier, noLigne):
     """ retourne la ligne noLigne du fichier contenant le dossard n° noLigne"""
     retour = None
+    #print(fichier,noLigne)
     with open(fichier, 'r') as f:
         for ind, line in enumerate(f):
-            if ind == noLigne-1:
+            if ind == int(noLigne) - 1:
                 #L.append(line)
                 retour = line
                 break
@@ -92,11 +82,12 @@ def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
                 #print(ligne)
                 if nom.lower() in nomL.lower() and prenom.lower() in prenomL.lower() and classe.lower() in classeL.lower()  and categorie.lower() in categorieL.lower():
                     ReferenceTrouvee += 1
-                    DossardTrouve = int(ligne[0])
+                    DossardTrouve = str(ligne[0])
+                    ligneTrouvee = ind + 1
             if ReferenceTrouvee == 0 :
                 return "NT,La saisie ne correspond à aucun coureur. Pour une recherche plus efficace, saisir des morceaux du nom ou du prénom sans accent par exemple."
             elif ReferenceTrouvee == 1 :
-                ligneBrute = ligneIndice(fichier, DossardTrouve)
+                ligneBrute = ligneIndice(fichier, ligneTrouvee)
                 ligne = ligneBrute.split(",")
                 doss = ligne[0]
                 nom = ligne[1]
@@ -112,10 +103,17 @@ def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
         return "NT,Il n'y a aucun coureur sur le serveur."
     
 def estNumeroDossardCredible(dossard) :
-    if str(dossard).isnumeric() and dossard > 0 :
-        return True
-    else :
-        return False
+    retour = False
+    if dossard :
+        if dossard[-1].isalpha() : # nouveaux dossards
+            #lettre = dossard[-1].isalpha().upper()
+            numero = dossard[:-1]
+            if str(numero).isnumeric() and int(numero) > 0 and int(numero) < 40000:
+                retour = True
+        else : # anciens dossards entièrement numériques
+            if str(dossard).isnumeric() and int(dossard) > 0 and int(dossard) < 40000:
+                retour = True
+    return retour
 
 def lireMessageDefaut() :
     with open("messageDefaut.txt", 'r') as f:
@@ -138,9 +136,29 @@ def formateClasse(classe) :
             retour = classe[0] + "ème " + classe[1:]
     return retour
 
+def formateDossardNG(doss) :
+    if doss :
+        if not str(doss)[-1].isalpha(): # si le dernier caractère n'est pas une lettre, on ajoute le A. Sinon, on s'assure de la présence de majuscules.
+            doss = str(doss) + "A"
+        else :
+            doss = str(doss).upper()
+    return doss.replace(" ","")
+
 def generateMessage(dossard, nature, action, uid, noTransmission):     
     global local
-    donnees = "Coureurs.txt"
+    ## protection contre les espaces éventuellement saisis
+    dossard = formateDossardNG(dossard)
+    #lettre = "A"
+    #if len(dossard)>0 and not dossard[-1].isdigit() : # compatibilité avec l'ancienne application.
+    if dossard :
+        lettre = dossard[-1].upper()
+        noDossard = int(dossard[:-1])
+    #elif dossard :
+    #    noDossard = int(dossard)
+    else :
+        lettre = "A"
+        noDossard = ""
+    donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
         tpsCoureurSTR = form.getvalue("tpsCoureur")
         tpsCoureur = time.mktime(time.strptime(tpsCoureurSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsCoureurSTR[-2:])/100)
@@ -154,11 +172,11 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         secondes = tpsCoureurSTR[15:17]
         if estNumeroDossardCredible(dossard) :
             if path.exists(donnees) :
-                ligneBrute = ligneIndice(donnees, dossard)
+                ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
                     chdossard = ""
-                    dossard = 0
+                    dossard = "0"
                 else :
                     chdossard =  "avec le dossard " + str(dossard)
             else :
@@ -172,7 +190,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         elif action == "affecte" :
             if estNumeroDossardCredible(dossard) :
                 if path.exists(donnees) :
-                    ligneBrute = ligneIndice(donnees, dossard)
+                    ligneBrute = ligneIndice(donnees, noDossard)
                     if ligneBrute == None :
                         print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
                         dossard = 0
@@ -181,13 +199,13 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 else :
                     print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
             else :
-                dossard = 0
+                dossard = "0"
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
         addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
     elif nature == "dossard" :
         if path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
-                ligneBrute = ligneIndice(donnees, dossard)
+                ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
                 else :
@@ -237,14 +255,14 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 categorie = tpsCoureurSTR = form.getvalue("categorie")
                 if categorie == "0" :
                     categorie = ""
-                print(rechercheCoureur(donnees, nom, prenom, classe, categorie))
+                print(rechercheCoureur("Coureurs.txt", nom, prenom, classe, categorie))
             else :
                 print("Le dossard", dossard, "n'existe pas.")
         else :
             print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
     elif nature == "identite" :
         if action == "info" :
-            ligneBrute = ligneIndice(donnees, dossard)
+            ligneBrute = ligneIndice(donnees, noDossard)
             if ligneBrute == None :
                 print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
             else :
@@ -265,7 +283,8 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         paramsLigne=lireParametres()
         print("CC,"+paramsLigne.split(";")[0])  # CC = Catégories par Classe
         # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
-        #                                              fixé à 0 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
+        #                                              fixé à 00 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
+                                                    #  fixé à 01 si les courses sont manuelles.
 
 local = form.getvalue("local")
 nature = form.getvalue("nature").lower()
@@ -273,10 +292,9 @@ try :
     action = form.getvalue("action").lower()
 except:
     action = ""
-try :
-    dossard = int(form.getvalue("dossard"))
-except:
-    dossard = form.getvalue("dossard") # cas d'un QRcode scanné par erreur non numérique.
+dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
+if dossard == None :
+    dossard = "" 
 try :
     uid = int(form.getvalue("UID"))
 except:

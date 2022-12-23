@@ -1,20 +1,50 @@
 EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
-- générer un pdf avec 6 qrcodes par page.
-- faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
-Ce ne serait plus la catégorie qui donnerait la course mais une propriété (à créer) du coureur.
-Dans les paramètres, une checkbox permettrait de choisir "courses en fonction des catégories ou non".
-Un champ Entry apparaîtrait en cas de choix "courses manuelles" qui engendrerait l'apparition d'un combobox dans ajout-modif de coureur lié à une propriété
-Coureur.course, qui pourrait être importée via le tableur ou CSV.
-Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la partie droite prendrait alors en compte ce nouveau paramètre.
+- Coureurs est devenue un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...} 
 
-- Idéalement, les dossards coderaient 1A, 2A, 3A pour la première course, 1B, 2B, ... pour la 2ème course. 
-Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
-Même schéma pour ArriveeTemps, ArriveeTempsAffectes, ArriveeDossards, 
+FAIT :
+Utilisé : les fonctions d'accès créées transformeront le paramètre fourni en une chaine de caractères et testeront si le dernier
+caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce sera la course A par défaut.
+1. len(Coureurs)						pour 1, la propriété nombreDeCoureurs devra faire le travail.
+2. Coureurs[doss-1]						pour 2, recuperer(doss) devra faire le travail
+3. i = 0								pour 3 et 4, une fonction liste() devrait faire l'affaire.
+    while i < len (Coureurs) :
+        coureur = Coureurs[i]
+4. for coureur in Coureurs
+5. dossard = len(Coureurs)+1							pour 5. difficile de connaître le numéro de dossard sans connaitre la course à l'avance.
+   Coureurs.append(Coureur(dossard, nom, prenom, ...))			du coup, cela serait réservé au seul cas des CoursesManuelles.
+																ajouter(coureur) à créer : le coureur, une fois ajouté se voit affecter
+   Coureurs[-1].setCourse(addCourse(course))					son numéro de dossard automatiquement par ajouter(coureur) elle-même 
+																et elle retourne ce dossard. Cela peut servir ici pour la ligne qui suit.
+																
+6. doss = int(dossard)					à supprimer systématiquement.
+7. del Coureurs[doss-1]					pour 7. créer effacer(doss) ou effacer(coureur) qui ferait le travail et retournerait un code de succès ou d'erreur.
+
+8. coureurExists(Coureurs, nom, prenom) à remplacer par une méthode intégrée self.existe(coureur)
+
+
+- (FAIT) limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
 
 - pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
 
 
-BUGS RESTANTS dans chronoHB :
+A tester :
+- apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
+- vers la ligne 3203 de chronoHB.pyw, chercher le commentaire "### A tester..." : 
+il faudra tester le menu d'ajout de coureur pour les quatre types de catégories d'âge (0, 1 en mode manuel ou automatique et 2) afin 
+de vérifier que les critères de validation d'une saisie soient corrects et que les boutons s'affichent pour toutes les saisies correctes
+et uniquement celles-ci.
+
+
+Autres bugs introduits :
+- dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
+La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
+
+- lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
+
+
+
+
+BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
 
 
@@ -49,6 +79,9 @@ si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de 
 si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
 ou un nouveau temps ajouté ensuite la font disparaître.
 
+- Dans les paramètres, si CoursesManuelles, ajouter une entry numériques afin de demander combien de QR-codes créer par course,
+ si souhait d'imprimer les QR-codes séparément, sans le nom des coureurs dessus.
+
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
 La class Coureur() permet déjà le cumul, je pense...
@@ -57,6 +90,15 @@ La class Coureur() permet déjà le cumul, je pense...
 Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne. Actuellement, on coupe en deux les combobox.
 
 - changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
+
+- l'optimisation de la non regénération des pdf n'a pas lieu pour les courses manuelles. Il faudrait reprendre la ligne env .2575 de generateImpressions()
+casOuOnSupprime = (aSupprimer) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
+et utiliser le nom au lieu du nom standard... Quelle incidence sur le reste ?
+
+
 
 
 - ULTRA-PEU-PROBABLE (ignoré lors de l'implémentation de l'UNSS) :

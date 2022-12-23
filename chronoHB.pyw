@@ -24,7 +24,7 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.63"
+version="1.7"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -33,13 +33,8 @@ if not os.path.exists(LOGDIR) :
 
 CoureursParClasse = {}
 
-### déjà initialisé dans fonctionsMetiers.py
-### tableauGUI = []
-### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
-
-
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -218,6 +213,8 @@ class MonTableau(Frame):
                 self.colonneTemps = i
             elif el == "Chrono" :
                 self.colonneChrono = i
+            elif el == "Doss. Aff." :
+                self.colonneDossAff = i
             i += 1
         #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
@@ -263,15 +260,19 @@ class MonTableau(Frame):
 ##                    retour = 15
 ##            return retour
         def testVal(content,acttyp, column):
-            #print("column pour tester le contenu", column)
+            print("column pour tester le contenu", column)
             if acttyp == '1' or acttyp == '0' : #input
                 if content :
                     inStr = content[-1:]
                 else :
                     inStr = ""
                 #print("Contenu : ", content,"Saisie:",inStr)
-                if inStr not in ["-", ":", "", "\n"] and not inStr.isdigit() :
-                    return False
+                if column == "#2" : # saisie d'une heure de passage
+                    if inStr not in [":", "", "\n"] and not inStr.isdigit() :
+                        return False
+                elif column == "#3" : # saisie d'un numéro de dossard uniquement
+                    if inStr not in ["-", "", "\n"] and not inStr.isdigit() and not inStr.isalpha() :
+                        return False
             else :
                 print("action non prévue :", acttyp,"saisie :",inStr)
             return True
@@ -323,8 +324,8 @@ class MonTableau(Frame):
                         p = re.compile('[0-9]*')
                         if p.match(saisie) :
                             try :
-                                dossard = int(saisie)
-                                if len(Coureurs) > dossard and dossard >= 0:
+                                dossard = str(saisie)
+                                if Coureurs.existe(dossard) :
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -602,24 +603,30 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[self.colonneDossard] == 0 : # si pas de coureur, pas de dossard à l'affichage.
+        if donnee[self.colonneDossard] == "0" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        doss = int(donnee[self.colonneDossard])
+        doss = str(donnee[self.colonneDossard])
+        c = Coureurs.recuperer(doss)
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
-        if doss == 0:
+        if doss == "0":
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         else :
-            if Coureurs[doss-1].rang :
-                ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+            if Coureurs.recuperer(doss).rang :
+                ligneAAjouter[self.colonneRang] = c.rang
             else :
-                ligneAAjouter[self.colonneRang] = "?"
+                ligneAAjouter[self.colonneRang] = "-"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
+        ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
+        #print("Dossard affecté",ligneAAjouter[self.colonneDossAff])
+        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=CoursesManuelles)
+        if ligneAAjouter[self.colonneDossAff] != "-" and not CoursesManuelles :
+            ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
 ##        print("temps de la ligne", ligne)
 ##        print(donnee)
@@ -1023,12 +1030,12 @@ class EntryCourse(Frame):
             self.entryNom.insert(0,str(self.nomCourse))
         def memoriseValeurNomBind(event) :
             ch = self.entryNom.get()
-            if len(ch) < 2 :
-                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
-            else :
-                self.nomCourse = ch
-                updateNomGroupement(self.groupement.nomStandard,ch)
-                actualiseToutLAffichage()
+##            if len(ch) < 2 :
+##                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
+##            else :
+            self.nomCourse = ch
+            updateNomGroupement(self.groupement.nomStandard,ch)
+            actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
@@ -2191,13 +2198,14 @@ def onClickE(err):
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 421 :
-        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
+        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
+              Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
         if CategorieDAge ==2 :
-            saisieAbsDisp(Coureurs[err.dossard-1].etablissement)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
         elif CategorieDAge == 1 :
-            saisieAbsDisp(Coureurs[err.dossard-1].course)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
         else :
-            saisieAbsDisp(Coureurs[err.dossard-1].classe)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).classe)
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
@@ -2234,9 +2242,9 @@ def actualiseAffichageErreurs(listErreursEnCours):
                 errBouton.pack(side=TOP)
                 #lblFrE.pack(side=TOP)
                 lblListE.append(errBouton)#[lblTemps,lblFrE]
-        #zoneAffichageErreurs.pack(side=TOP,fill=X)
-    #else :
-        #zoneAffichageErreurs.forget()
+        zoneAffichageErreurs.pack(side=TOP,fill=X)
+    else :
+        zoneAffichageErreurs.forget()
 
 
 
@@ -2244,9 +2252,10 @@ def actualiseAffichageErreurs(listErreursEnCours):
 ##print(Groupements[0].nom,Groupements[0].nomStandard)
 ##print(Courses["SE-G"].nomGroupement)
 
-#print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
-for c in Courses :
-    Courses[c].initNomGroupement(Courses[c].categorie)
+#print("correctif Course.nomGroupements incorrects dans precedentes versions.\
+                #\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
+##for c in Courses :
+##    Courses[c].initNomGroupement(Courses[c].categorie)
 
 
 listGroupementsCommences = []
@@ -2535,7 +2544,8 @@ class Clock():
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
 
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
-        #if self.actualiserAffichageDeDroite(True)
+
+        #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
 ##            if err.numero : 
 ##                print("retour en erreur n°", err.numero, ":", err.description)
@@ -2629,7 +2639,7 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
-        #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
+        #print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
 
@@ -2644,6 +2654,155 @@ class Clock():
 timer=Clock(root, "tableau.maj")
 
 rejouerToutesLesActionsMemorisees()
+
+
+def regenereAffichageGUI() :
+    rejouerToutesLesActionsMemorisees()
+##    Parametres["calculateAll"] = True
+##    traiterDonneesLocales()
+##    genereResultatsCoursesEtClasses(True)
+##    #print(tableauGUI)
+##    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
+##    tableau.maj(tableauGUI)
+
+
+
+def importSIECLEAction() :
+    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
+    if file_path :
+        nomFichier = os.path.basename(file_path)
+        #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
+        #print(file_path)
+        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci?\n\
+Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
+Cela peut figer momentanément l'interface...")
+        if reponse :
+            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+            # redirection temporaire pour les messages liés à l'import
+            filePath = LOGDIR + os.sep + "dernierImport.txt"
+            if os.path.exists(filePath) :
+                os.remove(filePath)
+            if not DEBUG :
+                file = open(filePath, "a")
+                tmp = sys.stdout # sauvegarde de la sortie standard.
+                sys.stdout = file
+            retourImport,BilanCreationModifErreur = recupImportNG(file_path)
+            #print("Affichage des Coureurs juste après l'importation")
+            #Coureurs.afficher()
+            # fin de la redirection des logs temporaire
+            if not DEBUG :
+                file.close()
+                sys.stdout = tmp
+##            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
+##            mon_threadter.start()
+##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
+##            mon_threadter.join()
+            ### bilan des données importées
+            if not BilanCreationModifErreur[0] and not BilanCreationModifErreur[1] and not BilanCreationModifErreur[2] : # les trois sont nuls. Même fichier.
+                reponse = showinfo("PAS D'IMPORT DE DONNEES","Le fichier "+nomFichier +" ne semble contenir aucun changement par rapport \
+au(x) précédent(s) import(s).")
+            else :
+                chaineBilan = ""
+                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
+                    chaineBilan += "\nBilan :\n"
+                    if BilanCreationModifErreur[0] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+                    if BilanCreationModifErreur[1] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+                    if BilanCreationModifErreur[2] :
+                        chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
+                    chaineBilan += "\n"
+                else :
+                    retourImport = False # Que des erreurs dans le fichier, le signaler.
+                if retourImport :
+                    actualiseToutLAffichage()
+                    reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
+    chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
+    Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
+                else :
+                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+    chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
+    Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
+    D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
+    et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
+    Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
+    'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
+    et 'VMA' (pour la VMA en km/h). \
+    L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
+                #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
+                if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
+                    os.startfile(filePath)
+            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
+            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+                
+
+def actualiseToutLAffichage() :
+    print("Actualise tout l'affichage")
+    actualiseAffichageZoneDeDroite()
+    zoneTopDepart.actualise()
+    actualiseAffichageDeparts()  
+    actualiserDistanceDesCourses()
+    #listeDeCourses = listCourses() # encore utile ?
+    actualiseZoneAffichageTV()
+    absDispZone.actualiseListeDesClasses()
+    dossardsZone.actualiseListeDesClasses()
+    actualiseEtatBoutonsRadioConfig()
+    #timer.reinitErreursATraiter()
+
+
+#### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
+
+
+def onClick(grpe):
+    #print(grpe)
+    groupement = groupementAPartirDeSonNom(grpe, nomStandard=False)
+    print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
+    inputDialog = departDialog(groupement ,root)
+    root.wait_window(inputDialog.top)
+    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
+    
+
+tagActualiseTemps = False
+
+def actualiseAffichageDeparts():
+    global listGroupementsCommences, lblDict, tagActualiseTemps
+    for grp in lblDict.keys() :
+        lblDict[grp][2].destroy()
+        #lblDict[grp][1].destroy()
+    lblDict.clear()
+    listGroupementsCommences = listNomsGroupementsCommences()
+    #print("coucou",listGroupementsCommences)
+    if listGroupementsCommences : 
+        for grp in listGroupementsCommences :
+            lblFr = Frame(fr)
+            lblLegende = Label(lblFr, text= grp + " : ")
+            #print("bouton avec commande : onClick(",grp,")")
+            lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
+            lblLegende.pack(side=LEFT)
+            lblTemps.pack(side=LEFT)
+            lblFr.pack(side=TOP)
+            lblDict[grp] = [lblLegende,lblTemps,lblFr]
+    if not tagActualiseTemps :
+        actualiseTempsAffichageDeparts()
+        #zoneAffichageDeparts.pack(side=TOP,fill=X)
+        #fr.pack(side=TOP,fill=X)
+    #else :
+        #zoneAffichageDeparts.forget()
+        #fr.forget()
+
+def actualiseTempsAffichageDeparts():
+    global listGroupementsCommences, lblDict, tagActualiseTemps
+    # tagActualiseTemps = True
+    for grp in lblDict.keys() :
+        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
+        #print("-"+nomCourse+"-", "est dans ?", Courses)
+        # SUPPRIME : s'il y a une erreur, la corriger et non pallier le problème !!! addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+        #print(listCoursesEtChallenges())
+        tps = Courses[nomCourse].dureeFormatee()
+        #print("course",nomCourse,tps)
+        lblDict[grp][1].configure(text=tps)
+    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+        
 
 #### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
 
@@ -2693,13 +2852,17 @@ def effaceDonneesGUI ():
 
 
 def generateDossardsArrierePlan():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
+        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessage)
         mon_thread.start()
 
 def generateDossardsArrierePlanNG():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
+        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessageNG)
         mon_thread.start()
@@ -2862,15 +3025,19 @@ def parametresDesCourses():
 def actualiseEtatBoutonsRadioConfig():
     # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
     svRadio.set(str(Parametres["CategorieDAge"]))
-    if len(Coureurs) :
+    if Coureurs.nombreDeCoureurs :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
         rb3.configure(state='disabled')
+        rbCM1.configure(state='disabled')
+        rbCM2.configure(state='disabled')
         rbLbl.pack(side=TOP,anchor="w")
     else :
         rb1.configure(state='normal')
         rb2.configure(state='normal')
         rb3.configure(state='normal')
+        rbCM1.configure(state='normal')
+        rbCM2.configure(state='normal')
         rbLbl.forget()
 
 GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
@@ -2891,13 +3058,45 @@ def updateZoneGroupements():
         pass
     GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
     affectationGroupementsFrame.pack(side=LEFT,fill=X)
-    GroupementsFrame.pack(side=TOP)
+    if not Parametres["CoursesManuelles"] :
+        GroupementsFrame.pack(side=TOP)
 
 
 lblInfoDistance = Label(affectationDesDistancesFrame)
 lblInfoDistance.pack()
 
 listeDesEntryGroupements = []
+
+def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
+    global Courses, Groupements
+    print("actualisation des Courses manuelles",Courses)
+    if len(Courses.keys()) == 0 :
+        addCourse("A")
+    # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
+    if event == None : # on vient de nettoyer les courses vides, on impose le nouveau nombre
+        nbreCoursesDesire.configure(values=tuple(range(len(Courses.keys()),21)))
+        nbreCoursesDesire.set(len(Courses.keys()))
+    nbreDeCoursesDesire = int(nbreCoursesDesire.get())
+    nbreCoursesDesire.configure(values=tuple(range(nbreDeCoursesDesire,21)))
+    nbreDeCoursesActuel = len(Courses.keys())
+    if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
+        # il manque des courses
+        for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
+            addCourse(chr(64+i))
+    ### on ne permet pas de supprimer une course violemment pour éviter d'avoir des coureurs dont la course n'existe plus.
+    ### création à venir d'un bouton pour supprimer les courses sans coureur automatiquement.
+##    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
+##        ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
+##        nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
+##        i = 0
+##        for cat in Courses.copy() :
+##            i += 1
+##            if nbreDeCoursesDesire < i :
+##                # on efface la course et le groupement correspondant.
+##                delCourse(cat)
+##                supprimeCourseDuGroupementEtNettoieGroupements(cat)
+    # on actualise l'affichage par rapport à cela comme cela se fait dans les autres modes.
+    actualiserDistanceDesCourses()
 
 def actualiserDistanceDesCourses():
     updateZoneGroupements()
@@ -2907,13 +3106,24 @@ def actualiserDistanceDesCourses():
     for x in listeDesEntryGroupements :
         x.destroy()
     listeDesEntryGroupements.clear()
-    #print(Courses)
+    print("Courses",Courses)
+    print("GRoupements", Groupements)
     if Groupements :
-        lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
-        boutonRecopie.pack(side=TOP)
+        if Parametres["CoursesManuelles"] :
+            lblNbreCoursesDesire.pack(side=TOP)
+            nbreCoursesDesire.pack(side=TOP)
+            lblInfoDistance.configure(text="")
+        else :
+            lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
+        boutonsParametresGroupementsFrame.pack(side=TOP)
+        if CoursesManuelles :
+            boutonNettoyage.pack(side=LEFT)
+        boutonRecopie.pack(side=LEFT)
     else:
         lblInfoDistance.configure(text="")
-        boutonRecopie.forget()
+        boutonsParametresGroupementsFrame.forget()
+        lblNbreCoursesDesire.forget()
+        nbreCoursesDesire.forget()
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
@@ -2934,16 +3144,33 @@ def actionBoutonRecopie() :
             zoneTexte.set(valeur)
  
             
+# utilisé uniquement si CoursesManuelles est True. Dans le cas contraire, pas de pack()
+lblNbreCoursesDesire = Label(affectationDesDistancesFrame, text="Combien souhaitez vous gérer de courses au total ?")
+nbreCoursesDesire = Combobox(affectationDesDistancesFrame, width=5, values=tuple(range(1,21)), state='readonly')
+if len(Courses.keys()) == 0 :
+    nbreCoursesDesire.set(1)
+else :
+    nbreCoursesDesire.set(len(Courses.keys()))
+nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
 
+def nettoieCourseManuellesAction() :
+    global Courses, Groupements
+    Courses, Groupements = nettoieCoursesManuelles()
+    actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
-boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
-#boutonRecopie.pack(side=TOP)
+boutonsParametresGroupementsFrame = Frame(affectationDesDistancesFrame)
+boutonNettoyage = Button(boutonsParametresGroupementsFrame, text="Nettoyer les courses vides", command=nettoieCourseManuellesAction)
+boutonRecopie = Button(boutonsParametresGroupementsFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 
 
 def affecterDistances() :
     distanceDesCourses()
     #print("Affectation des distances à chaque course")
-    actualiserDistanceDesCourses()
+    if Parametres["CoursesManuelles"] :
+        actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    else :
+        actualiserDistanceDesCourses()
 
 def affecterParametres() :
     parametresDesCourses()
@@ -2973,8 +3200,8 @@ def imprimerDossardsNonImprimes() :
             if reponse :
                 print(listeDesDossardsGeneres)
                 for n in listeDesDossardsGeneres :
-                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                    Coureurs[n-1].setAImprimer(False)
+                    print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    Coureurs.recuperer(n).setAImprimer(False)
         else :
             print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
     else :
@@ -3084,7 +3311,18 @@ class CoureurFrame(Frame) :
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
         self.classeE.bind("<KeyRelease>", self.reactiverBoutons)
-        self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        if Parametres["CoursesManuelles"] :
+            self.lblCat = Label(self.parent, text="Course", fg='black')
+        else :
+            self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
+        self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
+        L = listNomGroupements()
+        self.comboBoxCategorie['values'] = L
+        try :
+            self.comboBoxCategorie.set(L[0])
+        except :
+            True # pas encore de catégorie créée.
         self.vma = 0
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
@@ -3129,6 +3367,7 @@ class CoureurFrame(Frame) :
         self.lblClasse.forget()
         self.classeE.forget()
         self.lblCat.forget()
+        self.comboBoxCategorie.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3145,9 +3384,13 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeC.get()
-        nature = self.etabNatureC.get()
+        if CoursesManuelles :
+            nature = self.comboBoxCategorie.get()
+        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            ### A tester...
+            nature = self.etabNatureC.get()
         #print("nature",nature)
-        if s ==  "G" or s == "F" and nature :
+        if (s ==  "G" or s == "F") and nature :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
                 if len(anneeNaissance) == 4 :
@@ -3167,6 +3410,9 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         self.activerBoutons(None)
     
+    
+### limite haute fusion manuelle
+
     def reinitialiserChamps(self):
         # ménage
         self.nomE.delete(0, END)
@@ -3178,24 +3424,29 @@ class CoureurFrame(Frame) :
         self.etabC['values'] = tupleEtablissement()
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
-            doss = int(self.choixDossardCombo.get())
-            coureur = Coureurs[doss-1]
-            #print(coureur.nom, "établissement",coureur.etablissement)
-            self.nomE.insert(0, coureur.nom)
-            self.prenomE.insert(0, coureur.prenom)
-            if Parametres['CategorieDAge'] :
-                self.classeE.insert(0, coureur.naissance)
-            else :
-                self.classeE.insert(0, coureur.classe)
-            self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
-            self.sexeC.set(coureur.sexe)
-            #self.sexeE.insert(0, coureur.sexe)
-            self.vmaE.insert(0, coureur.VMA)
-            self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
-            self.etabC.set(coureur.etablissement)
-            self.etabNatureC.set(coureur.etablissementNature)
+            doss = str(self.choixDossardCombo.get())
+            print("dossard:",doss)
+            if doss : # la combobox n'est pas vide 
+                coureur = Coureurs.recuperer(doss)
+                self.nomE.insert(0, coureur.nom)
+                self.prenomE.insert(0, coureur.prenom)
+                if Parametres['CategorieDAge'] :
+                    self.classeE.insert(0, coureur.naissance)
+                else :
+                    self.classeE.insert(0, coureur.classe)
+                self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
+                self.sexeC.set(coureur.sexe)
+                #self.sexeE.insert(0, coureur.sexe)
+                self.vmaE.insert(0, coureur.VMA)
+                self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
+                self.etabC.set(coureur.etablissement)
+                self.etabNatureC.set(coureur.etablissementNature)
+                if CoursesManuelles :
+                    self.comboBoxCategorie.config(values=listNomGroupements())
+                    self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
+
 
     def packChampsModificationCoureur(self) :
         #### on place les champs sans modif ultérieure.
@@ -3219,6 +3470,10 @@ class CoureurFrame(Frame) :
             self.lblEtabNature.pack()
             self.etabNatureC.pack()
         self.lblCat.pack()
+        if Parametres["CoursesManuelles"] :
+            self.comboBoxCategorie.pack()
+        else :
+            self.comboBoxCategorie.forget()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3227,11 +3482,16 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         ### on active ou non les boutons en bas en fonction du cas.
         self.activerBoutons(None)
-        
-        
+
+            
+            
     def actualiseAffichage(self) :
         ### on desactive tout
         self.cacherLesChamps()
+        ### on active ou non la combobox
+        if not self.ajoutCoureur :
+            self.choixDossardCombo.pack()
+            #self.choixDossardCombo.current(0)
         ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
         self.lblCommentaireInfoAddCoureur.pack(side=TOP)
         self.etabC['values'] = tupleEtablissement()
@@ -3252,19 +3512,23 @@ class CoureurFrame(Frame) :
                 self.lblCommentaireInfoAddCoureur.configure(text=\
                                          "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
                 self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
-            else : # il y a au moins un coureur dans la base à modifier
-                self.choixDossardCombo.pack()
+            else :
                 # cas où on modifie un coureur existant
                 self.lblCommentaireInfoAddCoureur.configure(text=\
-                                         "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+                                         "Modifier les caractéristiques du coureur correspondant en sélectionnant son numéro de dossard.")
                 self.coureurBoksuivant.configure(text="Valider")
                 # afficher le menu déroulant ici.
-                self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+                L = []
+                for c in Coureurs.liste() :
+                    L.append(c.getDossard())
+                self.tupleDesDossards = tuple(L)
                 self.choixDossardCombo['values']=self.tupleDesDossards
                 if self.tupleDesDossards :
                     self.choixDossardCombo.current(0)
             self.packChampsModificationCoureur()
 
+
+##### limite basse fusion manuelle 
         
     def actualiseBoutonImpression(self) :
         if self.ajoutCoureur :
@@ -3284,8 +3548,13 @@ class CoureurFrame(Frame) :
         """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
+        #print("resultat" , resultat)
         # on affiche la catégorie en fonction des contenus.
         if resultat :
+            if Parametres["CoursesManuelles"] :
+                self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : " + resultat, fg='black')
             self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
@@ -3304,7 +3573,10 @@ class CoureurFrame(Frame) :
                     self.coureurBannul.forget()
                     self.coureurBoksuivant.forget()
         else :
-            self.lblCat.configure(text="Catégorie : inconnue")
+            if Parametres["CoursesManuelles"] :
+                self.lblCat.configure(text="Course :", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : inconnue", fg='red')
             self.actualiseBoutonImpression()
             self.coureurBannul.forget()
             self.coureurBoksuivant.forget()
@@ -3318,25 +3590,37 @@ class CoureurFrame(Frame) :
             self.vma = float(self.vmaE.get())
         except :
             self.vma = 0
+        if CoursesManuelles :
+            #nomAffiche = self.comboBoxCategorie.get()
+            c = self.comboBoxCategorie.get() # groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
+        else :
+            c = ""
+        #print("c",c)
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get())
+                           etablissementNature = self.etabNatureC.get(), course=c)
+                message = "Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " portera le dossard " + doss + " (course " +c + ")." 
+                reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c)
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
-            doss = int(self.choixDossardCombo.get())
-            if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+            doss = self.choixDossardCombo.get()
+            if CoursesManuelles : # cas des courses manuelles
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss)
+            elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss)
             else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
-                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss)
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.etabC['values'] = tupleEtablissement()
@@ -3426,6 +3710,10 @@ def choixUNSS():		# Fonction associée à catégories par Age
     packAutresWidgets()
 
 def packAutresWidgets():
+    if Parametres["CategorieDAge"] == 1 :
+        CoursesManuellesFrame.pack(side=TOP,anchor="w")
+    else :
+        CoursesManuellesFrame.forget()
     MessageParDefautFrameL.pack(side=TOP,anchor="w")
     MessageParDefautFrame.pack(side=LEFT,anchor="w")
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
@@ -3478,6 +3766,28 @@ rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitiali
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
+
+
+def choixCNM():		# Fonction associée à catégorie non manuelle
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CoursesManuelles"]=False
+
+    
+def choixCM():		# Fonction associée à catégories entièrement manuelles
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CoursesManuelles"]=True
+
+
+CoursesManuellesFrame = Frame(GaucheFrameParametresCourses)
+svRadioCM  = StringVar()
+if Parametres["CoursesManuelles"] :
+    svRadioCM.set('1')
+else :
+    svRadioCM.set('0')
+rbCM1 = Radiobutton(CoursesManuellesFrame, text="Courses automatiques (par catégories d'âge et sexe)", variable=svRadioCM, value='0', command=choixCNM)
+rbCM2 = Radiobutton(CoursesManuellesFrame, text="Courses fixées manuellement (Trail,...).", variable=svRadioCM, value='1', command=choixCM)
+##rbLblCM = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
+
 
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
@@ -3548,6 +3858,10 @@ rb3.pack(side=LEFT,anchor="w")
 rbF.pack(side=TOP,anchor="w")
 rbLbl.pack(side=TOP,anchor="w")
 rbGF.pack(side=TOP,anchor="w")
+
+rbCM1.pack(side=LEFT,anchor="w")
+rbCM2.pack(side=LEFT,anchor="w")
+
 
 if Parametres["CategorieDAge"] :
     if Parametres["CategorieDAge"]== 1 :
