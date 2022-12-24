@@ -1115,6 +1115,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
+            print("groupements",groupements)
+            print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
@@ -1993,8 +1995,10 @@ checkBoxBarAffichage.pack(side=TOP,  fill=X)
 ##    topDepart(listeCochee)
 
 def ActualiseAffichageTV():
+    global listeDeGroupementsEtChallenge
+    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
     listeCochee = []
-    #print(checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
+    print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :
@@ -2352,7 +2356,7 @@ Cela peut figer momentanément l'interface...")
             file = open(filePath, "a")
             tmp = sys.stdout # sauvegarde de la sortie standard.
             sys.stdout = file
-            BilanCreationModifErreur = recupImportNG(file_path)
+            BilanCreationModifErreur, d = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
             file.close()
             sys.stdout = tmp
@@ -2461,8 +2465,9 @@ def actualiseTempsAffichageDeparts():
     tagActualiseTemps = True
     for grp in lblDict.keys() :
         nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
-        #print("-"+nomCourse+"-", "est dans ?", Courses)
-        addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+        ##print("-"+nomCourse+"-", "est dans ?", Courses)
+        ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
+        ### addCourse(nomCourse)
         #print(listCoursesEtChallenges())
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
@@ -2656,84 +2661,85 @@ timer=Clock(root, "tableau.maj")
 rejouerToutesLesActionsMemorisees()
 
 
-def regenereAffichageGUI() :
-    rejouerToutesLesActionsMemorisees()
-##    Parametres["calculateAll"] = True
-##    traiterDonneesLocales()
-##    genereResultatsCoursesEtClasses(True)
-##    #print(tableauGUI)
-##    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
-##    tableau.maj(tableauGUI)
-
-
-
-def importSIECLEAction() :
-    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
-    if file_path :
-        nomFichier = os.path.basename(file_path)
-        #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
-        #print(file_path)
-        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci?\n\
-Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
-Cela peut figer momentanément l'interface...")
-        if reponse :
-            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
-            # redirection temporaire pour les messages liés à l'import
-            filePath = LOGDIR + os.sep + "dernierImport.txt"
-            if os.path.exists(filePath) :
-                os.remove(filePath)
-            if not DEBUG :
-                file = open(filePath, "a")
-                tmp = sys.stdout # sauvegarde de la sortie standard.
-                sys.stdout = file
-            retourImport,BilanCreationModifErreur = recupImportNG(file_path)
-            #print("Affichage des Coureurs juste après l'importation")
-            #Coureurs.afficher()
-            # fin de la redirection des logs temporaire
-            if not DEBUG :
-                file.close()
-                sys.stdout = tmp
-##            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
-##            mon_threadter.start()
-##            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
-##            mon_threadter.join()
-            ### bilan des données importées
-            if not BilanCreationModifErreur[0] and not BilanCreationModifErreur[1] and not BilanCreationModifErreur[2] : # les trois sont nuls. Même fichier.
-                reponse = showinfo("PAS D'IMPORT DE DONNEES","Le fichier "+nomFichier +" ne semble contenir aucun changement par rapport \
-au(x) précédent(s) import(s).")
-            else :
-                chaineBilan = ""
-                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
-                    chaineBilan += "\nBilan :\n"
-                    if BilanCreationModifErreur[0] :
-                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
-                    if BilanCreationModifErreur[1] :
-                        chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
-                    if BilanCreationModifErreur[2] :
-                        chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
-                    chaineBilan += "\n"
-                else :
-                    retourImport = False # Que des erreurs dans le fichier, le signaler.
-                if retourImport :
-                    actualiseToutLAffichage()
-                    reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
-    chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
-    Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
-                else :
-                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
-    chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
-    Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
-    D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
-    et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
-    Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
-    'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
-    et 'VMA' (pour la VMA en km/h). \
-    L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
-                #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
-                if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
-                    os.startfile(filePath)
-            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
-            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+##def regenereAffichageGUI() :
+##    rejouerToutesLesActionsMemorisees()
+####    Parametres["calculateAll"] = True
+####    traiterDonneesLocales()
+####    genereResultatsCoursesEtClasses(True)
+####    #print(tableauGUI)
+####    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
+####    tableau.maj(tableauGUI)
+##
+##
+##
+##def importSIECLEAction() :
+##    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
+##    if file_path :
+##        nomFichier = os.path.basename(file_path)
+##        #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
+##        #print(file_path)
+##        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci?\n\
+##Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
+##Cela peut figer momentanément l'interface...")
+##        if reponse :
+##            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+##            # redirection temporaire pour les messages liés à l'import
+##            filePath = LOGDIR + os.sep + "dernierImport.txt"
+##            if os.path.exists(filePath) :
+##                os.remove(filePath)
+##            if not DEBUG :
+##                file = open(filePath, "a")
+##                tmp = sys.stdout # sauvegarde de la sortie standard.
+##                sys.stdout = file
+##            #retourImport,
+##            BilanCreationModifErreur, d = recupImportNG(file_path)
+##            #print("Affichage des Coureurs juste après l'importation")
+##            #Coureurs.afficher()
+##            # fin de la redirection des logs temporaire
+##            if not DEBUG :
+##                file.close()
+##                sys.stdout = tmp
+####            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
+####            mon_threadter.start()
+####            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
+####            mon_threadter.join()
+##            ### bilan des données importées
+##            if not BilanCreationModifErreur[0] and not BilanCreationModifErreur[1] and not BilanCreationModifErreur[2] : # les trois sont nuls. Même fichier.
+##                reponse = showinfo("PAS D'IMPORT DE DONNEES","Le fichier "+nomFichier +" ne semble contenir aucun changement par rapport \
+##au(x) précédent(s) import(s).")
+##            else :
+##                chaineBilan = ""
+##                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
+##                    chaineBilan += "\nBilan :\n"
+##                    if BilanCreationModifErreur[0] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+##                    if BilanCreationModifErreur[1] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+##                    if BilanCreationModifErreur[2] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
+##                    chaineBilan += "\n"
+##                else :
+##                    retourImport = False # Que des erreurs dans le fichier, le signaler.
+##                if retourImport :
+##                    actualiseToutLAffichage()
+##                    reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
+##    chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
+##    Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
+##                else :
+##                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+##    chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
+##    Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
+##    D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
+##    et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
+##    Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
+##    'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
+##    et 'VMA' (pour la VMA en km/h). \
+##    L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
+##                #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
+##                if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
+##                    os.startfile(filePath)
+##            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
+##            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
                 
 
 def actualiseToutLAffichage() :
@@ -3106,8 +3112,8 @@ def actualiserDistanceDesCourses():
     for x in listeDesEntryGroupements :
         x.destroy()
     listeDesEntryGroupements.clear()
-    print("Courses",Courses)
-    print("GRoupements", Groupements)
+    #print("Courses",Courses)
+    #print("GRoupements", Groupements)
     if Groupements :
         if Parametres["CoursesManuelles"] :
             lblNbreCoursesDesire.pack(side=TOP)

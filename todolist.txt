@@ -1,30 +1,7 @@
-EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
-- Coureurs est devenue un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...} 
-
-FAIT :
-Utilisé : les fonctions d'accès créées transformeront le paramètre fourni en une chaine de caractères et testeront si le dernier
-caractère est une lettre : si oui, c'est l'entrée du dictionnaire ; si non, ce sera la course A par défaut.
-1. len(Coureurs)						pour 1, la propriété nombreDeCoureurs devra faire le travail.
-2. Coureurs[doss-1]						pour 2, recuperer(doss) devra faire le travail
-3. i = 0								pour 3 et 4, une fonction liste() devrait faire l'affaire.
-    while i < len (Coureurs) :
-        coureur = Coureurs[i]
-4. for coureur in Coureurs
-5. dossard = len(Coureurs)+1							pour 5. difficile de connaître le numéro de dossard sans connaitre la course à l'avance.
-   Coureurs.append(Coureur(dossard, nom, prenom, ...))			du coup, cela serait réservé au seul cas des CoursesManuelles.
-																ajouter(coureur) à créer : le coureur, une fois ajouté se voit affecter
-   Coureurs[-1].setCourse(addCourse(course))					son numéro de dossard automatiquement par ajouter(coureur) elle-même 
-																et elle retourne ce dossard. Cela peut servir ici pour la ligne qui suit.
-																
-6. doss = int(dossard)					à supprimer systématiquement.
-7. del Coureurs[doss-1]					pour 7. créer effacer(doss) ou effacer(coureur) qui ferait le travail et retournerait un code de succès ou d'erreur.
-
-8. coureurExists(Coureurs, nom, prenom) à remplacer par une méthode intégrée self.existe(coureur)
-
-
-- (FAIT) limiter l'usage de ces dossards au seul cas : CoursesManuelles == True
-
+Cross UNSS
 - pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
+- export vers OPUSS à créer à partir d'un modèle.
+
 
 
 A tester :
@@ -36,10 +13,18 @@ et uniquement celles-ci.
 
 
 Autres bugs introduits :
+- dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
+
 - dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
 La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
 
 - lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
+
+DEVELOPPEMENTS PENSES :
+- actualisation automatique de l'affichage sur la TV (même fréquence que les sauvegardes) en fonction des derniers coureurs arrivés :
+	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
+	* si un coureur d'une course passe la ligne dans les 5 dernières minutes, on coche.
+- augmenter la vitesse de défilement sur la TV (x1,5) par rapport aux vitesses actuelles.
 
 
 

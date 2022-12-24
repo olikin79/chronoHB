@@ -409,7 +409,7 @@ def naissanceValide(naissance) :
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
-    def __init__(self, dossard, nom, prenom, sexe, classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
+    def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence=""):
         self.setDossard(dossard)
         self.nom=str(nom).upper()
@@ -669,7 +669,7 @@ class Coureur():#persistent.Persistent):
 
 class Course():#persistent.Persistent):
     """Une course"""
-    def __init__(self, categorie, depart=False, temps=0):
+    def __init__(self, categorie, depart=False, nomGroupement = "" , temps=0):
         self.categorie=categorie
         if Parametres["CategorieDAge"] :
             self.label = categorie
@@ -682,7 +682,10 @@ class Course():#persistent.Persistent):
         self.resultats = []
         self.distance = 0
         self.tempsAuto = 0
-        self.nomGroupement = categorie
+        if nomGroupement :
+            self.nomGroupement = nomGroupement
+        else :
+            self.nomGroupement = categorie
         self.aRegenererPourImpression = False
 ##        self.equipesClasses = []
     def setARegenererPourImpression (self, val):
@@ -1634,7 +1637,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     listeAction = ligne.split(",")
     action = listeAction[1]
     dossard = str(listeAction[2])
-    if dossard != "0" or dossard != "-1" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+    if dossard != "0" or dossard != "-1" or dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
@@ -1720,7 +1723,10 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     cat = Coureurs.recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     Courses[cat].setARegenererPourImpression(True)
-    #print("nom groupement de la catégorie", cat, ":", Courses[cat].nomGroupement)
+    print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
+    print("Groupements")
+    print(listNomsGroupements(nomStandard = True))
+    print("Courses",Courses)
     groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
 
 
@@ -4013,7 +4019,7 @@ def coureurExists(nom, prenom) :
         # i += 1
     # return retour
 
-def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature) :
+def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
@@ -4172,7 +4178,7 @@ def addCourse(course) :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
-            c = Course(course)
+            c = Course(course, nomGroupement = lettreCourse)
             Courses.update({lettreCourse : c})
         return lettreCourse
     else :
@@ -4239,7 +4245,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs.recuperer(doss).course].depart :
-        message = "La course " + Coureurs.recuperer(doss).course + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        message = "La course " + groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
@@ -5410,14 +5416,14 @@ def traitementDesDonneesAImporter(donneesBrutes) :
 ##             if i == 1 :
 ##                 print("Première ligne du fichier importé:")
 ##                 print(row)
-             retourCreationModifErreur = creerCoureur(row, informations)
+             retourCreationModifErreur, d = creerCoureur(row, informations)
              #print("retour création :" ,retourCreationModifErreur)
              for i in range(4) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
                  #print(i,retourCreationModifErreur[i])
                  if retourCreationModifErreur[i] :
                     BilanCreationModifErreur[i] += 1
         i+=1
-    return BilanCreationModifErreur
+    return BilanCreationModifErreur, d
 
 
 ### Import XLSX
@@ -5426,9 +5432,9 @@ def recupImportNG(fichierSelectionne="") :
     BilanCreationModifErreur = [0,0,0,0]
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur = recupXLSX(fichierSelectionne)
+            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
-            BilanCreationModifErreur = recupCSV(fichierSelectionne)
+            BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
     #if retour :
     print("IMPORT CSV ou XLSX TERMINE")
     generateListCoureursPourSmartphone()
@@ -5437,7 +5443,7 @@ def recupImportNG(fichierSelectionne="") :
         # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
 ##    else :
 ##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
-    return BilanCreationModifErreur
+    return BilanCreationModifErreur, d
 
 
 def recupXLSX(fichierSelectionne=""):
@@ -5473,11 +5479,11 @@ def recupXLSX(fichierSelectionne=""):
         #print(chaine)
         donneesBrutes.append(ligne)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-    BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
+    BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
     wb_obj.close()
     #except :
     #    print("Erreur : probablement pas un fichier xlsx valide...")
-    return BilanCreationModifErreur
+    return BilanCreationModifErreur, d
 
 
 def recupCSV(fichierSelectionne=""):
@@ -5489,10 +5495,10 @@ def recupCSV(fichierSelectionne=""):
             donneesBrutes = csv.reader(csvfile, delimiter=';')
             #print(donneesBrutes)
             ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-            BilanCreationModifErreur = traitementDesDonneesAImporter(donneesBrutes)
+            BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
     except :
         print("Erreur : probablement un mauvais encodage...")
-    return BilanCreationModifErreur
+    return BilanCreationModifErreur, d
 
 
 #### Import CSV ancienne génération (avant 2022)
@@ -5676,19 +5682,18 @@ def creerCoureur(listePerso, informations) :
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
+        retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                                commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
-##        if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
-##            print("Probablement une ligne inutile dans le tableur. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe )
-##            retourCreationModifErreur = [0,0,0,0]
-##        else :
-        print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
-        retourCreationModifErreur = [0,0,1,0]
-##        
-    return retourCreationModifErreur
+        if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
+            # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe )
+            retourCreationModifErreur, d = [0,0,0,0], "0"
+        else :
+            print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
+            retourCreationModifErreur, d = [0,0,1,0] , "0"  
+    return retourCreationModifErreur, d
 
 
 def supprLF(ch) :
