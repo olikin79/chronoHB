@@ -1,3 +1,8 @@
+Travail du 26/12/22 :
+- export xlsx complètement remanié et optimisé. Champs complémentaires exportés pour permettre un export directement à partir de l'export réalisé.
+- 
+
+
 Travail du 23/12/22 :
 - Fusion des branches "cross UNSS" (dans main) et "class Coureurs Arrivees Dossards" afin de comuler les fonctions pour le cross UNSS et
 la nouvelle gestion interne des dossards avec des lettres 1A, 2A, 3A, ..., 1B, ...
