@@ -6,6 +6,7 @@ Travail du 26/12/22 :
 - début de factorisation de code pour la génération des dossards : facilitera des évolutions liées aux éléments à insérer sur un dossard...
 - les pdf générés pour les groupements portent désormais le nom "Course" plus évocateur et portent le nom personnalisé et non plus le nom standard
 (suite à l'utilisation systématique des noms standards en arrière plan et à la fusion récente).
+- paramètres ajoutés dans le menu GUI : QRcodes à imprimer en plus ou non (et nombre).
 
 
 Travail du 23/12/22 :
