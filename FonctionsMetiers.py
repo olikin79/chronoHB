@@ -2099,9 +2099,41 @@ def generateQRcodesCoursesManuelles() :
             i += 1
     print("Fin de la création des QR-codes.")
 
+def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True) :
+    retour = ""
+    # utilisation du modèle de dossard.
+    modeleDosssard = "./modeles/" + dossardModele
+    with open(modeleDosssard, 'r') as f :
+        modele = f.read()
+    f.close()
+    for coureur in listeDeCoureurs :
+        if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
+            cat = coureur.categorie(Parametres["CategorieDAge"])
+            groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
+            if cat != groupementNom :
+                groupement = "Course : " + groupementNom
+            else :
+                groupement = ""
+            if coureur.classe :
+                cl = coureur.classe #"Classe : " + coureur.classe
+            else :
+                cl = ""
+            chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
+                .replace("@dossard@",coureur.getDossard()).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
+                .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)
+            if completeFichierParCategorie :
+                groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
+                TEXDIR = "dossards"+os.sep+"tex"+os.sep
+                creerDir(TEXDIR)
+                with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
+                    fileCat.write(chaineComplete+ "\n\n")
+                fileCat.close()
+            retour += chaineComplete
+    return retour
 
 def generateDossardsNG() :
-    print("Utilisation de generateDossardsNG")
+    print("Utilisation de generateDossardsNG 2ème génération")
     generateQRcodes() # génère autant de QR-codes que nécessaire
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
@@ -2119,15 +2151,6 @@ def generateDossardsNG() :
     liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+'*.pdf',recursive = False)
     for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
         os.remove(file)
-    # utilisation du modèle de dossard.
-##    if Parametres["CategorieDAge"] :
-##        modeleDosssard = "./modeles/dossard-modele.tex"
-##    else :
-##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
-    modeleDosssard = "./modeles/" + dossardModele
-    with open(modeleDosssard, 'r') as f :
-        modele = f.read()
-    f.close()
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     #os.chdir("dossards")
@@ -2141,30 +2164,11 @@ def generateDossardsNG() :
         f.write(enteteL + "\n\n")
     f.close()
     listeCategories.append("0-listing")
+    ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
-        for coureur in Coureurs.liste() :
-            if not coureur.dispense and not coureur.absent :
-                cat = coureur.course#categorie(Parametres["CategorieDAge"])
-                groupementNom = groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
-                #print("cat =",cat, "   groupementNom=",groupementNom)
-                groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
-                if cat != groupementNom :
-                    groupement = "Course : " + groupementNom
-                else :
-                    groupement = ""
-                if coureur.classe :
-                    cl = coureur.classe #"Classe : " + coureur.classe
-                else :
-                    cl = ""
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
-                    .replace("@dossard@",coureur.getDossard()).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
-                    .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                    .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
-                f.write(chaineComplete)
-                with open(TEXDIR+ groupementNomPourNomFichier + ".tex", 'a',encoding="utf-8") as fileCat :
-                    fileCat.write(chaineComplete+ "\n\n")
-                fileCat.close()
+        f.write(retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False))
     f.close()
+    ### création du listing de QR-codes.
     with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
         L = list(CoureursParClasse.keys())
         L.sort()
@@ -2174,7 +2178,7 @@ def generateDossardsNG() :
                 fL.write("\\newpage\n\n")
     fL.close()
     listeCategories.append("0-listing")
-    #### création des QR-codes pour le cross de Rieutort
+    #### création des QR-codes pour imprimer à part (cross de Rieutort)
     if CoursesManuelles :
         with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
             enteteQR = f.read()
@@ -2205,76 +2209,6 @@ def generateDossardsNG() :
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
 
-#print("Coureur 2",Coureurs.recuperer("2A").dossard)
-
-##def generateDossards() :
-##    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
-##    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-##    generateQRcodes()
-##    global CoureursParClasse
-##    with open("./modeles/dossard-en-tete.tex", 'r') as f :
-##        entete = f.read()
-##    f.close()
-##    with open("./modeles/listing-en-tete.tex", 'r') as f :
-##        enteteL = f.read()
-##    f.close()
-##    TEXDIR = "dossards"+os.sep+"tex"+os.sep
-##    creerDir(TEXDIR)
-##    ## effacer les tex existants
-##    liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
-##    liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
-##    for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
-##        os.remove(file)
-##    # utilisation du modèle de dossard.
-##    with open("./modeles/dossard-modele.tex", 'r') as f :
-##        modele = f.read()
-##    f.close()
-##    ## générer de nouveaux en-têtes.
-##    osCWD = os.getcwd()
-##    #os.chdir("dossards")
-##    listeCategories = listCourses()
-##    listeCategories.append("0-tousLesDossards")
-##    for file  in listeCategories :
-##        with open(TEXDIR+file+ ".tex", 'w') as f :
-##            f.write(entete + "\n\n")
-##        f.close()
-##    with open(TEXDIR+"0-listing.tex", 'w') as f :
-##        f.write(enteteL + "\n\n")
-##    f.close()
-##    listeCategories.append("0-listing")
-##    with open(TEXDIR+"0-tousLesDossards.tex", 'a') as f :
-##        for coureur in Coureurs :
-##            if not coureur.dispense :
-##                cat = coureur.categorie(Parametres["CategorieDAge"])
-##                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-##                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])
-##                f.write(chaineComplete)
-##                with open(TEXDIR+cat + ".tex", 'a') as fileCat :
-##                    fileCat.write(chaineComplete+ "\n\n")
-##                fileCat.close()
-##    f.close()
-##    with open(TEXDIR+"0-listing.tex", 'a') as fL :
-##        L = list(CoureursParClasse.keys())
-##        L.sort()
-##        for nomClasse in L :
-##            alimenteListingPourClasse(nomClasse, fL)
-##            if nomClasse != L[:-1] :
-##                fL.write("\\newpage\n\n")
-##            else :
-##                fL.write("\\end{document}")
-##    fL.close()
-##    listeCategories.append("0-listing")
-##    #print(listeCategories)
-##    # pour chaque fichier dans listeCategories , ajouter le end document.
-##    for file in listeCategories :
-##        with open(TEXDIR+file + ".tex", 'a') as f :
-##            f.write("\\end{document}")
-##        f.close()
-##        # il faut compiler tous les fichiers de la liste.
-##        #print(file)
-##        compilateurComplete = compilateur.replace("@dossier@","dossards")
-##        print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
-##    ### os.chdir(osCWD)
 
 def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
@@ -2293,62 +2227,52 @@ def generateDossardsAImprimer() :
 ##        modeleDosssard = "./modeles/dossard-modele.tex"
 ##    else :
 ##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
-    modeleDosssard = "./modeles/" + dossardModele
-    with open(modeleDosssard, 'r') as f :
-        modele = f.read()
-    f.close()
+##    modeleDosssard = "./modeles/" + dossardModele
+##    with open(modeleDosssard, 'r') as f :
+##        modele = f.read()
+##    f.close()
+    ##  génère la liste des coureurs concernés par l'impression
+    listeAImprimer = []
+    for coureur in Coureurs.liste() :
+        if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+            listeAImprimer.append(coureur)
+            retour.append(coureur.dossard)
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
-    with open(TEXDIR+"A-imprimer.tex", 'w',encoding="utf-8") as f :
-        f.write(entete + "\n\n")
-        for coureur in Coureurs.liste() :
-            if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                retour.append(coureur.dossard)
-                chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-                                 .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                                 .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
-                f.write(chaineComplete + "\n\n")
-                generateQRcode(coureur.dossard)
-        ## f.write(chaineComplete+ "\n\n")
-        f.write("\\end{document}")
-    f.close()
-    #print(retour)
-    if retour : # s'il n'y a aucun dossard à imprimer on ne compile pas inutilement.
+    if listeAImprimer :
+        with open(TEXDIR+"A-imprimer.tex", 'w',encoding="utf-8") as f :
+            f.write(entete + "\n\n")
+            f.write(retourneDossardsNG(listeAImprimer, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=False))
+            f.write("\\end{document}")
+        f.close()
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         print(compilerDossards(compilateurComplete, ".", "A-imprimer.tex" , 1))
+    else :
+        print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
     return retour
 
 def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     #global CoureursParClasse
-    print("Utilisation de generateDossard")
+    print("Utilisation de generateDossard pour le coureur", coureur.nom, coureur.prenom, coureur.dossard)
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
     f.close()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-##    if Parametres["CategorieDAge"] :
-##        modeleDosssard = "./modeles/dossard-modele.tex"
-##    else :
-##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
-    modeleDosssard = "./modeles/" + dossardModele
-    with open(modeleDosssard, 'r') as f :
-        modele = f.read()
-    f.close()
+##    modeleDosssard = "./modeles/" + dossardModele
+##    with open(modeleDosssard, 'r') as f :
+##        modele = f.read()
+##    f.close()
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     #os.chdir("dossards")
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
     with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
         f.write(entete + "\n\n")
-        cat = coureur.categorie(Parametres["CategorieDAge"])
-        chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom).replace("@dossard@",str(coureur.dossard)).replace("@classe@",coureur.classe)\
-            .replace("@categorie@",cat).replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-            .replace("@groupement@",groupementAPartirDUneCategorie(cat).nom).replace("@etablissement@",coureur.etablissement)
-        f.write(chaineComplete+ "\n\n")
+        f.write(retourneDossardsNG([coureur], completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True)+ "\n\n")
         f.write("\\end{document}")
     f.close()
     generateQRcode(coureur.dossard)
