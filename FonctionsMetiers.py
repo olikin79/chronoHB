@@ -669,7 +669,7 @@ class Coureur():#persistent.Persistent):
 
 class Course():#persistent.Persistent):
     """Une course"""
-    def __init__(self, categorie, depart=False, nomGroupement = "" , temps=0):
+    def __init__(self, categorie, depart=False, temps=0):
         self.categorie=categorie
         if Parametres["CategorieDAge"] :
             self.label = categorie
@@ -682,10 +682,7 @@ class Course():#persistent.Persistent):
         self.resultats = []
         self.distance = 0
         self.tempsAuto = 0
-        if nomGroupement :
-            self.nomGroupement = nomGroupement
-        else :
-            self.nomGroupement = categorie
+        self.nomGroupement = categorie
         self.aRegenererPourImpression = False
 ##        self.equipesClasses = []
     def setARegenererPourImpression (self, val):
@@ -1357,66 +1354,47 @@ def exportXLSX():
         os.remove(fichier)
     workbook = xlsxwriter.Workbook(fichier)
     worksheet = workbook.add_worksheet()
-    worksheet.write('A1', 'Dossard')
-    worksheet.write('B1', 'Nom')
-    worksheet.write('C1', 'Prénom')
-    worksheet.write('D1', 'Sexe')
-    worksheet.write('E1', 'Catégorie FFA')
-    worksheet.write('F1', 'Temps (en s)')
-    worksheet.write('G1', 'Temps (HMS)')
-    worksheet.write('H1', 'Rang')
-    worksheet.write('I1', 'Vitesse (en km/h)')
-    worksheet.write('J1', 'Pourcentage de VMA')
-    if Parametres["CategorieDAge"] == 0 :
-        worksheet.write('K1', 'Classe')
-    elif Parametres["CategorieDAge"] == 1 :
-        worksheet.write('K1', 'Course')
-    elif Parametres["CategorieDAge"] == 2 :
-        worksheet.write('K1', 'Course')
-        worksheet.write('L1', 'Etablissement')
-        worksheet.write('M1', 'EtablissementType')
+    ### constitution des champs à ajouter et de leurs contenus
+    if CategorieDAge :
+        CourseOuClasse = 'Course'
+    else :
+        CourseOuClasse = 'Classe'
+    exportChampsOrdonnes = ['Dossard', 'Nom', 'Prénom', 'Sexe', 'Naissance', 'Catégorie FFA',\
+                            CourseOuClasse, 'VMA', 'absent', 'dispense',\
+                            'Rang', 'Temps (en s)', 'Temps (HMS)',\
+                            'Vitesse (en km/h)', 'Pourcentage de VMA']
+    exportProprietesOrdonnees = ['coureur.dossard', 'coureur.nom', 'coureur.prenom', 'coureur.sexe', 'coureur.naissance', 'coureur.categorieFFA()',\
+                                 'coureur.course if CategorieDAge else coureur.classe', 'coureur.VMA', '"oui" if coureur.absent else ""', '"oui" if coureur.dispense else ""',\
+                                 'coureur.rang if coureur.rang else "-"','round(coureur.temps,2)', 'coureur.tempsHMS()',\
+                                 'round(coureur.vitesse,1) if coureur.vitesse else "-"','coureur.pourcentageVMA()']
+    if CategorieDAge == 2 : # cross UNSS, champs supplémentaires
+        exportChampsOrdonnes += ['établissement', 'type','Licence',]
+        exportProprietesOrdonnees += ['coureur.etablissement', 'coureur.etablissementNature', 'coureur.licence']
+    ### remplissage 1ère ligne
+    colonnesTempsFormate= []
+    j = 0
+    for champ in exportChampsOrdonnes :
+        worksheet.write(chr(65+j) + "1", champ)
+        if "HMS" in champ :
+            colonnesTempsFormate.append(chr(65+j))
+        j += 1
     i = 0
-    fmt = workbook.add_format({'num_format':'hh:mm:ss'})
+    ### remplissage du tableur avec les propriétés, coureur par coureur (ligne par ligne)
     L = Coureurs.liste()
     while i < len(L) :
         coureur = L[i]
         ligne = i + 2
-        worksheet.write('A' + str(ligne), coureur.dossard)
-        worksheet.write('B' + str(ligne), coureur.nom)
-        worksheet.write('C' + str(ligne), coureur.prenom)
-        worksheet.write('D' + str(ligne), coureur.sexe)
-        worksheet.write('E' + str(ligne), coureur.categorieFFA())
-        worksheet.write('F' + str(ligne), round(coureur.temps,2))
-        worksheet.write('G' + str(ligne), coureur.tempsHMS())
-        if coureur.rang :
-            rang = coureur.rang
-        else :
-            rang = "-"
-        worksheet.write('H' + str(ligne), rang)
-        if coureur.vitesse :
-            vit = round(coureur.vitesse,1)
-        else :
-            vit = "-"
-        worksheet.write('I' + str(ligne), vit)
-        worksheet.write('J' + str(ligne), coureur.pourcentageVMA())
-        if Parametres["CategorieDAge"] == 0 :
-            worksheet.write('K' + str(ligne), coureur.classe)
-        elif Parametres["CategorieDAge"] == 1 :
-            if CoursesManuelles :
-                groupement = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
-            else :
-                cat = coureur.categorie(Parametres["CategorieDAge"])
-                groupement = nomGroupementAPartirDUneCategorie(cat)
-            worksheet.write('K' + str(ligne), groupement)
-        elif Parametres["CategorieDAge"] == 2 :
-            cat = coureur.categorie(Parametres["CategorieDAge"])
-            groupement = nomGroupementAPartirDUneCategorie(cat)
-            worksheet.write('K' + str(ligne), groupement)
-            worksheet.write('L' + str(ligne), coureur.etablissement)
-            worksheet.write('M' + str(ligne), coureur.etablissementNature)
+        j = 0
+        for propriete in exportProprietesOrdonnees :
+            worksheet.write(chr(65+j)+ str(ligne), eval(propriete))
+            j += 1
         i += 1
-    worksheet.set_column('G:G', None, fmt)
+    ### formatage HMS
+    fmt = workbook.add_format({'num_format':'hh:mm:ss'})
+    for col in colonnesTempsFormate :
+        worksheet.set_column(col + ':' + col, None, fmt)
     workbook.close()
+    ### ouverture immédiate du tableur avec le logiciel par défaut sur l'ordinateur.
     path = os.getcwd()
     fichierAOuvrir = path + os.sep + fichier
     subprocess.Popen([fichierAOuvrir],shell=True)
@@ -1722,13 +1700,14 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
 def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     cat = Coureurs.recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
-    Courses[cat].setARegenererPourImpression(True)
-    print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
-    print("Groupements")
-    print(listNomsGroupements(nomStandard = True))
-    print("Courses",Courses)
-    groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
-
+    try :
+        Courses[cat].setARegenererPourImpression(True)
+        groupementAPartirDeSonNom(Courses[cat].categorie, nomStandard = True).setARegenererPourImpression(True)
+    except :
+        print("ERREUR AVEC setARegenererPourImpression")
+        print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
+        print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
+        print("Courses",Courses)
 
 def effacerFichierDonnneesSmartphone() :
     print("Effacement des données venant des smartphones  effectué")
@@ -4178,7 +4157,7 @@ def addCourse(course) :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
             Groupements[-1].setNom(course)
-            c = Course(course, nomGroupement = lettreCourse)
+            c = Course(course)
             Courses.update({lettreCourse : c})
         return lettreCourse
     else :
@@ -4245,7 +4224,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs.recuperer(doss).course].depart :
-        message = "La course " + groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        message = "La course " + Coureurs.recuperer(doss).course + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
