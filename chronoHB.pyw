@@ -1470,7 +1470,7 @@ class DossardsFrame(Frame) :
         if CategorieDAge == 2 :
             self.tupleClasses = tuple(listEtablissements())
         elif CategorieDAge == 1 :
-            self.tupleClasses = tuple(listCategories(nomStandard=False))
+            self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
         self.choixClasseCombo['values']=self.tupleClasses
@@ -1488,13 +1488,13 @@ class DossardsFrame(Frame) :
             selection= self.choixClasseCombo.get()
             if CategorieDAge == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
-            elif CategorieDAge == 1 :                 
-                self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
+            elif CategorieDAge == 1 :
+                self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
-            self.TopDepartLabel.configure(text="Il n'y a aucun coureur à afficher. Importer d'abord des données.")
+            self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données.")
             self.comboBoxBarClasse.forget()
             self.choixClasseCombo.forget()
         
@@ -3804,6 +3804,22 @@ rbCM1 = Radiobutton(CoursesManuellesFrame, text="Courses automatiques (par caté
 rbCM2 = Radiobutton(CoursesManuellesFrame, text="Courses fixées manuellement (Trail,...).", variable=svRadioCM, value='1', command=choixCM)
 ##rbLblCM = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
 
+## choix supplémentaires pour les courses manuelles
+def choixCMQRCodes():
+    print(cbCMgenerer)
+    if cbCMgenerer.get() :
+        Parametres["genererQRcodesPourCourseManuelles"]=True
+        # afficher l'entrybox pour spécifier le nombre de QR-codes souhaités.
+        cbCMgenererQRCodesSupplNombre.pack(side=LEFT)
+    else :
+        Parametres["genererQRcodesPourCourseManuelles"]=True
+        cbCMgenererQRCodesSupplNombre.forget()
+        
+CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
+cbCMgenerer = IntVar()
+cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, text="Générer des QR-codes à part pour ajout sur des dossards existants.", variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
+cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ", largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
+
 
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
@@ -3878,6 +3894,8 @@ rbGF.pack(side=TOP,anchor="w")
 rbCM1.pack(side=LEFT,anchor="w")
 rbCM2.pack(side=LEFT,anchor="w")
 
+CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
+cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
 
 if Parametres["CategorieDAge"] :
     if Parametres["CategorieDAge"]== 1 :

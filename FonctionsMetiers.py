@@ -2179,7 +2179,7 @@ def generateDossardsNG() :
     fL.close()
     listeCategories.append("0-listing")
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
-    if CoursesManuelles :
+    if CoursesManuelles and genererQRcodesPourCourseManuelles :
         with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
             enteteQR = f.read()
         f.close()
