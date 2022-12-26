@@ -4,6 +4,9 @@ Travail du 26/12/22 :
 - rétablissement du fonctionnement du menu "absent" et "dispensés" suite à la fusion des branches.
 - rétablissement du fonctionnement du menu "impression d'un dossard particulier" suite à la fusion des branches.
 - début de factorisation de code pour la génération des dossards : facilitera des évolutions liées aux éléments à insérer sur un dossard...
+- les pdf générés pour les groupements portent désormais le nom "Course" plus évocateur et portent le nom personnalisé et non plus le nom standard
+(suite à l'utilisation systématique des noms standards en arrière plan et à la fusion récente).
+
 
 Travail du 23/12/22 :
 - Fusion des branches "cross UNSS" (dans main) et "class Coureurs Arrivees Dossards" afin de comuler les fonctions pour le cross UNSS et

@@ -2576,7 +2576,7 @@ def generateImpressions() :
         try :
             casOuOnSupprime = (aSupprimer) \
                           or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
-                          or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
                           or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
         except :
             casOuOnSupprime = True
@@ -2715,7 +2715,7 @@ def generateImpressions() :
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
         if CoursesManuelles :
-            nomCourse = Courses[classe].nomGroupement
+            nomCourse = groupementAPartirDUneCategorie(classe).nom
         else :
             nomCourse = classe
         print("Création du fichier de "+classe + " : " + nomCourse)
@@ -2726,8 +2726,8 @@ def generateImpressions() :
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
             nomFichier = nomCourse.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
             if ArrDispAbsAbandon[8] :
-                if not os.path.exists("impressions"+os.sep+"Groupement_"+nomFichier+ ".pdf") :
-                    with open(TEXDIR+"Groupement_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                if not os.path.exists("impressions"+os.sep+"Course_"+nomFichier+ ".pdf") :
+                    with open(TEXDIR+"Course_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
                         f.write(contenu)
                         f.write("\n\\end{longtable}\\end{center}\\end{document}")
                     f.close()
