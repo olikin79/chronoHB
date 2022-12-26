@@ -1775,12 +1775,16 @@ def listEtablissements():
         retour.sort()
     return retour
 
-def listCategories():
+def listCategories(nomStandard=True):
     retour = []
     if Coureurs.nombreDeCoureurs != 0:
         for coureur in Coureurs.liste() :
-            if coureur.course not in retour :
-                retour.append(coureur.course)
+            if nomStandard :
+                nom = coureur.course
+            else :
+                nom = groupementAPartirDUneCategorie(coureur.course).nom
+            if nom not in retour :
+                retour.append(nom)
         retour.sort()
     return retour
 
@@ -1826,6 +1830,18 @@ def listCoureursDUneClasse(classe):
                 retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
+def listCoureursDUneCourse(course, nomStandard=False):
+    retour = []
+    for coureur in Coureurs.liste()  :
+        print("fonction listCoureursDUneCourse")
+        if nomStandard :
+            nom = coureur.course
+        else :
+            nom = groupementAPartirDUneCategorie(coureur.course).nom
+        if nom == course :
+            retour.append(coureur)
+    return triParNomPrenomCoureurs(retour)
+
 def listCoureursDUneCategorie(categorie):
     retour = []
     for coureur in Coureurs.liste()  :
@@ -1840,13 +1856,13 @@ def listCoureursDUnEtablissement(etablissement):
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
-def listCoureursDUneCourse(course):
-    retour = []
-    if Coureurs.nombreDeCoureurs !=0:
-        for coureur in Coureurs.liste()  :
-            if coureur.categorie() == course :
-                retour.append(coureur)
-    return triParNomPrenomCoureurs(retour)
+##def listCoureursDUneCourse(course):
+##    retour = []
+##    if Coureurs.nombreDeCoureurs !=0:
+##        for coureur in Coureurs.liste()  :
+##            if coureur.categorie() == course :
+##                retour.append(coureur)
+##    return triParNomPrenomCoureurs(retour)
 
 def listChallenges():
     ''' Un challenge existe uniquement pour les CategorieDAge==0 (cross du collège) ou 2 (UNSS)

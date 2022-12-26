@@ -1525,7 +1525,7 @@ class AbsDispFrame(Frame) :
         if Parametres["CategorieDAge"] == 2 :
             self.tupleClasses = tuple(listEtablissements())
         elif Parametres["CategorieDAge"] == 1 :
-            self.tupleClasses = tuple(listCategories())
+            self.tupleClasses = tuple(listCategories(nomStandard=False))
         else :
             self.tupleClasses = tuple(listClasses())
         #print("liste Catégories",self.tupleClasses)
@@ -1544,7 +1544,10 @@ class AbsDispFrame(Frame) :
             if Parametres["CategorieDAge"] == 2 :
                 cat = "établissement"
             elif Parametres["CategorieDAge"] ==1 :
-                cat = "catégorie"
+                if CoursesManuelles :
+                    cat = "course"
+                else :
+                    cat = "catégorie"
             else :
                 cat = "classe"
             self.TopDepartLabel.configure(text="Absents et dispensés par " + cat + " : utiliser le menu déroulant. \
@@ -1555,7 +1558,11 @@ Compléter les absents ou dispensés (enregistrement automatique).")
             if Parametres["CategorieDAge"] == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
             elif Parametres["CategorieDAge"] == 1 :
-                self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
+                if CoursesManuelles :
+                    self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
+                    print("listCoureursDUneCourse")
+                else :
+                    self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
@@ -2207,7 +2214,10 @@ def onClickE(err):
         if CategorieDAge ==2 :
             saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
         elif CategorieDAge == 1 :
-            saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
+            if CoursesManuelles :
+                saisieAbsDisp(groupementAPartirDUneCategorie(Coureurs.recuperer(err.dossard).course).nom)
+            else :
+                saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
         else :
             saisieAbsDisp(Coureurs.recuperer(err.dossard).classe)
     elif err.numero == 431 or err.numero == 211 :

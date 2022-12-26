@@ -1,6 +1,7 @@
 Travail du 26/12/22 :
 - export xlsx complètement remanié et optimisé. Champs complémentaires exportés pour permettre un export directement à partir de l'export réalisé.
-- 
+- refonte de listCoureursDUneCourse() pour accepter les noms standards par défaut mais aussi les noms personnalisés de course (issus des comboboxbox)
+- retablissement du fonctionnement du menu "absent" et "dispensés" suite à la fusion des branches.
 
 
 Travail du 23/12/22 :
