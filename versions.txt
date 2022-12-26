@@ -1,8 +1,9 @@
 Travail du 26/12/22 :
 - export xlsx complètement remanié et optimisé. Champs complémentaires exportés pour permettre un export directement à partir de l'export réalisé.
 - refonte de listCoureursDUneCourse() pour accepter les noms standards par défaut mais aussi les noms personnalisés de course (issus des comboboxbox)
-- retablissement du fonctionnement du menu "absent" et "dispensés" suite à la fusion des branches.
-
+- rétablissement du fonctionnement du menu "absent" et "dispensés" suite à la fusion des branches.
+- rétablissement du fonctionnement du menu "impression d'un dossard particulier" suite à la fusion des branches.
+- début de factorisation de code pour la génération des dossards : facilitera des évolutions liées aux éléments à insérer sur un dossard...
 
 Travail du 23/12/22 :
 - Fusion des branches "cross UNSS" (dans main) et "class Coureurs Arrivees Dossards" afin de comuler les fonctions pour le cross UNSS et
