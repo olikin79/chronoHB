@@ -1470,7 +1470,7 @@ class DossardsFrame(Frame) :
         if CategorieDAge == 2 :
             self.tupleClasses = tuple(listEtablissements())
         elif CategorieDAge == 1 :
-            self.tupleClasses = tuple(listCategories())
+            self.tupleClasses = tuple(listCategories(nomStandard=False))
         else :
             self.tupleClasses = tuple(listClasses())
         self.choixClasseCombo['values']=self.tupleClasses
@@ -1488,13 +1488,13 @@ class DossardsFrame(Frame) :
             selection= self.choixClasseCombo.get()
             if CategorieDAge == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
-            elif CategorieDAge == 1 :
-                self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection)
+            elif CategorieDAge == 1 :                 
+                self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
         else :
-            self.TopDepartLabel.configure(text="Il n'y a aucune classe à afficher. Importer d'abord des données.")
+            self.TopDepartLabel.configure(text="Il n'y a aucun coureur à afficher. Importer d'abord des données.")
             self.comboBoxBarClasse.forget()
             self.choixClasseCombo.forget()
         

@@ -1830,10 +1830,10 @@ def listCoureursDUneClasse(classe):
                 retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
-def listCoureursDUneCourse(course, nomStandard=False):
+def listCoureursDUneCourse(course, nomStandard=True):
     retour = []
     for coureur in Coureurs.liste()  :
-        print("fonction listCoureursDUneCourse")
+        #print("fonction listCoureursDUneCourse")
         if nomStandard :
             nom = coureur.course
         else :

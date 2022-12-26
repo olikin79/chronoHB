@@ -13,6 +13,8 @@ et uniquement celles-ci.
 
 
 Autres bugs introduits :
+- l'impression individuelle de dossard ne fonctionne plus en mode coursesManuelles. Lié à l'utilisation systématique des noms standards de courses en arrière plan.
+
 - dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
 
 - dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
