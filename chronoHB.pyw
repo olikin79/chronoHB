@@ -3757,6 +3757,7 @@ def packAutresWidgets():
     setParametres()
     
 def forgetAutresWidgets():
+    cbListingsFrame.forget()
     CoursesManuellesFrame.forget()
     CoursesManuellesFrameChoixSupplementaires.forget()
     cbCMgenererListing.forget()
