@@ -34,7 +34,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -1118,8 +1118,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
-            print("groupements",groupements)
-            print(groupement.listeDesCourses)
+            #print("groupements",groupements)
+            #print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
@@ -1563,7 +1563,6 @@ Compléter les absents ou dispensés (enregistrement automatique).")
             elif Parametres["CategorieDAge"] == 1 :
                 if CoursesManuelles :
                     self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
-                    print("listCoureursDUneCourse")
                 else :
                     self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
             else :
@@ -2008,7 +2007,7 @@ def ActualiseAffichageTV():
     global listeDeGroupementsEtChallenge
     listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
     listeCochee = []
-    print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
+    #print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :

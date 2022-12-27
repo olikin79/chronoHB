@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 version = "1.7"
 
@@ -1709,12 +1709,12 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     try :
         Courses[cat].setARegenererPourImpression(True)
-        groupementAPartirDeSonNom(Courses[cat].categorie, nomStandard = True).setARegenererPourImpression(True)
+        groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
     except :
         print("ERREUR AVEC setARegenererPourImpression")
         print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
-        print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
-        print("Courses",Courses)
+        #print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
+        #print("Courses",Courses)
 
 def effacerFichierDonnneesSmartphone() :
     print("Effacement des données venant des smartphones  effectué")
@@ -2476,7 +2476,7 @@ def CoureursParClasseUpdate():
     #CoureursParClasseOrdonnes = dict(CoureursParClasse)
     for k in CoureursParClasse :
         CoureursParClasseOrdonnes[k] = triParNomPrenomCoureurs(CoureursParClasse[k])
-        print("CoureursParClasseOrdonnes[k]",CoureursParClasseOrdonnes[k])
+        #print("CoureursParClasseOrdonnes[k]",CoureursParClasseOrdonnes[k])
 
 
 
