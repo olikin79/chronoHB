@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = False
+#DEBUG = False
 
 version = "1.7"
 
@@ -3902,8 +3902,7 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard="0") :
             #print("tpsPresent en position", n-1, ":",tpsPresent.tempsReel, " soit ", tpsPresent.tempsReelFormate())
             if tpsPresent.tempsReel == tempsReel :
                 ArriveeTempsAffectes[n-1] = doss
-                if DEBUG :
-                    print("Dossard", doss, "affecté au temps sélectionné", temps.tempsReelFormate())
+                print("Dossard", doss, "affecté au temps sélectionné", temps.tempsReelFormate())
                 CodeRetour = Erreur(0, message, elementConcerne=tempsReel )
                 break
             n -= 1
