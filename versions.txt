@@ -5,6 +5,15 @@ Travail du 27/12/22 :
 - création d'un listing sous forme de tableau de coureurs.
 - factorisation de code : compilerTousLesTex()
 - suppression de la lettre sur le dossard généré.
+- rangement des logos dans media et adaptation des modèles de dossards
+- sécurisation de l'existence du dossier "videos" quand on coche l'enregistrement automatique dans l'interface. Cela le crée s'il n'existe pas.
+- script CGI arrivee.pyw : protection contre les dossards saisis manuellement : vide ou avec plusieurs lettres.
+
+Interface smartphone (correctifs) :
+	* déblocage de l'interface si on tente d'affecter un dossard à un temps. La zone n'apparaissait plus et on ne pouvait plus cliquer sur les boutons.
+	* l'ajout de 1 ou 1A ou 1a signale un doublon !
+	* l'affichage indique seulement le numéro pour tous les dossards A et la lettre pour tous les autres.
+	Cela permet de cacher la lettre pour tous les cas autres que CoursesManuelles où elle n'apparaît plus sur le smartphone.
 
 
 Travail du 26/12/22 :
