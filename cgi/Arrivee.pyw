@@ -150,12 +150,14 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
     dossard = formateDossardNG(dossard)
     #lettre = "A"
     #if len(dossard)>0 and not dossard[-1].isdigit() : # compatibilité avec l'ancienne application.
-    if dossard :
-        lettre = dossard[-1].upper()
-        noDossard = int(dossard[:-1])
-    #elif dossard :
-    #    noDossard = int(dossard)
-    else :
+    try :# protection contre les dossards saisis manuellement : vide ou avec plusieurs lettres.
+        if dossard :
+            lettre = dossard[-1].upper()
+            noDossard = int(dossard[:-1])
+        else :
+            lettre = "A"
+            noDossard = ""
+    except :
         lettre = "A"
         noDossard = ""
     donnees = "Coureurs" + lettre + ".txt"
