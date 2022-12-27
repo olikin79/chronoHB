@@ -2043,7 +2043,7 @@ ouvrirBouton.pack(side=LEFT)
 boutonsFrameNavigateur.pack(side=LEFT)
 ZoneEntryPageWeb.pack(side=LEFT)#,anchor="w",fill=X)
 
-ZoneParametresTV.pack(side=TOP)
+
 
 
 
@@ -2284,7 +2284,8 @@ Label(fr, text="Les groupements dont les départs ont été donnés sont :").pac
 def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     '''on impose l'ordre d'affichage des frames à droite'''
     #global listGroupementsCommences
-    zoneAffichageTV.forget()
+    ZoneParametresTV.forget()
+    #zoneAffichageTV.forget()
     zoneAffichageErreurs.forget()
     zoneAffichageDeparts.forget()
     zoneTopDepartBienPlacee.forget()
@@ -2306,7 +2307,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
 ##        zoneTopDepartBienPlacee.forget()
 ##        fr.forget()
     # l'affichage TV paramétrable.
-    zoneAffichageTV.pack(fill=X)
+    ZoneParametresTV.pack(side=TOP, fill=X)
     # les erreurs en cours
     #print("erreurs en cours",erreursEnCours)
     if erreursEnCours :
@@ -3279,7 +3280,7 @@ resetmenu.add_command(label="Quitter", command=root.quit)
 menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
-filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
+filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
 filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
@@ -3299,7 +3300,7 @@ filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDi
 #filemenu.add_command(label="Liste Coureurs", command=hello)
 #filemenu.add_command(label="Affecter Distance aux courses", command=setDistances)
 #filemenu.add_command(label="Listing des Données dans le terminal (amené à disparaître)", command=listerDonneesTerminal)
-menubar.add_cascade(label="Préparation course", menu=filemenu)
+menubar.add_cascade(label="Préparation courses", menu=filemenu)
 
 ##affichage.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
 ##affichage.add_command(label="Ajout d'un coureur", command=ajoutManuelCoureur)
