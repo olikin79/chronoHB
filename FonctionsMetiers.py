@@ -2126,7 +2126,7 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
             else :
                 cl = ""
             chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
-                .replace("@dossard@",coureur.getDossard()).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
+                .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                 .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)
             if completeFichierParCategorie :
