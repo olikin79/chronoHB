@@ -33,7 +33,7 @@ DEVELOPPEMENTS PENSES :
 
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
-
+- les paramètres ne sont pas mémorisés immédiatement (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 
 
 MOYENNEMENT PRIORITAIRES :

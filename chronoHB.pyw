@@ -980,7 +980,10 @@ class EntryParam(Frame):
             if self.nombre :
                 try :
                     ch = ch.replace(",",".")
-                    float(ch)
+                    if "." in ch :
+                        ch = float(ch)
+                    else :
+                        ch = int(ch)
                     setParam(self.param, ch)
                 except :
                     dontsaveedit(None)
@@ -3279,7 +3282,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
 filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
-filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
+filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
@@ -3727,9 +3730,16 @@ def choixUNSS():		# Fonction associée à catégories par Age
 
 def packAutresWidgets():
     if Parametres["CategorieDAge"] == 1 :
-        CoursesManuellesFrame.pack(side=TOP,anchor="w")
-    else :
-        CoursesManuellesFrame.forget()
+        CoursesManuellesFrame.pack(side=TOP,anchor="w")       
+    if CoursesManuelles :
+        cbCMgenerer.set(1)
+        CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
+        cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
+        choixCMQRCodes()
+    cbListingsFrame.pack(side=TOP,anchor="w")
+    cbListingsLbl.pack(side=LEFT,anchor="w")
+    cbCMgenererListing.pack(side=LEFT,anchor="w")
+    cbCMgenererListingQRCodes.pack(side=LEFT,anchor="w")
     MessageParDefautFrameL.pack(side=TOP,anchor="w")
     MessageParDefautFrame.pack(side=LEFT,anchor="w")
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
@@ -3747,6 +3757,10 @@ def packAutresWidgets():
     setParametres()
     
 def forgetAutresWidgets():
+    CoursesManuellesFrame.forget()
+    CoursesManuellesFrameChoixSupplementaires.forget()
+    cbCMgenererListing.forget()
+    cbCMgenererListingQRCodes.forget()
     MessageParDefautFrameL.pack_forget()
     MessageParDefautFrame.pack_forget()
     SauvegardeUSBFrameL.pack_forget()
@@ -3806,20 +3820,45 @@ rbCM2 = Radiobutton(CoursesManuellesFrame, text="Courses fixées manuellement (T
 
 ## choix supplémentaires pour les courses manuelles
 def choixCMQRCodes():
-    print(cbCMgenerer)
     if cbCMgenerer.get() :
         Parametres["genererQRcodesPourCourseManuelles"]=True
         # afficher l'entrybox pour spécifier le nombre de QR-codes souhaités.
         cbCMgenererQRCodesSupplNombre.pack(side=LEFT)
     else :
-        Parametres["genererQRcodesPourCourseManuelles"]=True
+        Parametres["genererQRcodesPourCourseManuelles"]=False
         cbCMgenererQRCodesSupplNombre.forget()
-        
+
+      
 CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
 cbCMgenerer = IntVar()
 cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, text="Générer des QR-codes à part pour ajout sur des dossards existants.", variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
 cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ", largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
 
+### choix de génération de documents qui apparaissent pour tous les types de courses.
+def choixQRCodesListing():
+    if cbCMgenerer.get() :
+        Parametres["genererListingQRcodes"]=True
+    else :
+        Parametres["genererListingQRcodes"]=False
+
+def choixListing():
+    if cbCMgenerer.get() :
+        Parametres["genererListing"]=True
+    else :
+        Parametres["genererListing"]=False
+
+cbgenererListing = IntVar()
+cbgenererListingQRCodes = IntVar()
+if genererListing:
+    cbgenererListing.set(1)
+if genererListingQRcodes:
+    cbgenererListingQRCodes.set(1)
+cbListingsFrame = Frame(GaucheFrameParametresCourses)
+cbListingsLbl = Label(cbListingsFrame,text="En cas de pertes de dossards : ")
+cbCMgenererListing = Checkbutton(cbListingsFrame, text="Générer un tableau des associations noms-dossards", variable=cbgenererListing, onvalue=1, offvalue=0, command=choixListing)
+cbCMgenererListingQRCodes = Checkbutton(cbListingsFrame, text="Générer un listing des QR-codes", variable=cbgenererListingQRCodes, onvalue=1, offvalue=0, command=choixQRCodesListing)
+
+### Autres paramètres
 
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
@@ -3894,8 +3933,10 @@ rbGF.pack(side=TOP,anchor="w")
 rbCM1.pack(side=LEFT,anchor="w")
 rbCM2.pack(side=LEFT,anchor="w")
 
-CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
-cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
+
+##if CoursesManuelles :
+##    cbCMgenerer.set(1)
+##    choixCMQRCodes()
 
 if Parametres["CategorieDAge"] :
     if Parametres["CategorieDAge"]== 1 :

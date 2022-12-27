@@ -1043,7 +1043,8 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
+           genererListingQRcodes,genererListing
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1191,12 +1192,18 @@ def chargerDonnees() :
     if not "CoursesManuelles" in Parametres :
         Parametres["CoursesManuelles"] = False
     CoursesManuelles=Parametres["CoursesManuelles"]
-    if not "genererQRcodesPourCourseManuelles" in Parametres : # destiné à être lié à une checkbox dans les paramètres qui fera apparaitre une entry permettant la saisie du paramètre suivant "nbreDossardsAGenererPourCourseManuelles"
+    if not "genererQRcodesPourCourseManuelles" in Parametres :
         Parametres["genererQRcodesPourCourseManuelles"] = True
     genererQRcodesPourCourseManuelles=Parametres["genererQRcodesPourCourseManuelles"]
     if not "nbreDossardsAGenererPourCourseManuelles" in Parametres :
         Parametres["nbreDossardsAGenererPourCourseManuelles"] = 120
     nbreDossardsAGenererPourCourseManuelles=Parametres["nbreDossardsAGenererPourCourseManuelles"]
+    if not "genererListingQRcodes" in Parametres :
+        Parametres["genererListingQRcodes"] = False
+    genererListingQRcodes=Parametres["genererListingQRcodes"]
+    if not "genererListing" in Parametres :
+        Parametres["genererListing"] = True
+    genererListing=Parametres["genererListing"]
     ##transaction.commit()
     return globals()
 
@@ -2160,24 +2167,39 @@ def generateDossardsNG() :
         with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
             f.write(entete + "\n\n")
         f.close()
-    with open(TEXDIR+"0-listing.tex", 'w',encoding="utf-8") as f :
-        f.write(enteteL + "\n\n")
-    f.close()
-    listeCategories.append("0-listing")
     ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
         f.write(retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False))
     f.close()
+    ### ajout du enddocument à la fin de tous les fichiers de dossards générés
+    for file  in listeCategories :
+        with open(TEXDIR+file+ ".tex", 'a',encoding="utf-8") as f :
+            f.write("\n\\end{document}")
+        f.close()
+    ### création d'un listing sous forme de tableau
+    if genererListing :
+        with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
+            fL.write(enteteL + "\n\n")
+            L = list(CoureursParClasse.keys())
+            L.sort()
+            for nomClasse in L :
+                alimenteListingPourClasse(nomClasse, fL, listingSimple=True)
+                if nomClasse != L[:-1] :
+                    fL.write("\\newpage\n\n")
+            fL.write("\\end{document}")
+        fL.close()
     ### création du listing de QR-codes.
-    with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
-        L = list(CoureursParClasse.keys())
-        L.sort()
-        for nomClasse in L :
-            alimenteListingPourClasse(nomClasse, fL)
-            if nomClasse != L[:-1] :
-                fL.write("\\newpage\n\n")
-    fL.close()
-    listeCategories.append("0-listing")
+    if genererListingQRcodes :
+        with open(TEXDIR+"0-listing-QRCodes.tex", 'w',encoding="utf-8") as fL :
+            fL.write(enteteL + "\n\n")
+            L = list(CoureursParClasse.keys())
+            L.sort()
+            for nomClasse in L :
+                alimenteListingPourClasse(nomClasse, fL)
+                if nomClasse != L[:-1] :
+                    fL.write("\\newpage\n\n")
+            fL.write("\\end{document}")
+        fL.close()
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
     if CoursesManuelles and genererQRcodesPourCourseManuelles :
         with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
@@ -2196,18 +2218,20 @@ def generateDossardsNG() :
                 alimenteListingPourCourse(nomCourse, fL)
                 if nomCourse != L[:-1] :
                     fL.write("\n\\newpage\n\n")
+            fL.write("\\end{document}")
         fL.close()
-        listeCategories.append(fichier)
+    ### compilation de tous les fichier sprésents 
+    compilerTousLesTex(TEXDIR, "dossards")
     #print(listeCategories)
     # pour chaque fichier dans listeCategories , ajouter le end document.
-    for file in listeCategories :
-        with open(TEXDIR+file + ".tex", 'a',encoding="utf-8") as f :
-            f.write("\\end{document}")
-        f.close()
-        # il faut compiler tous les fichiers de la liste.
-        #print(file)
-        compilateurComplete = compilateur.replace("@dossier@","dossards")
-        compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
+    # for file in listeCategories :
+        # with open(TEXDIR+file + ".tex", 'a',encoding="utf-8") as f :
+            # f.write("\\end{document}")
+        # f.close()
+        # # il faut compiler tous les fichiers de la liste.
+        # #print(file)
+        # compilateurComplete = compilateur.replace("@dossier@","dossards")
+        # compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
 
 
 def generateDossardsAImprimer() :
@@ -2215,7 +2239,6 @@ def generateDossardsAImprimer() :
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     #print("Utilisation de generateDossardsAImprimer")
-    #global CoureursParClasse
     retour=[]
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
@@ -2254,7 +2277,6 @@ def generateDossardsAImprimer() :
 def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    #global CoureursParClasse
     print("Utilisation de generateDossard pour le coureur", coureur.nom, coureur.prenom, coureur.dossard)
     with open("./modeles/dossard-en-tete.tex", 'r') as f :
         entete = f.read()
@@ -2285,11 +2307,16 @@ def generateDossard(coureur) :
     #open(fichierAOuvrir)
     return fichierAOuvrir
 
-def alimenteListingPourClasse(nomClasse, file):
+def alimenteListingPourClasse(nomClasse, file, listingSimple = False):
+    nomAffiche = nomClasse
     if Parametres["CategorieDAge"] == 2 : # UNSS
         denomination = ""
     elif Parametres["CategorieDAge"] == 1 : # catégories FFA
-        denomination = "Catégorie"
+        if CoursesManuelles :
+            denomination = "Course"
+            nomAffiche = groupementAPartirDUneCategorie(nomClasse).nom
+        else :
+            denomination = "Catégorie"
     else : # cross du collège
         denomination = "Classe"
     debutTab = """{}\\hfill {}
@@ -2297,28 +2324,40 @@ def alimenteListingPourClasse(nomClasse, file):
 %\\begin{minipage}{0.9\\textwidth}
 \\Huge
 \\begin{center}
-\\textbf{""" + denomination + " " + nomClasse + """}
+\\textbf{""" + denomination + " " + nomAffiche + """}
 \\end{center}
 %\\end{minipage}
 %}
 %{}\\hfill {}
 
-%\smallskip
-
-\\begin{longtable}{| p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth}|}
-\\hline
+\\normalsize
 """
-    file.write(debutTab)
-    ligne = 1
-    while ligne <= (len(CoureursParClasse[nomClasse])//4 + 1) :
-        imin = (ligne - 1)* 4
-        imax = ligne * 4
-        if imax >= len(CoureursParClasse[nomClasse]):
-            listeDeQuatreCoureursMax = CoureursParClasse[nomClasse][imin:]
-        else :
-            listeDeQuatreCoureursMax = CoureursParClasse[nomClasse][imin:imax]
-        file.write(alimenteLignePourListingClasse(listeDeQuatreCoureursMax))
-        ligne += 1
+
+    if listingSimple :
+        debutTab += """
+    \\begin{longtable}{| p{0.3\\textwidth} | p{0.3\\textwidth} | p{0.3\\textwidth} |}
+    \\hline
+    """
+        file.write(debutTab)
+        #print("CoureursParClasseOrdonnes[nomClasse]",CoureursParClasseOrdonnes[nomClasse])
+        for element in CoureursParClasseOrdonnes[nomClasse] :
+            file.write(alimenteLignePourListingClasse(element))
+    else :
+        debutTab += """
+    \\begin{longtable}{| p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth} | p{0.23\\textwidth}|}
+    \\hline
+    """
+        file.write(debutTab)
+        ligne = 1
+        while ligne <= (len(CoureursParClasseOrdonnes[nomClasse])//4 + 1) :
+            imin = (ligne - 1)* 4
+            imax = ligne * 4
+            if imax >= len(CoureursParClasseOrdonnes[nomClasse]):
+                listeDeQuatreCoureursMax = CoureursParClasseOrdonnes[nomClasse][imin:]
+            else :
+                listeDeQuatreCoureursMax = CoureursParClasseOrdonnes[nomClasse][imin:imax]
+            file.write(alimenteLignePourListingQRCodesClasse(listeDeQuatreCoureursMax))
+            ligne += 1
     file.write("\n\\end{longtable}\n\n")
     
 
@@ -2363,7 +2402,12 @@ def alimenteListingPourCourse(nomCourse, file):
     file.write("\n\\end{longtable}\n\n")
     
 
-def alimenteLignePourListingClasse(listeDeQuatreCoureursMax) :
+def alimenteLignePourListingClasse(coureur) :
+    contenuLigne = "@nom@  &  @prenom@ & @dossard@ \\hline \n"
+    return contenuLigne.replace("@dossard@", coureur.dossard).replace("@nom@", coureur.nom).replace("@prenom@",coureur.prenom)
+
+
+def alimenteLignePourListingQRCodesClasse(listeDeQuatreCoureursMax) :
     retour = ""
     i = 0
     #test = []
@@ -2401,25 +2445,38 @@ def alimenteCellulePourListingClasse(nom, prenom, dossard) :
     return contenuCellule.replace("@dossard@", str(dossard)).replace("@nom@", nom).replace("@prenom@",prenom)
 
 CoureursParClasse = {}
+CoureursParClasseOrdonnes = {}
 
 def CoureursParClasseUpdate():
-    global CoureursParClasse
+    global CoureursParClasse, CoureursParClasseOrdonnes
     CoureursParClasse.clear()
+    CoureursParClasseOrdonnes.clear()
     if CategorieDAge == 2 : # cas UNSS
         for c in Coureurs.liste() :
             if not c.etablissement in CoureursParClasse.keys() :
                 CoureursParClasse[c.etablissement]=[]
             CoureursParClasse[c.etablissement].append(c)
     elif CategorieDAge == 1 : # cas catégories d'age
-        for c in Coureurs.liste() :
-            if not c.categorie(True) in CoureursParClasse.keys() :
-                CoureursParClasse[c.categorie(True)]=[]
-            CoureursParClasse[c.categorie(True)].append(c)
+        if CoursesManuelles :
+            for c in Coureurs.liste() :
+                if not c.course in CoureursParClasse.keys() :
+                    CoureursParClasse[c.course]=[]
+                CoureursParClasse[c.course].append(c)
+        else :
+            for c in Coureurs.liste() :
+                if not c.categorie(True) in CoureursParClasse.keys() :
+                    CoureursParClasse[c.categorie(True)]=[]
+                CoureursParClasse[c.categorie(True)].append(c)
     else : # cas cross de collège
         for c in Coureurs.liste() :
             if not c.classe in CoureursParClasse.keys() :
                 CoureursParClasse[c.classe]=[]
             CoureursParClasse[c.classe].append(c)
+    # tri par ordre alphabétique
+    #CoureursParClasseOrdonnes = dict(CoureursParClasse)
+    for k in CoureursParClasse :
+        CoureursParClasseOrdonnes[k] = triParNomPrenomCoureurs(CoureursParClasse[k])
+        print("CoureursParClasseOrdonnes[k]",CoureursParClasseOrdonnes[k])
 
 
 
@@ -2858,14 +2915,20 @@ def generateImpressions() :
 ##                f.close()
 
     # pour chaque fichier dans impressions , compiler.
-    liste_fichiers_tex_complete=glob.glob(TEXDIR+'*.tex',recursive = True)
+    compilerTousLesTex(TEXDIR, "impressions")
+
+
+def compilerTousLesTex(TEXDIR, PDFDIR):
+    """compile tous les fichiers tex présents dans le dossier TEXDIR spécifié en paramètre. Compile dans PDFDIR."""
+    liste_fichiers_tex_complete=glob.glob(TEXDIR+'*.tex',recursive = False)
     for file in liste_fichiers_tex_complete :
         # il faut compiler tous les fichiers de la liste.
         fichierACompiler = os.path.basename(file)
-        #print("on compile",fichierACompiler)
-        print(compiler(compilateur, "impressions", fichierACompiler , 1))
+        compilateurComplete = compilateur.replace("@dossier@",PDFDIR)
+        #print("on compile: ---"+compilateurComplete + "--- "+ TEXDIR + "---" + fichierACompiler )
+        print(compiler(compilateurComplete, TEXDIR, fichierACompiler , 1))
     #os.chdir(osCWD)
-    return "Tous les PDF des résultats ont été générés."
+    print("Tous les PDF de " + TEXDIR + " ont été générés dans " + PDFDIR + ".")
 
 def listeDesCategoriesDUnGroupement(nomGroupement):
     retour = []
@@ -3080,7 +3143,7 @@ def compiler(compilateur, chemin, fichierACompiler, nombre) :
         compilateurComplete = compilateur.replace("@dossier@",chemin)
         cmd = compilateurComplete +  fichierACompiler
         #subprocess.run(cmd, stdout=f)
-        #print("Exécution de", cmd)
+        print("Exécution de", cmd)
         syscmd(cmd)
         #os.system(cmd)
         retour ="Compilation du fichier " + fichierACompiler + " effectuée."
@@ -3951,7 +4014,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="") : #, courseDonneeSousSonNomStandard = False):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
@@ -4053,6 +4116,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
         retour,d  = [0,0,1,0], ""
+    if CoureursParClasseUpdateActif :
+        CoureursParClasseUpdate()
     return retour, d
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
@@ -5603,7 +5668,7 @@ def creerCoureur(listePerso, informations) :
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
         retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic)
+                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic, CoureursParClasseUpdateActif = False)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :

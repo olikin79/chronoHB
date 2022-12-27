@@ -1,3 +1,12 @@
+Travail du 27/12/22 :
+- correction bug affichage choix supplémentaire pour les courses manuelles dans les paramètres.
+- adaptation de CoureursParClasseUpdate() aux courses manuelles (oubliée)
+- création de CoureursParClasseOrdonnes pour que les listings soient systématiquement ordonnés.
+- création d'un listing sous forme de tableau de coureurs.
+- factorisation de code : compilerTousLesTex()
+- suppression de la lettre sur le dossard généré.
+
+
 Travail du 26/12/22 :
 - export xlsx complètement remanié et optimisé. Champs complémentaires exportés pour permettre un export directement à partir de l'export réalisé.
 - refonte de listCoureursDUneCourse() pour accepter les noms standards par défaut mais aussi les noms personnalisés de course (issus des comboboxbox)
