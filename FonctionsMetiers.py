@@ -1184,7 +1184,7 @@ def chargerDonnees() :
         Parametres["webcam"]= 0
     webcam=Parametres["webcam"]
     if not "webcamSensibility" in Parametres :
-        Parametres["webcamSensibility"]= 20000
+        Parametres["webcamSensibility"]= 60000
     webcamSensibility=Parametres["webcamSensibility"]
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
