@@ -34,7 +34,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -2067,6 +2067,7 @@ def parametreTableau() :
 def activerDesactiverLEnregistrement():
     global time_counter, enregistrementVideo
     if time.time() - time_counter > 3 :
+        creerDir("videos")
         activerDesactiverLaVideo()
         time_counter = time.time()
     else :
