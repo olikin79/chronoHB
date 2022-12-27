@@ -1,33 +1,18 @@
-Cross UNSS
-- pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
-- export vers OPUSS à créer à partir d'un modèle.
-
-
-
-A tester :
-- apparition des boutons vidéos. Un bug semble avoir été introduit. A creuser.
+A tester dans chronoHB :
 - vers la ligne 3203 de chronoHB.pyw, chercher le commentaire "### A tester..." : 
 il faudra tester le menu d'ajout de coureur pour les quatre types de catégories d'âge (0, 1 en mode manuel ou automatique et 2) afin 
 de vérifier que les critères de validation d'une saisie soient corrects et que les boutons s'affichent pour toutes les saisies correctes
 et uniquement celles-ci.
 
 
-Autres bugs introduits :
-- l'impression individuelle de dossard ne fonctionne plus en mode coursesManuelles. Lié à l'utilisation systématique des noms standards de courses en arrière plan.
 
+
+Autres bugs introduits suite à l'unification des branches cross UNSS et Trail Rieutort :
 - dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
 
-- dans l'interface smartphone, on bloque l'interface si on tente d'affecter un dossard à un temps. 
-La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
-
-- lors de l'export pdf, les pdf utilisent les noms standards des courses au lieu de leur nom naturel (pas très grave)
-
-DEVELOPPEMENTS PENSES :
-- actualisation automatique de l'affichage sur la TV (même fréquence que les sauvegardes) en fonction des derniers coureurs arrivés :
-	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
-	* si un coureur d'une course passe la ligne dans les 5 dernières minutes, on coche.
-- augmenter la vitesse de défilement sur la TV (x1,5) par rapport aux vitesses actuelles.
-
+- dans l'interface smartphone :
+	* on bloque l'interface si on tente d'affecter un dossard à un temps. La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
+	* l'ajout de 1 ou 1A ou 1a devrait signaler un doublon !
 
 
 
@@ -35,14 +20,21 @@ BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de d
 PRIORITAIRES :
 - les paramètres ne sont pas mémorisés immédiatement (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 
+- trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
+
 
 MOYENNEMENT PRIORITAIRES :
+- quand on supprime un dossard en doublon, on devrait pouvoir supprimer exactement celui sélectionné. 
+Sur le téléphone, a-t-on moyen de supprimer celui sélectionné avec le numéro de transmission ?
+Sur l'ordinateur, on doit pouvoir sélectionner celui avec le temps le plus proche (lié au décalge horaire client serveur)?
+
 - rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
 
-- rajouter une coche sur l'affichage TV lorsque le premier coureur de la course en question est scanné. 
-Cela permettrait de pallier les oublis de l'opérateur.
-
-- pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
+- actualisation automatique de l'affichage sur la TV (même fréquence que les sauvegardes) en fonction des derniers coureurs arrivés :
+	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
+	* si un coureur d'une course passe la ligne dans les 5 dernières minutes, on coche.
+	
+- augmenter la vitesse de défilement sur la TV (x1,5) par rapport aux vitesses actuelles.
 
 - sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
@@ -60,14 +52,20 @@ Exemple : réimport du cross HB 2022 dans la version 1.62
 - (à tester) : l'archivage contient-il les vidéos ? on dirait que non!
 
 
+
+MOYENNEMENT PRIORITAIRES Cross UNSS :
+- pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
+- export vers OPUSS à créer à partir d'un modèle.
+- pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
+
+
+
 NON PRIORITAIRES :
 - FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
 si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
 si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
 ou un nouveau temps ajouté ensuite la font disparaître.
 
-- Dans les paramètres, si CoursesManuelles, ajouter une entry numériques afin de demander combien de QR-codes créer par course,
- si souhait d'imprimer les QR-codes séparément, sans le nom des coureurs dessus.
 
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
@@ -103,6 +101,9 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 - ESTHETIQUE :
 	* les boutons des vidéos ne se déplacent pas vers le haut ou le bas quand la scrollbar de monTableau est utilisée 
 		(ou se décale toute seule avec les nouvelles arrivées)
+		soit on le supprime lors d'un scroll (solution simple), soit il faut le déplacer au fur et à mesure (plus difficile)
+		Cela doit être le même problème pour les entry de saisie dans le tableau (temps et dossards affectés)...
+		
 	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
@@ -121,10 +122,8 @@ A TESTER :
 
 
 
-FONCTIONNALITES MANQUANTES dans chronoHB.py à plus long terme :
+FONCTIONNALITES MANQUANTES OU EVOLUTIONS dans chronoHB.py à plus long terme :
 
-	
-MOYENNEMENT PRIORITAIRE :
 - remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.
 - mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
 Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
@@ -152,7 +151,7 @@ IndexError: list index out of range
 Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une base correcte.
 
 
-A PLUS LONG TERME :
+A ENCORE PLUS LONG TERME : quelques idées en vrac.
 - permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
 les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
 Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
@@ -170,8 +169,6 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain (sans 
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
-- possibilité de configurer les dossards générés : possibilité de trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
-d'imprimer les dossards par groupements, catégories, classes avec des cases à cocher dans un menu dédié...
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
