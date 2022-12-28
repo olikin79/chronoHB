@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 version = "1.7"
 
@@ -1935,7 +1935,7 @@ def listCoursesEtChallenges():
 ##            retour.append(Courses[cat].categorie)
 ##    return retour
 
-def listNomsGroupementsCommences(nomStandard = False):
+def listNomsGroupementsCommences(nomStandard = True):
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
@@ -1947,12 +1947,16 @@ def listNomsGroupementsCommences(nomStandard = False):
                     retour.append(groupement.nom)
     return retour
 
-def listNomsGroupementsNonCommences(nomStandard = False):
+def listNomsGroupementsNonCommences(nomStandard = True):
     #print("listNomsGroupementsNonCommences",Courses)
     retour = []
     for groupement in Groupements :
+        print(groupement.nom, ":", groupement.listeDesCourses)
+    for groupement in Groupements :
         if groupement.listeDesCourses :
+            print("groupement.listeDesCourses",groupement.listeDesCourses)
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
+            print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
             if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
@@ -5593,7 +5597,8 @@ def creerCoureur(listePerso, informations) :
             sexe = supprLF(infos["sexe"])
         except:
             try :
-                sexe = supprLF(infos["cat"])[-1].upper() ### dans les fichiers OPUS UNSS, le sexe n'est pas indiqué : on le déduit de la dernière lettre de la catégorie
+                sexe = supprLF(infos["cat"])[-1].upper()
+                ### dans les fichiers OPUS UNSS, le sexe n'est pas indiqué : on le déduit de la dernière lettre de la catégorie
             except :
                 sexe = ""
     if "dispensé" in informations :
