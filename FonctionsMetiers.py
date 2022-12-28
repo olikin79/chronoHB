@@ -2117,6 +2117,14 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
+    ## utilisation du bon logo.
+    if os.path.exists("media/logo.png") :
+        logoPersonnalise = "media/logo.png"
+    elif os.path.exists("media/logo.jpg") :
+        logoPersonnalise = "media/logo.jpg"
+    else :
+        logoPersonnalise = "media/logo-HB.png"
+    ## génération du code tex pour le(s) dossard(s)
     for coureur in listeDeCoureurs :
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
             cat = coureur.categorie(Parametres["CategorieDAge"])
@@ -2132,7 +2140,8 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
             chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
                 .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)
+                .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)\
+                .replace("@logo@",logoPersonnalise)
             if completeFichierParCategorie :
                 groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
                 TEXDIR = "dossards"+os.sep+"tex"+os.sep
