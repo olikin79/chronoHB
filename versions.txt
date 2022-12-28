@@ -1,3 +1,8 @@
+Travail du 28/12/22 :
+- largeur du champ "lieu" dans paramètres doublée
+- exemple modele 4 prototype en tex
+
+
 Travail du 27/12/22 :
 - correction bug affichage choix supplémentaire pour les courses manuelles dans les paramètres.
 - adaptation de CoureursParClasseUpdate() aux courses manuelles (oubliée)

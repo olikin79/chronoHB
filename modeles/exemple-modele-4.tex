@@ -1,0 +1,63 @@
+\documentclass[a4paper,11pt,fleqn]{article}
+\usepackage{etex}
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+%\input{preambule}
+%\usepackage{graphicx}
+\usepackage{qrcode}
+\usepackage{fix-cm}
+\pagestyle{empty} 
+
+% police d'impression
+%\input Konanur.fd
+%\newcommand*\initfamily{\usefont{U}{Konanur}{xl}{n}}
+\usepackage{foekfont}
+\usepackage[T1]{fontenc}
+
+% fond d'écran
+\usepackage{eso-pic}
+\newcommand\BackgroundPic{%
+	\put(0,0){%
+		\parbox[b][\paperheight]{\paperwidth}{%
+			\vfill
+			\centering
+			\includegraphics[width=\paperwidth,height=\paperheight,%
+			keepaspectratio]{../media/fondVertLogoSport2000.jpg}%
+			\vfill
+}}}
+
+\usepackage[a5paper,landscape]{geometry}
+\geometry{right=0.5cm,left=0.5cm,top=1cm,bottom=1cm}
+
+% Permet de ne pas séparer des blocs de lignes (énoncé de chaque élève sur une seule et même page)
+\def\block{\begingroup%
+\def\endblock{\egroup\endgroup}%
+\vbox\bgroup}%	
+
+\begin{document}
+\AddToShipoutPicture*{\BackgroundPic}
+
+\begin{center}
+	\color{white}
+\resizebox{!}{40pt}{{\foekfamily{RANDON TRAIL}}}\\
+\medskip
+\resizebox{!}{40pt}{{\foekfamily{48}}}
+\end{center}
+
+\bigskip
+
+\begin{minipage}[bottom]{0.30\textwidth}
+	\begin{center}
+		\includegraphics[width=\textwidth]{../media/traileurs-randon-logo-original.png}
+	\end{center}
+\end{minipage}\hfill
+\begin{minipage}[bottom]{0.35\textwidth}
+	\begin{center}
+		\color{white} \resizebox{!}{80pt}{888}
+	\end{center}
+\end{minipage}\hfill
+\begin{minipage}[bottom]{0.30\textwidth}
+	\includegraphics[width=\textwidth]{./1.pdf}
+\end{minipage}
+
+\end{document}
