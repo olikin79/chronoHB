@@ -2124,6 +2124,10 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
         logoPersonnalise = "media/logo.jpg"
     else :
         logoPersonnalise = "media/logo-HB.png"
+    if os.path.exists("media/logo-UNSS.png") :
+        logoUNSSPersonnalise = "media/logo-UNSS.png"
+    else :
+        logoUNSSPersonnalise = "media/logo-UNSS48.png"
     ## génération du code tex pour le(s) dossard(s)
     for coureur in listeDeCoureurs :
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
@@ -2141,7 +2145,7 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
                 .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                 .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)\
-                .replace("@logo@",logoPersonnalise)
+                .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise)
             if completeFichierParCategorie :
                 groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
                 TEXDIR = "dossards"+os.sep+"tex"+os.sep
