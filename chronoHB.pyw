@@ -3776,7 +3776,7 @@ titresCourseF = Frame(GaucheFrameParametresCourses)
 #IntituleFrameL = Frame(GaucheFrameParametresCourses)
 IntituleEntry = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=titresCourseF)
 #LieuFrameL = Frame(GaucheFrameParametresCourses)
-LieuEntry = EntryParam("lieu", "Lieu", largeur=15, parent=titresCourseF)
+LieuEntry = EntryParam("lieu", "Lieu", largeur=30, parent=titresCourseF)
 
 ### compatibilité ascendante (pour les anciennes sauvegarde où ce paramètre était un boolean.
 if isinstance(Parametres["CategorieDAge"],bool) :
