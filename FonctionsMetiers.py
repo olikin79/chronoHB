@@ -2989,15 +2989,16 @@ def ancienGroupementAPartirDUneCategorie(categorie):
 
 def nomGroupementAPartirDUneCategorie(categorie):
     """ retourne un str nom du groupement à partir d'un nom de catégorie"""
-    try :
-        retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
-    except :
-        try :
-            retour = Courses[categorie].initNomGroupement(categorie)
-        except:
-            retour = ""
-    #print("categorie",Courses[categorie].categorie ,retour)
-    return retour
+    return groupementAPartirDUneCategorie(categorie).nomStandard
+    # try :
+        # retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+    # except :
+        # try :
+            # retour = Courses[categorie].initNomGroupement(categorie)
+        # except:
+            # retour = ""
+    # #print("categorie",Courses[categorie].categorie ,retour)
+    # return retour
 
 def groupementAPartirDUneCategorie(categorie):
     """ retourne un objet groupement à partir d'un nom de catégorie ou de course"""
