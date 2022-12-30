@@ -1424,7 +1424,7 @@ class TopDepartFrame(Frame) :
         #ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
         checkBoxBarAffichage.change(True)
     def actualise(self) :
-        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences(nomStandard=False)
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
         if self.listeDeCoursesNonCommencees :
             self.TopDepartLabel.config(text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
@@ -2436,8 +2436,8 @@ def actualiseToutLAffichage() :
 
 
 def onClick(grpe):
-    #print(grpe)
-    groupement = groupementAPartirDeSonNom(grpe, nomStandard=False)
+    print("grpe",grpe)
+    groupement = groupementAPartirDeSonNom(grpe, nomStandard=True)
     print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
     inputDialog = departDialog(groupement ,root)
     root.wait_window(inputDialog.top)
@@ -2452,17 +2452,22 @@ def actualiseAffichageDeparts():
         lblDict[grp][2].destroy()
         #lblDict[grp][1].destroy()
     lblDict.clear()
-    listGroupementsCommences = listNomsGroupementsCommences()
-    if listGroupementsCommences : 
-        for grp in listGroupementsCommences :
+    listGroupementsCommences = listNomsGroupementsCommences(nomStandard=False)
+    listGroupementsCommencesNomsStandards = listNomsGroupementsCommences(nomStandard=True)
+    if listGroupementsCommences :
+        i = 0
+        while i < len(listGroupementsCommences):# for grp in listGroupementsCommences :
+            grp = listGroupementsCommencesNomsStandards[i]
+            grpNomAffiche = listGroupementsCommences[i]
             lblFr = Frame(fr)
-            lblLegende = Label(lblFr, text= grp + " : ")
-            #print("bouton avec commande : onClick(",grp,")")
+            lblLegende = Label(lblFr, text= grpNomAffiche + " : ")
+            print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
             lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
             lblLegende.pack(side=LEFT)
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
+            i += 1
     else :
         zoneAffichageDeparts.forget()
     if not tagActualiseTemps :
@@ -2476,7 +2481,7 @@ def actualiseTempsAffichageDeparts():
     global listGroupementsCommences, lblDict, tagActualiseTemps
     tagActualiseTemps = True
     for grp in lblDict.keys() :
-        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
+        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=True).listeDesCourses[0]
         ##print("-"+nomCourse+"-", "est dans ?", Courses)
         ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
         ### addCourse(nomCourse)
@@ -2770,55 +2775,56 @@ def actualiseToutLAffichage() :
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
 
 
-def onClick(grpe):
-    #print(grpe)
-    groupement = groupementAPartirDeSonNom(grpe, nomStandard=False)
-    print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
-    inputDialog = departDialog(groupement ,root)
-    root.wait_window(inputDialog.top)
-    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
+##def onClick(grpe):
+##    #print(grpe)
+##    groupement = groupementAPartirDeSonNom(grpe, nomStandard=True)
+##    print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
+##    inputDialog = departDialog(groupement ,root)
+##    root.wait_window(inputDialog.top)
+##    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     
+##
+##tagActualiseTemps = False
 
-tagActualiseTemps = False
+##def actualiseAffichageDeparts():
+##    global listGroupementsCommences, lblDict, tagActualiseTemps
+##    for grp in lblDict.keys() :
+##        lblDict[grp][2].destroy()
+##        #lblDict[grp][1].destroy()
+##    lblDict.clear()
+##    listGroupementsCommences = listNomsGroupementsCommences()
+##    #print("coucou",listGroupementsCommences)
+##    if listGroupementsCommences : 
+##        for grp in listGroupementsCommences :
+##            lblFr = Frame(fr)
+##            lblLegende = Label(lblFr, text= grp + " : ")
+##            #print("bouton avec commande : onClick(",grp,")")
+##            lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
+##            lblLegende.pack(side=LEFT)
+##            lblTemps.pack(side=LEFT)
+##            lblFr.pack(side=TOP)
+##            lblDict[grp] = [lblLegende,lblTemps,lblFr]
+##    if not tagActualiseTemps :
+##        actualiseTempsAffichageDeparts()
+##        #zoneAffichageDeparts.pack(side=TOP,fill=X)
+##        #fr.pack(side=TOP,fill=X)
+##    #else :
+##        #zoneAffichageDeparts.forget()
+##        #fr.forget()
 
-def actualiseAffichageDeparts():
-    global listGroupementsCommences, lblDict, tagActualiseTemps
-    for grp in lblDict.keys() :
-        lblDict[grp][2].destroy()
-        #lblDict[grp][1].destroy()
-    lblDict.clear()
-    listGroupementsCommences = listNomsGroupementsCommences()
-    #print("coucou",listGroupementsCommences)
-    if listGroupementsCommences : 
-        for grp in listGroupementsCommences :
-            lblFr = Frame(fr)
-            lblLegende = Label(lblFr, text= grp + " : ")
-            #print("bouton avec commande : onClick(",grp,")")
-            lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
-            lblLegende.pack(side=LEFT)
-            lblTemps.pack(side=LEFT)
-            lblFr.pack(side=TOP)
-            lblDict[grp] = [lblLegende,lblTemps,lblFr]
-    if not tagActualiseTemps :
-        actualiseTempsAffichageDeparts()
-        #zoneAffichageDeparts.pack(side=TOP,fill=X)
-        #fr.pack(side=TOP,fill=X)
-    #else :
-        #zoneAffichageDeparts.forget()
-        #fr.forget()
-
-def actualiseTempsAffichageDeparts():
-    global listGroupementsCommences, lblDict, tagActualiseTemps
-    # tagActualiseTemps = True
-    for grp in lblDict.keys() :
-        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
-        #print("-"+nomCourse+"-", "est dans ?", Courses)
-        # SUPPRIME : s'il y a une erreur, la corriger et non pallier le problème !!! addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
-        #print(listCoursesEtChallenges())
-        tps = Courses[nomCourse].dureeFormatee()
-        #print("course",nomCourse,tps)
-        lblDict[grp][1].configure(text=tps)
-    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+##def actualiseTempsAffichageDeparts():
+##    global listGroupementsCommences, lblDict, tagActualiseTemps
+##    # tagActualiseTemps = True
+##    for grp in lblDict.keys() :
+##        #print("Recherche du groupement", grp)
+##        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=True).listeDesCourses[0]
+##        #print("-"+nomCourse+"-", "est dans ?", Courses)
+##        # SUPPRIME : s'il y a une erreur, la corriger et non pallier le problème !!! addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+##        #print(listCoursesEtChallenges())
+##        tps = Courses[nomCourse].dureeFormatee()
+##        #print("course",nomCourse,tps)
+##        lblDict[grp][1].configure(text=tps)
+##    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
         
 
 #### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
