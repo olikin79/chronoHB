@@ -351,7 +351,7 @@ class DictionnaireDeCoureurs(dict) :
                 del self[ancienNom]
                 # on change les dossards de tous les coureurs de cette course
                 for coureur in self[transcription[ancienNom]] :
-                    coureur.setDossard(c.getDossard()[:-1] + transcription[ancienNom])
+                    coureur.setDossard(coureur.getDossard()[:-1] + transcription[ancienNom])
                     coureur.setCourse(transcription[ancienNom]) # si la course est définie manuellement, on impose son nouveau nom.
         # INUTILE CAR FAIT CI-AVANT nettoyage des noms vides vides dans ce dictionnaire
 ##        for nom in self.cles() :
@@ -692,8 +692,8 @@ class Course():#persistent.Persistent):
         self.temps = 0
         self.depart = False
     def initNomGroupement(self, cat) :
-        print("categorie",cat) 
-        self.nomGroupement = groupementAPartirDUneCategorie(cat).nomStandard #ancien
+        print("initNomGroupement categorie demandée:",cat) 
+        self.nomGroupement = ancienGroupementAPartirDUneCategorie(cat).nomStandard
         return self.nomGroupement
     def setNomGroupement(self, nomDonne) :
         self.nomGroupement = str(nomDonne)
@@ -2973,7 +2973,7 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
 
 def ancienGroupementAPartirDUneCategorie(categorie):
     """ retourne un objet groupement à partir d'un nom de catégorie
-    Non optimisé. Cette version est maintenu pour permettre l'import d'anciennes sauvegardes
+    Non optimisé. Cette version est maintenue pour permettre l'import d'anciennes sauvegardes
     où les Courses n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     retour = None
@@ -4055,7 +4055,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##                    lettreCourse = course
 ##                    course = 
 ##                else :
-                lettreCourse = lettreCourseEnModeCoursesManuelles(course, avecCreation=False)
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
                 print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
 ##                nomStandard = estDansGroupementsEnModeManuel(course)
 ##                if not nomStandard :
@@ -4105,11 +4105,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 retour, d = [0,0,0,1], Coureurs.recuperer(dossard)
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
+            print("ajout de la course :")
             if CoursesManuelles : 
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
                 lettreCourse = addCourse(course) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
@@ -4140,18 +4142,18 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
 
 
-def lettreCourseEnModeCoursesManuelles(course, avecCreation=True) :
+def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
     """ retourne la lettre correspondant au nom d'une course en mode CoursesManuelles
         Si la course n'existe pas, la crée et retourne sa lettre."""
     trouve = False
     a = 1
     for g in Groupements :
         if g.nom == course :
-            trouve = True
+##            trouve = True
             break
         a += 1
-    if avecCreation and not trouve :
-        addCourse(course)
+##    if avecCreation and not trouve :
+##        addCourse(course)
     return chr(a+64)
 
 
@@ -4169,11 +4171,11 @@ def addCourse(course) :
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
     if CoursesManuelles :
-        lettreCourse = lettreCourseEnModeCoursesManuelles(course, avecCreation=False)
+        lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
 ##        nomStandard = estDansGroupementsEnModeManuel(course)
 ##        if not nomStandard :
 ##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-        #print("lettreCrouse:",lettreCourse,"Courses => ", Courses.keys())
+        print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
         if not lettreCourse in Courses :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
