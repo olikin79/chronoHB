@@ -34,7 +34,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -2281,11 +2281,13 @@ lblDict={}
 fr = Frame(zoneAffichageDeparts)#, relief=GROOVE, bd=2)
 Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
 
+zoneAffichageTV.pack(fill=X)
+
 def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     '''on impose l'ordre d'affichage des frames à droite'''
     #global listGroupementsCommences
     ZoneParametresTV.forget()
-    #zoneAffichageTV.forget()
+    zoneAffichageTV.forget()
     zoneAffichageErreurs.forget()
     zoneAffichageDeparts.forget()
     zoneTopDepartBienPlacee.forget()
@@ -2301,13 +2303,9 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
         #zoneTopDepart.pack(side=TOP,fill=X)
         fr.pack(side=TOP,fill=X)
         zoneAffichageDeparts.pack(side=TOP,fill=X)
-##    else :
-##        zoneAffichageDeparts.forget()
-##        #zoneTopDepart.forget()
-##        zoneTopDepartBienPlacee.forget()
-##        fr.forget()
-    # l'affichage TV paramétrable.
-    ZoneParametresTV.pack(side=TOP, fill=X)
+        # l'affichage TV paramétrable.
+        zoneAffichageTV.pack(fill=X)
+        ZoneParametresTV.pack(side=TOP, fill=X)
     # les erreurs en cours
     #print("erreurs en cours",erreursEnCours)
     if erreursEnCours :
@@ -2509,7 +2507,6 @@ def construireMenuAnnulDepart():
     L = listNomsGroupementsCommences()
     if L :
         for course in L :
-            #print("ajout du menu ", course)
             #annulDepart.add_command(label=course, command=partial(annulDepart,"3-F"))
             annulDepart.add_command(label=course, command=lambda c=course : annulUnDepart(c))
         editmenu.add_cascade(label="Annuler un départ", menu=annulDepart)
@@ -2871,28 +2868,28 @@ def effaceDonneesGUI ():
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
 
 
-def generateDossardsArrierePlan():
-    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
-        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
-        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
-    if reponse :
-        mon_thread = Thread(target=generateDossardsMessage)
-        mon_thread.start()
+##def generateDossardsArrierePlan():
+##    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue \
+##        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+##Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
+##    if reponse :
+##        mon_thread = Thread(target=generateDossardsMessage)
+##        mon_thread.start()
 
 def generateDossardsArrierePlanNG():
-    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue\n\
-        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
-        Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue \
+(en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessageNG)
         mon_thread.start()
 
-def generateDossardsMessage() :
-    generateDossards()
-    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier 'dossards' qui s'est ouvert dans l'explorateur (windows).")
-    path = os.getcwd()
-    #print('explorer /select,"' + path + os.sep +  'dossards"')
-    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
+##def generateDossardsMessage() :
+##    generateDossards()
+##    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier 'dossards' qui s'est ouvert dans l'explorateur (windows).")
+##    path = os.getcwd()
+##    #print('explorer /select,"' + path + os.sep +  'dossards"')
+##    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
 
 def generateDossardsMessageNG() :
     generateDossardsNG()
