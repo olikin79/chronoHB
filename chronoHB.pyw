@@ -3830,8 +3830,11 @@ def choixCMQRCodes():
       
 CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
 cbCMgenerer = IntVar()
-cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, text="Générer des QR-codes à part pour ajout sur des dossards existants.", variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
-cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ", largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
+cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, \
+                                      text="Générer des QR-codes à part pour ajout sur des dossards existants.", \
+                                      variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
+cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ",\
+                                           largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
 
 ### choix de génération de documents qui apparaissent pour tous les types de courses.
 def choixQRCodesListing():
