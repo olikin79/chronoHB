@@ -2118,17 +2118,6 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     with open(modeleDosssard, 'r') as f :
         modele = f.read()
     f.close()
-    ## utilisation du bon logo.
-    if os.path.exists("media/logo.png") :
-        logoPersonnalise = "media/logo.png"
-    elif os.path.exists("media/logo.jpg") :
-        logoPersonnalise = "media/logo.jpg"
-    else :
-        logoPersonnalise = "media/logo-HB.png"
-    if os.path.exists("media/logo-UNSS.png") :
-        logoUNSSPersonnalise = "media/logo-UNSS.png"
-    else :
-        logoUNSSPersonnalise = "media/logo-UNSS48.png"
     ## génération du code tex pour le(s) dossard(s)
     for coureur in listeDeCoureurs :
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
@@ -2146,6 +2135,18 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     return retour
     
 def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
+    # gestion des logos personnalisés
+    ## utilisation du bon logo.
+    if os.path.exists("media/logo.png") :
+        logoPersonnalise = "media/logo.png"
+    elif os.path.exists("media/logo.jpg") :
+        logoPersonnalise = "media/logo.jpg"
+    else :
+        logoPersonnalise = "media/logo-HB.png"
+    if os.path.exists("media/logo-UNSS.png") :
+        logoUNSSPersonnalise = "media/logo-UNSS.png"
+    else :
+        logoUNSSPersonnalise = "media/logo-UNSS48.png"
     # Création des chaines à afficher sous condition
     cat = "Catégorie : " + coureur.categorie(Parametres["CategorieDAge"])
     groupement = "Course : " + groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
