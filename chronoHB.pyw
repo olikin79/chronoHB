@@ -2493,10 +2493,11 @@ def actualiseTempsAffichageDeparts():
         
 def annulUnDepart(nomGroupement) :
     global annulDepart
-    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=False)
+    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=True)
     for course in groupement.listeDesCourses :
         Courses[course].reset()
     annulDepart.delete(groupement.nom)
+    rejouerToutesLesActionsMemorisees()#genereResultatsCoursesEtClasses(premiereExecution = True) 
     actualiseToutLAffichage()
     
 
@@ -2509,11 +2510,17 @@ def construireMenuAnnulDepart():
         True
         #print("pas de menu à effacer")
     annulDepart = Menu(editmenu, tearoff=0)
-    L = listNomsGroupementsCommences()
+    L = listNomsGroupementsCommences(nomStandard=False)
     if L :
-        for course in L :
+        Lstandard = listNomsGroupementsCommences(nomStandard=True)
+        i = 0
+        while i < len(L) :
+            course = Lstandard[i]
+            courseAffichee = L[i]
+        #for course in L :
             #annulDepart.add_command(label=course, command=partial(annulDepart,"3-F"))
-            annulDepart.add_command(label=course, command=lambda c=course : annulUnDepart(c))
+            annulDepart.add_command(label=courseAffichee, command=lambda c=course : annulUnDepart(c))
+            i += 1
         editmenu.add_cascade(label="Annuler un départ", menu=annulDepart)
         zoneTopDepart.menuActualise()
     # quand on annule un départ, il faut actualiser affichagedepart
