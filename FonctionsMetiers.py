@@ -1965,7 +1965,6 @@ def listNomsGroupementsNonCommences(nomStandard = True):
     return retour
 
 def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
-    print("liste des noms de groupements", listNomsGroupements)
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
@@ -1978,6 +1977,7 @@ def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
                 if sansSlashNiEspace :
                     nom = nom.replace(" ","").replace("/","-")
             retour.append(nom)
+    print("liste des noms de groupements", retour)
     return retour
 
 def listNomsGroupementsEtChallenges(nomStandard = False):
@@ -4116,12 +4116,12 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 addCourse(course)
-                print("Coureur actualisé", Coureurs.recuperer(dossard), nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
+                print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
                       commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
                       "Course manuelle:",course,")")
-                retour, d = [0,1,0,0], Coureurs.recuperer(dossard)
+                retour, d = [0,1,0,0], dossard
             else :
-                retour, d = [0,0,0,1], Coureurs.recuperer(dossard)
+                retour, d = [0,0,0,1], dossard
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
             print("ajout de la course :")
