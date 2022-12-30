@@ -3618,7 +3618,10 @@ class CoureurFrame(Frame) :
                 retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
                            etablissementNature = self.etabNatureC.get(), course=c)
-                message = "Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " portera le dossard " + doss + " (course " +c + ")." 
+                if retourInutile[1] :
+                    message ="Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " EXISTE DEJA.\nIl a été actualisé et porte le dossard " + doss + " (course " +c + ")." 
+                else :
+                    message = "Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " portera le dossard " + doss + " (course " +c + ")." 
                 reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
