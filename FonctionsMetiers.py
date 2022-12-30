@@ -1965,6 +1965,7 @@ def listNomsGroupementsNonCommences(nomStandard = True):
     return retour
 
 def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
+    print("liste des noms de groupements", listNomsGroupements)
     retour = []
     for groupement in Groupements :
         if groupement.listeDesCourses :
@@ -2131,21 +2132,9 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     ## génération du code tex pour le(s) dossard(s)
     for coureur in listeDeCoureurs :
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
-            cat = coureur.categorie(Parametres["CategorieDAge"])
-            groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
-            if cat != groupementNom :
-                groupement = "Course : " + groupementNom
-            else :
-                groupement = ""
-            if coureur.classe :
-                cl = coureur.classe #"Classe : " + coureur.classe
-            else :
-                cl = ""
-            chaineComplete = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
-                .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard)).replace("@classe@",cl).replace("@categorie@",cat)\
-                .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                .replace("@groupement@",groupementNom).replace("@etablissement@",coureur.etablissement)\
-                .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise)
+            print("Création du dossard de ", coureur.nom, coureur.dossard, "pour la course" , coureur.course)
+            groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
+            chaineComplete = replaceDansDossardEnFonctionDesParametres(modele, coureur)
             if completeFichierParCategorie :
                 groupementNomPourNomFichier = groupementNom.replace(" ","").replace("/","-")
                 TEXDIR = "dossards"+os.sep+"tex"+os.sep
@@ -2155,7 +2144,34 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
                 fileCat.close()
             retour += chaineComplete
     return retour
-
+    
+def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
+    # Création des chaines à afficher sous condition
+    cat = "Catégorie : " + coureur.categorie(Parametres["CategorieDAge"])
+    groupement = "Course : " + groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom #nomGroupementAPartirDUneCategorie(cat,nomStandard=False)
+    cl = "(" + coureur.classe + ")"
+    etab = "(" + coureur.etablissement + ")"
+    # A afficher dans tous les cas.
+    modele = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
+                .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard))\
+                .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
+                .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise)
+    if CategorieDAge == 0 : # cas du cross du collège : seuls les noms de classe sont importants
+        retour = modele.replace("@classe@",cl).replace("@categorie@","")\
+                       .replace("@groupement@","").replace("@etablissement@","")
+    elif CategorieDAge == 1 :
+        if CoursesManuelles : # cas de courses personnalisées : trail Randon
+            retour = modele.replace("@classe@","").replace("@categorie@","")\
+                       .replace("@groupement@",groupement).replace("@etablissement@","")
+        else : # cas de courses par catégorie de la FFA
+            retour = modele.replace("@classe@","").replace("@categorie@","")\
+                       .replace("@groupement@",groupement).replace("@etablissement@","")
+    else : # categorieDAge == 2 (cross UNSS)
+        retour = modele.replace("@classe@","").replace("@categorie@","")\
+                       .replace("@groupement@",groupement).replace("@etablissement@",etab)
+    return retour
+    
+    
 def generateDossardsNG() :
     print("Utilisation de generateDossardsNG 2ème génération")
     generateQRcodes() # génère autant de QR-codes que nécessaire
@@ -2181,6 +2197,7 @@ def generateDossardsNG() :
     listeCategories = listNomsGroupements(nomStandard=False,sansSlashNiEspace=True)
     listeCategories.append("0-tousLesDossards")
     for file  in listeCategories :
+        print("Création du fichier",file + ".pdf")
         with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
             f.write(entete + "\n\n")
         f.close()
@@ -2987,7 +3004,7 @@ def ancienGroupementAPartirDUneCategorie(categorie):
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     return retour
 
-def nomGroupementAPartirDUneCategorie(categorie):
+def nomGroupementAPartirDUneCategorie(categorie, nomStandard = True):
     """ retourne un str nom du groupement à partir d'un nom de catégorie"""
     return groupementAPartirDUneCategorie(categorie).nomStandard
     # try :
