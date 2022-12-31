@@ -514,7 +514,7 @@ class MonTableau(Frame):
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
     def maj (self, TableauGUI) :
-        print("tableauGUI", tableauGUI)
+        #print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -580,6 +580,23 @@ class MonTableau(Frame):
             nbreFileAttenteLabel.config(text="Il devrait y avoir " + str(nbCoureursFileAttente) + " coureur" + pluriel + " dans la file d'attente d'arrivée.")
         else :
             nbreFileAttenteLabel.config(text="Il ne devrait y avoir personne dans la file d'attente d'arrivée.")
+
+    def metsEnEvidenceErreurs(self, listeDesErreursEnCours, reinitialise = True) :
+        listeDesDossardsConcernees = []
+        for err in listeDesErreursEnCours :
+            listeDesDossardsConcernees.append(err.dossard)
+        #print("dossards concernés",listeDesDossardsConcernees)
+        indDansListeDesLignesConcernees = 0
+        noLigneDansTreeview = 1
+        for iid in self.treeview.get_children() :
+            #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
+            #print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
+            if self.treeview.item(iid)['values'][self.colonneDossard] in listeDesDossardsConcernees :
+                self.treeview.item(iid, tags="erreurs")
+                indDansListeDesLignesConcernees += 1
+            elif reinitialise :
+                self.treeview.item(iid, tags=())
+            noLigneDansTreeview += 1
 
     def setIncoherenceFutureACorriger(self,val):
         self.incoherenceFutureACorriger = val
@@ -2236,11 +2253,11 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-Pour retrouver rapidement les multiples passages, cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
+Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes oranges ou cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
 ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
 Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
  puis utiliser le bouton 'ajouter un dossard' pour remettre le passage n°1 en place.\n\
-La correction de ce cas rarissime n'a pas été implémentée simplement. De plus, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
+La correction de ce cas rarissime n'a pas été implémentée simplement. En effet, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
 Cela ne doit donc pas survenir !"
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     else :
@@ -2268,6 +2285,7 @@ def actualiseAffichageErreurs(listErreursEnCours):
         zoneAffichageErreurs.pack(side=TOP,fill=X)
     else :
         zoneAffichageErreurs.forget()
+    tableau.metsEnEvidenceErreurs(listErreursEnCours)
 
 
 
