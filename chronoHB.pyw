@@ -1038,6 +1038,7 @@ class EntryCourse(Frame):
 ##            else :
             self.nomCourse = ch
             updateNomGroupement(self.groupement.nomStandard,ch)
+            construireMenuAnnulDepart()            
             actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
@@ -1064,7 +1065,8 @@ class EntryCourse(Frame):
         self.lbl2.pack(side=LEFT)
         self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
-        self.actualiseEtat()
+        # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
+        #self.actualiseEtat()
         
     def formateValeur(self):
         self.entryNom.delete(0, END)
@@ -1088,11 +1090,11 @@ class EntryCourse(Frame):
         groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setDistance(newVal)
         self.distance = newVal
         
-    def actualiseEtat(self):
-        if Courses[self.groupement.listeDesCourses[0]].depart :
-            self.entryNom.configure(state="readonly")
-        else :
-            self.entryNom.configure(state="normal")
+##    def actualiseEtat(self):
+##        if Courses[self.groupement.listeDesCourses[0]].depart :
+##            self.entryNom.configure(state="readonly")
+##        else :
+##            self.entryNom.configure(state="normal")
 
 
 ##def updateDistancesGroupements() :
@@ -1181,16 +1183,17 @@ class EntryGroupement(Frame):
             #actualiserDistanceDesCourses()
             actualiseToutLAffichage()
         self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
-        self.actualiseEtat()
+        # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
+        # self.actualiseEtat()
         self.nomAffiche = self.course + "  : "
         self.lbl = Label(self, text=self.nomAffiche)
         self.lbl.pack(side=LEFT) 
         self.combobox.pack(side=LEFT)
-    def actualiseEtat(self):
-        if Courses[self.course].depart :
-            self.combobox.configure(state="disabled")
-        else :
-            self.combobox.configure(state="normal")
+##    def actualiseEtat(self):
+##        if Courses[self.course].depart :
+##            self.combobox.configure(state="disabled")
+##        else :
+##            self.combobox.configure(state="normal")
 
 
 
