@@ -8,22 +8,28 @@ et uniquement celles-ci.
 
 
 Autres bugs introduits suite à l'unification des branches cross UNSS et Trail Rieutort :
-- dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
+- on doit actualiser l'interface avec rejouerToutesLesActionsMemorisees() si on lance une course.
 
-- dans l'interface smartphone :
-	* on bloque l'interface si on tente d'affecter un dossard à un temps. La zone n'apparait plus et on ne peut plus cliquer sur les boutons.
-	* l'ajout de 1 ou 1A ou 1a devrait signaler un doublon !
+- dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
 
 
 
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
-- les paramètres ne sont pas mémorisés immédiatement (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
+- le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
+Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
+
+- les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
+(ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 
 - trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
 
 
+DEVELOPPEMENTS :
 MOYENNEMENT PRIORITAIRES :
+- Afficher les lignes du treeview en couleur pour mettre en évidence les erreurs signalées. Voir :
+https://stackoverflow.com/questions/62657893/ttk-treeview-set-cell-background-color-based-on-cell-value
+
 - quand on supprime un dossard en doublon, on devrait pouvoir supprimer exactement celui sélectionné. 
 Sur le téléphone, a-t-on moyen de supprimer celui sélectionné avec le numéro de transmission ?
 Sur l'ordinateur, on doit pouvoir sélectionner celui avec le temps le plus proche (lié au décalge horaire client serveur)?
@@ -34,17 +40,12 @@ Sur l'ordinateur, on doit pouvoir sélectionner celui avec le temps le plus proc
 	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
 	* si un coureur d'une course passe la ligne dans les 5 dernières minutes, on coche.
 	
-- augmenter la vitesse de défilement sur la TV (x1,5) par rapport aux vitesses actuelles.
-
 - sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
 c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
 puis agir si besoin puis revenir à l'écran classique.
 
 - un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
-
-- (confirmé) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
-correspondant. Cela provoque un bug... Redémarrer chronoHB résout le bug.
 
 - (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
@@ -59,7 +60,7 @@ MOYENNEMENT PRIORITAIRES Cross UNSS :
 - pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
 
 
-
+DEVELOPPEMENTS :
 NON PRIORITAIRES :
 - FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
 si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
