@@ -60,14 +60,14 @@ MOYENNEMENT PRIORITAIRES Cross UNSS :
 - pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
 
 
-DEVELOPPEMENTS :
-NON PRIORITAIRES :
-- FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
+DEVELOPPEMENTS NON PRIORITAIRES :
+- ESTHETIQUE :
+ si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
 si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
 si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
 ou un nouveau temps ajouté ensuite la font disparaître.
 
-
+- FONCTIONNELS :
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
 La class Coureur() permet déjà le cumul, je pense...
