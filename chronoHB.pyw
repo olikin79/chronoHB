@@ -169,6 +169,7 @@ class MonTableau(Frame):
         self.defilementAuto = defilementAuto
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
+        self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
             #print(i, enTete)
@@ -513,6 +514,7 @@ class MonTableau(Frame):
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
     def maj (self, TableauGUI) :
+        print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -545,6 +547,7 @@ class MonTableau(Frame):
                 #nbreFileAttenteLabel.pack()
                 if self.defilementAuto :      
                     #print("défilement automatique activé. AVANT :", self.vsb.get())
+                    self.treeview.yview_moveto('0.9999') # tentative pour pallier le problème du défilement tous les deux ajouts de lignes.
                     self.treeview.yview_moveto('1.0')
 
         #print(self.effectif , ligneTableauGUI)
