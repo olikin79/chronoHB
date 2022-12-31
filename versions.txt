@@ -1,7 +1,27 @@
+Travail du 31/12/22 :
+- correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
+- affichage interface : Vitesse de défilement conseillée entre 1 et 6 (et non plus 3)
+- Vitesse de défilement sur TV par défaut : 3
+- suite au travail de fond entrepris sur l'utilisation des noms standards en arrière plan, 
+on permet de modifier le nom d'une course même quand elle est lancée.
+- Le menu d'affichage sur la TV n'apparaît que s'il y a des courses (et non après un départ, bug introduit récemment).
+
+
+Travail du 30/12/22 :
+- nomGroupementAPartirDUneCategorie() utilise groupementAPartirDUneCategorie().nomStandard : plus cohérent pour l'ensemble du code.
+- correctif Courses.initNomGroupement() qui doit bien utiliser ancienGroupementAPartirDUneCategorie(cat).nomStandard au risque de créer une boucle.
+Cela permet de maintenir une compatibilité avec l'import d'anciennes sauvegardes.
+- fonctions obsolètes commentées. Esthétique de popup (génération de dossard)
+- refonte remplacement des champs lors de la création de dossards
+- dans ajout manuel de coureur, gestion du cas où l'on ajoute un  coureur déjà existant.
+- menu annul départ adapté aux noms standards + on regénère l'affichage si annulDepart sans attendre l'arrivée à venir d'un coureur.
+
+
 Travail du 28/12/22 :
 - largeur du champ "lieu" dans paramètres doublée
 - exemple modele 4 prototype en tex
 - logo.png (ou jpg) personnalisé pris en compte si placé dans ./media/
+
 
 Travail du 27/12/22 :
 - correction bug affichage choix supplémentaire pour les courses manuelles dans les paramètres.
