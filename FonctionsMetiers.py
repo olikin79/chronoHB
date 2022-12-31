@@ -369,11 +369,12 @@ class Erreur():
             self.dossard = elementConcerne
             self.temps = 0.0
         elif isinstance(elementConcerne,float) : # c'est un temps.
-            self.dossard = 0
+            self.dossard = "0A"
             self.temps = elementConcerne
         else :
-            self.dossard = 0
+            self.dossard = "0A"
             self.temps = 0.0
+
 
 class ErreursATraiter():
     """ Contient la liste des erreurs à traiter et des méthodes permettant de constater la "résolution" des erreurs précédemment constatées"""
@@ -1950,13 +1951,13 @@ def listNomsGroupementsCommences(nomStandard = True):
 def listNomsGroupementsNonCommences(nomStandard = True):
     #print("listNomsGroupementsNonCommences",Courses)
     retour = []
-    for groupement in Groupements :
-        print(groupement.nom, ":", groupement.listeDesCourses)
+    # for groupement in Groupements :
+        # print(groupement.nom, ":", groupement.listeDesCourses)
     for groupement in Groupements :
         if groupement.listeDesCourses :
-            print("groupement.listeDesCourses",groupement.listeDesCourses)
+            #print("groupement.listeDesCourses",groupement.listeDesCourses)
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
+            #print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
             if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
@@ -1977,7 +1978,7 @@ def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
                 if sansSlashNiEspace :
                     nom = nom.replace(" ","").replace("/","-")
             retour.append(nom)
-    print("liste des noms de groupements", retour)
+    #print("liste des noms de groupements", retour)
     return retour
 
 def listNomsGroupementsEtChallenges(nomStandard = False):
@@ -3904,7 +3905,6 @@ def affecteDossardArriveeTemps(tempsCoureur, dossard="0") :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsCoureur
     (utile uniquement pour les requêtes venant des smartphones.
     Appelé avec le temps seul, efface le dossard affecté. """
-    CodeRetour = Erreur(311)
     doss = str(dossard).upper()
     n = len(ArriveeTemps)
     message = "Temps coureur cherché : " + str(tempsCoureur) + " pour affectation du dossard " + doss + "."
