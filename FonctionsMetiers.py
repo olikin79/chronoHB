@@ -1172,7 +1172,7 @@ def chargerDonnees() :
         Parametres["cheminSauvegardeUSB"]="N:"
     cheminSauvegardeUSB=Parametres["cheminSauvegardeUSB"]
     if not "vitesseDefilement" in Parametres :
-        Parametres["vitesseDefilement"]= "1"
+        Parametres["vitesseDefilement"]= "3"
     vitesseDefilement=Parametres["vitesseDefilement"]
     if not "tempsPause" in Parametres :
         Parametres["tempsPause"]= "8"
