@@ -2307,6 +2307,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
         fr.pack(side=TOP,fill=X)
         zoneAffichageDeparts.pack(side=TOP,fill=X)
         # l'affichage TV paramétrable.
+    if listNomsGroupements() :
         zoneAffichageTV.pack(fill=X)
         ZoneParametresTV.pack(side=TOP, fill=X)
     # les erreurs en cours
