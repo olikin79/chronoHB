@@ -8,6 +8,7 @@ on permet de modifier le nom d'une course même quand elle est lancée.
 - tentative pour pallier le problème du défilement tous les deux ajouts de lignes. A tester.
 - lignes en erreurs en orange dans l'interface. Plus facile à repérer.
 - Correction nouveau dossard nul "0A" dans la class Erreur
+- on doit forcer tous les recalculs de temps de l'interface avec rejouerToutesLesActionsMemorisees() si on lance une course.
 
 
 Travail du 30/12/22 :

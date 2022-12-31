@@ -5,15 +5,6 @@ de vérifier que les critères de validation d'une saisie soient corrects et que
 et uniquement celles-ci.
 
 
-
-
-Autres bugs introduits suite à l'unification des branches cross UNSS et Trail Rieutort :
-- on doit actualiser l'interface avec rejouerToutesLesActionsMemorisees() si on lance une course.
-
-- dans l'affichage GUI, la zone case à cocher pour l'affichage TV devrait disparaître quand la base est vide.
-
-
-
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
 - le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
@@ -23,6 +14,7 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 
 - trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
+
 
 
 DEVELOPPEMENTS :

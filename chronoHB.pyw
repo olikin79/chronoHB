@@ -1439,6 +1439,7 @@ class TopDepartFrame(Frame) :
         #print("TOP DEPART pour :", listeCochee)
         topDepart(listeCochee)
         self.actualise()
+        rejouerToutesLesActionsMemorisees()
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
