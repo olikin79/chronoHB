@@ -2497,7 +2497,7 @@ def annulUnDepart(nomGroupement) :
     for course in groupement.listeDesCourses :
         Courses[course].reset()
     annulDepart.delete(groupement.nom)
-    rejouerToutesLesActionsMemorisees()#genereResultatsCoursesEtClasses(premiereExecution = True) 
+    rejouerToutesLesActionsMemorisees()
     actualiseToutLAffichage()
     
 
