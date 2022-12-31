@@ -5,6 +5,9 @@ Travail du 31/12/22 :
 - suite au travail de fond entrepris sur l'utilisation des noms standards en arrière plan, 
 on permet de modifier le nom d'une course même quand elle est lancée.
 - Le menu d'affichage sur la TV n'apparaît que s'il y a des courses (et non après un départ, bug introduit récemment).
+- tentative pour pallier le problème du défilement tous les deux ajouts de lignes. A tester.
+- lignes en erreurs en orange dans l'interface. Plus facile à repérer.
+- Correction nouveau dossard nul "0A" dans la class Erreur
 
 
 Travail du 30/12/22 :
