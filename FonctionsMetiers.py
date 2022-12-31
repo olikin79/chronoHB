@@ -4266,7 +4266,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         print(message)
         retour=Erreur(421,message,elementConcerne=doss)
     elif not Courses[Coureurs.recuperer(doss).course].depart :
-        message = "La course " + Coureurs.recuperer(doss).course + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
         print(message)
         retour=Erreur(431,message,elementConcerne=doss)
     ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
