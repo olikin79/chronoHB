@@ -15,6 +15,11 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 
 - trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
 
+- remplacer tous les .upper() sur des dossards par la fonction de formatage des dossards dédiée.
+
+- vérifier s'il y a d'autres http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del à corriger.
+Essayer d'éliminer tous les &dossardPrecedent=-1 qui représentent un risque de mauvaise suppression.
+
 
 
 DEVELOPPEMENTS :

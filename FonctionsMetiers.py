@@ -3237,15 +3237,15 @@ def dossardPrecedentDansArriveeDossards(dossard):
     retourne -1 si le dossard n'existe pas dans arriveeDossards"""
     if len(ArriveeDossards)==0:
         print("Pas de dossards arrivés.")
-        return -1
+        return "-1"
     try :
         n = ArriveeDossards.index(str(dossard).upper())
         if n == 0 :
-            return 0
+            return "0"
         else :
             return ArriveeDossards[n-1].upper()
     except:
-        return -1
+        return "-1"
 
 def dossardSuivantDansArriveeDossards(dossard):
     """ retourne le dossard suivant l'argument dans arriveeDossards
@@ -3253,15 +3253,15 @@ def dossardSuivantDansArriveeDossards(dossard):
     retourne -1 si le dossard n'existe pas dans arriveeDossards"""
     if len(ArriveeDossards)==0:
         print("Pas de dossards arrivés.")
-        return -1
+        return "-1"
     try :
         n = ArriveeDossards.index(str(dossard).upper())
         if n+1 == len(ArriveeDossards) :
-            return 0
+            return "0"
         else :
             return ArriveeDossards[n+1].upper()
     except:
-        return -1
+        return "-1"
 
 # def listCoureurs():
     # if len(Coureurs)==0:
@@ -4275,9 +4275,9 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
         #position = len(ArriveeDossards)
         ArriveeDossards.append(doss)
-        #print("Dossard arrivé :",doss)
+        print("Dossard arrivé :",doss)
     elif dossPrecedent == "0A" : # insère au début de liste
-        #print("insertion en début de liste d'arrivée")
+        print("insertion en début de liste d'arrivée")
         #position = 0
         ArriveeDossards.insert(0 , doss)
         Parametres["calculateAll"] = True
@@ -4286,6 +4286,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         # insère juste après le dossard dossardPrecedent , si on le trouve.
         try :
             n = ArriveeDossards.index(dossPrecedent)
+            print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
             #position = n+1
             ArriveeDossards.insert(n+1 , doss)
             Parametres["calculateAll"] = True

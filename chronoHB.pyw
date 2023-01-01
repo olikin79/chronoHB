@@ -1905,14 +1905,14 @@ def supprimerDossardAction() :
         
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
-    dossardSelectionne = tableau.getDossard()
+    dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossardSelectionne :
-        i = dossardPrecedentDansArriveeDossards(dossardSelectionne)
-        if i > 0 :
-            dossardPrecedent = str(i)
-            dossardSelectionne = str(dossardSelectionne)
-            print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",i)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=-1'
+        dossardEncoreAvant = dossardPrecedentDansArriveeDossards(dossardPrecedent)
+        if dossardPrecedent != "" :
+            #dossardPrecedent = str(i)
+            #dossardSelectionne = str(dossardSelectionne)
+            print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=' + dossardEncoreAvant
             print("requete :", requete)
             r = requests.get(requete)
             requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardPrecedent+'&dossardPrecedent='+dossardSelectionne
@@ -1920,7 +1920,7 @@ def avancerDossardAction() :
             r = requests.get(requete)
             regenereAffichageGUI()
         else :
-            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",i)
+            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",dossardEncoreAvant)
             reponse = showinfo("ERREUR","Impossible d'avancer le premier dossard.")
     avancerDossardButton.configure(state=NORMAL)
 
@@ -1928,14 +1928,14 @@ def avancerDossardAction() :
 
 def reculerDossardAction() :
     reculerDossardButton.configure(state=DISABLED)
-    dossardSelectionne = tableau.getDossard()
+    dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossardSelectionne :
-        i = dossardSuivantDansArriveeDossards(dossardSelectionne)
-        if i > 0 :
-            dossardSuivant = str(i)
-            dossardSelectionne = str(dossardSelectionne)
-            print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",i)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent=-1'
+        dossardSuivant = dossardSuivantDansArriveeDossards(dossardSelectionne)
+        if dossardSuivant != "0" or dossardSuivant != "-1" :
+            #dossardSuivant = str(i)
+            #dossardSelectionne = str(dossardSelectionne)
+            print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",dossardSuivant)
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardPrecedent
             print("requete :", requete)
             r = requests.get(requete)
             requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
