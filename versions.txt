@@ -4,6 +4,7 @@ Travail du 01/01/23 :
 - idem sur le smartphone via la 1.71 du 01/01/23
 - correctif pour avancer-reculer un dossard depuis l'interface GUI
 
+
 Travail du 31/12/22 :
 - correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
 - affichage interface : Vitesse de défilement conseillée entre 1 et 6 (et non plus 3)
