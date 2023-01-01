@@ -703,7 +703,27 @@ class MonTableau(Frame):
         if item_text == "" or item_text[5] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return ""
         else :
-            return item_text[5]
+            return item_text[self.colonneDossard]
+
+    def getDossardEtPredecesseur(self) :
+        item_text = ""
+        for item in self.treeview.selection():
+            itemSelect = item
+            item_text = self.treeview.item(item, "values")
+            # on ne garde que le dernier sélectionné si sélection multiple
+        if item_text == "" or item_text[self.colonneDossard] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
+            return "", ""
+        else :
+            # cas classique où une vraie sélection a eu lieu
+            dossSelect = item_text[self.colonneDossard]
+            itemPrecNum = int(itemSelect[1:]) -1
+            if itemPrecNum > 0 : #cas classique où le premier élément de la liste n'est pas sélectionné
+                itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
+                dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
+            else :
+                dossPrec = "0"
+            #print(dossSelect, dossPrec)
+            return dossSelect, dossPrec
 
 def ouvrirVideo(fichier) :
     print("Ouverture du fichier", fichier)
@@ -1868,10 +1888,10 @@ def ajouterDossardApresOKAction() :
 
 def supprimerDossardAction() :
     supprimerDossardButton.configure(state=DISABLED)
-    dossard = tableau.getDossard()
+    dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent=-1'
+        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
         print("requete :", requete)
         r = requests.get(requete)
         regenereAffichageGUI()

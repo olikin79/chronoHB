@@ -1690,7 +1690,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             if action == "add" :
                 retour = addArriveeDossard(dossard, dossardPrecedent)
             elif action =="del" :
-                retour = delArriveeDossard(dossard)
+                retour = delArriveeDossard(dossard, dossardPrecedent)
             else :
                 print("Action venant du smartphone incorrecte", ligne)
                 retour = Erreur(301)
@@ -4641,26 +4641,87 @@ def delCoureur(dossard):
         # else :
             # print("le dossard fourni n'existe pas :",dossard)
 
-def delArriveeDossard(dossard):
-##    PasDErreur = False
-    doss = formateDossardNG(dossard)
-    if not Parametres["CourseCommencee"] :
-        try :
-            Coureurs.recuperer(doss).setTemps(0)
-            #if doss != ArriveeDossards[-1] :
-            Parametres["calculateAll"] = True
-            #transaction.commit()
-            #DonneesAAfficher.reinit() # on regénère le tableau GUI
-            ArriveeDossards.remove(doss)
-            #calculeTousLesTemps()
-            retour = Erreur(0)
-            print("Dossard " + str(doss)  + " supprimé du passage sur la ligne d'arrivée.")
-        except :
-            message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
-            print(message)
-            retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
-##            PasDErreur = True
+def delArriveeDossard(dossard, dossardPrecedent="-1"):
+    """Nouvelle version de delArriveeDossard qui supprime dossard de ArriveeDossards. 
+    
+    Elle prend en compte l'argument dossardPrecedent qui peut valoir :
+        -1 si non spécifié. Auquel cas, supprime la première occurence de dossard dans la liste ArriveeDossards
+        0 s'il faut supprimer le premier dossard de ArriveeDossards
+        un dossard valide (comme "2A", "1B", etc... qui précéde alors le numéro à supprimer.
+        
+        Cette fonction ne supprime rien si le dossard n'est pas trouvé ou si son prédécesseur, si spécifié, n'est pas trouvé."""
+    #print("ArriveeDossards",ArriveeDossards)
+    retour = Erreur(441, "Erreur inconnue dans delArriveeDossard()")
+    if ArriveeDossards :
+        doss = formateDossardNG(dossard)
+        dossardPrec = formateDossardNG(dossardPrecedent)
+        if dossardPrecedent == "-1" : 
+            # l'ancienne version de chronoHB utilisait -1 pour indiquer qu'il n'y avait pas de prédécesseur.
+            # dans ce cas, on supprime la première occurence de dossard, si possible (ancienne version de delArriveeDossard finalement)
+            try :
+                Coureurs.recuperer(doss).setTemps(0)
+                Parametres["calculateAll"] = True
+                ArriveeDossards.remove(doss)
+                retour = Erreur(0)
+                print("Dossard " + str(doss)  + " supprimé du passage sur la ligne d'arrivée en tant que première occurence. Pas de dossard prédécesseur spécifié.")
+            except :
+                message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
+                print(message)
+                retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
+        elif dossardPrecedent == "0" : # le dossard à supprimer est le premier de la liste, normalement.
+            if ArriveeDossards[0] == doss :
+                # on supprime le premier élément de la liste.
+                print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                ArriveeDossards.pop(0)
+                retour = Erreur(0)
+            else :
+                message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
+                print(message)
+                retour = Erreur(441, doss, message)
+        elif len(dossardPrecedent) > 1 : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
+        # Le dossard prédécesseur sera forcément spécifié pour ne pas supprimer n'importe lequel !
+            i = 1
+            pasTrouve = True
+            while i < len(ArriveeDossards) and pasTrouve: 
+                #print(ArriveeDossards[i]," == ",doss," and ",ArriveeDossards[i-1]," == ",dossardPrec)
+                if ArriveeDossards[i] == doss and ArriveeDossards[i-1] == dossardPrec :
+                    # suppression de l'élément i de la liste.
+                    print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                    ArriveeDossards.pop(i)
+                    pasTrouve = False
+                i += 1
+            if pasTrouve :
+                message = "Il n'y a aucun dossard " + doss + " de la liste ArriveeDossards précédé par " + dossardPrec + "."
+                print(message)
+                retour = Erreur(441, doss, message)
+            else :
+                retour = Erreur(0)
+        else :
+            print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
+    else :
+        print("ArriveeDossards est vide. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     return retour
+    
+# def delArriveeDossard(dossard):
+# ##    PasDErreur = False
+    # doss = formateDossardNG(dossard)
+    # if not Parametres["CourseCommencee"] :
+        # try :
+            # Coureurs.recuperer(doss).setTemps(0)
+            # #if doss != ArriveeDossards[-1] :
+            # Parametres["calculateAll"] = True
+            # #transaction.commit()
+            # #DonneesAAfficher.reinit() # on regénère le tableau GUI
+            # ArriveeDossards.remove(doss)
+            # #calculeTousLesTemps()
+            # retour = Erreur(0)
+            # print("Dossard " + str(doss)  + " supprimé du passage sur la ligne d'arrivée.")
+        # except :
+            # message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
+            # print(message)
+            # retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
+# ##            PasDErreur = True
+    # return retour
 
 def delArriveeDossards():
 ##    if not Parametres["CourseCommencee"] :
