@@ -170,6 +170,7 @@ class MonTableau(Frame):
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
+        self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
             #print(i, enTete)
@@ -586,17 +587,19 @@ class MonTableau(Frame):
         for err in listeDesErreursEnCours :
             listeDesDossardsConcernees.append(err.dossard)
         #print("dossards concernés",listeDesDossardsConcernees)
-        indDansListeDesLignesConcernees = 0
-        noLigneDansTreeview = 1
+        #indDansListeDesLignesConcernees = 0
+        #noLigneDansTreeview = 1
         for iid in self.treeview.get_children() :
             #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
             #print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
             if self.treeview.item(iid)['values'][self.colonneDossard] in listeDesDossardsConcernees :
                 self.treeview.item(iid, tags="erreurs")
-                indDansListeDesLignesConcernees += 1
+                #indDansListeDesLignesConcernees += 1
+            elif Coureurs.recuperer(self.treeview.item(iid)['values'][self.colonneDossard]).rang == 1 :
+                self.treeview.item(iid, tags="premiers")
             elif reinitialise :
                 self.treeview.item(iid, tags=())
-            noLigneDansTreeview += 1
+            #noLigneDansTreeview += 1
 
     def setIncoherenceFutureACorriger(self,val):
         self.incoherenceFutureACorriger = val

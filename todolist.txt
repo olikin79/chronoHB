@@ -19,9 +19,6 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 
 DEVELOPPEMENTS :
 MOYENNEMENT PRIORITAIRES :
-- Afficher les lignes du treeview en couleur pour mettre en évidence les erreurs signalées. Voir :
-https://stackoverflow.com/questions/62657893/ttk-treeview-set-cell-background-color-based-on-cell-value
-
 - quand on supprime un dossard en doublon, on devrait pouvoir supprimer exactement celui sélectionné. 
 Sur le téléphone, a-t-on moyen de supprimer celui sélectionné avec le numéro de transmission ?
 Sur l'ordinateur, on doit pouvoir sélectionner celui avec le temps le plus proche (lié au décalge horaire client serveur)?

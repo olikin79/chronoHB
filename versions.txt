@@ -1,3 +1,7 @@
+Travail du 01/01/23 :
+- les premiers d'une course apparaissent surlignés de jaune s'ils ne sont pas en erreur.
+
+
 Travail du 31/12/22 :
 - correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
 - affichage interface : Vitesse de défilement conseillée entre 1 et 6 (et non plus 3)
