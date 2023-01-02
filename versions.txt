@@ -3,7 +3,7 @@ Travail du 01/01/23 :
 - quand on supprime un dossard en doublon depuis l'interface GUI, cela ne supprime plus la première occurrence mais bien celle sélectionnée.
 - idem sur le smartphone via la 1.71 du 01/01/23
 - correctif pour avancer-reculer un dossard depuis l'interface GUI
-
+- documentation mise à jour en version 1.7 finalisée.
 
 Travail du 31/12/22 :
 - correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
