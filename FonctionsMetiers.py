@@ -25,7 +25,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 version = "1.7"
 
