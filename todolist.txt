@@ -18,12 +18,6 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 - remplacer tous les .upper() sur des dossards par la fonction de formatage des dossards dédiée.
 
 
-Documentation :
-- capture d'écran p 20 à refaire avec des noms inventés.
-- captures d'écran avec du orange p 21
-- boutons vidéos ont été déplacés p 22
-- 
-
 
 
 DEVELOPPEMENTS :
