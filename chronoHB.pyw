@@ -2277,12 +2277,12 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes oranges ou cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
-ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
-Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
- puis utiliser le bouton 'ajouter un dossard' pour remettre le passage n°1 en place.\n\
-La correction de ce cas rarissime n'a pas été implémentée simplement. En effet, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
-Cela ne doit donc pas survenir !"
+Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en orange ou cliquer sur l'en-tête de colonne 'Dossard'\
+afin de trier le tableau.\n\n\
+Cela provient d'une manipulation volontaire de l'opérateur sur ordinateur (ajout manuel) ou d'un relai de smartphones.\n\
+En effet, un smartphone ne peut pas scanner un même dossard deux fois. Cela provoquerait une erreur.\n\
+Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
+la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
