@@ -4046,15 +4046,16 @@ def MAJChronoHB():
         with open("maj/majNew.tag", "w") as f:
             f.write("mise à jour en cours")
         print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
+        relancer()
     except :
         print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+        showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
     # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
 ##    # importe les nouvelles fonctions du fichier
 ##    importlib.reload(maj)
 ##    # lance un script prédéfini
 ##    reboot = majScript()
     # relance le programme avec un flag qui provoquera l'exécution de la mise à jour.
-    relancer()
 ##    # relance l'ordinateur à la fin de l'exécution si imposé.
 ##    if reboot :
 ##        relancer()
