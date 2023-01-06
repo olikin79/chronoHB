@@ -22,9 +22,7 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 
 DEVELOPPEMENTS :
 MOYENNEMENT PRIORITAIRES :
-- quand on supprime un dossard en doublon, on devrait pouvoir supprimer exactement celui sélectionné. 
-Sur le téléphone, a-t-on moyen de supprimer celui sélectionné avec le numéro de transmission ?
-Sur l'ordinateur, on doit pouvoir sélectionner celui avec le temps le plus proche (lié au décalge horaire client serveur)?
+- moyen de déploiement de mises à jour de chronoHB sur des postes déjà déployés.
 
 - rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
 
