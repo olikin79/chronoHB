@@ -1,0 +1,34 @@
+
+\ifthenelse{\equal{@lettreCourse@}{A}}
+	{\AddToShipoutPicture*{\BackgroundA}}
+	{\AddToShipoutPicture*{\BackgroundB}}
+
+
+
+\begin{center}
+	\color{white}
+\resizebox{!}{40pt}{{\foekfamily{@intituleCross@}}}\\
+\medskip
+\resizebox{!}{40pt}{{\foekfamily{@lieu@}}}
+\end{center}
+
+\bigskip
+
+\begin{minipage}[bottom]{0.30\textwidth}
+	\begin{center}
+		\includegraphics[width=\textwidth]{../../media/traileurs-randon-logo-original.png}
+	\end{center}
+\end{minipage}\hfill
+\begin{minipage}[bottom]{0.35\textwidth}
+	\begin{center}
+		\color{white} \resizebox{!}{80pt}{@dossard@}
+	\end{center}
+\end{minipage}\hfill
+\begin{minipage}[bottom]{0.30\textwidth}
+	\includegraphics[width=\textwidth]{../QRcodes/@qrcode@.pdf}
+\end{minipage}
+
+
+\newpage
+
+

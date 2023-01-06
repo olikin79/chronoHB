@@ -2180,7 +2180,7 @@ def generateDossardsNG() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     global CoureursParClasse
-    enTetePersonnalise = "./modeles/" + dossardModele[:-4] + "-en-tete.tex"
+    enTetePersonnalise = "./modeles/en-tete" + dossardModele[7:-4] + ".tex"
     print("Recherche d'un en-tête personnalisé :", enTetePersonnalise)
     if os.path.exists(enTetePersonnalise) :
         with open(enTetePersonnalise, 'r',encoding="utf-8") as f :
