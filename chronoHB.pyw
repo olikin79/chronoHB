@@ -4063,7 +4063,8 @@ def MAJChronoHB():
 # exécution éventuelle de la mise à jour programmée.
 if os.path.exists("maj/majNew.tag") :
     os.remove("maj/majNew.tag")
-    reboot = majScript()
+    reboot, message = majScript()
+    showinfo("MISE A JOUR",message)
     if reboot :
         relancer()
     
