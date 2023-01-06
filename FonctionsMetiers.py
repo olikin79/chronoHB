@@ -2157,7 +2157,7 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
     modele = modele.replace("@nom@",coureur.nom.upper()).replace("@prenom@",coureur.prenom)\
                 .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard))\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise)
+                .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise).replace("@lettreCourse@",coureur.course)
     if CategorieDAge == 0 : # cas du cross du collège : seuls les noms de classe sont importants
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
                        .replace("@groupement@","").replace("@etablissement@","")
@@ -2180,9 +2180,16 @@ def generateDossardsNG() :
     """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     global CoureursParClasse
-    with open("./modeles/dossard-en-tete.tex", 'r',encoding="utf-8") as f :
-        entete = f.read()
-    f.close()
+    enTetePersonnalise = "./modeles/" + dossardModele[:-4] + "-en-tete.tex"
+    print("Recherche d'un en-tête personnalisé :", enTetePersonnalise)
+    if os.path.exists(enTetePersonnalise) :
+        with open(enTetePersonnalise, 'r',encoding="utf-8") as f :
+            entete = f.read()
+        f.close()
+    else :
+        with open("./modeles/dossard-en-tete.tex", 'r',encoding="utf-8") as f :
+            entete = f.read()
+        f.close()
     with open("./modeles/listing-en-tete.tex", 'r',encoding="utf-8") as f :
         enteteL = f.read()
     f.close()
