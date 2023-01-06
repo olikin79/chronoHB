@@ -1,9 +1,16 @@
+Travail du 06/01/23 :
+- ajout d'un menu "mise à jour" dans "aide".
+- ajout du téléchargement d'un script de mise à jour et de son lancement au prochain redémarrage qui suit le téléchargement.
+
+
+
 Travail du 01/01/23 :
 - les premiers d'une course apparaissent surlignés de jaune s'ils ne sont pas en erreur.
 - quand on supprime un dossard en doublon depuis l'interface GUI, cela ne supprime plus la première occurrence mais bien celle sélectionnée.
 - idem sur le smartphone via la 1.71 du 01/01/23
 - correctif pour avancer-reculer un dossard depuis l'interface GUI
 - documentation mise à jour en version 1.7 finalisée.
+
 
 Travail du 31/12/22 :
 - correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
