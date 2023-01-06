@@ -24,6 +24,16 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
+# pour les MAJ
+# superflu from tqdm import tqdm
+import requests,importlib
+# bibliothèque personnelle qui sera téléchargée pour mise à jour.
+sys.path.append('maj')
+#importlib.import_module('maj')
+from maj import *
+#import git
+
+
 version="1.7"
 
 LOGDIR="logs"
@@ -4023,6 +4033,47 @@ def exportCourse():
     else :
         reponse = showinfo("ATTENTION","Pas de sauvegarde effectuée. Sélectionner un dossier pour archivage de la course.")
 
+def MAJChronoHB():
+    # télécharge un script de MAJ depuis une URL fixe
+    try :
+        creerDir("maj")
+        print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
+        url = "http://mathlacroix.free.fr/chronoHB/maj.py"
+        response = requests.get(url, stream=True)
+        with open("maj/maj.py", "wb") as handle:
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+        with open("maj/majNew.tag", "w") as f:
+            f.write("mise à jour en cours")
+        print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
+    except :
+        print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+    # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
+##    # importe les nouvelles fonctions du fichier
+##    importlib.reload(maj)
+##    # lance un script prédéfini
+##    reboot = majScript()
+    # relance le programme avec un flag qui provoquera l'exécution de la mise à jour.
+    relancer()
+##    # relance l'ordinateur à la fin de l'exécution si imposé.
+##    if reboot :
+##        relancer()
+
+# exécution éventuelle de la mise à jour programmée.
+if os.path.exists("maj/majNew.tag") :
+    os.remove("maj/majNew.tag")
+    reboot = majScript()
+    if reboot :
+        relancer()
+    
+
+def relancer():
+##    sys.stdout.flush()
+##    print(sys.argv[0], sys.argv)
+##    os.execv(sys.argv[0],sys.argv)
+    root.destroy()
+    os.startfile("chronoHB.pyw")
+
 
 ####################### MENUS ################################
 
@@ -4052,6 +4103,7 @@ menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 # help menu
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Documentation", command=documentation)
+helpmenu.add_command(label="Mise à jour", command=MAJChronoHB)
 helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 
