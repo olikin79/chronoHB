@@ -114,7 +114,7 @@ function changeContenus(i) {
 					//txt += "Temps défilement : " + temps + " s<br>";
 					//document.getElementById("demo").innerHTML = txt;
 					var style = document.createElement("style");
-					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 48% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
+					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 48% {left: 0px; top: -"+difference+"px;} 60% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
 			  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
 					 //WebKit Hack
 					 style.appendChild(document.createTextNode(""));
