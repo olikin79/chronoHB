@@ -8,7 +8,9 @@ et uniquement celles-ci.
 Retour suite au trail de Randon :
 - Dans le tableau imprimé, il faudrait ajouter une colonne "sexe" pour les courses par catégories.
 - Dans l'affichage du rang sur la TV, cela ne tient pas compte du sexe. Il faudrait séparer le classement entre les filles et les garçons.
+- élargir la colonne rang sur les pdf et resserrer celle de la vitesse (pas de VMA lors d'un trail)
 - quand j'ai avancé un dossard en mode DEBUG=False, cela n'a pas fonctionné et cela a fonctionné en mode DEBUG=True sans pythonw. A creuser.
+- faire des pauses plus longtemps en bas du tableau d'affichage TV plutôt que sur les premiers.
 
 
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
