@@ -2220,6 +2220,7 @@ def generateDossardsNG() :
             f.write("\n\\end{document}")
         f.close()
     ### création d'un listing sous forme de tableau
+    print("Générer listing tableau",genererListing)
     if genererListing :
         with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
             fL.write(enteteL + "\n\n")
@@ -2232,6 +2233,7 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     ### création du listing de QR-codes.
+    print("Générer listing tableau",genererListingQRcodes)
     if genererListingQRcodes :
         with open(TEXDIR+"0-listing-QRCodes.tex", 'w',encoding="utf-8") as fL :
             fL.write(enteteL + "\n\n")
