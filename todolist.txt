@@ -22,6 +22,7 @@ Améliorer le fichiers LOG en mettant mieux en évidence les erreurs par rapport
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
+- un dossard 1AA saisi sur le smartphone provoque un bug.
 
 
 A tester suite trail Rieutort :
