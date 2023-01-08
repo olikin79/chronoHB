@@ -413,8 +413,8 @@ class Coureur():#persistent.Persistent):
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence=""):
         self.setDossard(dossard)
-        self.nom = formateNomPrenom(nom)
-        self.prenom = formateNomPrenom(prenom)
+        self.nom = self.formateNomPrenom(nom)
+        self.prenom = self.formateNomPrenom(prenom)
         self.setSexe(sexe)
         self.classe = str(classe)
         self.naissance = ""
@@ -444,7 +444,7 @@ class Coureur():#persistent.Persistent):
         chaineRetour = ""
         i = 0
         while i < len(chaine):
-            if i = 0 or chaine[i - 1] in [" ","-"] :
+            if i == 0 or chaine[i - 1] in [" ","-"] :
                 chaineRetour += chaine[i].upper()
             else :
                 chaineRetour += chaine[i].lower()
@@ -3482,7 +3482,7 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
             retour = None
     return retour
 
-def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge) :
+def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, sexe) :
     # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
     for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
         # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
@@ -3496,9 +3496,15 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
         ## sinon, ne rien faire.
         if present :
             for couple in L :
-                couple[1] += 1
+                if sexe == "F" :
+                    couple[2] += 1
+                else :
+                    couple[1] += 1
                 if catFFA == couple[0] :
-                    rangDansCategorie = couple[1]
+                    if sexe == "F" :
+                        rangDansCategorie = couple[2]
+                    else :
+                        rangDansCategorie = couple[1]
                     break
             # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
             break
@@ -3592,8 +3598,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #keyList = []
     for nom in ResultatsGroupements :
         # on considère que la meilleure catégorie est SENIOR.
-        L1 = [ ["SE",0 ], ["ES",0 ], ["JU",0 ], ["CA",0 ], ["MI",0 ], ["BE",0 ], ["PO",0 ], ["EA",0 ], ["BB",0 ]]
-        L2 = [["SE",0 ] , ['M0', 0], ['M1', 0], ['M2', 0], ['M3', 0], ['M4', 0], ['M5', 0], ['M6', 0], ['M7', 0], ['M8', 0], ['M9', 0], ['M10', 0]]
+        L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
+        L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
         DecompteParCategoriesDAge = [L1, L2]
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
@@ -3616,7 +3622,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                     coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
                 if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
                     catFFA = coureur.categorieFFA()
-                    coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge))
+                    coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
@@ -5191,15 +5197,19 @@ def creerFichierCategories(groupement, entete):
 
 def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
-    tableau = """
-\\begin{center}
-\\begin{longtable}{| p{7.7cm} | p{2.5cm} | p{3.2cm} | p{4.3cm} |}
-%\\begin{longtable}{| c | c | c | c |}
-\\hline
- {} \\hfill \\textbf{Nom Prénom } \\hfill {} & {}\\hfill \\textbf{Rang} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\
-\\hline
-\\endhead
-"""
+    colonneSuppl = ""
+    titreSuppl = ""
+    if CategorieDAge == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+        colonneSuppl = "p{1.2cm} |"
+        titreSuppl = "{} \\hfill \\textbf{Sexe} \\hfill {} &"
+    tableau = "\\begin{center}\n\
+\\begin{longtable}{| p{6cm} | " + colonneSuppl + " p{3cm} | p{3.2cm} | p{4.3cm} |}\
+\\hline\
+ {} \\hfill \\textbf{Nom Prénom } \\hfill {} & " + titreSuppl + " {}\\hfill \\textbf{Rang} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & \
+ {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\  \
+\\hline \
+\\endhead \
+"
     ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
@@ -5265,12 +5275,6 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     coureur = Coureurs.recuperer(dossard)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
-        if coureur.nom == "DORCE" :
-            print("temps de dorce", coureur.temps, "formaté", contenuTemps)
-##        if coureur.VMA and coureur.VMA > coureur.vitesse :
-##            supplVMA = " (" + str(int(coureur.vitesse/coureur.VMA*100)) + "\% VMA)"
-##        else :
-##            supplVMA = ""
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex()# + supplVMA
         if rangCourse :
             contenuRang = str(coureur.rangCat)
@@ -5313,9 +5317,14 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
         contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
     else :
         contenuRangCat = ""
-    ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} &  {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
-            + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
-            + " \\hfill {} \\\\\n"
+    contenuSuppl = ""
+    if CategorieDAge == 1 :
+        contenuSuppl = "{} \\hfill " + coureur.sexe +" \\hfill {} & "
+    ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} & " \
+    + contenuSuppl \
+    + " {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
+    + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
+    + " \\hfill {} \\\\\n"
     if CategorieDAge == 2 : #cas du cross UNSS
         ligne += "\n {} \\hfill ("+ coureur.etablissement + ")"   + " \\hfill {} &  & & \\\\\n"
     ligne += "\hline\n"

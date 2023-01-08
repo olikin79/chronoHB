@@ -1,5 +1,7 @@
 Travail du 08/01/23 :
 - meilleur formatage des noms et prénoms : une majuscule imposée à chaque initiale. Des minuscules pour tous les autres caractères.
+- Dans la création du rang par catégorie sur la TV, cela ne tenait pas compte du sexe. J'ai séparé le rang des filles et des garçons pour chaque catégorie d'âge.
+- ajout de la colonne "sexe" dans les tableaux de résultats pour les courses non scolaires (CategorieDAge = 1)
 
 
 Travail du 06/01/23 :
