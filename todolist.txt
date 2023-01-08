@@ -6,11 +6,24 @@ et uniquement celles-ci.
 
 
 Retour suite au trail de Randon :
+- (FAIT-à tester) traitement des majuscules dans les noms-prénoms composés.
 - Dans le tableau imprimé, il faudrait ajouter une colonne "sexe" pour les courses par catégories.
 - Dans l'affichage du rang sur la TV, cela ne tient pas compte du sexe. Il faudrait séparer le classement entre les filles et les garçons.
 - élargir la colonne rang sur les pdf et resserrer celle de la vitesse (pas de VMA lors d'un trail)
 - quand j'ai avancé un dossard en mode DEBUG=False, cela n'a pas fonctionné et cela a fonctionné en mode DEBUG=True sans pythonw. A creuser.
 - faire des pauses plus longtemps en bas du tableau d'affichage TV plutôt que sur les premiers.
+- sur la TV, partir des derniers arrivés (en faisant une pause dessus) puis remonter et revenir. Ce serait bcp mieux!
+- permettre la suppression d'un coureur depuis le menu modification (un bouton supplémentaire). 
+Gérer la combobox pour les coureurs disparus : une fonction de test "si coureur existe, on affiche tous les champs, sinon on affiche "vient d'être supprimé".
+- Permettre l'import du champ dossard à l'import. 
+Si le dossard n'est pas valide (course n'existe pas ou dossard déjà pris par un autre nom-prénom), ne pas importer le coureur du coup.
+- Créer une solution via google forms d'inscription autonome
+- dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
+
+
+A tester suite trail Rieutort :
+- plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
+
 
 
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
