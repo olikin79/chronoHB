@@ -19,6 +19,9 @@ Si le dossard n'est pas valide (course n'existe pas ou dossard déjà pris par u
 Améliorer le fichiers LOG en mettant mieux en évidence les erreurs par rapport aux imports réussis.
 - (FAIT) Créer une solution via google forms d'inscription autonome
 - dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
+- voir pourquoi la vitesse de défilement n'est pas uniforme : 
+pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
+A creuser pour obtenir une vitesse uniforme.
 
 
 A tester suite trail Rieutort :
