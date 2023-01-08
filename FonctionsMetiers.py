@@ -413,11 +413,8 @@ class Coureur():#persistent.Persistent):
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
                  commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence=""):
         self.setDossard(dossard)
-        self.nom=str(nom).upper()
-        if len(prenom)>=2 :
-            self.prenom = str(prenom)[0].upper()+ str(prenom)[1:].lower()
-        else :
-            self.prenom = str(prenom).upper()
+        self.nom = formateNomPrenom(nom)
+        self.prenom = formateNomPrenom(prenom)
         self.setSexe(sexe)
         self.classe = str(classe)
         self.naissance = ""
@@ -442,7 +439,17 @@ class Coureur():#persistent.Persistent):
         self.__private_categorie = None
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
         self.actualiseCategorie()
-        
+    
+    def formateNomPrenom(self, chaine) :
+        chaineRetour = ""
+        i = 0
+        while i < len(chaine):
+            if i = 0 or chaine[i - 1] in [" ","-"] :
+                chaineRetour += chaine[i].upper()
+            else :
+                chaineRetour += chaine[i].lower()
+            i += 1
+        return chaineRetour
         
     def actualiseCategorie(self) :
         self.__private_categorie = None
