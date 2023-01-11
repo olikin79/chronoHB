@@ -440,6 +440,10 @@ class Coureur():#persistent.Persistent):
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
         self.actualiseCategorie()
     
+    def reformateNomPrenom(self) :
+        self.nom = self.formateNomPrenom(self.nom)
+        self.prenom = self.formateNomPrenom(self.prenom)
+    
     def formateNomPrenom(self, chaine) :
         chaineRetour = ""
         i = 0
@@ -1379,7 +1383,7 @@ def exportXLSX():
                             'Rang', 'Temps (en s)', 'Temps (HMS)',\
                             'Vitesse (en km/h)', 'Pourcentage de VMA']
     exportProprietesOrdonnees = ['coureur.dossard', 'coureur.nom', 'coureur.prenom', 'coureur.sexe', 'coureur.naissance', 'coureur.categorieFFA()',\
-                                 'coureur.course if CategorieDAge else coureur.classe', 'coureur.VMA', '"oui" if coureur.absent else ""', '"oui" if coureur.dispense else ""',\
+                                 'groupementAPartirDeSonNom(coureur.course, nomStandard=True).nom if CategorieDAge else coureur.classe', 'coureur.VMA', '"oui" if coureur.absent else ""', '"oui" if coureur.dispense else ""',\
                                  'coureur.rang if coureur.rang else "-"','round(coureur.temps,2)', 'coureur.tempsHMS()',\
                                  'round(coureur.vitesse,1) if coureur.vitesse else "-"','coureur.pourcentageVMA()']
     if CategorieDAge == 2 : # cross UNSS, champs supplémentaires

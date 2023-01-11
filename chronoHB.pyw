@@ -60,7 +60,9 @@ from functools import partial
 
 # from PIL import ImageTk,Image 
 
-
+### temporaire pour un retraitement des données d'un trail où les noms n'étaient pas corrects. Corrigé pour l'avenir.
+for c in Coureurs.liste() :
+    c.reFormateNomPrenom()
 
 
 ##class Logger(object):

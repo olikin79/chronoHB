@@ -1,5 +1,6 @@
 Travail du 11/01/23 :
 - défilement uniquement du haut vers le bas + ajout d'une pause plus longue sur les derniers arrivés.
+- dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
 
 
 Travail du 08/01/23 :

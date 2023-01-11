@@ -10,15 +10,12 @@ Retour suite au trail de Randon :
 - (FAIT et TESTE pour toutes les courses non scolaires) Dans le tableau imprimé, il faudrait ajouter une colonne "sexe" pour les courses par catégories.
 - (FAIT et TESTE) élargir la colonne rang sur les pdf et resserrer celle de la vitesse (pas de VMA lors d'un trail)
 - quand j'ai avancé un dossard en mode DEBUG=False, cela n'a pas fonctionné et cela a fonctionné en mode DEBUG=True sans pythonw. A creuser.
-- (FAIT) faire des pauses plus longtemps en bas du tableau d'affichage TV plutôt que sur les premiers.
-- sur la TV, partir des derniers arrivés (en faisant une pause dessus) puis remonter et revenir. Ce serait bcp mieux!
 - permettre la suppression d'un coureur depuis le menu modification (un bouton supplémentaire). 
 Gérer la combobox pour les coureurs disparus : une fonction de test "si coureur existe, on affiche tous les champs, sinon on affiche "vient d'être supprimé".
 - Permettre l'import du champ dossard à l'import. 
 Si le dossard n'est pas valide (course n'existe pas ou dossard déjà pris par un autre nom-prénom), ne pas importer le coureur du coup.
 Améliorer le fichiers LOG en mettant mieux en évidence les erreurs par rapport aux imports réussis.
 - (FAIT) Créer une solution via google forms d'inscription autonome
-- dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
