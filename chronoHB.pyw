@@ -62,7 +62,8 @@ from functools import partial
 
 ### temporaire pour un retraitement des données d'un trail où les noms n'étaient pas corrects. Corrigé pour l'avenir.
 for c in Coureurs.liste() :
-    c.reFormateNomPrenom()
+    print("coureur retraité",c.nom)
+    c.reformateNomPrenom()
 
 
 ##class Logger(object):
