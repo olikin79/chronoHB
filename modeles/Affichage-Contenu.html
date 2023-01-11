@@ -114,13 +114,15 @@ function changeContenus(i) {
 					//txt += "Temps défilement : " + temps + " s<br>";
 					//document.getElementById("demo").innerHTML = txt;
 					var style = document.createElement("style");
-					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 48% {left: 0px; top: -"+difference+"px;} 60% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
-			  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
+					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 100% {left: 0px; top: -"+difference+"px;}}" +
+					".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
 					 //WebKit Hack
 					 style.appendChild(document.createTextNode(""));
 					 // Add the <style> element to the page
 					 document.head.appendChild(style);		
-					var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
+					var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages*2.5)*1000+ 2000, i);
+					// le pauseEntreDeuxPages est multiplié par 3 car il est utilisé au tout début une fois.
+					// Ensuite, il permet une pause longue sur les derniers coureurs arrivés : 1.5 fois le pauseEntreDeuxPages.
 					return style.sheet;
 				}
 			}

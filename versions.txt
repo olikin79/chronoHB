@@ -1,3 +1,7 @@
+Travail du 11/01/23 :
+- défilement uniquement du haut vers le bas + ajout d'une pause plus longue sur les derniers arrivés.
+
+
 Travail du 08/01/23 :
 - meilleur formatage des noms et prénoms : une majuscule imposée à chaque initiale. Des minuscules pour tous les autres caractères.
 - Dans la création du rang par catégorie sur la TV, cela ne tenait pas compte du sexe. J'ai séparé le rang des filles et des garçons pour chaque catégorie d'âge.
@@ -7,7 +11,6 @@ Travail du 08/01/23 :
 Travail du 06/01/23 :
 - ajout d'un menu "mise à jour" dans "aide".
 - ajout du téléchargement d'un script de mise à jour et de son lancement au prochain redémarrage qui suit le téléchargement.
-
 
 
 Travail du 01/01/23 :
