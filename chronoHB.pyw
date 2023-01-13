@@ -44,7 +44,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -61,9 +61,9 @@ from functools import partial
 # from PIL import ImageTk,Image 
 
 ### temporaire pour un retraitement des données d'un trail où les noms n'étaient pas corrects. Corrigé pour l'avenir.
-for c in Coureurs.liste() :
-    print("coureur retraité",c.nom)
-    c.reformateNomPrenom()
+##for c in Coureurs.liste() :
+##    print("coureur retraité",c.nom)
+##    c.reformateNomPrenom()
 
 
 ##class Logger(object):

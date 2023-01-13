@@ -1,3 +1,7 @@
+Travail du 13/01/23 :
+- possibilité d'importer le numéro de dossard dans le logiciel, ce qui permettra d'importer depuis des inscriptions autonomes sur un formulaire.
+
+
 Travail du 11/01/23 :
 - défilement uniquement du haut vers le bas + ajout d'une pause plus longue sur les derniers arrivés.
 - dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
@@ -7,6 +11,9 @@ Travail du 08/01/23 :
 - meilleur formatage des noms et prénoms : une majuscule imposée à chaque initiale. Des minuscules pour tous les autres caractères.
 - Dans la création du rang par catégorie sur la TV, cela ne tenait pas compte du sexe. J'ai séparé le rang des filles et des garçons pour chaque catégorie d'âge.
 - ajout de la colonne "sexe" dans les tableaux de résultats pour les courses non scolaires (CategorieDAge = 1)
+- création d'une solution via google forms d'inscription autonome
+- (pour toutes les courses non scolaires) Dans le tableau imprimé, il fallait ajouter une colonne "sexe" pour les courses par catégories.
+- Elargissement de la colonne rang sur les pdf et resserrement de celle du nom (pas de VMA lors d'un trail)
 
 
 Travail du 06/01/23 :

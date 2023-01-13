@@ -256,24 +256,37 @@ class DictionnaireDeCoureurs(dict) :
             print("Suppression du fichier", file)
             os.remove(file)
         self.__init__()
-    def ajouter(self, coureur, course): # course serait une lettre "A", "B", "C", ...
+    def ajouter(self, coureur, course="", dossard = ""): # course serait une lettre "A", "B", "C", ...
         # ajout dans le premier coureur vide de la course.
         # retourne le dossard affecté
+        if dossard : 
+            course = dossard[-1]
+            num = int(dossard[:-1])
         if self.existe(coureur) == "" :
             if not course in self.keys() :
                 self[course] = []
                 self["CoureursElimines"][course]=[]
-            if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
-                premierIndiceLibre = self["CoureursElimines"][course].pop(0)
-                coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
-                self[course][premierIndiceLibre]= coureur
-                self.nombreDeCoureurs += 1
-                return str(premierIndiceLibre+1) + course
-            else : # aucun indice libre, on ajoute à la fin
-                coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
+            if dossard : # le dossard est spécifié, on impose le numéro.
+                coureur.setDossard(dossard)
+                nbreCoureursDansCourse = len(self[course])
+                while nbreCoureursDansCourse < num - 1 : # on rajoute des coureurs vides via self["CoureursElimines"][course]
+                    self[course].append(Coureur("","","",""))
+                    self["CoureursElimines"][course].append(nbreCoureursDansCourse)
+                    nbreCoureursDansCourse += 1
                 self[course].append(coureur)
                 self.nombreDeCoureurs += 1
-                return str(len(self[course])) + course
+            else : # le dossard affecté n'est pas spécifié, on affecte le coureur créé au premier dossard libre.
+                if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
+                    premierIndiceLibre = self["CoureursElimines"][course].pop(0)
+                    coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
+                    self[course][premierIndiceLibre]= coureur
+                    self.nombreDeCoureurs += 1
+                    return str(premierIndiceLibre+1) + course
+                else : # aucun indice libre, on ajoute à la fin
+                    coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
+                    self[course].append(coureur)
+                    self.nombreDeCoureurs += 1
+                    return str(len(self[course])) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
     def cles(self):
@@ -301,7 +314,7 @@ class DictionnaireDeCoureurs(dict) :
                 # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
                 cle = "A"
                 indice = int(doss)-1
-            if indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
+            if cle in self.cles() and indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
         #print("Le coureur ", element, "existe",retour)
         return retour
@@ -4083,79 +4096,86 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         vma = "0"
         #print("complement",complement)
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
-        if dossard == "" :
-            dossard = coureurExists(nom, prenom)
-            #print("retour de coureurExists",dossard)
-        if str(dossard) != "" :
-            ### on actualise des propriétés du coureur.
-            auMoinsUnChangement = False
-            coureur = Coureurs.recuperer(dossard)
-            # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
-            #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-            if coureur.sexe != sexe :
-                coureur.setSexe(sexe)
-                auMoinsUnChangement = True
-            if CoursesManuelles :
-##                if courseDonneeSousSonNomStandard :
-##                    lettreCourse = course
-##                    course = 
-##                else :
-                lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
-                print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
-##                nomStandard = estDansGroupementsEnModeManuel(course)
-##                if not nomStandard :
-##                    nomStandard = addCourse(course)
-                if lettreCourse != coureur.course :
-                    # fAIT plus loin : addCourse(course) # création si besoin de la course
-                    coureur.setCourse(lettreCourse)
+        dossardTrouve = coureurExists(nom, prenom)
+        if dossardTrouve != "" :
+            if dossardTrouve == dossard :
+                print("On met à jour les caractéristiques du coureur au dossard", dossard)            
+                ### on actualise des propriétés du coureur.
+                auMoinsUnChangement = False
+                coureur = Coureurs.recuperer(dossard)
+                # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
+                #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+                if coureur.sexe != sexe :
+                    coureur.setSexe(sexe)
                     auMoinsUnChangement = True
-            if nom != coureur.nom :
-                coureur.setNom(nom)
-                auMoinsUnChangement = True
-            if prenom != coureur.prenom :
-                coureur.setPrenom(prenom)
-                auMoinsUnChangement = True
-            if dispense != None and coureur.dispense != dispense :
-                print("coureur",coureur.nom)
-                coureur.setDispense(dispense)
-                auMoinsUnChangement = True
-            if absent != None and coureur.absent != absent :
-                coureur.setAbsent(absent)
-                auMoinsUnChangement = True
-            if coureur.commentaireArrivee != commentaireArrivee :
-                coureur.setCommentaire(commentaireArrivee)
-                auMoinsUnChangement = True
-            if coureur.classe != classe :
-                coureur.setClasse(classe)
-                auMoinsUnChangement = True
-            if coureur.licence != licence :
-                coureur.setLicence(licence)
-                auMoinsUnChangement = True
-            if coureur.VMA != vma :
-                coureur.setVMA(vma)
-                auMoinsUnChangement = True
-            if coureur.naissance != naissance :
-                coureur.setNaissance(naissance)
-                auMoinsUnChangement = True
-            if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
-                coureur.setEtablissement(etablissement,etablissementNature)
-                auMoinsUnChangement = True
-            if auMoinsUnChangement :
-                addCourse(course)
-                print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
-                      commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
-                      "Course manuelle:",course,")")
-                retour, d = [0,1,0,0], dossard
+                if CoursesManuelles :
+    ##                if courseDonneeSousSonNomStandard :
+    ##                    lettreCourse = course
+    ##                    course = 
+    ##                else :
+                    lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
+                    print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
+    ##                nomStandard = estDansGroupementsEnModeManuel(course)
+    ##                if not nomStandard :
+    ##                    nomStandard = addCourse(course)
+                    if lettreCourse != coureur.course :
+                        addCourse(course, lettreCourse = lettreCourse) # création si besoin de la course
+                        coureur.setCourse(lettreCourse)
+                        auMoinsUnChangement = True
+                if nom != coureur.nom :
+                    coureur.setNom(nom)
+                    auMoinsUnChangement = True
+                if prenom != coureur.prenom :
+                    coureur.setPrenom(prenom)
+                    auMoinsUnChangement = True
+                if dispense != None and coureur.dispense != dispense :
+                    print("coureur",coureur.nom)
+                    coureur.setDispense(dispense)
+                    auMoinsUnChangement = True
+                if absent != None and coureur.absent != absent :
+                    coureur.setAbsent(absent)
+                    auMoinsUnChangement = True
+                if coureur.commentaireArrivee != commentaireArrivee :
+                    coureur.setCommentaire(commentaireArrivee)
+                    auMoinsUnChangement = True
+                if coureur.classe != classe :
+                    coureur.setClasse(classe)
+                    auMoinsUnChangement = True
+                if coureur.licence != licence :
+                    coureur.setLicence(licence)
+                    auMoinsUnChangement = True
+                if coureur.VMA != vma :
+                    coureur.setVMA(vma)
+                    auMoinsUnChangement = True
+                if coureur.naissance != naissance :
+                    coureur.setNaissance(naissance)
+                    auMoinsUnChangement = True
+                if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
+                    coureur.setEtablissement(etablissement,etablissementNature)
+                    auMoinsUnChangement = True
+                if auMoinsUnChangement :
+                    if not CoursesManuelles :
+                        addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
+                        # pour toutes les courses automatiques, on doit actualiser la course si besoin.
+                    print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
+                          commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
+                          "Course manuelle:",course,")")
+                    retour, d = [0,1,0,0], dossard
+                else :
+                    retour, d = [0,0,0,1], dossard
             else :
-                retour, d = [0,0,0,1], dossard
+                print("Le coureur existe déjà avec le dossard", dossardTrouve, "alors que le dossard proposé est", dossard)
+                retour,d  = [0,0,1,0], ""
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
-            print("ajout de la course :")
-            if CoursesManuelles : 
+            if CoursesManuelles :
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
-                lettreCourse = addCourse(course) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                lettre = ""
+                if dossard : 
+                    lettre = dossard[-1]
+                lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
@@ -4164,11 +4184,23 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             else :
                 lettreCourse = "A"
                 addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
-            dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
+            if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
+                # si oui, alors, on crée le coureur.
+                if (not Coureurs.existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
+                    # création avec le dossard imposé.
+                    dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse), lettreCourse)
+                                                course=lettreCourse), dossard = dossard)
+                else :
+                    print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
+            else :
+                dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
+                                                etablissementNature=etablissementNature, absent=absent,\
+                                                dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
+                                                aImprimer=aImprimer,\
+                                                course=lettreCourse), lettre = lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
@@ -4189,17 +4221,23 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 
 def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
     """ retourne la lettre correspondant au nom d'une course en mode CoursesManuelles
-        Si la course n'existe pas, la crée et retourne sa lettre."""
+        si la course n'existe pas, retourne la prochaine lettre disponible dans l'ordre alphabétique"""
     trouve = False
     a = 1
     for g in Groupements :
         if g.nom == course :
-##            trouve = True
+            trouve = True
             break
         a += 1
-##    if avecCreation and not trouve :
-##        addCourse(course)
-    return chr(a+64)
+    retour = chr(a+64)
+    if not trouve :
+         # print("Recherche de la première lettre non encore utilisée")
+        for a in range(1,27) :
+            if not chr(a+64) in Courses.keys() :
+                break
+        retour = chr(a+64)
+        print("La première lettre non encore utilisée est", retour)
+    return retour
 
 
 def estDansGroupementsEnModeManuel(course):
@@ -4211,16 +4249,22 @@ def estDansGroupementsEnModeManuel(course):
     return retour
     
 
-def addCourse(course) :
+def addCourse(course, lettreCourse="") :
+    """ addCourse prend en argument le nom personnalisé de la course (obligatoire)
+    En mode CoursesManuelles, la lettre que l'on veut attribuer à cette course peut être fourni (facultatif)
+    Comportement :
+    en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
+    en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
+    Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+    et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
 ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
     if CoursesManuelles :
-        lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
-##        nomStandard = estDansGroupementsEnModeManuel(course)
-##        if not nomStandard :
-##            nomStandard = chr(64+ len(Courses.keys())+1)#"numéro " + str(len(Courses.keys())+1)
-        print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+        if not lettreCourse :
+            lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+            print("La lettre attribuée manuellement à la course est :",lettreCourse)
+        #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
         if not lettreCourse in Courses :
             print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
@@ -5717,6 +5761,7 @@ def creerCoureur(listePerso, informations) :
     vma = 0
     comment = ""
     lic = ""
+    doss = ""
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
@@ -5791,13 +5836,16 @@ def creerCoureur(listePerso, informations) :
             courseManuelle = supprLF(infos["course"])
         except :
             courseManuelle = ""
+    if "dossard" in informations :
+        doss = formateDossardNG(infos["dossard"])
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
     if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
         retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic, CoureursParClasseUpdateActif = False)
+                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
+                                               CoureursParClasseUpdateActif = False, dossard = doss)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
