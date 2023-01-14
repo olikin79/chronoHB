@@ -20,7 +20,19 @@ A tester suite trail Rieutort :
 - plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
 
 
+Pour déploiement et vente du logiciel :
+- mettre au point script de mise à jour de chronoHB.
+- créer un système web avec base de donnée permettant de valider une installation sur un poste : 
+	* création d'un identifiant unique associé au poste (associé à l'adresse MAC de la carte réseau et à un code unique : md5 de la concaténation des deux ?)
+	* création d'une page de validation de l'installation : la requête contiendrait le code à usage unique et lUUID unique (adresse mac par exemple).
+	La page en question valide le code (si présent dans la BDD sans adresse mac) et invalide celui-ci si adresse mac déjà renseignée.
+	* possibilité de désinstaller le logiciel d'un poste pour le copier sur un autre en recrédidant le compte via une requête particulière.
+- au lancement, vérifie que l'installation de chronoHB est valide (via internet). Mémorise la date de la dernière vérification.
+Voir quelle période de sursis on laisse sans accès au web ? 1 an ? Signaler dans la documentation ce délai
+Si l'accès à internet n'est pas fonctionnel, signale le délai restant au lancement.
+Si délai dépassé, introduit des restrictions pour mode démo (20 coureurs dans la base et passent la ligne max). Tous les autres menus actifs et fonctionnels.
 
+	
 BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
 PRIORITAIRES :
 - le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
