@@ -2491,6 +2491,7 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
+    zoneCoureursAjoutModif.actualiseAffichage()
     #timer.reinitErreursATraiter()
 
 
