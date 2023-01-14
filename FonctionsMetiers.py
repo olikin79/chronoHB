@@ -4203,7 +4203,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse), lettre = lettreCourse)
+                                                course=lettreCourse), course = lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\

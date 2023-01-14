@@ -3439,6 +3439,7 @@ class CoureurFrame(Frame) :
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
         self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.annulAction)
         self.coureurBimprimer = Button(self.boutonsFrame, text="Imprimer les dossards non imprimés", command=self.imprimerNonImprimes)
+        self.coureurBeffacer = Button(self.boutonsFrame, text="Effacer le coureur sélectionné", command=self.effacerCoureur)
         #self.coureurBok = Button(self.boutonsFrame, text="OK", command=self.okButtonCoureur)
         self.actualiseAffichage()
 
@@ -3469,6 +3470,7 @@ class CoureurFrame(Frame) :
         self.etabC.forget()
         self.lblEtabNature.forget()
         self.etabNatureC.forget()
+        self.coureurBeffacer.forget()
         self.coureurBannul.forget()
         self.coureurBoksuivant.forget()
         self.coureurBimprimer.forget()
@@ -3503,8 +3505,6 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         self.activerBoutons(None)
     
-    
-### limite haute fusion manuelle
 
     def reinitialiserChamps(self):
         # ménage
@@ -3619,9 +3619,6 @@ class CoureurFrame(Frame) :
                 if self.tupleDesDossards :
                     self.choixDossardCombo.current(0)
             self.packChampsModificationCoureur()
-
-
-##### limite basse fusion manuelle 
         
     def actualiseBoutonImpression(self) :
         if self.ajoutCoureur :
@@ -3659,6 +3656,7 @@ class CoureurFrame(Frame) :
                     self.coureurBannul.forget()
                     self.coureurBoksuivant.forget()
             else :
+                self.coureurBeffacer.pack(side=LEFT)
                 if self.modif and self.etablissementEstValide() :
                     self.coureurBannul.pack(side=LEFT)
                     self.coureurBoksuivant.pack(side=LEFT)
@@ -3677,6 +3675,15 @@ class CoureurFrame(Frame) :
 
     def imprimerNonImprimes(self) :
         imprimerDossardsNonImprimes()
+
+    def effacerCoureur(self) :
+        doss = self.choixDossardCombo.get()
+        c = Coureurs.recuperer(doss)
+        message = "Voulez vraiment supprimer le coureur " + c.nom + " " + c.prenom + " portant le dossard " + doss + "?"
+        reponse = askyesno(title="SUPPRESSION D'UN COUREUR", message = message)
+        if reponse :
+            Coureurs.effacer(doss)
+            self.actualiseAffichage()
         
     def okButtonCoureurPuisSaisie(self) :
         try :
