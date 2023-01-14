@@ -1,3 +1,7 @@
+Travail du 14/01/2023 :
+- actualisation du menu "modification d'un coureur" après import XLSX ou CSV
+- correctif Coureurs.liste() retournait des coureurs vides supprimés
+
 Travail du 13/01/23 :
 - possibilité d'importer le numéro de dossard dans le logiciel, ce qui permettra d'importer depuis des inscriptions autonomes sur un formulaire.
 

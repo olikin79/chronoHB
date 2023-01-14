@@ -244,11 +244,14 @@ class DictionnaireDeCoureurs(dict) :
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
         for e in self.cles() :
+            #print(self["CoureursElimines"][e])
             i = 0
             indicesLibres = self["CoureursElimines"][e]
             for c in self[e] :
-                if i not in indicesLibres :
+                if not i in indicesLibres :
                     L.append(c)
+                    #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
+                i += 1
         return L
     def effacerTout(self) :
         self.clear()
