@@ -676,7 +676,7 @@ class Coureur():#persistent.Persistent):
             supplVMA = ""
         return self.vitesseFormatee() + supplVMA
     def pourcentageVMA(self) :
-        if self.VMA and self.vitesse : # pas très gênant que le % de VMA soit supérieur à 100% dans le tableur and self.VMA > self.vitesse :
+        if self.VMA and self.vitesse and self.VMA > self.vitesse : # pas très gênant que le % de VMA soit supérieur à 100% dans le tableur mais gênant sur la TV
             pourcVMA = str(int(self.vitesse/self.VMA*100)) + "%"
         else :
             pourcVMA = "-"
