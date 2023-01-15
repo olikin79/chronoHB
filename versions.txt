@@ -1,5 +1,6 @@
 Travail du 15/01/23 :
 - les boutons vidéos bougent lors du scroll dans le treeview. :-)
+- empêche l'affichage de pourcentages de VMA plus grand que 100% (stupide). N'affiche que la vitesse dans ce cas.
 
 
 Travail du 14/01/23 :

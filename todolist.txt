@@ -7,8 +7,6 @@ et uniquement celles-ci.
 
 Retour suite au trail de Randon :
 - quand j'ai avancé un dossard en mode DEBUG=False, cela n'a pas fonctionné et cela a fonctionné en mode DEBUG=True sans pythonw. A creuser.
-- permettre la suppression d'un coureur depuis le menu modification (un bouton supplémentaire). 
-Gérer la combobox pour les coureurs disparus : une fonction de test "si coureur existe, on affiche tous les champs, sinon on affiche "vient d'être supprimé".
 - Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
@@ -68,7 +66,7 @@ puis agir si besoin puis revenir à l'écran classique.
 - (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
 
-- (à tester) : l'archivage contient-il les vidéos ? on dirait que non!
+- (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
 
 
 
@@ -118,11 +116,6 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 
 
 - ESTHETIQUE :
-	* les boutons des vidéos ne se déplacent pas vers le haut ou le bas quand la scrollbar de monTableau est utilisée 
-		(ou se décale toute seule avec les nouvelles arrivées)
-		soit on le supprime lors d'un scroll (solution simple), soit il faut le déplacer au fur et à mesure (plus difficile)
-		Cela doit être le même problème pour les entry de saisie dans le tableau (temps et dossards affectés)...
-		
 	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.

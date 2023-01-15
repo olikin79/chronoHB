@@ -197,8 +197,7 @@ class MonTableau(Frame):
         def treeviewYscrollCompl (x1,x2) :
             self.treeview.yview(x1,x2)
             try :
-                #self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
-                self.afficheBoutonVideo("")
+                self.afficheBoutonVideo("")# on détruit puis replace le bouton Vidéo
             except :
                 True # rien à détruire.
             
@@ -206,8 +205,7 @@ class MonTableau(Frame):
         def YscrollCompl (x1,x2) :
             self.vsb.set(x1,x2)
             try :
-                #self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
-                self.afficheBoutonVideo("")
+                self.afficheBoutonVideo("") # on détruit puis replace le bouton Vidéo
             except :
                 True # rien à détruire.
             
@@ -763,7 +761,7 @@ def rechercheVideoProcheDe(horaire) :
     ecartTolere = 4 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
     try :
         heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
-        print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
+        #print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
         annee=time.strftime("%Y",heurePassage)
         mois=time.strftime("%m",heurePassage)
         jour=time.strftime("%d",heurePassage)
@@ -801,17 +799,8 @@ def rechercheVideoProcheDe(horaire) :
             ecart = abs(tpsSelectionne - tpsFile)
             if (ecart <= ecartTolere and tpsFile <= tpsSelectionne) or (ecart <= 1 and tpsFile >= tpsSelectionne) :
                 retour.append(file)
-            #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
-                ### la méthode suivante ne convenait pas. Il se peut qu'il n'y ait pas d'enregistrement après celui souhaité.
-    ##        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
-    ##            break
-    ##        else :
-    ##            fichierChoisi = file
-    ##            ecart = nouvelEcart
-    ##    if ecart < ecartTolere : # tolérance choisie en début de fonction
-    ##        retour = fichierChoisi
-        if retour :
-            print("Affichage des vidéos",retour)
+##        if retour :
+##            print("Affichage des vidéos",retour)
     except :
         print("La ligne sélectionné ne contient pas d'horaire")
     return retour
