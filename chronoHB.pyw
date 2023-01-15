@@ -44,7 +44,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -181,6 +181,15 @@ class MonTableau(Frame):
         #self.largeursColonnes = largeursColonnes
         self.defilementAuto = defilementAuto
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
+        self.parent = parent
+        self.initTreeview()
+        
+        
+    def initTreeview(self) :
+        try :
+            self.treeview.destroy()
+        except :
+            print("Première exécution")
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
         self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
@@ -193,7 +202,6 @@ class MonTableau(Frame):
 ##        ### correction d'un bug lié aux numéros de ligne : chaque ligne effacée garde son numéro initial.
 ##        ### après effacement de 10 lignes, les autres lignes sont décalées et la première ligne est la n°11 (exemple)
 ##        self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
-
         def treeviewYscrollCompl (x1,x2) :
             self.treeview.yview(x1,x2)
             try :
@@ -210,12 +218,12 @@ class MonTableau(Frame):
                 True # rien à détruire.
             
         
-        self.vsb = Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
+        self.vsb = Scrollbar(self.parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
-        self.hsb = Scrollbar(parent, orient="horizontal", command=self.treeview.xview)
+        self.hsb = Scrollbar(self.parent, orient="horizontal", command=self.treeview.xview)
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
-        self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
+##        self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
 
         #self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
         self.treeview.bind("<<TreeviewSelect>>",self.afficheBoutonVideo)
@@ -409,7 +417,7 @@ class MonTableau(Frame):
                 #print(self.vsb.get())
         self.treeview.bind('<Double-1>', set_cell_value) # Double-click the left button to enter the edit
 
-            
+        
     def conv_Hexa_vers_Dec(self,chaine) :
         ch = chaine
         retour = 0
@@ -450,40 +458,41 @@ class MonTableau(Frame):
             #print("Ligne sélectionnée:",item_text) # Output the value of the selected row
             #column= self.treeview.identify_column(event.x)# column
         row = self.treeview.focus() #self.treeview.identify_row(event.y) #row
-        #print("row=",row, "treeview.selection()",self.treeview.selection())
+        print("row=",row, "treeview.selection()",self.treeview.selection())
         #try :
         #cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
         #rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) - self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
         ### amélioration suite aux bugs liés aux effacements successifs possibles dans le treevoew. Les numéros supprimés ne sont pas réaffectés.
-        rn = self.treeview.get_children().index(row)
-        ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
-        #print("focus",self.treeview.focus())
-        #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
-        #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
-        fichiers = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
-        j = 0
-        decalage = 0
-        while j < len(fichiers) : # si au moins une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 4 s près par exempl)
-            fichier = fichiers[j]
-            if len(fichiers) == 1 :
-                texte = 'Vidéo'
-            else :
-                texte = 'V' + str(j)
-            self.buttonVideos.append(Button(self,text=texte,command=lambda f=fichier : ouvrirVideo(f)))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
-            self.buttonVideos[j]['font'] = font.Font(size=7)
-            premierNomVisible = self.vsb.get()[0]*self.effectif+1
-            sommeLargeurColonnes = 0
-            for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
-                sommeLargeurColonnes += self.largeursColonnes[i]
-            placeY = (rn+1-premierNomVisible)*20.01+25
-            if placeY >= 25 :
-                self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=placeY)
-##            else :
-##                print("Bouton vidéo sur la barre de titre suite au scroll, on n'affiche rien.")
-            decalage += 20
-            j += 1
-        #except :
-        #    print("Clic sur le treeview en dehors d'une ligne valide")
+        if row : # s'il y a une sélection, on continue le travail.
+            rn = self.treeview.get_children().index(row)
+            ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
+            #print("focus",self.treeview.focus())
+            #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
+            #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
+            fichiers = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
+            j = 0
+            decalage = 0
+            while j < len(fichiers) : # si au moins une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 4 s près par exempl)
+                fichier = fichiers[j]
+                if len(fichiers) == 1 :
+                    texte = 'Vidéo'
+                else :
+                    texte = 'V' + str(j)
+                self.buttonVideos.append(Button(self,text=texte,command=lambda f=fichier : ouvrirVideo(f)))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+                self.buttonVideos[j]['font'] = font.Font(size=7)
+                premierNomVisible = self.vsb.get()[0]*self.effectif+1
+                sommeLargeurColonnes = 0
+                for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
+                    sommeLargeurColonnes += self.largeursColonnes[i]
+                placeY = (rn+1-premierNomVisible)*20.01+25
+                if placeY >= 25 :
+                    self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=placeY)
+    ##            else :
+    ##                print("Bouton vidéo sur la barre de titre suite au scroll, on n'affiche rien.")
+                decalage += 20
+                j += 1
+            #except :
+            #    print("Clic sur le treeview en dehors d'une ligne valide")
                 
     def setLargeurColonnesAuto(self):
         largeurFrame = self.treeview.winfo_width()
@@ -497,6 +506,11 @@ class MonTableau(Frame):
                     self.largeursColonnes[i] = nouvelleLargeurDeLaColonne
                     self.treeview.column('#' + str(i+1), width=nouvelleLargeurDeLaColonne) # indicates column, not displayed
                 self.AncienneLargeurFrame = largeurFrame
+                # on vient de redimensionner les colonnes. On repositionne le bouton video si présent
+                try :
+                    self.afficheBoutonVideo("") # on détruit puis replace le bouton Vidéo
+                except :
+                    True # rien à repositionner.
     
     def setDefilementAuto(self, booleen) :
         self.defilementAuto = booleen
@@ -509,6 +523,7 @@ class MonTableau(Frame):
         self.listeDesTemps = []
         self.effectif = 0
         self.delTreeviewFrom(1)
+        self.initTreeview()
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
@@ -534,7 +549,7 @@ class MonTableau(Frame):
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
     def maj (self, TableauGUI) :
-        print("tableauGUI", tableauGUI)
+        #print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -719,7 +734,7 @@ class MonTableau(Frame):
         for item in self.treeview.selection():
             item_text = self.treeview.item(item, "values")
             # on ne garde que le dernier sélectionné si sélection multiple
-        if item_text == "" or item_text[5] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
+        if item_text == "" or item_text[self.colonneDossard] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return ""
         else :
             return item_text[self.colonneDossard]
@@ -733,6 +748,7 @@ class MonTableau(Frame):
         if item_text == "" or item_text[self.colonneDossard] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return "", ""
         else :
+            print("itemSelect",itemSelect)
             # cas classique où une vraie sélection a eu lieu
             dossSelect = item_text[self.colonneDossard]
             itemPrecNum = int(itemSelect[1:]) -1
