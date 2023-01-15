@@ -514,7 +514,7 @@ class MonTableau(Frame):
     def delTreeviewFrom(self, ligne):
         x = self.treeview.get_children()
         #print(self.treeview.get_children(), len(x))
-        if ligne < len(x) :
+        if ligne <= len(x) :
             ToDeleteList = x[ligne - 1 : ]
             print("suppression des lignes en trop en bas du tableau :", len(ToDeleteList))
             #print("liste a supprimer",ToDeleteList)
