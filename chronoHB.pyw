@@ -534,7 +534,7 @@ class MonTableau(Frame):
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
     def maj (self, TableauGUI) :
-        #print("tableauGUI", tableauGUI)
+        print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -645,7 +645,7 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[self.colonneDossard] == "0" : # si pas de coureur, pas de dossard à l'affichage.
+        if donnee[self.colonneDossard] == "" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
