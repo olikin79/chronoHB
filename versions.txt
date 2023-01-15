@@ -1,6 +1,13 @@
 Travail du 15/01/23 :
 - les boutons vidéos bougent lors du scroll dans le treeview. :-)
 - empêche l'affichage de pourcentages de VMA plus grand que 100% (stupide). N'affiche que la vitesse dans ce cas.
+- correctif nombre de coureurs sur la ligne d'arrivée ne s'affichait plus
+- Correctif : si on ne supprimait qu'une seule ligne de temps en fin d'affichage, cela ne disparaissait pas immédiatement.
+- remplacement de tous les .upper() sur des dossards par la fonction de formatage des dossards dédiée (formateDossardNG()).
+- le bouton video bouge horizontalement si la taille des colonnes change automatiquement en s'adaptant à la fenêtre.
+- possibilité de recréer le treeview pour des imports de sauvegarde, réinitialisation de treeview qui rendent l'indexation correcte.
+Correction du bug : quand j'ai avancé un dossard lors du trail, cela n'a pas fonctionné et cela a fonctionné après redémarrage du logiciel. 
+L'indexation du treeview était incorrecte suite à des mises à jour de ligne.
 
 
 Travail du 14/01/23 :

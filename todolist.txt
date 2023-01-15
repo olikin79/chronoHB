@@ -6,7 +6,6 @@ et uniquement celles-ci.
 
 
 Retour suite au trail de Randon :
-- quand j'ai avancé un dossard en mode DEBUG=False, cela n'a pas fonctionné et cela a fonctionné en mode DEBUG=True sans pythonw. A creuser.
 - Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
@@ -41,7 +40,6 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
 
 - trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
 
-- remplacer tous les .upper() sur des dossards par la fonction de formatage des dossards dédiée.
 
 
 
@@ -54,7 +52,7 @@ MOYENNEMENT PRIORITAIRES :
 
 - actualisation automatique de l'affichage sur la TV (même fréquence que les sauvegardes) en fonction des derniers coureurs arrivés :
 	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
-	* si un coureur d'une course passe la ligne dans les 5 dernières minutes, on coche.
+	* si un coureur d'une course passe la ligne, on coche.
 	
 - sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
@@ -77,12 +75,6 @@ MOYENNEMENT PRIORITAIRES Cross UNSS :
 
 
 DEVELOPPEMENTS NON PRIORITAIRES :
-- ESTHETIQUE :
- si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
-si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
-si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
-ou un nouveau temps ajouté ensuite la font disparaître.
-
 - FONCTIONNELS :
 - Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
