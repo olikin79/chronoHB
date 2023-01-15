@@ -1489,7 +1489,7 @@ def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
         dossard = "-"
     #Noligne = formateNoLigne(ligneAjoutee)
     #return [ligneAjoutee , temps.tempsCoureurFormate(), dossardAffecte, temps.tempsReelFormate() , nom, coureur.prenom, coureur.dossard, coureur.tempsFormate(),categorie, rang, vitesse]
-    return [ligneAjoutee , temps, dossardAffecte, nom, coureur.prenom, coureur.dossard, coureur.classe, tempsDuCoureur,categorie, rang, vitesse]
+    return [ligneAjoutee , temps, dossardAffecte, coureur.nom, coureur.prenom, coureur.dossard, coureur.classe, tempsDuCoureur,categorie, rang, vitesse]
 ##        self.lignes.append(ligneAAjouter)
 ##        print("ajout de la ligne", ligneAAjouter)
 ##        self.tempsReferences.append(temps.tempsCoureur)
