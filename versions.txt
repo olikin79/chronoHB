@@ -1,4 +1,8 @@
-Travail du 14/01/2023 :
+Travail du 15/01/23 :
+- les boutons vidéos bougent lors du scroll dans le treeview. :-)
+
+
+Travail du 14/01/23 :
 - actualisation du menu "modification d'un coureur" après import XLSX ou CSV
 - correctif Coureurs.liste() retournait des coureurs vides supprimés
 - possibilité de supprimer un coureur et d'ajouter un coureur à la place d'un coureur supprimé

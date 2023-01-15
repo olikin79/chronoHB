@@ -195,18 +195,22 @@ class MonTableau(Frame):
 ##        self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
 
         def treeviewYscrollCompl (x1,x2) :
+            self.treeview.yview(x1,x2)
             try :
-                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                #self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                self.afficheBoutonVideo("")
             except :
                 True # rien à détruire.
-            self.treeview.yview(x1,x2)
+            
 
         def YscrollCompl (x1,x2) :
+            self.vsb.set(x1,x2)
             try :
-                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                #self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                self.afficheBoutonVideo("")
             except :
                 True # rien à détruire.
-            self.vsb.set(x1,x2)
+            
         
         self.vsb = Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
@@ -473,7 +477,11 @@ class MonTableau(Frame):
             sommeLargeurColonnes = 0
             for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
                 sommeLargeurColonnes += self.largeursColonnes[i]
-            self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=(rn+1-premierNomVisible)*20.01+25)
+            placeY = (rn+1-premierNomVisible)*20.01+25
+            if placeY >= 25 :
+                self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=placeY)
+##            else :
+##                print("Bouton vidéo sur la barre de titre suite au scroll, on n'affiche rien.")
             decalage += 20
             j += 1
         #except :
