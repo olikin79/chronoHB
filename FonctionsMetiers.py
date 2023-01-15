@@ -229,7 +229,7 @@ class DictionnaireDeCoureurs(dict) :
             if not doss[-1].isalpha():
                 c.setDossard(doss + "A")
     def recuperer(self, dossard) :
-        doss = str(dossard)
+        doss = formateDossardNG(dossard)
         try : 
             if doss[-1].isalpha():
                 # nouvelle implémentation des dossards
@@ -308,7 +308,7 @@ class DictionnaireDeCoureurs(dict) :
                     break
         else :
             # c'est un dossard que l'on cherche
-            doss = str(element)
+            doss = formateDossardNG(element)
             if doss[-1].isalpha():
                 # nouvelle implémentation des dossards
                 cle = doss[-1].upper()
@@ -332,7 +332,7 @@ class DictionnaireDeCoureurs(dict) :
                 self.effacer(doss)
             else :
                 # c'est un dossard que l'on cherche
-                doss = str(element)
+                doss = formateDossardNG(element)
                 if doss[-1].isalpha():
                     # nouvelle implémentation des dossards
                     cle = doss[-1].upper()
@@ -563,7 +563,7 @@ class Coureur():#persistent.Persistent):
     def setDossard(self, dossard) :
         try :
             if dossard != "" :
-                doss = str(dossard).upper()
+                doss = formateDossardNG(dossard)
                 if doss[-1].isalpha() :
                     int(doss[:-1])
                     self.dossard = doss # le dossard doit impérativement être au format "1A", "31B", etc...
@@ -1460,10 +1460,6 @@ def alimenteTableauGUI (tableauGUI, coureur, temps, dossardAffecte, ligneAjoutee
 
 def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
     #print(len(self.lignes)+1)
-    if len(coureur.nom)>=1 :
-        nom = str(coureur.nom)[0].upper()+ str(coureur.nom)[1:].lower()
-    else :
-        nom = str(coureur.nom).upper()
     if dossardAffecte == "0A" or dossardAffecte == "0" :
         dossardAffecte = "-"
     if coureur.rang :
@@ -3275,11 +3271,11 @@ def dossardPrecedentDansArriveeDossards(dossard):
         print("Pas de dossards arrivés.")
         return "-1"
     try :
-        n = ArriveeDossards.index(str(dossard).upper())
+        n = ArriveeDossards.index(formateDossardNG(dossard))
         if n == 0 :
             return "0"
         else :
-            return ArriveeDossards[n-1].upper()
+            return formateDossardNG(ArriveeDossards[n-1])
     except:
         return "-1"
 
@@ -3291,11 +3287,11 @@ def dossardSuivantDansArriveeDossards(dossard):
         print("Pas de dossards arrivés.")
         return "-1"
     try :
-        n = ArriveeDossards.index(str(dossard).upper())
+        n = ArriveeDossards.index(formateDossardNG(dossard))
         if n+1 == len(ArriveeDossards) :
             return "0"
         else :
-            return ArriveeDossards[n+1].upper()
+            return formateDossardNG(ArriveeDossards[n+1])
     except:
         return "-1"
 
@@ -3902,14 +3898,14 @@ def dupliqueTemps(tps):
         return dupliqueTemps(nouveauTps)
 
 
-def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0") :
+def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0A") :
     """ ajoute un temps dans la liste par ordre croissant pour que ArriveeTemps reste toujours croissante
     par rapport au tempsReel (heure d'arrivée du coureur sur le serveur (pour gérer plusieurs clients en décalage horaire).
     Doit prendre garde au temps mesuré sur le smartphone pour qu'un temps ne soit pas importé deux fois."""
     CodeRetour = Erreur(201)
     newTps = dupliqueTemps(Temps(tempsCoureur, tempsClient, tempsServeur))
 ##    if tempsClientIsNotInArriveeTemps(newTps) :
-    doss = str(dossard).upper()
+    doss = formateDossardNG(dossard)
     n = len(ArriveeTemps)
     if n == 0 : # si c'est le premier temps, on l'ajoute.
         ArriveeTemps.append(newTps)
@@ -3943,11 +3939,11 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0") :
 ##def delDossardAffecteArriveeTemps(tempsCoureur) :
 ##    return affecteDossardArriveeTemps(tempsCoureur)
 
-def affecteDossardArriveeTemps(tempsCoureur, dossard="0") :
+def affecteDossardArriveeTemps(tempsCoureur, dossard="0A") :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsCoureur
     (utile uniquement pour les requêtes venant des smartphones.
     Appelé avec le temps seul, efface le dossard affecté. """
-    doss = str(dossard).upper()
+    doss = formateDossardNG(dossard)
     n = len(ArriveeTemps)
     message = "Temps coureur cherché : " + str(tempsCoureur) + " pour affectation du dossard " + doss + "."
     CodeRetour = Erreur(311, message , elementConcerne=tempsCoureur )
@@ -3964,11 +3960,11 @@ def affecteDossardArriveeTemps(tempsCoureur, dossard="0") :
     #transaction.commit()
     return CodeRetour
 
-def affecteDossardArriveeTempsLocal(tempsReel, dossard="0") :
+def affecteDossardArriveeTempsLocal(tempsReel, dossard="0A") :
     """ affecte un dossard à un temps déjà présent dans les données en effectuant une recherche sur le tempsReel.
     (utile pour une affectation du temps depuis l'interface graphique du serveur)
     Appelé avec le temps seul, efface le dossard affecté. """
-    doss = str(dossard).upper()
+    doss = formateDossardNG(dossard)
     n = len(ArriveeTemps)
     temps = Temps(tempsReel, 0, 0)
     message = "Temps cherché : " + str(temps.tempsReel) + " soit " + temps.tempsReelFormate() + " pour affectation du dossard " + doss + "."
@@ -3989,10 +3985,10 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard="0") :
     return CodeRetour
 
 
-def delArriveeTempsClient(tempsCoureur, dossard="0") :
+def delArriveeTempsClient(tempsCoureur, dossard="0A") :
     """ les temps sont classés par tempsReel (sur le serveur) par ordre croissant
     supprime UN tempsCoureur (mesuré côté clients donc pas forcément dans l'ordre croissant) dans la liste éventuellement associé au dossard précisé (ou non)."""
-    dossard = str(dossard).upper()
+    dossard = formateDossardNG(dossard)
     tempsASupprimer = float(tempsCoureur)
     n = len(ArriveeTemps)
     if n > 0 :
@@ -4000,7 +3996,7 @@ def delArriveeTempsClient(tempsCoureur, dossard="0") :
         codeRetour = "1"
         while n > 0 : # suppression du parcours conditionnel vu que la liste n'est pas triée par tempsCoureur : and tpsDejaPresent.tempsCoureur >= tempsASupprimer :
             tpsDejaPresent = ArriveeTemps[n-1]
-            if dossard == "0" :
+            if dossard == "0A" :
                 if tpsDejaPresent.tempsCoureur == tempsASupprimer :
                     del ArriveeTemps[n-1]
                     del ArriveeTempsAffectes[n-1]
@@ -4024,17 +4020,17 @@ def delArriveeTempsClient(tempsCoureur, dossard="0") :
             #print("La suppression demandée ne peut pas être effectuée car le temps " + str(tempsCoureur) + " pour le dossard " + str(dossard) + " a déjà été supprimé.")
     return Erreur(0) # la suppression constitue une correction d'erreur et ne doit donc jamais en signaler une # codeRetour
 
-def delArriveeTemps(tempsCoureur, dossard="0") :
+def delArriveeTemps(tempsCoureur, dossard="0A") :
     """ supprime UN temps dans la liste par ordre croissant éventuellement associé au dossard précisé (ou non)."""
     codeRetour = ""
-    dossard = str(dossard).upper()
+    dossard = formateDossardNG(dossard)
     tempsASupprimer = float(tempsCoureur)
     n = len(ArriveeTemps)
     tpsDejaPresent = ArriveeTemps[n-1]
     codeRetour = "1"
     while n > 0 and tpsDejaPresent.tempsReel >= tempsASupprimer :
         tpsDejaPresent = ArriveeTemps[n-1]
-        if dossard == "0" :
+        if dossard == "0A" :
             if tpsDejaPresent.tempsReel == tempsASupprimer :
                 del ArriveeTemps[n-1]
                 del ArriveeTempsAffectes[n-1]
@@ -4414,11 +4410,11 @@ def calculeTousLesTemps(reinitialise = False):
     #print("len(ArriveeDossards)",len(ArriveeDossards), "len(ArriveeTemps)",len(ArriveeTemps))
     while j < len(ArriveeDossards) and i < len(ArriveeTemps):
         # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
-        doss = ArriveeDossards[j].upper()
+        doss = formateDossardNG(ArriveeDossards[j])
         #print(ligneTableauGUI,"dossard", doss, reinitialise)
         ### debug
         tps = ArriveeTemps[i]
-        dossardAffecteAuTps = ArriveeTempsAffectes[i].upper()
+        dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i])
         if (dossardAffecteAuTps != "0" and dossardAffecteAuTps != "0A") and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
@@ -4431,7 +4427,7 @@ def calculeTousLesTemps(reinitialise = False):
             else :
                 # on affecte au dossard rencontré le temps i-1 (tant que tout n'est pas recalé).
                 tps = ArriveeTemps[i-1]
-                dossardAffecteAuTps = ArriveeTempsAffectes[i-1].upper()
+                dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i-1])
                 # retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps,ligneAjoutee, derniereLigneStabilisee, True)
                 retour += affecteChronoAUnCoureur(doss, tps, '-',ligneAjoutee, derniereLigneStabilisee, True)
                 #retour += "<p><red>Il manque un chrono juste avant le dossard " + str(dossardAffecteAuTps) + ". Le dossard " + str(doss) + " se voit affecté le temps de son prédécesseur.</red></p>\n"
@@ -4468,7 +4464,7 @@ def calculeTousLesTemps(reinitialise = False):
         while k < len(ArriveeTemps) :
             #print("Ajout des temps sans dossard affecté")
             tps = ArriveeTemps[k]
-            dossardAffecteAuTps = ArriveeTempsAffectes[k].upper()
+            dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[k])
             #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps, True)
             if k == i and (Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2) and categorieDuDernierDepart() != "" :
                 ### seul le premier temps prévisionnel sera affiché (pour disposer du premier d'une course).
@@ -4494,10 +4490,10 @@ def calculeTousLesTemps(reinitialise = False):
             print(message)
         while k < len(ArriveeDossards) :
             #print("position dans ArriveeTemps" , i-1, "   poisiotn dans ArriveeDossard ",k)
-            doss = ArriveeDossards[k].upper()
+            doss = formateDossardNG(ArriveeDossards[k])
             tps = ArriveeTemps[i-1]
             if k == j :
-                dossardAffecteAuTps = ArriveeTempsAffectes[i-1].upper()
+                dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i-1])
             else :
                 dossardAffecteAuTps = "0"
             retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
@@ -5141,8 +5137,8 @@ def genereTableauHTML(courseName, chrono = False) :
             Dossards = ResultatsGroupements[courseName]
             #print("ArriveeDossards",ArriveeDossards)
             for dossard in Dossards :
-                if dossard.upper() in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ?
-                    tableau += genereLigneTableauHTML(dossard.upper())
+                if formateDossardNG(dossard) in ArriveeDossards : ### INUTILE ? puisque le dossard est dans Resultats, c'est qu'il est arrivé non ? 
+                    tableau += genereLigneTableauHTML(formateDossardNG(dossard))
     return tableau + "</tbody> </table>"
 
 def yATIlUCoureurArrive(groupement) :
@@ -5152,7 +5148,7 @@ def yATIlUCoureurArrive(groupement) :
         # Fonctionne même si ResultatsGroupements contient les dossards des absents, dispensés et abandons... D'où la raison du parcours de ArriveeDossards.
         Dossards = ResultatsGroupements[groupement]
         for dossard in Dossards :
-            if dossard.upper() in ArriveeDossards :
+            if formateDossardNG(dossard) in ArriveeDossards :
                 retour = True
                 break
     except :
@@ -5242,7 +5238,7 @@ def creerFichierCategories(groupement, entete):
     Dossards = ResultatsGroupements[groupement.nomStandard]
     for dossard in Dossards :
         if dossard in ArriveeDossards :
-            tableau += genereLigneTableauTEX(dossard.upper())
+            tableau += genereLigneTableauTEX(formateDossardNG(dossard))
     return entete + "\n\n" + titre + "\n\n" + tableau
 
 
