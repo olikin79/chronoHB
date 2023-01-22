@@ -8,20 +8,20 @@ tpsServeur = time.time()
 
 
 ## Exemples de requêtes traitées :
-## http://127.0.0.1:8888/Arrivee.py?nature=tps&action=add&tpsCoureur=10/07/2020-14:12:32&tpsClient=10/07/2020-14:14:28&dossard=0
+## http://127.0.0.1:8888/cgi/Arrivee.pyw?nature=tps&action=add&tpsCoureur=10/07/2020-14:12:32&tpsClient=10/07/2020-14:14:28&dossard=0
 ## Dans cette requête, tpsClient correspond à l'heure du client android juste avant l'envoi de la requête.
 ## Elle peut différer de l'heure de passage du coureur tpsCoureur.
 ## la variable dossard correspond au numéro de dossard qui se voit affecter cette heure de passage.
 
-## http://127.0.0.1:8888/Arrivee.py?nature=dossard&action=add&dossard=23&dossardPrecedent=-1
+## http://127.0.0.1:8888/cgi/Arrivee.pyw?nature=dossard&action=add&dossard=23&dossardPrecedent=-1
 ## Cette requête ajoute un dossard à la liste des dossards ayant franchi la ligne.
 ## La variable dossardPrecedent est à -1 quand on ajoute le dossard à la pile (dans l'ordre).
 ## Elle comporte un numéro de dossard valide quand on ajoute ce dossard après un autre dossard ayant déjà franchi la ligne.
 
-## http://127.0.0.1:8888/Arrivee.py?nature=dossard&action=recherche&nom=La&prenom=&classe=63&categorie=
+## http://127.0.0.1:8888/cgi/Arrivee.pyw?nature=dossard&action=recherche&nom=La&prenom=&classe=63&categorie=
 ## Cette requête a pour vocation de rechercher, depuis le smartphone, un coureur dont le nom contient "la", la classe contient "63", le prénom et la catégorie sont indifférents.
 
-## http://127.0.0.1:8888/Arrivee.py?nature=identite&action=info&dossard=23
+## http://127.0.0.1:8888/cgi/Arrivee.pyw?nature=identite&action=info&dossard=23
 ## Cette requête a pour vocation de rechercher, depuis le smartphone, l'identité du dossard n°23.
 
 ## Le retour de l'ensemble des requêtes est formaté par la fonction generateMessage(...) ci-dessous sous forme d'une chaine avec la virgule comme séparateur.
@@ -264,19 +264,22 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
             print("Les données sur les coureurs ne sont pas disponibles sur le serveur.")
     elif nature == "identite" :
         if action == "info" :
-            ligneBrute = ligneIndice(donnees, noDossard)
-            if ligneBrute == None :
-                print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
+            if estNumeroDossardCredible(dossard) :
+                ligneBrute = ligneIndice(donnees, noDossard)
+                if ligneBrute == None :
+                    print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte.")
+                else :
+                    ligne = ligneBrute.split(",")
+                    doss = ligne[0]
+                    nom = ligne[1]
+                    prenom = ligne[2]
+                    classe = ligne[3]
+                    categorie = ligne[4]
+                    categorieLisible = ligne[5]
+                    commentaireArrivee = ligne[6]
+                    print("OK,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",",prenom, nom, "de la classe", classe, "," + str(doss) + ",")
             else :
-                ligne = ligneBrute.split(",")
-                doss = ligne[0]
-                nom = ligne[1]
-                prenom = ligne[2]
-                classe = ligne[3]
-                categorie = ligne[4]
-                categorieLisible = ligne[5]
-                commentaireArrivee = ligne[6]
-                print("OK,",nom, ",", prenom,",", classe,",", categorie,",",categorieLisible,",",prenom, nom, "de la classe", classe, "," + str(doss) + ",")
+                print("Le dossard", dossard, "n'existe pas.")
         else :
             print("Action incorrecte provenant du smartphone : nature 'identité' et action 'info' seules attendues", action)
     elif nature == "connexion" :
