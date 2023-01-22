@@ -1646,7 +1646,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     listeAction = ligne.split(",")
     action = listeAction[1]
     dossard = str(listeAction[2])
-    if dossard != "0" or dossard != "-1" or dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+    if dossard != "0" and dossard != "-1" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
