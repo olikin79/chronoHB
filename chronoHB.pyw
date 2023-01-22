@@ -184,10 +184,11 @@ class MonTableau(Frame):
         self.parent = parent
         self.initTreeview()
         
-        
     def initTreeview(self) :
         try :
             self.treeview.destroy()
+            self.vsb.destroy()
+            self.hsb.destroy()
         except :
             print("Première exécution")
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
@@ -223,7 +224,7 @@ class MonTableau(Frame):
         self.hsb = Scrollbar(self.parent, orient="horizontal", command=self.treeview.xview)
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
-##        self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
+        self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
 
         #self.treeview.bind("<ButtonRelease-1>",self.afficheBoutonVideo)
         self.treeview.bind("<<TreeviewSelect>>",self.afficheBoutonVideo)
@@ -458,7 +459,7 @@ class MonTableau(Frame):
             #print("Ligne sélectionnée:",item_text) # Output the value of the selected row
             #column= self.treeview.identify_column(event.x)# column
         row = self.treeview.focus() #self.treeview.identify_row(event.y) #row
-        print("row=",row, "treeview.selection()",self.treeview.selection())
+        #print("row=",row, "treeview.selection()",self.treeview.selection())
         #try :
         #cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
         #rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) - self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
