@@ -1,3 +1,7 @@
+Travail du 26/01/23 :
+- déplacement des modèles de dossard dans un dossard dédié. Noms plus explicites.
+
+
 Travail du 22/01/23 :
 - protection de Arrivee.pyw contre les demandes d'information sur un dossard qui n'existe pas (comme 1AA).
 - correctif pour n'activer selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) que lorsque dossard est un vrai dossard

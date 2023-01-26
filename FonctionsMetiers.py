@@ -2138,8 +2138,8 @@ def generateQRcodesCoursesManuelles() :
 def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True) :
     retour = ""
     # utilisation du modèle de dossard.
-    modeleDosssard = "./modeles/" + dossardModele
-    with open(modeleDosssard, 'r') as f :
+    modeleDosssard = "./modeles/dossards/" + dossardModele + ".tex"
+    with open(modeleDosssard , 'r') as f :
         modele = f.read()
     f.close()
     ## génération du code tex pour le(s) dossard(s)
@@ -2195,15 +2195,10 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
         retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@",etab)
     return retour
-    
-    
-def generateDossardsNG() :
-    print("Utilisation de generateDossardsNG 2ème génération")
-    generateQRcodes() # génère autant de QR-codes que nécessaire
-    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
-    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    global CoureursParClasse
-    enTetePersonnalise = "./modeles/en-tete" + dossardModele[7:-4] + ".tex"
+   
+def getEnTetePersonnalise() :
+    """ certains modèles de dossards nécessitent un en-tête personnalisé """
+    enTetePersonnalise = "./modeles/en-tete-" + dossardModele + ".tex"
     print("Recherche d'un en-tête personnalisé :", enTetePersonnalise)
     if os.path.exists(enTetePersonnalise) :
         with open(enTetePersonnalise, 'r',encoding="utf-8") as f :
@@ -2213,6 +2208,15 @@ def generateDossardsNG() :
         with open("./modeles/dossard-en-tete.tex", 'r',encoding="utf-8") as f :
             entete = f.read()
         f.close()
+    return entete
+    
+def generateDossardsNG() :
+    print("Utilisation de generateDossardsNG 2ème génération")
+    generateQRcodes() # génère autant de QR-codes que nécessaire
+    """ générer tous les dossards dans un fichier ET un fichier par catégorie => des impressions sur des papiers de couleurs différentes seraient pratiques"""
+    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    global CoureursParClasse
+    entete = getEnTetePersonnalise()
     with open("./modeles/listing-en-tete.tex", 'r',encoding="utf-8") as f :
         enteteL = f.read()
     f.close()
@@ -2308,9 +2312,7 @@ def generateDossardsAImprimer() :
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     #print("Utilisation de generateDossardsAImprimer")
     retour=[]
-    with open("./modeles/dossard-en-tete.tex", 'r') as f :
-        entete = f.read()
-    f.close()
+    entete = getEnTetePersonnalise()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
@@ -2346,9 +2348,7 @@ def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
     print("Utilisation de generateDossard pour le coureur", coureur.nom, coureur.prenom, coureur.dossard)
-    with open("./modeles/dossard-en-tete.tex", 'r') as f :
-        entete = f.read()
-    f.close()
+    entete = getEnTetePersonnalise()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.

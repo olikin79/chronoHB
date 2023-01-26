@@ -44,7 +44,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -2538,7 +2538,7 @@ def actualiseAffichageDeparts():
             grpNomAffiche = listGroupementsCommences[i]
             lblFr = Frame(fr)
             lblLegende = Label(lblFr, text= grpNomAffiche + " : ")
-            print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
+            #print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
             lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
             lblLegende.pack(side=LEFT)
             lblTemps.pack(side=LEFT)
@@ -3803,7 +3803,7 @@ zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 # zone saisie des distances des courses et paramètres
 
 def choixCC():		# Fonction associée à Catégories par Classes
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=0
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
@@ -3811,7 +3811,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     packAutresWidgets()
     
 def choixCA():		# Fonction associée à catégories par Age
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=1
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
@@ -3819,7 +3819,7 @@ def choixCA():		# Fonction associée à catégories par Age
     packAutresWidgets()
 
 def choixUNSS():		# Fonction associée à catégories par Age
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=2
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
@@ -3949,12 +3949,16 @@ def choixListing():
     else :
         Parametres["genererListing"]=False
 
-cbgenererListing = IntVar()
-cbgenererListingQRCodes = IntVar()
+cbgenererListing = BooleanVar()
+cbgenererListingQRCodes = BooleanVar()
 if genererListing:
-    cbgenererListing.set(1)
+    cbgenererListing.set(True)
+else :
+    cbgenererListing.set(False)
 if genererListingQRcodes:
-    cbgenererListingQRCodes.set(1)
+    cbgenererListingQRCodes.set(True)
+else :
+    cbgenererListingQRCodes.set(False)
 cbListingsFrame = Frame(GaucheFrameParametresCourses)
 cbListingsLbl = Label(cbListingsFrame,text="En cas de pertes de dossards : ")
 cbCMgenererListing = Checkbutton(cbListingsFrame, text="Générer un tableau des associations noms-dossards", variable=cbgenererListing, onvalue=1, offvalue=0, command=choixListing)
@@ -3992,12 +3996,15 @@ def actualiseCanvasModeleDossards(event):
     global canvas_image,ModeleDeDossardsCanvas
     fichierChoisi = ModeleDeDossardsCombo.get()
     Parametres["dossardModele"] = fichierChoisi
-    imageFile = fichierChoisi[:-3] + "png"
+    imageFile = fichierChoisi + ".png"
     if event == "" :
         print("Initialisation du choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
     else :
         print("Changement de choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    canvas_image = PhotoImage(file = "./modeles/"+imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/dossards/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/dossards/cross-HB.png")
     h = canvas_image.height()
     w = canvas_image.width()
     rappH = h // int(ModeleDeDossardsCanvas['height']) + 1
@@ -4008,8 +4015,11 @@ def actualiseCanvasModeleDossards(event):
 
 ModeleDeDossardsFrame = Frame(GaucheFrameParametresCourses)
 ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
-files = tuple(map(os.path.basename,glob.glob('./modeles/dossard-modele-*.tex', recursive = False)))
-ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files)
+files = []
+for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
+    files.append(os.path.basename(el)[:-4])
+files = tuple(files)
+ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
 ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
 ModeleDeDossardsCombo.set(dossardModele)
 ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=600,height=350)
