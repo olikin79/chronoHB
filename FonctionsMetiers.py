@@ -217,14 +217,62 @@ def recupere_sauvegarde(sauvegardeChoisie) :
 ####        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
 ##        return nomFichierCopie
 
+def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, sexe, evolution = 1) :
+    # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
+    for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
+        # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
+        ## tester d'abord si la catégorie existe dans la liste.
+        present = False
+        for el in L :
+            if el[0] == catFFA:
+                present = True
+                break
+        ## si oui, faire le parcours suivant.
+        ## sinon, ne rien faire.
+        if present :
+            for couple in L :
+                if sexe == "F" :
+                    couple[2] += evolution
+                else :
+                    couple[1] += evolution
+                if catFFA == couple[0] :
+                    if sexe == "F" :
+                        rangDansCategorie = couple[2]
+                    else :
+                        rangDansCategorie = couple[1]
+                    break
+            # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
+            break
+    return rangDansCategorie
+
 class DictionnaireDeCoureurs(dict) :
     def __init__(self, AncienneListeAImporter=[]):
         super().__init__()
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
+        self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+    def initEffectifs(self):
+        """ permet de connaître le nombre total de coureurs de chaque sexe et de chaque catégorie : pour les catégories, on considère ceux qui sont inférieurs qui doivent être battus."""
         self.nombreDeCoureursParSexe = [0,0]
-        self.nombreDeCoureursParCategorie = []
+        L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
+        L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
+        self.nombreDeCoureursParCategorie = [L1, L2]
+        for coureur in self.liste() :
+            if coureur.sexe == "F" :
+                self.nombreDeCoureursParSexe[1] += 1
+            else :
+                self.nombreDeCoureursParSexe[0] += 1
+            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
+    def evolutionDUnAuxEffectifsTotaux(self, coureur, evolution=1):
+        self.nombreDeCoureurs += evolution
+        if coureur.sexe == "F" :
+            self.nombreDeCoureursParSexe[1] += evolution
+        else :
+            self.nombreDeCoureursParSexe[0] += evolution
+        incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+    def getTotalParCategorie(self):
+        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, coureur.sexe)
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
         # actualiser les dossards de tous les coureurs déjà présents 
@@ -281,18 +329,21 @@ class DictionnaireDeCoureurs(dict) :
                     self["CoureursElimines"][course].append(nbreCoureursDansCourse)
                     nbreCoureursDansCourse += 1
                 self[course].append(coureur)
-                self.nombreDeCoureurs += 1
+                #self.nombreDeCoureurs += 1
+                self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
             else : # le dossard affecté n'est pas spécifié, on affecte le coureur créé au premier dossard libre.
                 if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
                     premierIndiceLibre = self["CoureursElimines"][course].pop(0)
                     coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
                     self[course][premierIndiceLibre]= coureur
-                    self.nombreDeCoureurs += 1
+                    #self.nombreDeCoureurs += 1
+                    self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
                     return str(premierIndiceLibre+1) + course
                 else : # aucun indice libre, on ajoute à la fin
                     coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
                     self[course].append(coureur)
-                    self.nombreDeCoureurs += 1
+                    #self.nombreDeCoureurs += 1
+                    self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
                     return str(len(self[course])) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
@@ -345,8 +396,9 @@ class DictionnaireDeCoureurs(dict) :
                     # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
                     cle = "A"
                     indice = int(doss)-1
+                self.evolutionDUnAuxEffectifsTotaux(self.recuperer(doss), evolution=-1)
                 self[cle][indice] = Coureur("","","","") # coureur vide mis à la place.
-                self.nombreDeCoureurs -= 1
+                #self.nombreDeCoureurs -= 1
                 self["CoureursElimines"][cle].append(indice)
                 self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
         except :
@@ -449,6 +501,7 @@ class Coureur():#persistent.Persistent):
         self.rang = 0
         self.scoreUNSS = scoreUNSS 
         self.rangCat = 0
+        self.rangSexe = 0
         self.commentaireArrivee = commentaireArrivee
         self.scoreUNSS = scoreUNSS
         self.aImprimer = aImprimer
@@ -706,6 +759,8 @@ class Coureur():#persistent.Persistent):
         self.rang = int(rang)
     def setRangCat(self, rang) :
         self.rangCat = int(rang)
+    def setRangSexe(self, rang) :
+        self.rangSexe = int(rang)
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
     def setNom(self, valeur) :
@@ -1176,6 +1231,11 @@ def chargerDonnees() :
             else :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
             i += 1
+    ### ajout d'une méthode pour dénombrer les effectifs pour les diplomes
+    # try :
+        # Coureurs.nombreDeCoureursParSexe
+    # except : 
+        # Coureurs.initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
     if not "LignesIgnoreesSmartphone" in root :
         root["LignesIgnoreesSmartphone"] = []
     LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
@@ -3541,33 +3601,25 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
             retour = None
     return retour
 
-def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, sexe) :
+def getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , DecompteParCategoriesDAge, sexe) :
     # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
+    present = False
     for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
         # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
         ## tester d'abord si la catégorie existe dans la liste.
-        present = False
-        for el in L :
-            if el[0] == catFFA:
-                present = True
-                break
-        ## si oui, faire le parcours suivant.
-        ## sinon, ne rien faire.
-        if present :
-            for couple in L :
-                if sexe == "F" :
-                    couple[2] += 1
-                else :
-                    couple[1] += 1
-                if catFFA == couple[0] :
+        if not present :
+            for el in L :
+                if el[0] == catFFA:
+                    present = True
                     if sexe == "F" :
-                        rangDansCategorie = couple[2]
+                        return el[2]
                     else :
-                        rangDansCategorie = couple[1]
+                        return el[1] 
                     break
-            # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
-            break
-    return rangDansCategorie
+    if not present :
+        print("ANORMAL : on devrait toujours trouver un nombre de coureurs par catégorie")
+
+
     
 ResultatsPourImpressions = {}
 ResultatsGroupementsPourImpressions = {}
@@ -3660,6 +3712,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
         L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
         DecompteParCategoriesDAge = [L1, L2]
+        # rang par sexes
+        RangSexe = [0,0]
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
         # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
@@ -3676,16 +3730,23 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             if coureur.temps > 0 :
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
                 coureur.setRang(i+1)
+                if coureur.sexe == "F" :
+                    i = 1 # rang dans la liste incrémentée.
+                else :
+                    i = 0 # rang dans la liste incrémentée.
+                RangSexe[i] += 1
                 ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
                 if Parametres["CategorieDAge"] == 2 :
                     coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
                 if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
                     catFFA = coureur.categorieFFA()
                     coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
+                    coureur.setRangSexe(RangSexe[i])
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
                 coureur.setRangCat(0)
+                coureur.setRangSexe(0)
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
     ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.

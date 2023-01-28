@@ -18,15 +18,16 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur) :
     categorie = "Catégorie " + coureur.categorieSansSexe()
     if coureur.sexe == "F" :
         logoSexe = "symbole-feminin-blanc.png"
+        nbreTotalSexe = Coureurs.nombreDeCoureursParSexe[1]
     else :
         logoSexe = "symbole-male-blanc.png"
+        nbreTotalSexe = Coureurs.nombreDeCoureursParSexe[0]
     nomCourse = Courses[coureur.course].description
     temps = coureur.tempsHMS()
     dateDuTrail = Courses[coureur.course].dateFormatee()
-    nbreTotal = "9999"
-    nbreTotalCategorie = "999"
-    rangSexe = "99"
-    nbreTotalSexe = "999"
+    nbreTotal = str(Coureurs.nombreDeCoureurs)
+    nbreTotalCategorie = str(Coureurs.getTotalParCategorie())
+    rangSexe = str(coureur.rangSexe)
     fondDiplome = "Randon-Trail.jpg"
     modele = modele.replace("@nom@",coureur.nom).replace("@prenom@",coureur.prenom).replace("@date@",dateDuTrail)\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"]).replace("@rang@",str(coureur.rang))\
