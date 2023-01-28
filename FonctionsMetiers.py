@@ -5,11 +5,13 @@
 #from ZODB.PersistentMapping import PersistentMapping
 #import persistent
 #import transaction
+import locale
+locale.setlocale(locale.LC_TIME,'') # pour mettre en français le module time. Samedi au lieu de Saturday, etc...
 import time, datetime
 import os, sys, glob, subprocess
 import shutil
 import random
-import csv
+import csv, re
 
 #import http.server
 from server import *
@@ -427,7 +429,7 @@ def naissanceValide(naissance) :
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence=""):
+                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence="", email=""):
         self.setDossard(dossard)
         self.nom = self.formateNomPrenom(nom)
         self.prenom = self.formateNomPrenom(prenom)
@@ -451,6 +453,9 @@ class Coureur():#persistent.Persistent):
         self.categorieAuto = True
         self.course = course
         self.setLicence(licence)
+        self.email = ""
+        self.emailEnvoiEffectue = False
+        self.setEmail(email)
         self.categorie(CategorieDAge)
         self.__private_categorie = None
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
@@ -523,6 +528,18 @@ class Coureur():#persistent.Persistent):
             self.etablissementNoUNSS  = self.licence[:7]
         except :
             self.etablissementNoUNSS = ""
+    def setEmail(self,email):
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+        if re.fullmatch(regex, str(email)) : # si valide, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+            self.email = str(email)
+            self.emailEnvoiEffectue = False
+    def setEmailEnvoiEffectue(self, val = True) :
+        self.emailEnvoiEffectue = bool(val)
+        # compatbilité ascendante avec vieilles sauvegardes
+        try : 
+            self.email
+        except :
+            self.email = ""
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
     def scoreUNSSFormate(self) :
@@ -792,6 +809,12 @@ class Course():#persistent.Persistent):
             return formaterTempsALaSeconde(self.tempsAuto)
         else :
             return formaterTempsALaSeconde(self.temps)
+    def dateFormatee(self) :
+        if self.temps :
+            return formaterDatePourDiplome(self.temps)
+        else :
+            return "Départ non donné pour course "+self.description
+
 
 
 def HMScorrect(ch) :
@@ -963,6 +986,20 @@ def formaterTemps(tps, HMS=True) :
     ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
+def formaterDatePourDiplome(tps) :
+    jour = time.strftime("%A",time.localtime(tps))
+    return jour[0].upper() + jour[1:] + time.strftime(" %d %B %Y",time.localtime(tps))
+
+
+def formaterTempsALaSeconde(tps) :
+    if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
+        if int(time.strftime("%M",time.localtime(tps))) == 0 : # pas de minute à afficher.
+            ch = time.strftime("00:00:%S",time.localtime(tps))
+        else :
+            ch = time.strftime("00:%M:%S",time.localtime(tps))
+    else :
+        ch = time.strftime("%H:%M:%S",time.localtime(tps))
+    return ch
 
 def formaterTempsALaSeconde(tps) :
     if int(time.strftime("%H",time.localtime(tps))) == 0 : # pas d'heure à afficher.
@@ -1072,7 +1109,7 @@ def chargerDonnees() :
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
-           genererListingQRcodes,genererListing
+           genererListingQRcodes,genererListing,diplomeModele
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1206,7 +1243,7 @@ def chargerDonnees() :
         Parametres["tempsPause"]= "8"
     tempsPause=Parametres["tempsPause"]
     if not "dossardModele" in Parametres :
-        Parametres["dossardModele"]= "dossard-modele-1.tex"
+        Parametres["dossardModele"]= "cross-HB"
     dossardModele=Parametres["dossardModele"]
     if not "webcam" in Parametres :
         Parametres["webcam"]= 0
@@ -1232,6 +1269,10 @@ def chargerDonnees() :
     if not "genererListing" in Parametres :
         Parametres["genererListing"] = True
     genererListing=Parametres["genererListing"]
+    if not "diplomeModele" in Parametres :
+        Parametres["diplomeModele"] = "Randon-Trail"
+    diplomeModele=Parametres["diplomeModele"]
+    
     ##transaction.commit()
     return globals()
 
