@@ -3,14 +3,13 @@
 ./:
 fonts
 ls-R
+luatex-cache
 tex
 web2c
-xdvi
 
 ./fonts:
 map
 pk
-tfm
 
 ./fonts/map:
 dvipdfmx
@@ -54,16 +53,28 @@ ec
 ./fonts/pk/ljfour/jknappen/ec:
 ecrm1200.600pk
 
-./fonts/tfm:
-
-./tex:
-context
+./luatex-cache:
 generic
 
-./tex/context:
-config
+./luatex-cache/generic:
+fonts
+names
 
-./tex/context/config:
+./luatex-cache/generic/fonts:
+otl
+
+./luatex-cache/generic/fonts/otl:
+lmroman10-regular.lua
+lmroman10-regular.luc
+
+./luatex-cache/generic/names:
+luaotfload-lookup-cache.lua
+luaotfload-lookup-cache.luc
+luaotfload-names.lua.gz
+luaotfload-names.luc
+
+./tex:
+generic
 
 ./tex/generic:
 config
@@ -118,5 +129,3 @@ pdftex.log
 ./web2c/tex:
 tex.fmt
 tex.log
-
-./xdvi:
