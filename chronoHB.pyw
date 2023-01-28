@@ -3829,11 +3829,11 @@ def choixUNSS():		# Fonction associée à catégories par Age
 def packAutresWidgets():
     if Parametres["CategorieDAge"] == 1 :
         CoursesManuellesFrame.pack(side=TOP,anchor="w")       
-    if CoursesManuelles :
-        cbCMgenerer.set(1)
-        CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
-        cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
-        choixCMQRCodes()
+    #if CoursesManuelles :
+        #cbCMgenerer.set(1)
+        #CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
+        #cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
+        #choixCMQRCodes()
     cbListingsFrame.pack(side=TOP,anchor="w")
     cbListingsLbl.pack(side=LEFT,anchor="w")
     cbCMgenererListing.pack(side=LEFT,anchor="w")
@@ -3857,7 +3857,7 @@ def packAutresWidgets():
 def forgetAutresWidgets():
     cbListingsFrame.forget()
     CoursesManuellesFrame.forget()
-    CoursesManuellesFrameChoixSupplementaires.forget()
+    #CoursesManuellesFrameChoixSupplementaires.forget()
     cbCMgenererListing.forget()
     cbCMgenererListingQRCodes.forget()
     MessageParDefautFrameL.pack_forget()
