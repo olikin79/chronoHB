@@ -1577,3 +1577,7 @@ CoureursA.txt
 CoureursB.txt
 CoureursC.txt
 CoureursD.txt
+resultatsDiffusionIdentifiants.py
+*.gz
+*.aux
+*.log
