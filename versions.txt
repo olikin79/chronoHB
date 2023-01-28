@@ -1,6 +1,7 @@
 Travail du 28/01/23 :
 - Suppression des QR-codes générés à part (devenu obsolète)
 - Premières fonctions permettant l'envoi d'un diplome après la course par gmail.
+- Correction texlive pour compilation correcte avec les fonds ajoutés (dossards+diplomes)
 
 
 Travail du 26/01/23 :

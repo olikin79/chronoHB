@@ -10,7 +10,6 @@ Retour suite au trail de Randon :
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
-- compilation sous texlive avec la police de Rieutort et le fond,...
 - arrondir à la seconde supérieure les temps.
 
 
