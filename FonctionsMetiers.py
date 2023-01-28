@@ -223,6 +223,8 @@ class DictionnaireDeCoureurs(dict) :
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
+        self.nombreDeCoureursParSexe = [0,0]
+        self.nombreDeCoureursParCategorie = []
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
         # actualiser les dossards de tous les coureurs déjà présents 
@@ -2314,25 +2316,25 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
-    if CoursesManuelles and genererQRcodesPourCourseManuelles :
-        with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
-            enteteQR = f.read()
-        f.close()
-        generateQRcodesCoursesManuelles()
-        fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
-        ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
-        with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
-            fL.write(enteteQR + "\n\n")
-            L = Coureurs.cles()
-            Coureurs.afficher()
-            print("Affichage des Coureurs pour comprendre")
-            print("Clés",Coureurs.cles())
-            for nomCourse in L :
-                alimenteListingPourCourse(nomCourse, fL)
-                if nomCourse != L[:-1] :
-                    fL.write("\n\\newpage\n\n")
-            fL.write("\\end{document}")
-        fL.close()
+    # if CoursesManuelles and genererQRcodesPourCourseManuelles :
+        # with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
+            # enteteQR = f.read()
+        # f.close()
+        # generateQRcodesCoursesManuelles()
+        # fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
+        # ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
+        # with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
+            # fL.write(enteteQR + "\n\n")
+            # L = Coureurs.cles()
+            # Coureurs.afficher()
+            # print("Affichage des Coureurs pour comprendre")
+            # print("Clés",Coureurs.cles())
+            # for nomCourse in L :
+                # alimenteListingPourCourse(nomCourse, fL)
+                # if nomCourse != L[:-1] :
+                    # fL.write("\n\\newpage\n\n")
+            # fL.write("\\end{document}")
+        # fL.close()
     ### compilation de tous les fichier sprésents 
     compilerTousLesTex(TEXDIR, "dossards")
     #print(listeCategories)
