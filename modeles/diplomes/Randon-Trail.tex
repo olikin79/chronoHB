@@ -24,17 +24,6 @@
 \usepackage[a5paper,landscape]{geometry}
 \geometry{right=0.5cm,left=0.5cm,top=1cm,bottom=1cm}
 
-% pour le surlignement en gras
-%\usepackage{mathtools}
-%\newcommand*{\myov}[1]{\overbracket[3.65pt][0pt]{#1}}
-%\newcommand*{\myovline}[2]{\overbracket[#2][-1pt]{#1}}
-\usepackage[usestackEOL]{stackengine}
-\usepackage{scalerel}
-\def\myoverline#1{\ThisStyle{%
-		\setbox0=\hbox{$\SavedStyle#1$}%
-		\stackengine{7\LMpt}{$\SavedStyle#1$}{\rule{\wd0}{4\LMpt}}{O}{c}{F}{F}{S}%
-}}
-
 \begin{document}
 \AddToShipoutPicture*{\BackgroundA}
 
