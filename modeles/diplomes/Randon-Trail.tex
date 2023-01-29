@@ -24,6 +24,8 @@
 \usepackage[a5paper,landscape]{geometry}
 \geometry{right=0.5cm,left=0.5cm,top=1cm,bottom=1cm}
 
+\usepackage{ifthen}
+
 \begin{document}
 \AddToShipoutPicture*{\BackgroundA}
 
@@ -42,7 +44,7 @@
 \vfill
 
 %\begin{minipage}[c]{6cm}
-\resizebox{!}{40pt}{\textbf{@rang@ème} 	} {\Huge / @nbreTotal@ participants}
+\resizebox{!}{40pt}{\textbf{@rang@} 	} {\Huge / @nbreTotal@ participants}
 
 \bigskip
 %\end{minipage}
@@ -51,11 +53,14 @@
 
 \bigskip
 
-\textbf{\huge @categorie@ : @rangCat@ / @nbreTotalCategorie@}
+\ifthenelse{\equal{@cat@}{SE}}
+{}
+{\textbf{\huge @categorie@ : @rangCat@ / @nbreTotalCategorie@}
 	
-%\textbf{}
-%\end{minipage}
-\bigskip
+\bigskip}
+
+
+
 
 
 \begin{minipage}[c]{1.5cm}
@@ -78,7 +83,7 @@
 	\includegraphics[width=\textwidth]{../../media/@logoSexe@}
 \end{minipage}
 \begin{minipage}[c]{5cm}
-	\textbf{\huge @rangSexe@ème / @nbreTotalSexe@}
+	\textbf{\huge @rangSexe@ / @nbreTotalSexe@}
 \end{minipage}
 
 \end{document}

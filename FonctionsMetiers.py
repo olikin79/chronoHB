@@ -271,8 +271,8 @@ class DictionnaireDeCoureurs(dict) :
         else :
             self.nombreDeCoureursParSexe[0] += evolution
         incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
-    def getTotalParCategorie(self):
-        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, coureur.sexe)
+    def getTotalParCategorie(self,catFFA, sexe):
+        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
         # actualiser les dossards de tous les coureurs déjà présents 
@@ -585,7 +585,7 @@ class Coureur():#persistent.Persistent):
             self.etablissementNoUNSS = ""
     def setEmail(self,email):
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-        if re.fullmatch(regex, str(email)) : # si valide, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+        if re.fullmatch(regex, str(email)) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
             self.email = str(email)
             self.emailEnvoiEffectue = False
     def setEmailEnvoiEffectue(self, val = True) :
@@ -893,11 +893,18 @@ class Groupement():
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
         self.distance = 0
+        self.nombreDeCoureursGTotal = 0
+        self.nombreDeCoureursFTotal = 0
+        self.nombreDeCoureursTotal = 0
         self.actualiseNom()
         self.aRegenererPourImpression = False
 ##        self.equipesClasses = []
     def setARegenererPourImpression (self, val):
         self.aRegenererPourImpression = bool(val)
+    def setNombreDeCoureursTotal(self, nbreG, nbreF) :
+        self.nombreDeCoureursGTotal = int(nbreG)
+        self.nombreDeCoureursFTotal = int(nbreF)
+        self.nombreDeCoureursTotal = int(nbreG) + int(nbreF)
     def setNom(self, nomChoisi):
         if len(nomChoisi) > 1 : # les noms à 1 caractère sont réservés aux challenges.
             print("nom choisi:",nomChoisi)
@@ -1231,11 +1238,7 @@ def chargerDonnees() :
             else :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
             i += 1
-    ### ajout d'une méthode pour dénombrer les effectifs pour les diplomes
-    # try :
-        # Coureurs.nombreDeCoureursParSexe
-    # except : 
-        # Coureurs.initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
+
     if not "LignesIgnoreesSmartphone" in root :
         root["LignesIgnoreesSmartphone"] = []
     LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
@@ -1839,7 +1842,10 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
         groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
     except :
         print("ERREUR AVEC setARegenererPourImpression")
-        print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
+        try :
+            print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
+        except :
+            print("Le coureur au dossard",dossard, "n'a pas de course affectée")
         #print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
         #print("Courses",Courses)
 
@@ -3701,7 +3707,6 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             ResultatsPourImpressions[nomDuResultat].append(doss)
             #else :
             #    print("Dossard au temps négatif ignoré", doss)
-    #print("Resultats",Resultats)
         # Finalement, on ne parcourt qu'une liste ci-dessus (tout le début commenté) et on trie tout ensuite. Sûrement plus rapide.
     ## ETAPE 2 : on alimente ResultatsGroupements, on affecte les rangs aux coureurs en fonction de leur rang d'arrivée dans le Groupement.
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
@@ -3731,17 +3736,17 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
                 coureur.setRang(i+1)
                 if coureur.sexe == "F" :
-                    i = 1 # rang dans la liste incrémentée.
+                    iSexe = 1 # rang dans la liste incrémentée.
                 else :
-                    i = 0 # rang dans la liste incrémentée.
-                RangSexe[i] += 1
+                    iSexe = 0 # rang dans la liste incrémentée.
+                RangSexe[iSexe] += 1
                 ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
                 if Parametres["CategorieDAge"] == 2 :
                     coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
                 if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
                     catFFA = coureur.categorieFFA()
                     coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
-                    coureur.setRangSexe(RangSexe[i])
+                    coureur.setRangSexe(RangSexe[iSexe])
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
@@ -3749,6 +3754,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 coureur.setRangSexe(0)
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
+        # on définit combien de coureurs appartiennent à un groupement.
+        groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
     ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
     keyList = []
     for nom in Resultats :
@@ -4448,7 +4455,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
         #position = len(ArriveeDossards)
         ArriveeDossards.append(doss)
-        print("Dossard arrivé :",doss)
+        #print("Dossard arrivé :",doss)
     elif dossPrecedent == "0A" : # insère au début de liste
         print("insertion en début de liste d'arrivée")
         #position = 0
@@ -4610,7 +4617,8 @@ def calculeTousLesTemps(reinitialise = False):
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
-    #print("A la fin",retour)
+    #print("A la fin de calculeTousLesTemps",retour)
+    #print("Erreur 0",retour[0].numero ,retour[0].description)
     return retour
 
 def categorieDuDernierDepart() :

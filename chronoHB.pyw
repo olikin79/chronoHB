@@ -54,7 +54,9 @@ def LOGstandards():
 
 LOGstandards()    
 
-from FonctionsMetiers import *
+from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
+from resultatsDiffusion import * # création puis diffusion des diplomes par email
+
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
@@ -2647,7 +2649,6 @@ class Clock():
         traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
-
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
@@ -2755,6 +2756,17 @@ class Clock():
             actualiseAffichageZoneDeDroite(self.erreursEnCours)
             self.affichageDeDroiteAActualiser = False
             self.dejaDesErreurs = bool(self.erreursEnCours)
+
+
+# pour compatibilité ascendante avec les anciennes sauvegardes
+# ajout d'une méthode pour dénombrer les effectifs pour les diplomes
+try :
+    Coureurs.nombreDeCoureursParSexe
+except : 
+    Coureurs.initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
+
+print("initEffectifs lancé, on arrive dans clock init")
+
         
 timer=Clock(root, "tableau.maj")
 
@@ -4058,6 +4070,11 @@ if Parametres["CategorieDAge"] :
 else :
     choixCC()
 
+def envoiDiplomes():
+    showinfo("INFORMATION","Opération très longue en fonction de votre débit internet.\n\
+Merci d'attendre un message de confirmation de fin de diffusion.")
+    envoiDiplomePourTousLesCoureurs()
+    showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email) effectuée.")
 
 def exportCourse():
     # selectionner un dossier contenant
@@ -4131,6 +4148,7 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
+postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
 postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)

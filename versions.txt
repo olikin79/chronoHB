@@ -1,3 +1,11 @@
+Travail du 29/01/23 :
+- finalisation-correction des informations ajoutées sur le diplôme.
+- ajout d'un menu permettant d'envoyer tous les diplômes.
+Reste à faire :
+	* corriger le nombre total de personnes d'une catégorie. Affiche le nombre total, toutes courses confondues. Pas bon.
+	* ajout d'un envoi automatique du diplôme n minutes après avoir passé la ligne d'arrivée.
+	* si l'un des rangs change, repasser la propriété Coureur.emailEnvoiEffectue à False. Ainsi, le coureur recevra un mail correctif.
+
 Travail du 28/01/23 :
 - Suppression des QR-codes générés à part (devenu obsolète)
 - Premières fonctions permettant l'envoi d'un diplome après la course par gmail.
