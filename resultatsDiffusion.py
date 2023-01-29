@@ -27,13 +27,19 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur) :
     temps = coureur.tempsHMS()
     dateDuTrail = Courses[coureur.course].dateFormatee()
     nbreTotal = str(groupement.nombreDeCoureursTotal)
-    nbreTotalCategorie = str(Coureurs.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
+    nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
     rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
     fondDiplome = "Randon-Trail.jpg"
+    # astuce pour éviter que des rangs par catégorie inutiles apparaissent, on change en SENIOR puisque le classement par catégorie
+    # pour les séniors revient au même que la classement global.
+    cat = coureur.categorieSansSexe()
+##    if nbreTotalCategorie == "1" :
+##        # s'il n'y a qu'une seule personne dans une catégorie, est ce que l'on supprime l'affichage ou non en mettant SE artificiellement ?
+##        cat = "SE"
     modele = modele.replace("@nom@",coureur.nom).replace("@prenom@",coureur.prenom).replace("@date@",dateDuTrail)\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                 .replace("@rang@",formateRangSexe(coureur.rang, coureur.sexe))\
-                .replace("@nbreTotal@",nbreTotal).replace("@categorie@",categorie).replace("@cat@",coureur.categorieSansSexe())\
+                .replace("@nbreTotal@",nbreTotal).replace("@categorie@",categorie).replace("@cat@",cat)\
                 .replace("@logoSexe@",logoSexe).replace("@nomCourse@",nomCourse).replace("@rangCat@",formateRangSexe(coureur.rangCat, coureur.sexe))\
                 .replace("@nbreTotalCategorie@",str(nbreTotalCategorie)).replace("@temps@",temps).replace("@vitesse@",coureur.vitesseFormatee())\
                 .replace("@rangSexe@",rangSexe).replace("@nbreTotalSexe@",str(nbreTotalSexe)).replace("@fondDiplome@",fondDiplome)
@@ -67,9 +73,10 @@ def genereDiplome(modele, coureur) :
     fichier = "resultats/" + coureur.dossard + ".pdf"
     if os.path.exists(fichier) :
         cmd = 'start "" /I /wait /min /D . .\\IM\\convert -density 100 ' + fichierAConvertir + " " + fichierDestination
+        # options essayées pour une luminosité meilleure : -auto-gamma -white-balance -normalize -auto-level -equalize
         #print("Exécution de", cmd)
         syscmd(cmd)
-        for ext in ["aux", "log", "pdf", "synctex.gz" ]:
+        for ext in ["aux", "log", "synctex.gz" ]:
             if os.path.exists("resultats/" + coureur.dossard + "." + ext) :
                 os.remove("resultats/" + coureur.dossard + "." + ext)
     else :
