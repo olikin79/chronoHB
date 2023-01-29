@@ -2686,6 +2686,8 @@ class Clock():
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.compteurSauvegarde = 1
+            print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+            envoiDiplomes(avecQuestion = False)
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
 
@@ -4070,11 +4072,25 @@ if Parametres["CategorieDAge"] :
 else :
     choixCC()
 
-def envoiDiplomes():
-    showinfo("INFORMATION","Opération très longue en fonction de votre débit internet.\n\
-Merci d'attendre un message de confirmation de fin de diffusion.")
-    envoiDiplomePourTousLesCoureurs()
-    showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email) effectuée.")
+tagEnvoiDiplomeEnCours = False
+
+def envoiDiplomes(avecQuestion = True):
+    global tagEnvoiDiplomeEnCours
+    if not tagEnvoiDiplomeEnCours :
+        if avecQuestion :
+            reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
+    Un message de fin de diffusion apparaîtra quand cette opération sera terminée.")
+            if reponse :
+                tagEnvoiDiplomeEnCours = True
+                mon_thread_Diplomes = Thread(target=envoiDiplomePourTousLesCoureurs)
+                mon_thread_Diplomes.start()
+                tagEnvoiDiplomeEnCours = False
+                showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
+        else :
+            tagEnvoiDiplomeEnCours = True
+            mon_thread_Diplomes = Thread(target=envoiDiplomePourTousLesCoureurs)
+            mon_thread_Diplomes.start()
+            tagEnvoiDiplomeEnCours = False
 
 def exportCourse():
     # selectionner un dossier contenant
