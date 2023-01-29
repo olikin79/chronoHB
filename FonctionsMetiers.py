@@ -893,12 +893,27 @@ class Groupement():
         self.listeDesCourses = listeDesNomsDesCourses
         self.manuel = False
         self.distance = 0
+        self.actualiseNom()
+        self.aRegenererPourImpression = False
+        self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+##        self.equipesClasses = []
+    def initEffectifs(self):
         self.nombreDeCoureursGTotal = 0
         self.nombreDeCoureursFTotal = 0
         self.nombreDeCoureursTotal = 0
-        self.actualiseNom()
-        self.aRegenererPourImpression = False
-##        self.equipesClasses = []
+        L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
+        L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
+        self.nombreDeCoureursParCategorie = [L1, L2]
+    def evolutionDUnAuxEffectifsTotaux(self, coureur, evolution=1):
+        if not coureur.absent :
+            self.nombreDeCoureursTotal += evolution
+            if coureur.sexe == "F" :
+                self.nombreDeCoureursFTotal += evolution
+            else :
+                self.nombreDeCoureursGTotal += evolution
+            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+    def getTotalParCategorie(self,catFFA, sexe):
+        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA, self.nombreDeCoureursParCategorie, sexe)
     def setARegenererPourImpression (self, val):
         self.aRegenererPourImpression = bool(val)
     def setNombreDeCoureursTotal(self, nbreG, nbreF) :
@@ -3713,6 +3728,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     ### on traite les rangs dans les Groupements
     #keyList = []
     for nom in ResultatsGroupements :
+        groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
         # on considère que la meilleure catégorie est SENIOR.
         L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
         L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
@@ -3731,6 +3747,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         while i < nbreArriveesGroupement :
             doss = ResultatsGroupements[nom][i]
             coureur = Coureurs.recuperer(doss)
+            groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
             #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
             if coureur.temps > 0 :
             ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
@@ -3755,7 +3772,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
             i += 1
         # on définit combien de coureurs appartiennent à un groupement.
-        groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
+        ### inutile car fait au fur et à mesure par groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
     ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
     keyList = []
     for nom in Resultats :
