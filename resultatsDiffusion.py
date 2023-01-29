@@ -95,10 +95,7 @@ def envoiDiplomePourTousLesCoureurs() :
         except :
             c.setEmailEnvoiEffectue(False)
 
-        if c.dossard == "25A" :
-            c.setEmail("vallesmarie@hotmail.fr")#### TEMPORAIRE
-        else :
-            c.setEmail("") # on remet tous les mails à "" suite aux tests.
+##      c.setEmail("") # on remet tous les mails à "" suite aux tests.
         
         if c.temps > 0 and not c.emailEnvoiEffectue and c.email :
             # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome, on génère son diplome et on l'envoie
