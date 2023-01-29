@@ -584,9 +584,13 @@ class Coureur():#persistent.Persistent):
         except :
             self.etablissementNoUNSS = ""
     def setEmail(self,email):
-        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-        if re.fullmatch(regex, str(email)) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
-            self.email = str(email)
+        if email :
+            regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+            if re.fullmatch(regex, str(email)) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+                self.email = str(email)
+                self.emailEnvoiEffectue = False
+        else :
+            self.email = ""
             self.emailEnvoiEffectue = False
     def setEmailEnvoiEffectue(self, val = True) :
         self.emailEnvoiEffectue = bool(val)
@@ -606,6 +610,7 @@ class Coureur():#persistent.Persistent):
     def setCourse(self, c) :
         if CoursesManuelles :
             self.course = c
+            self.emailEnvoiEffectue = False
         else :
             print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
     def setScoreUNSS(self, nbreArriveesGroupement) :
@@ -696,6 +701,7 @@ class Coureur():#persistent.Persistent):
     def setTemps(self, temps=0, distance=0):
         try :
             self.temps = float(temps)
+            self.emailEnvoiEffectue = False
         except :
             self.temps = 0
         if self.temps >  0:
@@ -756,17 +762,25 @@ class Coureur():#persistent.Persistent):
     def vitesseFormateeAvecVMAtex(self) :
         return self.vitesseFormateeAvecVMA().replace("%","\%")
     def setRang(self, rang) :
-        self.rang = int(rang)
+        if int(rang) != self.rang :
+            self.rang = int(rang)
+            self.emailEnvoiEffectue = False
     def setRangCat(self, rang) :
-        self.rangCat = int(rang)
+        if int(rang) != self.rangCat :
+            self.rangCat = int(rang)
+            self.emailEnvoiEffectue = False
     def setRangSexe(self, rang) :
-        self.rangSexe = int(rang)
+        if int(rang) != self.rangSexe :
+            self.rangSexe = int(rang)
+            self.emailEnvoiEffectue = False
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
     def setNom(self, valeur) :
         self.nom = str(valeur)
+        self.emailEnvoiEffectue = False
     def setPrenom(self, valeur) :
         self.prenom = str(valeur)
+        self.emailEnvoiEffectue = False
 
 
 class Course():#persistent.Persistent):
@@ -1352,7 +1366,15 @@ def chargerDonnees() :
     if not "diplomeModele" in Parametres :
         Parametres["diplomeModele"] = "Randon-Trail"
     diplomeModele=Parametres["diplomeModele"]
-    
+    if not "diplomeDiffusionApresNMin" in Parametres :
+        Parametres["diplomeDiffusionApresNMin"] = 2
+    diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
+    if not "diplomeEmailExpediteur" in Parametres :
+        Parametres["diplomeEmailExpediteur"] = "lax.olivier@gmail.com"
+    diplomeEmailExpediteur=Parametres["diplomeEmailExpediteur"]
+    if not "diplomeMdpExpediteur" in Parametres :
+        Parametres["diplomeMdpExpediteur"] = ""
+    diplomeMdpExpediteur=Parametres["diplomeMdpExpediteur"]
     ##transaction.commit()
     return globals()
 

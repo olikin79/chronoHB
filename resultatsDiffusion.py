@@ -95,12 +95,15 @@ def envoiDiplomePourTousLesCoureurs() :
         except :
             c.setEmailEnvoiEffectue(False)
 
-        c.setEmail("olivier.lax@free.fr")#### TEMPORAIRE
+        if c.dossard == "25A" :
+            c.setEmail("vallesmarie@hotmail.fr")#### TEMPORAIRE
+        else :
+            c.setEmail("") # on remet tous les mails à "" suite aux tests.
         
         if c.temps > 0 and not c.emailEnvoiEffectue and c.email :
             # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome, on génère son diplome et on l'envoie
             genereDiplome(modele, c)
-            if False and envoiDiplomeParMail(c) : #### TEMPORAIRE POUR EVITER L'ENVOI D'EMAIL EFFECTIF
+            if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
             #print("temporairement, le temps de debug : break")
             
@@ -114,7 +117,7 @@ def envoiDiplomeParMail(coureur):
             receivers=["lax.olivier@gmail.com"],
             subject="Résultats du trail",
             html="""
-                <h1>Merci pour votre participation :</h1>
+                <h1>Normalement, tu as dû recevoir ce résultat automatiquement :</h1>
                 <img src="{{ my_image.src }}" width=100%>
             """, 
             body_images={
