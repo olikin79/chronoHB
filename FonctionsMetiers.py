@@ -709,7 +709,11 @@ class Coureur():#persistent.Persistent):
         else :
             self.vitesse = 0
     def tempsHMS(self) :
-        secondes = round((self.temps),0)
+        # réglement FFA , arrondir à la seconde supérieure.
+        if self.temps - int(self.temps) == 0 : # cas rarissime où il n'y a pas de partie décimale
+            secondes = int(self.temps)
+        else : 
+            secondes = int(self.temps) + 1
         minutes = secondes // 60
         sec = str(int(secondes % 60))
         heures = str(int(minutes // 60))
