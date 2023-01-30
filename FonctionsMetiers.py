@@ -739,7 +739,12 @@ class Coureur():#persistent.Persistent):
                     else :
                         ch = time.strftime("%M min %S s ",time.gmtime(self.temps)) + partieDecimale + "''"
                 else :
-                    ch = time.strftime("%H h %M min %S s ",time.gmtime(self.temps)) # + partieDecimale
+                    # valeur par excès à la seconde retenue par la FFA
+                    if self.temps - int(self.temps) == 0 :# cas rarissime où il n'y a pas de partie décimale
+                        ajout = 0
+                    else :
+                        ajout = 1 # on ajoute une seconde au self.temps tronqué à l'unité afin d'obtenir la valeur par excès à l'unité.
+                    ch = time.strftime("%H h %M min %S s ",time.gmtime(int(self.temps)+ajout)) # + partieDecimale
             else :
                 ch = str(int(time.strftime("%j",time.gmtime(self.temps)))-1) + " j " + time.strftime("%H h %M min %S s ",time.gmtime(self.temps))# + partieDecimale
         else :
