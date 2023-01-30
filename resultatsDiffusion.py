@@ -29,7 +29,7 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur) :
     nbreTotal = str(groupement.nombreDeCoureursTotal)
     nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
     rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
-    fondDiplome = "Randon-Trail.jpg"
+    fondDiplome = dossardModele + ".jpg" ### pour l'instant le fond utilisé a le même nom que le dossard utilisé.
     # astuce pour éviter que des rangs par catégorie inutiles apparaissent, on change en SENIOR puisque le classement par catégorie
     # pour les séniors revient au même que la classement global.
     cat = coureur.categorieSansSexe()
@@ -82,7 +82,7 @@ def genereDiplome(modele, coureur) :
     else :
         print("Le fichier",fichier,"n'a pas été généré")
 
-def envoiDiplomePourTousLesCoureurs() :
+def envoiDiplomePourTousLesCoureurs(Coureurs) :
     # charger le modèle de diplome
     modeleDiplome = "./modeles/diplomes/" + diplomeModele + ".tex"
     with open(modeleDiplome , 'r') as f :
@@ -94,15 +94,20 @@ def envoiDiplomePourTousLesCoureurs() :
             c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où la propriété n'existait pas.
         except :
             c.setEmailEnvoiEffectue(False)
+            print("Correctif propriété manquante", emailEnvoiEffectue)
 
-##      c.setEmail("") # on remet tous les mails à "" suite aux tests.
+##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
+##            c.setEmail("lax.olivier@gmail.com") 
+##            c.setEmailEnvoiEffectue(False)
         
-        if c.temps > 0 and not c.emailEnvoiEffectue and c.email :
+        if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email :
             # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome, on génère son diplome et on l'envoie
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
-            #print("temporairement, le temps de debug : break")
+            print("emailEnvoiEffectue dans thread :",c.emailEnvoiEffectue)
+            break
+            print("temporairement, le temps de debug : break")
             
             
 def envoiDiplomeParMail(coureur):

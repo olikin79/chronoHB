@@ -594,6 +594,7 @@ class Coureur():#persistent.Persistent):
             self.emailEnvoiEffectue = False
     def setEmailEnvoiEffectue(self, val = True) :
         self.emailEnvoiEffectue = bool(val)
+        print("Plus d'envoi pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
             self.email
@@ -4464,65 +4465,70 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         Retourne 0 s'il n'y a pas d'erreur."""
     doss = formateDossardNG(dossard)
     dossPrecedent = formateDossardNG(dossardPrecedent)
-    coureur = Coureurs.recuperer(doss)
-    if CategorieDAge :
-        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.categorie(Parametres["CategorieDAge"]) + ")."
-    else :
-        infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
-    message = ""
-    retour = Erreur(0)
-    if doss in ArriveeDossards :
-        ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise.
-        ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, y compris si ces deux transmissions ne sont pas dans deux lignes consécutives de DonneesSmartphone.txt, etc...
-        message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
-        print(message)
-        retour=Erreur(401,message,elementConcerne=doss)
-            # en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
-            #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
-            # Désormais, le deuxième envoi est ignoré pour que l'interface ne se bloque plus sur cette erreur précise.
-            # return message
-    elif not Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
-        message = "Numéro de dossard incorrect :\n"  + infos
-        print(message)
-        retour=Erreur(411,message,elementConcerne=doss)
-    elif Coureurs.recuperer(doss).absent :
-        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car absent :\n" + infos
-        print(message)
-        retour=Erreur(421,message,elementConcerne=doss)
-    elif Coureurs.recuperer(doss).dispense :
-        message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
-        print(message)
-        retour=Erreur(421,message,elementConcerne=doss)
-    elif not Courses[Coureurs.recuperer(doss).course].depart :
-        message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
-        print(message)
-        retour=Erreur(431,message,elementConcerne=doss)
-    ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
-    #print("dossard precéent:",dossPrecedent)
-    #print("ArriveeDossards",ArriveeDossards)
-    if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
-        #position = len(ArriveeDossards)
-        ArriveeDossards.append(doss)
-        #print("Dossard arrivé :",doss)
-    elif dossPrecedent == "0A" : # insère au début de liste
-        print("insertion en début de liste d'arrivée")
-        #position = 0
-        ArriveeDossards.insert(0 , doss)
-        Parametres["calculateAll"] = True
-        #DonneesAAfficher.reinit() # on regénère le tableau GUI
-    else :
-        # insère juste après le dossard dossardPrecedent , si on le trouve.
-        try :
-            n = ArriveeDossards.index(dossPrecedent)
-            print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
-            #position = n+1
-            ArriveeDossards.insert(n+1 , doss)
+    if Coureurs.existe(doss) :
+        coureur = Coureurs.recuperer(doss)
+        if CategorieDAge :
+            infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.categorie(Parametres["CategorieDAge"]) + ")."
+        else :
+            infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
+        message = ""
+        retour = Erreur(0)
+        if doss in ArriveeDossards :
+            ### ce cas commenté est géré proprement par un uid et un noTransmission uniques transmis par les smartphones pour chaque donnée transmise.
+            ### Le doublon sera donc détecté proprement, y compris pour un temps transmis en doublon, y compris si ces deux transmissions ne sont pas dans deux lignes consécutives de DonneesSmartphone.txt, etc...
+            message = "Dossard ayant déjà passé la ligne d'arrivée :\n" + infos
+            print(message)
+            retour=Erreur(401,message,elementConcerne=doss)
+                # en conditions réelles, il arrive que le wifi ne fonctionne pas. Théoriquement l'appli smartphone empêche qu'un dossard soit scanné deux fois.
+                #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
+                # Désormais, le deuxième envoi est ignoré pour que l'interface ne se bloque plus sur cette erreur précise.
+                # return message
+        elif not Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
+            message = "Numéro de dossard incorrect :\n"  + infos
+            print(message)
+            retour=Erreur(411,message,elementConcerne=doss)
+        elif Coureurs.recuperer(doss).absent :
+            message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car absent :\n" + infos
+            print(message)
+            retour=Erreur(421,message,elementConcerne=doss)
+        elif Coureurs.recuperer(doss).dispense :
+            message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
+            print(message)
+            retour=Erreur(421,message,elementConcerne=doss)
+        elif not Courses[Coureurs.recuperer(doss).course].depart :
+            message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+            print(message)
+            retour=Erreur(431,message,elementConcerne=doss)
+        ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
+        #print("dossard precéent:",dossPrecedent)
+        #print("ArriveeDossards",ArriveeDossards)
+        if dossPrecedent == "-1A" : # CAS COURANT : ajoute à la suite
+            #position = len(ArriveeDossards)
+            ArriveeDossards.append(doss)
+            #print("Dossard arrivé :",doss)
+        elif dossPrecedent == "0A" : # insère au début de liste
+            print("insertion en début de liste d'arrivée")
+            #position = 0
+            ArriveeDossards.insert(0 , doss)
             Parametres["calculateAll"] = True
             #DonneesAAfficher.reinit() # on regénère le tableau GUI
-        except ValueError :
-            message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
-            print(message)
-            retour=Erreur(499,message, elementConcerne=doss)
+        else :
+            # insère juste après le dossard dossardPrecedent , si on le trouve.
+            try :
+                n = ArriveeDossards.index(dossPrecedent)
+                print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
+                #position = n+1
+                ArriveeDossards.insert(n+1 , doss)
+                Parametres["calculateAll"] = True
+                #DonneesAAfficher.reinit() # on regénère le tableau GUI
+            except ValueError :
+                message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
+                print(message)
+                retour=Erreur(499,message, elementConcerne=doss)
+    else :
+        message = "Le dossard " + doss + " n'existe pas : il a été supprimé après la saisie des résultats de course. Anormal mais ignoré."
+        print(message)
+        retour=Erreur(411,message, elementConcerne=doss)
     return retour
 
 def imprimePDF(pdf_file_name) :
