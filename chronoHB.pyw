@@ -2642,6 +2642,28 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
 
+def corrigerLesCasesCocheesPourLAffichageTV() :
+    """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
+    coursesRecemmentCourues = {}
+##    for c in Coureurs.liste() :
+##        if c.nombreDeSecondesDepuisLArrivee() < 180 :
+##            coursesRecemmentCourues.add(c.course)
+##            print("Le coureur", c.dossard,"a passé la ligne il y a moins de 180 s")
+    i = len(ArriveeDossards) - 1
+    continuer = True
+    while i >= 0 and continuer :
+        doss = ArriveeDossards[i]
+        tps = ArriveeTemps[i]
+        if time.time() - tps < 180 :
+            print("Le dossard", doss,"a passé la ligne il y a moins de 180 s")
+            coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
+        else :
+            continuer = True
+        i -= 1
+    for course in coursesRecemmentCourues :
+        print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
+            
+
 # timer 
 class Clock():
     global tableauGUI
@@ -2737,6 +2759,11 @@ class Clock():
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
+
+        # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
+        # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
+        if actualisationAutomatiqueDeLAffichageTV :
+            corrigerLesCasesCocheesPourLAffichageTV()
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.

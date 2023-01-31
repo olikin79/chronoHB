@@ -1415,6 +1415,9 @@ def chargerDonnees() :
     if not "diplomeDiffusionAutomatique" in Parametres :
         Parametres["diplomeDiffusionAutomatique"] = True
     diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
+    if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
+        Parametres["actualisationAutomatiqueDeLAffichageTV"] = True
+    actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     ##transaction.commit()
     return globals()
 

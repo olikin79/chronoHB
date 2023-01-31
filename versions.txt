@@ -4,7 +4,7 @@ Travail du 31/01/23 :
 - ajout de méthodes et propriétés à la class Coureur pour connaître la durée depuis la dernière modification.
 - ajout de paramètres relatifs aux diplômes, à interfacer plus tard.
 - envoi des diplomes automatique après n minutes suite à la dernière modification de temps ou de rang.
-- pause sur les derniers correction
+- pause sur les derniers coureurs sur la TV (correction suite au défilement uniquement dans un seul sens)
 
 
 Travail du 30/01/23 :

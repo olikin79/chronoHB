@@ -11,9 +11,11 @@ Retour suite au trail de Randon :
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
 
+
 Dernière idées en vrac :
 - créer un export html qui ne défile pas, à onglets
 - créer un export ftp pour des résultats en temps réel sur internet.
+
 
 Bug détecté :
 - si le dossard sélectionné est trop bas dans la liste (au delà de 100), on ne peut pas le monter ou le descendre car codage hexadécimal du numéro de ligne.
