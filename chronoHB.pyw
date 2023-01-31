@@ -2605,7 +2605,41 @@ def construireMenuAnnulDepart():
     # quand on annule un départ, il faut actualiser affichagedepart
     actualiseAffichageDeparts()
     #actualiseAffichageZoneDeDroite(timer.erreursEnCours)
+
+### fonctions d'envoi des diplomes
+tagEnvoiDiplomeEnCours = False
+
+def envoiDiplomesMessageFinal():
+    global tagEnvoiDiplomeEnCours
+    print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
+    envoiDiplomePourTousLesCoureurs()
+    tagEnvoiDiplomeEnCours = False
+    showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
     
+def envoiDiplomesSansMessageFinal():
+    global tagEnvoiDiplomeEnCours
+    envoiDiplomePourTousLesCoureurs()
+    tagEnvoiDiplomeEnCours = False
+
+def envoiDiplomes(avecQuestion = True):
+    global tagEnvoiDiplomeEnCours
+    if not tagEnvoiDiplomeEnCours :
+        if avecQuestion :
+            reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
+Un message de fin de diffusion apparaîtra quand cette opération sera terminée.")
+            if reponse :
+                rint("Début d'envoi de diplômes manuellement demandé via le menu...")
+                tagEnvoiDiplomeEnCours = True
+                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
+                mon_thread_Diplomes.start()
+        else :
+            tagEnvoiDiplomeEnCours = True
+            #print("Début d'envoi de diplômes automatisé...")
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes.start()
+            # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+##    else :
+##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
 
 # timer 
@@ -2686,7 +2720,9 @@ class Clock():
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.compteurSauvegarde = 1
-            print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+        ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
+        if diplomeDiffusionAutomatique  :
+            #print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
             envoiDiplomes(avecQuestion = False)
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
@@ -2727,7 +2763,7 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 401, 441, 451]:
+            if not erreur.numero in [0, 311, 312, 321, 401, 411, 441, 451]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
@@ -4072,25 +4108,7 @@ if Parametres["CategorieDAge"] :
 else :
     choixCC()
 
-tagEnvoiDiplomeEnCours = False
 
-def envoiDiplomes(avecQuestion = True):
-    global tagEnvoiDiplomeEnCours
-    if not tagEnvoiDiplomeEnCours :
-        if avecQuestion :
-            reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
-    Un message de fin de diffusion apparaîtra quand cette opération sera terminée.")
-            if reponse :
-                tagEnvoiDiplomeEnCours = True
-                mon_thread_Diplomes = Thread(target=envoiDiplomePourTousLesCoureurs)
-                mon_thread_Diplomes.start()
-                tagEnvoiDiplomeEnCours = False
-                showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
-        else :
-            tagEnvoiDiplomeEnCours = True
-            mon_thread_Diplomes = Thread(target=envoiDiplomePourTousLesCoureurs)
-            mon_thread_Diplomes.start()
-            tagEnvoiDiplomeEnCours = False
 
 def exportCourse():
     # selectionner un dossier contenant

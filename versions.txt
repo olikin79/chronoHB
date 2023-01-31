@@ -1,10 +1,19 @@
+Travail du 31/01/23 :
+- correctif class Coureur : la propriété emailDejaEnvoye repassait à False lors de l'actualisation du temps par un temps identique ! Pfff !
+- correctif permettant de modifier les nom-prénom d'un coureur existant depuis l'interface.
+- ajout de méthodes et propriétés à la class Coureur pour connaître la durée depuis la dernière modification.
+- ajout de paramètres relatifs aux diplômes, à interfacer plus tard.
+- envoi des diplomes automatique après n minutes suite à la dernière modification de temps ou de rang.
+
+
+Travail du 30/01/23 :
+- seconde retenue pour le temps H:M:S : valeur par excès pour se conformer au règlement FFA.
+
 Travail du 29/01/23 :
 - finalisation-correction des informations ajoutées sur le diplôme.
 - ajout d'un menu permettant d'envoyer tous les diplômes.
 - si l'un des rangs change, le temps change..., repasse la propriété Coureur.emailEnvoiEffectue à False. Ainsi, le coureur recevra un mail correctif.
-Reste à faire :
-	* ajout d'un envoi automatique du diplôme n minutes après avoir passé la ligne d'arrivée.
-	* 
+
 
 Travail du 28/01/23 :
 - Suppression des QR-codes générés à part (devenu obsolète)

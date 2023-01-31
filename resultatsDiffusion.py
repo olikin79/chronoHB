@@ -66,7 +66,7 @@ def genereDiplome(modele, coureur) :
         f.write(replaceDansDiplomeEnFonctionDesResultats(modele, coureur))
     f.close()
     compilateurComplete = compilateur.replace("@dossier@","resultats")
-    print(compilerDossards(compilateurComplete, ".", file + ".tex" , 1))
+    compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
     fichierAConvertir = "resultats" + sep + file+".pdf"
     fichierDestination = "resultats" + sep + file+".png"
     # conversion en png à réaliser ici.
@@ -82,7 +82,7 @@ def genereDiplome(modele, coureur) :
     else :
         print("Le fichier",fichier,"n'a pas été généré")
 
-def envoiDiplomePourTousLesCoureurs(Coureurs) :
+def envoiDiplomePourTousLesCoureurs() :
     # charger le modèle de diplome
     modeleDiplome = "./modeles/diplomes/" + diplomeModele + ".tex"
     with open(modeleDiplome , 'r') as f :
@@ -91,35 +91,37 @@ def envoiDiplomePourTousLesCoureurs(Coureurs) :
     for c in Coureurs.liste() :
         #print("Coureur", c.nom, "examiné")
         try :
-            c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où la propriété n'existait pas.
+            c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+            c.emailNombreDEnvois
         except :
             c.setEmailEnvoiEffectue(False)
-            print("Correctif propriété manquante", emailEnvoiEffectue)
 
 ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
-##            c.setEmail("lax.olivier@gmail.com") 
-##            c.setEmailEnvoiEffectue(False)
+##            c.setEmail("")
+            #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
+            #c.setEmailEnvoiEffectue(False)
         
-        if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email :
-            # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome, on génère son diplome et on l'envoie
+        if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
+            # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on génère son diplome et on l'envoie
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
-            print("emailEnvoiEffectue dans thread :",c.emailEnvoiEffectue)
-            break
-            print("temporairement, le temps de debug : break")
             
             
 def envoiDiplomeParMail(coureur):
     fichier = "resultats/" + coureur.dossard + ".png"
     if os.path.exists(fichier) :
         print("Envoi par email du fichier", fichier)
+        if coureur.emailNombreDEnvois :
+            AjoutObjet = "Correctif : "
+        else :
+            AjoutObjet = ""
         retour = gmail.send(
             sender="lax.olivier@gmail.com",
             receivers=["lax.olivier@gmail.com"],
-            subject="Résultats du trail",
+            subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
             html="""
-                <h1>Normalement, tu as dû recevoir ce résultat automatiquement :</h1>
+                <h1>Bravo pour ta participation !</h1>
                 <img src="{{ my_image.src }}" width=100%>
             """, 
             body_images={

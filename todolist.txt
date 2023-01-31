@@ -13,7 +13,7 @@ A creuser pour obtenir une vitesse uniforme.
 - arrondir à la seconde supérieure les temps.
 
 Dernière idées en vrac :
-- faire en sorte que l'envoi des diplomes soit fonctionnel après n minutes suite à la dernière modification de temps ou de rang.
+
 - créer un diplome pour HB
 - créer un export html qui ne défile pas, à onglets
 - créer un export ftp pour des résultats en temps réel sur internet.

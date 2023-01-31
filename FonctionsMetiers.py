@@ -509,7 +509,9 @@ class Coureur():#persistent.Persistent):
         self.course = course
         self.setLicence(licence)
         self.email = ""
-        self.emailEnvoiEffectue = False
+        self.emailNombreDEnvois = 0
+        self.tempsDerniereModif = 0
+        self.setEmailEnvoiEffectue(False)
         self.setEmail(email)
         self.categorie(CategorieDAge)
         self.__private_categorie = None
@@ -588,18 +590,26 @@ class Coureur():#persistent.Persistent):
             regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
             if re.fullmatch(regex, str(email)) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
                 self.email = str(email)
-                self.emailEnvoiEffectue = False
+                self.setEmailEnvoiEffectue(False)
         else :
             self.email = ""
-            self.emailEnvoiEffectue = False
+            self.setEmailEnvoiEffectue(False)
     def setEmailEnvoiEffectue(self, val = True) :
-        self.emailEnvoiEffectue = bool(val)
-        print("Plus d'envoi pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
+        if self.dossard :
+            self.emailEnvoiEffectue = bool(val)
+            print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
             self.email
         except :
             self.email = ""
+        try :
+            self.emailNombreDEnvois += 1 
+        except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
+            if bool(val) : # initialisation correcte en fonction de l'action demandée.
+                self.emailNombreDEnvois = 1
+            else :
+                self.emailNombreDEnvois = 0
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
     def scoreUNSSFormate(self) :
@@ -608,10 +618,18 @@ class Coureur():#persistent.Persistent):
         else :
             retour = str(round(self.scoreUNSS,1)).replace(".",",")
         return retour
+    def nombreDeSecondesDepuisDerniereModif(self) :
+        try :
+            retour = int(time.time()-self.tempsDerniereModif)
+        except : 
+            self.tempsDerniereModif = time.time()
+            retour = 0 # si pas d'heure de dernière modif, on l'initialise
+        return retour
     def setCourse(self, c) :
-        if CoursesManuelles :
+        if CoursesManuelles and self.course != c : # si la course change, on renvoie l'email. Sinon, on ne fait rien.
             self.course = c
-            self.emailEnvoiEffectue = False
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
         else :
             print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
     def setScoreUNSS(self, nbreArriveesGroupement) :
@@ -701,8 +719,10 @@ class Coureur():#persistent.Persistent):
             self.dispense = False
     def setTemps(self, temps=0, distance=0):
         try :
-            self.temps = float(temps)
-            self.emailEnvoiEffectue = False
+            if self.temps != float(temps) : # si le temps change, on renvoie l'email, sinon, on ne fait rien.
+                self.temps = float(temps)
+                self.setEmailEnvoiEffectue(False)
+                self.tempsDerniereModif = time.time()
         except :
             self.temps = 0
         if self.temps >  0:
@@ -774,23 +794,30 @@ class Coureur():#persistent.Persistent):
     def setRang(self, rang) :
         if int(rang) != self.rang :
             self.rang = int(rang)
-            self.emailEnvoiEffectue = False
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
     def setRangCat(self, rang) :
         if int(rang) != self.rangCat :
             self.rangCat = int(rang)
-            self.emailEnvoiEffectue = False
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
     def setRangSexe(self, rang) :
         if int(rang) != self.rangSexe :
             self.rangSexe = int(rang)
-            self.emailEnvoiEffectue = False
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
     def setNom(self, valeur) :
-        self.nom = str(valeur)
-        self.emailEnvoiEffectue = False
+        if self.nom != str(valeur) : # si la valeur change, on envoie un diplome correctif
+            self.nom = str(valeur)
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
     def setPrenom(self, valeur) :
-        self.prenom = str(valeur)
-        self.emailEnvoiEffectue = False
+        if self.prenom != str(valeur) :
+            self.prenom = str(valeur)
+            self.setEmailEnvoiEffectue(False)
+            self.tempsDerniereModif = time.time()
 
 
 class Course():#persistent.Persistent):
@@ -1212,7 +1239,7 @@ def chargerDonnees() :
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
-           genererListingQRcodes,genererListing,diplomeModele
+           genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1385,6 +1412,9 @@ def chargerDonnees() :
     if not "diplomeMdpExpediteur" in Parametres :
         Parametres["diplomeMdpExpediteur"] = ""
     diplomeMdpExpediteur=Parametres["diplomeMdpExpediteur"]
+    if not "diplomeDiffusionAutomatique" in Parametres :
+        Parametres["diplomeDiffusionAutomatique"] = True
+    diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
     ##transaction.commit()
     return globals()
 
@@ -4253,78 +4283,83 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         vma = float(VMA)
     except :
         vma = "0"
-        #print("complement",complement)
+    # si les données fournies sont valides ET 
+    # si le dossard existe ou (si le dossard n'existe pas et qu'on le trouve par ses noms-prénoms), alors on modifie le coureur tel que spécifié.
+    # sinon on crée le coureur
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
         dossardTrouve = coureurExists(nom, prenom)
-        if dossardTrouve != "" :
-            if dossardTrouve == dossard :
-                print("On met à jour les caractéristiques du coureur au dossard", dossard)            
-                ### on actualise des propriétés du coureur.
-                auMoinsUnChangement = False
-                coureur = Coureurs.recuperer(dossard)
-                # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
-                #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
-                if coureur.sexe != sexe :
-                    coureur.setSexe(sexe)
+        dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
+        dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
+        if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent :
+            # # on empêche de créer plusieurs fois le même coureur avec des dossards différents.
+            # if (dossard != "" and dossardTrouve == dossard) or  :
+            print("On met à jour les caractéristiques du coureur au dossard", dossard)            
+            ### on actualise des propriétés du coureur.
+            auMoinsUnChangement = False
+            coureur = Coureurs.recuperer(dossard)
+            # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
+            #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+            if coureur.sexe != sexe :
+                coureur.setSexe(sexe)
+                auMoinsUnChangement = True
+            if CoursesManuelles :
+##                if courseDonneeSousSonNomStandard :
+##                    lettreCourse = course
+##                    course = 
+##                else :
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
+                print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
+##                nomStandard = estDansGroupementsEnModeManuel(course)
+##                if not nomStandard :
+##                    nomStandard = addCourse(course)
+                if lettreCourse != coureur.course :
+                    addCourse(course, lettreCourse = lettreCourse) # création si besoin de la course
+                    coureur.setCourse(lettreCourse)
                     auMoinsUnChangement = True
-                if CoursesManuelles :
-    ##                if courseDonneeSousSonNomStandard :
-    ##                    lettreCourse = course
-    ##                    course = 
-    ##                else :
-                    lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
-                    print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
-    ##                nomStandard = estDansGroupementsEnModeManuel(course)
-    ##                if not nomStandard :
-    ##                    nomStandard = addCourse(course)
-                    if lettreCourse != coureur.course :
-                        addCourse(course, lettreCourse = lettreCourse) # création si besoin de la course
-                        coureur.setCourse(lettreCourse)
-                        auMoinsUnChangement = True
-                if nom != coureur.nom :
-                    coureur.setNom(nom)
-                    auMoinsUnChangement = True
-                if prenom != coureur.prenom :
-                    coureur.setPrenom(prenom)
-                    auMoinsUnChangement = True
-                if dispense != None and coureur.dispense != dispense :
-                    print("coureur",coureur.nom)
-                    coureur.setDispense(dispense)
-                    auMoinsUnChangement = True
-                if absent != None and coureur.absent != absent :
-                    coureur.setAbsent(absent)
-                    auMoinsUnChangement = True
-                if coureur.commentaireArrivee != commentaireArrivee :
-                    coureur.setCommentaire(commentaireArrivee)
-                    auMoinsUnChangement = True
-                if coureur.classe != classe :
-                    coureur.setClasse(classe)
-                    auMoinsUnChangement = True
-                if coureur.licence != licence :
-                    coureur.setLicence(licence)
-                    auMoinsUnChangement = True
-                if coureur.VMA != vma :
-                    coureur.setVMA(vma)
-                    auMoinsUnChangement = True
-                if coureur.naissance != naissance :
-                    coureur.setNaissance(naissance)
-                    auMoinsUnChangement = True
-                if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
-                    coureur.setEtablissement(etablissement,etablissementNature)
-                    auMoinsUnChangement = True
-                if auMoinsUnChangement :
-                    if not CoursesManuelles :
-                        addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
-                        # pour toutes les courses automatiques, on doit actualiser la course si besoin.
-                    print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
-                          commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
-                          "Course manuelle:",course,")")
-                    retour, d = [0,1,0,0], dossard
-                else :
-                    retour, d = [0,0,0,1], dossard
+            if nom != coureur.nom :
+                coureur.setNom(nom)
+                auMoinsUnChangement = True
+            if prenom != coureur.prenom :
+                coureur.setPrenom(prenom)
+                auMoinsUnChangement = True
+            if dispense != None and coureur.dispense != dispense :
+                print("coureur",coureur.nom)
+                coureur.setDispense(dispense)
+                auMoinsUnChangement = True
+            if absent != None and coureur.absent != absent :
+                coureur.setAbsent(absent)
+                auMoinsUnChangement = True
+            if coureur.commentaireArrivee != commentaireArrivee :
+                coureur.setCommentaire(commentaireArrivee)
+                auMoinsUnChangement = True
+            if coureur.classe != classe :
+                coureur.setClasse(classe)
+                auMoinsUnChangement = True
+            if coureur.licence != licence :
+                coureur.setLicence(licence)
+                auMoinsUnChangement = True
+            if coureur.VMA != vma :
+                coureur.setVMA(vma)
+                auMoinsUnChangement = True
+            if coureur.naissance != naissance :
+                coureur.setNaissance(naissance)
+                auMoinsUnChangement = True
+            if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
+                coureur.setEtablissement(etablissement,etablissementNature)
+                auMoinsUnChangement = True
+            if auMoinsUnChangement :
+                if not CoursesManuelles :
+                    addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
+                    # pour toutes les courses automatiques, on doit actualiser la course si besoin.
+                print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
+                      commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
+                      "Course manuelle:",course,")")
+                retour, d = [0,1,0,0], dossard
             else :
-                print("Le coureur existe déjà avec le dossard", dossardTrouve, "alors que le dossard proposé est", dossard)
-                retour,d  = [0,0,1,0], ""
+                retour, d = [0,0,0,1], dossard
+            # else :
+                # print("Le coureur existe déjà avec le dossard", dossardTrouve, "alors que le dossard proposé est", dossard)
+                # retour,d  = [0,0,1,0], ""
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
             if CoursesManuelles :
