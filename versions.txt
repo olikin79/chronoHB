@@ -1,3 +1,7 @@
+Travail du 01/02/23 :
+- début de travail sur l'actualisation automatique de l'affichage TV
+
+
 Travail du 31/01/23 :
 - correctif class Coureur : la propriété emailDejaEnvoye repassait à False lors de l'actualisation du temps par un temps identique ! Pfff !
 - correctif permettant de modifier les nom-prénom d'un coureur existant depuis l'interface.
