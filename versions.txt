@@ -4,10 +4,12 @@ Travail du 31/01/23 :
 - ajout de méthodes et propriétés à la class Coureur pour connaître la durée depuis la dernière modification.
 - ajout de paramètres relatifs aux diplômes, à interfacer plus tard.
 - envoi des diplomes automatique après n minutes suite à la dernière modification de temps ou de rang.
+- pause sur les derniers correction
 
 
 Travail du 30/01/23 :
 - seconde retenue pour le temps H:M:S : valeur par excès pour se conformer au règlement FFA.
+
 
 Travail du 29/01/23 :
 - finalisation-correction des informations ajoutées sur le diplôme.
