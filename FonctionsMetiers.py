@@ -29,7 +29,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.7"
+version = "1.8"
 
 LOGDIR="logs"
 

@@ -1,3 +1,26 @@
+Todolist pour version 1.8 :
+
+A tester suite trail Rieutort :
+- plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
+
+Bugs détectés :
+- si le dossard sélectionné est trop bas dans la liste (au delà de 100), on ne peut pas le monter ou le descendre car codage hexadécimal du numéro de ligne.
+- non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
+- les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
+(ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
+- le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
+Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemple pour les noms de course personnalisés.
+- (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
+
+Fonctionnalités :
+- import de l'email possible
+- champ entry pour l'email dans ajout-modification de coureur.
+- ajouter les paramètres généraux, déjà documentés : relatifs à l'envoi d'emails, relatifs à l'affichage TV automatique
+- refaire les captures d'écran p5 de la documentation.
+
+#####################################################
+
+
 A tester dans chronoHB :
 - vers la ligne 3203 de chronoHB.pyw, chercher le commentaire "### A tester..." : 
 il faudra tester le menu d'ajout de coureur pour les quatre types de catégories d'âge (0, 1 en mode manuel ou automatique et 2) afin 
@@ -17,15 +40,7 @@ Dernière idées en vrac :
 - créer un export ftp pour des résultats en temps réel sur internet.
 
 
-Bug détecté :
-- si le dossard sélectionné est trop bas dans la liste (au delà de 100), on ne peut pas le monter ou le descendre car codage hexadécimal du numéro de ligne.
-
-
-A tester suite trail Rieutort :
-- plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
-
-
-Pour déploiement et vente du logiciel :
+Pour déploiement du logiciel sur d'autres ordinateurs et maintenance automatique :
 - mettre au point script de mise à jour de chronoHB.
 - créer un système web avec base de donnée permettant de valider une installation sur un poste : 
 	* création d'un identifiant unique associé au poste (associé à l'adresse MAC de la carte réseau et à un code unique : md5 de la concaténation des deux ?)
@@ -38,41 +53,23 @@ Si l'accès à internet n'est pas fonctionnel, signale le délai restant au lanc
 Si délai dépassé, introduit des restrictions pour mode démo (20 coureurs dans la base et passent la ligne max). Tous les autres menus actifs et fonctionnels.
 
 	
-BUGS RESTANTS dans chronoHB (indépendants du passage aux nouveaux numéros de dossards) :
-PRIORITAIRES :
-- le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
-Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire.
-
-- les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
-(ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
-
-- trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
-
-
-
 
 
 DEVELOPPEMENTS :
 MOYENNEMENT PRIORITAIRES :
+- trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
+
 - moyen de déploiement de mises à jour de chronoHB sur des postes déjà déployés.
 
 - rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
 
-- actualisation automatique de l'affichage sur la TV (même fréquence que les sauvegardes) en fonction des derniers coureurs arrivés :
-	* si le dernier coureur d'une course est passé il y a plus de 5 min, on décoche.
-	* si un coureur d'une course passe la ligne, on coche.
-	
 - sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
 c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
 puis agir si besoin puis revenir à l'écran classique.
 
-- un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
-
 - (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
-
-- (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
 
 
 
