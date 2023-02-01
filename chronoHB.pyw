@@ -890,6 +890,17 @@ class Checkbar(Frame):
         self.listeAffichageTV = listeAffichageTV
         self.auMoinsUnChangement = False
         self.actualise(picks)
+    def setState(self,listeDeCoursesAuFormatNonStandard, listeDeBooleenDeMemeTaille) :
+        indiceDansListeFournie = 0
+        for course in listeDeCoursesAuFormatNonStandard :
+            indiceDansListeDeCheckBox = 0
+            for nomCourse in self.picks :
+                if nomCourse == course : # on a trouvé le nom de la course à actualiser
+                    self.vars[indiceDansListeDeCheckBox].set(listeDeBooleenDeMemeTaille[indiceDansListeFournie]) # on impose la valeur présente dans listeDeBooleenDeMemeTaille au même indice
+                    break # inutile de continuer la recherche pour cette course.
+                indiceDansListeDeCheckBox += 1
+            indiceDansListeFournie += 1 
+            
     def state(self):
         return [var.get() for var in self.vars]
 ##    def resetState(self, listeAffichageTV) :
@@ -914,7 +925,9 @@ class Checkbar(Frame):
     def change(self, valeur = True):
         self.auMoinsUnChangement = valeur
     def actualise(self,picks) :
+        self.picks = picks
         #print("Labels à créer",picks)
+        #print("self.listeAffichageTV",self.listeAffichageTV)
         for chkb in self.checkbuttons :
             #print("suppression d'un checkbox")
             chkb.destroy()
@@ -2644,25 +2657,30 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
     """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
-    coursesRecemmentCourues = {}
-##    for c in Coureurs.liste() :
-##        if c.nombreDeSecondesDepuisLArrivee() < 180 :
-##            coursesRecemmentCourues.add(c.course)
-##            print("Le coureur", c.dossard,"a passé la ligne il y a moins de 180 s")
+    coursesRecemmentCourues = set([])
     i = len(ArriveeDossards) - 1
     continuer = True
     while i >= 0 and continuer :
         doss = ArriveeDossards[i]
         tps = ArriveeTemps[i]
-        if time.time() - tps < 180 :
-            print("Le dossard", doss,"a passé la ligne il y a moins de 180 s")
+        print("on calcule", time.time(),"-", tps.tempsReel ,"=",time.time() - tps.tempsReel)
+        if time.time() - tps.tempsReel < 300 :
+            #print("Le dossard", doss,"a passé la ligne il y a moins de 300 s")
             coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
         else :
-            continuer = True
+            continuer = False
         i -= 1
+    listeDeCoursesEtChallengeAvecNomsNonStandards = listNomsGroupementsEtChallenges() 
+    listeDeBooleen = [False]*len(listeDeCoursesEtChallengeAvecNomsNonStandards)
     for course in coursesRecemmentCourues :
-        print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
-            
+        #print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
+        try :
+            i = listeDeCoursesEtChallengeAvecNomsNonStandards.index(groupementAPartirDeSonNom(course).nom)
+            listeDeBooleen[i] = True
+        except :
+            print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
+    ## on demande à l'objet d'appliquer les modifications calculées
+    checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
 # timer 
 class Clock():
@@ -2723,11 +2741,6 @@ class Clock():
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
 
-        # on actualise l'affichageTV à chaque nouvel import.
-        #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
-        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
-            ActualiseAffichageTV()
-            checkBoxBarAffichage.change(valeur=False)
 
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -2762,8 +2775,14 @@ class Clock():
 
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
-        if actualisationAutomatiqueDeLAffichageTV :
-            corrigerLesCasesCocheesPourLAffichageTV()
+        #if actualisationAutomatiqueDeLAffichageTV  and self.auMoinsUnImport :
+        corrigerLesCasesCocheesPourLAffichageTV()
+
+        # on actualise l'affichageTV à chaque nouvel import.
+        #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
+        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
+            ActualiseAffichageTV()
+            checkBoxBarAffichage.change(valeur=False)
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.

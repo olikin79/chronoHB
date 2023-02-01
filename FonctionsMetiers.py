@@ -1239,7 +1239,8 @@ def chargerDonnees() :
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
-           genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique
+           genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
+           actualisationAutomatiqueDeLAffichageTV
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1416,7 +1417,7 @@ def chargerDonnees() :
         Parametres["diplomeDiffusionAutomatique"] = True
     diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
     if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
-        Parametres["actualisationAutomatiqueDeLAffichageTV"] = True
+        Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     ##transaction.commit()
     return globals()
