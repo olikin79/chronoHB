@@ -34,7 +34,7 @@ from maj import *
 #import git
 
 
-version="1.7"
+version="1.8"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -1432,7 +1432,7 @@ GaucheFrameDossards = Frame(root)
 #GaucheFrameParametres = Frame(root)
 GaucheFrameDistanceCourses = Frame(root)
 GaucheFrameParametresCourses = Frame(root)
-
+GaucheFrameParametresDossardsDiplomes = Frame(root)
 
 
 ## menu interactif déroulant en haut
@@ -2663,7 +2663,7 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
     while i >= 0 and continuer :
         doss = ArriveeDossards[i]
         tps = ArriveeTemps[i]
-        print("on calcule", time.time(),"-", tps.tempsReel ,"=",time.time() - tps.tempsReel)
+        #print("on calcule", time.time(),"-", tps.tempsReel ,"=",time.time() - tps.tempsReel)
         if time.time() - tps.tempsReel < 300 :
             #print("Le dossard", doss,"a passé la ligne il y a moins de 300 s")
             coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
@@ -2775,8 +2775,8 @@ class Clock():
 
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
-        #if actualisationAutomatiqueDeLAffichageTV  and self.auMoinsUnImport :
-        corrigerLesCasesCocheesPourLAffichageTV()
+        if actualisationAutomatiqueDeLAffichageTV  and self.auMoinsUnImport :
+            corrigerLesCasesCocheesPourLAffichageTV()
 
         # on actualise l'affichageTV à chaque nouvel import.
         #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
@@ -3134,6 +3134,7 @@ def saisieDossards() :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -3146,6 +3147,7 @@ def saisieAbsDisp(classeOuCategorie="") :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -3163,6 +3165,7 @@ def ajoutManuelCoureur():
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -3175,6 +3178,7 @@ def modifManuelleCoureur(dossard=0):
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -3189,6 +3193,7 @@ def tempsDesCoureurs():
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -3207,9 +3212,21 @@ def distanceDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
-
+def parametrerDossardsDiplomes():
+    GaucheFrame.forget()
+    DroiteFrame.forget()
+    GaucheFrameAbsDisp.forget()
+    GaucheFrameCoureur.forget()
+    GaucheFrameDossards.forget()
+    GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
+    GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
+    
 
 
 def parametresDesCourses():
@@ -3219,6 +3236,7 @@ def parametresDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     actualiseEtatBoutonsRadioConfig()
@@ -3466,6 +3484,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
 filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
+filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
@@ -3944,10 +3963,6 @@ def packAutresWidgets():
     webcamComboFVide.pack(side=LEFT)
     webcamScale.pack(side=LEFT)
     webcamF.pack(side=TOP,anchor="w")
-    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
-    ModeleDeDossardsLbl.pack(side=LEFT)
-    ModeleDeDossardsCombo.pack(side=LEFT)
-    ModeleDeDossardsCanvas.pack(side=TOP)
     setParametres()
     
 def forgetAutresWidgets():
@@ -3961,8 +3976,18 @@ def forgetAutresWidgets():
     SauvegardeUSBFrameL.pack_forget()
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
-    ModeleDeDossardsFrame.pack_forget()
+    #ModeleDeDossardsFrame.pack_forget()
     webcamF.pack_forget()
+
+def packMenuParametresDossardsDiplomes() :
+    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
+    ModeleDeDossardsLbl.pack(side=LEFT)
+    ModeleDeDossardsCombo.pack(side=LEFT)
+    ModeleDeDossardsCanvas.pack(side=TOP)
+    ModeleDeDiplomeFrame.pack(side=TOP,anchor="w")
+    ModeleDeDiplomeLbl.pack(side=LEFT)
+    ModeleDeDiplomeCombo.pack(side=LEFT)
+    ModeleDeDiplomeCanvas.pack(side=TOP)
 
 
 titresCourseF = Frame(GaucheFrameParametresCourses)
@@ -4108,8 +4133,28 @@ def actualiseCanvasModeleDossards(event):
     ModeleDeDossardsCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
     ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
     
+def actualiseCanvasModeleDiplome(event):
+    global canvas_image,ModeleDeDiplomeCanvas
+    fichierChoisi = ModeleDeDiplomeCombo.get()
+    Parametres["diplomeModele"] = fichierChoisi
+    imageFile = fichierChoisi + ".png"
+    if event == "" :
+        print("Initialisation du choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    else :
+        print("Changement de choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/diplomes/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/diplomes/cross-HB.png")
+    h = canvas_image.height()
+    w = canvas_image.width()
+    rappH = h // int(ModeleDeDiplomeCanvas['height']) + 1
+    rappW = w // int(ModeleDeDiplomeCanvas['width']) + 1
+    ModeleDeDiplomeCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
+    ModeleDeDiplomeCanvas.create_image(0, 0, image = ModeleDeDiplomeCanvas.imgMem, anchor = NW)
+    
 
-ModeleDeDossardsFrame = Frame(GaucheFrameParametresCourses)
+ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
 ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
 files = []
 for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
@@ -4118,8 +4163,20 @@ files = tuple(files)
 ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
 ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
 ModeleDeDossardsCombo.set(dossardModele)
-ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=600,height=350)
+ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
 actualiseCanvasModeleDossards("")
+
+ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
+files = []
+for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
+    files.append(os.path.basename(el)[:-4])
+files = tuple(files)
+ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
+ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
+ModeleDeDiplomeCombo.set(dossardModele)
+ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
+actualiseCanvasModeleDiplome("")
 
 ## tests
 ##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
@@ -4142,6 +4199,7 @@ rbCM1.pack(side=LEFT,anchor="w")
 rbCM2.pack(side=LEFT,anchor="w")
 
 
+packMenuParametresDossardsDiplomes()
 ##if CoursesManuelles :
 ##    cbCMgenerer.set(1)
 ##    choixCMQRCodes()
