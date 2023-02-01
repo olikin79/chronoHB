@@ -1,5 +1,7 @@
 Travail du 01/02/23 :
-- début de travail sur l'actualisation automatique de l'affichage TV
+- implémentation fonctionnelle de l'affichage TV automatique en fonction des arrivées de dossards
+- sépération du menu paramètres en deux : la partie "dossards" et "diplômes" est déportée dans un menu dédié
+- mise à jour de la documentation
 
 
 Travail du 31/01/23 :
