@@ -479,6 +479,12 @@ def naissanceValide(naissance) :
         #print("La date de naissance fournie est INVALIDE :",naissance)
     return correctDate
 
+def emailEstValide(email) :
+    if email == "":
+        return True
+    else :
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
+        return re.fullmatch(regex, str(email))
 
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
@@ -587,8 +593,7 @@ class Coureur():#persistent.Persistent):
             self.etablissementNoUNSS = ""
     def setEmail(self,email):
         if email :
-            regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
-            if re.fullmatch(regex, str(email)) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+            if emailEstValide(email) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
                 self.email = str(email)
                 self.setEmailEnvoiEffectue(False)
         else :
@@ -4281,7 +4286,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
+               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
         #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
@@ -4325,6 +4330,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if prenom != coureur.prenom :
                 coureur.setPrenom(prenom)
+                auMoinsUnChangement = True
+            if email != coureur.email :
+                coureur.setEmail(email)
                 auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
                 print("coureur",coureur.nom)
@@ -4390,7 +4398,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse), dossard = dossard)
+                                                course=lettreCourse, email=email), dossard = dossard)
                 else :
                     print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
             else :
@@ -4398,7 +4406,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse), course = lettreCourse)
+                                                course=lettreCourse, email=email), course = lettreCourse)
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
@@ -5966,6 +5974,7 @@ def creerCoureur(listePerso, informations) :
     comment = ""
     lic = ""
     doss = ""
+    email=""
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
@@ -6023,6 +6032,8 @@ def creerCoureur(listePerso, informations) :
                     nature = supprLF(infos["type étab."])
                 except :
                     nature = ""
+    if "email" in informations and emailEstValide(supprLF(infos["email"])):
+        email = supprLF(infos["email"])
     #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
     if nature == "COL" :
         nature = "CLG"
@@ -6049,11 +6060,11 @@ def creerCoureur(listePerso, informations) :
         retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                                commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
-                                               CoureursParClasseUpdateActif = False, dossard = doss)
+                                               CoureursParClasseUpdateActif = False, dossard = doss, email = email)
         #print("retourCreationModifErreur",retourCreationModifErreur)
     else :
-        if not supprLF(infos["nom"]) or not supprLF(infos["prénom"]) or not sexe :
-            # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Au moins un des éléments Nom, Prénom ou Sexe est absent : ",supprLF(infos["nom"]), supprLF(infos["prénom"]), sexe )
+        if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
+            # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
             retourCreationModifErreur, d = [0,0,0,0], "0"
         else :
             print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
@@ -6063,6 +6074,7 @@ def creerCoureur(listePerso, informations) :
 
 def supprLF(ch) :
     # selon la dernière colonne du csv importée, choisie par l'utilisateur, on peut potentiellement avoir un LF dans n'importe quel champ.
+    # tous les éléments importés passent donc dans ce filtre.
     return ch.replace("\n","")
 
 
