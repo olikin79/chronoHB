@@ -429,6 +429,9 @@ class MonTableau(Frame):
             retour +=  self.valeurChiffre(dernierCaractere) * 16**i
             ch = ch[:-1]
         return retour
+
+    def conv_Dec_vers_Hexa(self,chaine) :
+        return hex(int(chaine))[2:].upper()
     
     def valeurChiffre(self,chiffreHexa) :
         try :
@@ -754,8 +757,8 @@ class MonTableau(Frame):
             print("itemSelect",itemSelect)
             # cas classique où une vraie sélection a eu lieu
             dossSelect = item_text[self.colonneDossard]
-            itemPrecNum = int(itemSelect[1:]) -1
-            if itemPrecNum > 0 : #cas classique où le premier élément de la liste n'est pas sélectionné
+            itemPrecNum = self.conv_Dec_vers_Hexa((int(self.conv_Hexa_vers_Dec(itemSelect[1:])) -1))
+            if itemSelect != "I001" : #cas classique où le premier élément de la liste n'est pas sélectionné
                 itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
                 dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
             else :

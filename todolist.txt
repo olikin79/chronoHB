@@ -4,7 +4,6 @@ A tester suite trail Rieutort :
 - plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
 
 Bugs détectés :
-- si le dossard sélectionné est trop bas dans la liste (au delà de 100), on ne peut pas le monter ou le descendre car codage hexadécimal du numéro de ligne.
 - non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
 - les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).

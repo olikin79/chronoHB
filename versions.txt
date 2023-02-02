@@ -1,3 +1,7 @@
+Travail du 02/02/23 :
+- correction de bug : si le dossard sélectionné était au delà de 100 dans le treeview, impossible de le monter ou le descendre (codage en hexadécimal du numéro d'item du treeview pris en compte).
+
+
 Travail du 01/02/23 : version 1.8 (avec diplomes et affichage automatique sur TV)
 - implémentation fonctionnelle de l'affichage TV automatique en fonction des arrivées de dossards
 - sépération du menu paramètres en deux : la partie "dossards" et "diplômes" est déportée dans un menu dédié
