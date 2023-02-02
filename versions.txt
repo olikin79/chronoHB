@@ -1,6 +1,7 @@
 Travail du 02/02/23 :
 - correction de bug : si le dossard sélectionné était au delà de 100 dans le treeview, impossible de le monter ou le descendre (codage en hexadécimal du numéro d'item du treeview pris en compte).
 - import de l'email possible via tableur ou CSV
+- champ entry pour l'email dans ajout-modification de coureur ajouté et fonctionnel.
 
 
 Travail du 01/02/23 : version 1.8 (avec diplomes et affichage automatique sur TV)

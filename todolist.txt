@@ -12,8 +12,6 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemp
 - (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
 
 Fonctionnalités :
-- import de l'email possible
-- champ entry pour l'email dans ajout-modification de coureur.
 - ajouter les paramètres généraux, déjà documentés : relatifs à l'envoi d'emails, relatifs à l'affichage TV automatique
 - refaire les captures d'écran p5 de la documentation.
 
