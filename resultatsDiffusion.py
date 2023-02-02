@@ -85,6 +85,7 @@ def genereDiplome(modele, coureur) :
 def envoiDiplomePourTousLesCoureurs() :
     # charger le modèle de diplome
     modeleDiplome = "./modeles/diplomes/" + diplomeModele + ".tex"
+    #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
     with open(modeleDiplome , 'r') as f :
         modele = f.read()
     f.close()
@@ -97,7 +98,7 @@ def envoiDiplomePourTousLesCoureurs() :
             c.setEmailEnvoiEffectue(False)
 
 ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
-##            c.setEmail("")
+##            c.setEmail("lax.olivier@gmail.com")
             #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
             #c.setEmailEnvoiEffectue(False)
         
