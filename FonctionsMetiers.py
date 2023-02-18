@@ -596,9 +596,11 @@ class Coureur():#persistent.Persistent):
             if emailEstValide(email) and self.email != email : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
                 self.email = str(email)
                 self.setEmailEnvoiEffectue(False)
+                self.emailNombreDEnvois = 0
         else :
             self.email = ""
             self.setEmailEnvoiEffectue(False)
+            self.emailNombreDEnvois = 0
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
