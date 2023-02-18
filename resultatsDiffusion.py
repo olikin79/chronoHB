@@ -107,6 +107,8 @@ def envoiDiplomePourTousLesCoureurs() :
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
+        elif c.dossard == "1A" :
+            print("Dossard 1A non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
             
             
 def envoiDiplomeParMail(coureur):
@@ -119,7 +121,7 @@ def envoiDiplomeParMail(coureur):
             AjoutObjet = ""
         retour = gmail.send(
             sender="lax.olivier@gmail.com",
-            receivers=["lax.olivier@gmail.com"],
+            receivers=[coureur.email],
             subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
             html="""
                 <h1>Bravo pour ta participation !</h1>
