@@ -107,8 +107,8 @@ def envoiDiplomePourTousLesCoureurs() :
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
-        elif c.dossard == "1A" :
-            print("Dossard 1A non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
+        else : #if c.dossard == "1A" :
+            print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
             
             
 def envoiDiplomeParMail(coureur):
