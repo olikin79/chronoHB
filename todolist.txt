@@ -19,6 +19,7 @@ Fonctionnalités :
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
 Si possible pour la 1.8 :
+- l'affichage de la TV disponible sur un site web (sans défilement automatique), dont le lien serait transmis par mail + QR-code dans la salle.
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - import + export en .chb des fichiers de données.
 
