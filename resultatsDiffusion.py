@@ -29,7 +29,7 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur) :
     nbreTotal = str(groupement.nombreDeCoureursTotal)
     nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
     rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
-    fondDiplome = dossardModele + ".jpg" ### pour l'instant le fond utilisé a le même nom que le dossard utilisé.
+    fondDiplome = diplomeModele + ".jpg" ### pour l'instant le fond utilisé a le même nom que le dossard utilisé.
     # astuce pour éviter que des rangs par catégorie inutiles apparaissent, on change en SENIOR puisque le classement par catégorie
     # pour les séniors revient au même que la classement global.
     cat = coureur.categorieSansSexe()
@@ -107,38 +107,45 @@ def envoiDiplomePourTousLesCoureurs() :
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
-        else : #if c.dossard == "1A" :
-            print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
+        elif __name__ == '__main__' and c.dossard == "1A" :
+            genereDiplome(modele, c)
+        #else : #if c.dossard == "1A" :
+         #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
             
             
 def envoiDiplomeParMail(coureur):
     fichier = "resultats/" + coureur.dossard + ".png"
-    if os.path.exists(fichier) :
-        print("Envoi par email du fichier", fichier)
-        if coureur.emailNombreDEnvois :
-            AjoutObjet = "Correctif : "
+    try :
+        if os.path.exists(fichier) :
+            print("Envoi par email du fichier", fichier)
+            if coureur.emailNombreDEnvois :
+                AjoutObjet = "Correctif : "
+            else :
+                AjoutObjet = ""
+            retour = gmail.send(
+                sender="lax.olivier@gmail.com",
+                receivers=[coureur.email],
+                subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
+                html="""
+                    <h1>Bravo pour ta participation !</h1>
+                    <img src="{{ my_image.src }}" width=100%>
+                """, 
+                body_images={
+                    "my_image": fichier
+                }
+            )
+            if retour :
+                print("Email bien envoyé pour le dossard", coureur.dossard)
+                return True
+            else :
+                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                return False
         else :
-            AjoutObjet = ""
-        retour = gmail.send(
-            sender="lax.olivier@gmail.com",
-            receivers=[coureur.email],
-            subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
-            html="""
-                <h1>Bravo pour ta participation !</h1>
-                <img src="{{ my_image.src }}" width=100%>
-            """, 
-            body_images={
-                "my_image": fichier
-            }
-        )
-        if retour :
-            print("Email bien envoyé pour le dossard", coureur.dossard)
-            return True
-        else :
-            print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
-            return False
-    else :
-        print("Fichier absent :", fichier)
+            print("Fichier absent :", fichier)
+    except SMTPAuthenticationError:
+        print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
+    except:
+        print("Erreur inconnue générée lors de l'envoi de l'email avec le diplome.")
 
 if __name__ == '__main__':
     diplomeModele = "Randon-Trail"
