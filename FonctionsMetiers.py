@@ -5174,7 +5174,7 @@ def delCourse(categorie) :
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''
     PORT = 8888
-    server_address = ("", PORT)
+    server_address = (path, PORT)
 ##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
 ##    httpd.serve_forever()
     server = HTTPServer
@@ -5187,7 +5187,7 @@ def start_server(path, port=8888):
 # Start the server in a new thread
 port = 8888
 #start_server("/",8888)
-daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
+daemon = threading.Thread(name='daemon_server', target=start_server, args=('', port))
 daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
 daemon.start()
 #time.sleep(1)
@@ -5977,6 +5977,7 @@ def creerCoureur(listePerso, informations) :
     lic = ""
     doss = ""
     email=""
+    courseManuelle=""
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
