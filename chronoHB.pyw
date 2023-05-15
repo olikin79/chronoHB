@@ -4241,18 +4241,33 @@ def exportCourse():
     else :
         reponse = showinfo("ATTENTION","Pas de sauvegarde effectuée. Sélectionner un dossier pour archivage de la course.")
 
+def lireFichierTexte(nom) :
+    if os.path.exists(nom) :
+        fichier = open(nom, "r")
+        retour = fichier.read()
+        fichier.close()
+    else :
+        retour = "-1"
+    return retour
+
 def MAJChronoHB():
     # télécharge un script de MAJ depuis une URL fixe
     try :
         creerDir("maj")
         print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
-        url = "http://mathlacroix.free.fr/chronoHB/maj.py"
-        response = requests.get(url, stream=True)
+        url = "http://mathlacroix.free.fr/chronoHB/"
+        nomFichierVersionActuelle = "maj/version.txt"
+        nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+        # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
+        response = requests.get(url + "maj/maj.py", stream=True)
         with open("maj/maj.py", "wb") as handle:
             for data in response.iter_content() : #tqdm(response.iter_content()):
                 handle.write(data)
-        with open("maj/majNew.tag", "w") as f:
-            f.write("mise à jour en cours")
+        response = requests.get(url + nomFichierVersionActuelle, stream=True)
+        with open(nomFichierVersionDeployee, "wb") as handle :
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+            #f.write("mise à jour en cours")
         print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
         relancer()
     except :
@@ -4269,9 +4284,14 @@ def MAJChronoHB():
 ##        relancer()
 
 # exécution éventuelle de la mise à jour programmée.
-if os.path.exists("maj/majNew.tag") :
-    os.remove("maj/majNew.tag")
-    reboot, message = majScript()
+nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+nomFichierVersionActuelle = "maj/version.txt"
+if os.path.exists(nomFichierVersionDeployee) :
+    # comparaison des versions.
+    versionActuelle = lireFichierTexte(nomFichierVersionActuelle)
+    versionDeployee = lireFichierTexte(nomFichierVersionDeployee)
+    reboot, message = majScript(versionActuelle,versionDeployee)
+    os.remove(nomFichierVersionDeployee)
     showinfo("MISE A JOUR",message)
     if reboot :
         relancer()
