@@ -14,7 +14,8 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemp
 Fonctionnalités :
 - ajouter les paramètres généraux, déjà documentés : 
 	* relatifs à l'envoi automatique de diplomes, les logins et mdp d'emails, le nombre de minutes de rétention avant l'envoi des diplomes.
-	* relatifs à l'affichage TV automatique.
+	* relatifs à l'affichage TV automatique ?
+	* relatifs au dépôt FTP pour site web en temps réel. (rajouter le lien dans le mail diffusé)
 - refaire les captures d'écran p5 de la documentation.
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
@@ -22,14 +23,25 @@ Si possible pour la 1.8 :
 - l'affichage de la TV disponible sur un site web (sans défilement automatique), dont le lien serait transmis par mail + QR-code dans la salle.
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - import + export en .chb des fichiers de données.
+- créer une case à cocher pour bloquer l'envoi des emails. La décocher systématiquement au redémarrage de chronoHB.
+- variable "message dans le mail" : bravo pour ta participation !
 
+
+Documentation :
+- documenter : double authentification google.com + mot de passe d'application.
+- documenter l'inscription en ligne via formulaire google form.
+- documenter l'import avec le numéro de dossard fourni.
+
+
+Trouver win32ui installation. https://stackoverflow.com/questions/42370339/python-3-6-install-win32api
 
 #####################################################
 
 Todolist pour version 1.9 (oct 2023) :
 
 Bugs détectés :
-- (très improbable, peut être reporté): importer les fichiers de données venant des smartphones en parallèle en fonction de l'heure d'arrivée sur le serveur de l'information.
+- (très improbable, peut être reporté): 
+importer les fichiers de données venant des smartphones en parallèle en fonction de l'heure d'arrivée sur le serveur de l'information.
 Cela permettra d'obtenir forcément les mêmes données après réimport ou reboot du logiciel.
 
 - Selon la taille des noms des catégories, les cases à cocher pour l'affichage TV débordent de l'écran. Faire en sorte que cela soit adaptatif.
@@ -39,6 +51,7 @@ la fenêtre parent en pixels.
 
 
 Fonctionnalités :
+- Installation automatique de l'ensemble dont extensions installées localement.
 - Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
 Chaque smartphone sera considéré comme une pix différente. Le premier smartphone à envoyer des données sera la pic de base importée
 ArriveesDossards sera complété par des propriétés et méthodes  :
