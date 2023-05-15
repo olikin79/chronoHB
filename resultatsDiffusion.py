@@ -23,7 +23,8 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur) :
     else :
         logoSexe = "symbole-male-blanc.png"
         nbreTotalSexe = groupement.nombreDeCoureursGTotal
-    nomCourse = Courses[coureur.course].description
+    nomCourse = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom#Courses[coureur.course].description
+    #print(coureur.nom,nomCourse)
     temps = coureur.tempsHMS()
     dateDuTrail = Courses[coureur.course].dateFormatee()
     nbreTotal = str(groupement.nombreDeCoureursTotal)
@@ -90,7 +91,7 @@ def envoiDiplomePourTousLesCoureurs() :
         modele = f.read()
     f.close()
     for c in Coureurs.liste() :
-        #print("Coureur", c.nom, "examiné")
+        #print("Coureur", c.nom, "examiné", c.dossard)
         try :
             c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
             c.emailNombreDEnvois
@@ -104,11 +105,14 @@ def envoiDiplomePourTousLesCoureurs() :
         
         if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
             # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on génère son diplome et on l'envoie
+            #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
             genereDiplome(modele, c)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
         elif __name__ == '__main__' and c.dossard == "1A" :
             genereDiplome(modele, c)
+        elif c.dossard[:-1] != "C" and c.temps == 0.0 :
+            print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
         #else : #if c.dossard == "1A" :
          #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
             
@@ -123,7 +127,7 @@ def envoiDiplomeParMail(coureur):
             else :
                 AjoutObjet = ""
             retour = gmail.send(
-                sender="lax.olivier@gmail.com",
+                sender=gmail.username,
                 receivers=[coureur.email],
                 subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
                 html="""
@@ -135,7 +139,7 @@ def envoiDiplomeParMail(coureur):
                 }
             )
             if retour :
-                print("Email bien envoyé pour le dossard", coureur.dossard)
+                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
                 return True
             else :
                 print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
