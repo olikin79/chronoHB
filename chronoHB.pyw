@@ -2156,6 +2156,11 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+def parametreEMailAuto():
+    print("Réglage de l'envoi automatique des diplômes au démarrage :", envoiAutoDesEMails.get())
+    Parametres["diplomeDiffusionAutomatique"] = envoiAutoDesEMails.get()
+    
+
 def activerDesactiverLEnregistrement():
     global time_counter, enregistrementVideo
     if time.time() - time_counter > 3 :
@@ -2207,14 +2212,21 @@ defilementFrame = Frame(defilementEtHeureFrame)
 heureFrame = Frame(defilementEtHeureFrame)
 
 defilement = IntVar()
-defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement automatique',
+defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement auto',
     variable=defilement, command=parametreTableau)
 defilementAutoCB.pack(side=LEFT)
+
+# on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
+Parametres["diplomeDiffusionAutomatique"] = 0
+envoiAutoDesEMails = IntVar()
+envoiAutoDesEMailsCB  = Checkbutton(defilementFrame, text='Envoi auto diplômes',
+    variable=envoiAutoDesEMails, command=parametreEMailAuto)
+envoiAutoDesEMailsCB.pack(side=LEFT)
 
 time_counter = 0
 
 enregistrementVideo = IntVar()
-enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement mouvements',
+enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement webcam',
     variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
 enregistrementVideoCB.pack(side=LEFT)
 
@@ -2627,7 +2639,7 @@ tagEnvoiDiplomeEnCours = False
 
 def envoiDiplomesMessageFinal():
     global tagEnvoiDiplomeEnCours
-    print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
+    # print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
     envoiDiplomePourTousLesCoureurs()
     tagEnvoiDiplomeEnCours = False
     showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
@@ -2644,16 +2656,17 @@ def envoiDiplomes(avecQuestion = True):
             reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
 Un message de fin de diffusion apparaîtra quand cette opération sera terminée.")
             if reponse :
-                rint("Début d'envoi de diplômes manuellement demandé via le menu...")
+                print("Début d'envoi de diplômes manuellement demandé via le menu...")
                 tagEnvoiDiplomeEnCours = True
                 mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
                 mon_thread_Diplomes.start()
         else :
-            tagEnvoiDiplomeEnCours = True
-            #print("Début d'envoi de diplômes automatisé...")
-            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
-            mon_thread_Diplomes.start()
-            # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+            if diplomeDiffusionAutomatique :
+                tagEnvoiDiplomeEnCours = True
+                #print("Début d'envoi de diplômes automatisé...")
+                mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+                mon_thread_Diplomes.start()
+                # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
 ##    else :
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
@@ -2758,9 +2771,10 @@ class Clock():
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.compteurSauvegarde = 1
+
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
-        if diplomeDiffusionAutomatique  :
-            #print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+        if Parametres["diplomeDiffusionAutomatique"] :
+            # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
             envoiDiplomes(avecQuestion = False)
         self.compteurSauvegarde += 1
         # fin sauvegarde des données

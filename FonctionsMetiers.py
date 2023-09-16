@@ -1421,7 +1421,7 @@ def chargerDonnees() :
         Parametres["diplomeMdpExpediteur"] = ""
     diplomeMdpExpediteur=Parametres["diplomeMdpExpediteur"]
     if not "diplomeDiffusionAutomatique" in Parametres :
-        Parametres["diplomeDiffusionAutomatique"] = True
+        Parametres["diplomeDiffusionAutomatique"] = 0
     diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
     if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
