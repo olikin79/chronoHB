@@ -30,44 +30,63 @@
 \AddToShipoutPicture*{\BackgroundA}
 
 
-\color{white}
+% \color{white}
 
-{}\hfill
-\resizebox{!}{40pt}{@nomCourse@}
+% {\phantom{.}}
 
-\bigskip
+% \vspace{-1cm}
 
-{}\hfill
-{\Huge\textbf{@intituleCross@}}
+% {}\hfill
+% \resizebox{!}{20pt}{@intituleCross@}
+% \hfill {}
 
-\bigskip
+% % \bigskip
 
-{}\hfill
-{\Huge \textbf{@date@}}
+% % {}\hfill
+% % {\Huge\textbf{@intituleCross@}}
 
-\vfill
+% \bigskip
+
+% \vfill
 
 
-%\begin{minipage}[c]{6cm}
-\resizebox{!}{40pt}{\textbf{@rang@} 	} {\Huge / @nbreTotal@ participants}
+% {\Huge \textbf{@date@}}
 
-\bigskip
+% \vspace{1cm}
+
+
+% %\begin{minipage}[c]{6cm}
+% \textbf{\Huge Pour ELA, merci !}
+% % \resizebox{!}{20pt}{\textbf{@rang@}}
+
+
+\smallskip
 %\end{minipage}
 %\begin{minipage}[c]{18cm}
-\textbf{\Huge @nom@ @prenom@, pour ELA, merci !}
 
-\bigskip
+\begin{flushright}
+	\begin{minipage}{7cm}
+	\raggedleft
+	\textbf{\Huge @nom@ @prenom@}
+	\end{minipage}
+	\end{flushright}
 
+\smallskip
 
+{} \hfill {\huge\textbf{@rang@} / @nbreTotal@ participants}
+
+\smallskip
+
+{}\hfill
 \begin{minipage}[c]{1.5cm}
-	\includegraphics[width=\textwidth]{../../media/chronometre-blanc.png}
+	\includegraphics[width=\textwidth]{../../media/chronometre-noir.png}
 \end{minipage}
-\begin{minipage}[c]{4cm}
+\begin{minipage}[c]{2.5cm}
 	\textbf{\huge @temps@}
 \end{minipage}
-\hspace{0.5cm}
+\hspace{0.2cm}
 \begin{minipage}[c]{1.5cm}
-	\includegraphics[width=\textwidth]{../../media/vitesse-blanc.png}
+	\includegraphics[width=\textwidth]{../../media/vitesse-noir.png}
 \end{minipage}
 \begin{minipage}[c]{4cm}
 	\textbf{\huge @vitesse@}
