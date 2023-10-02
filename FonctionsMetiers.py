@@ -861,6 +861,9 @@ def chargerDonnees() :
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
+           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
+           genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPURL
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -990,9 +993,48 @@ def chargerDonnees() :
     if not "CoursesManuelles" in Parametres :
         Parametres["CoursesManuelles"] = False
     CoursesManuelles=Parametres["CoursesManuelles"]
+    if not "genererQRcodesPourCourseManuelles" in Parametres :
+        Parametres["genererQRcodesPourCourseManuelles"] = True
+    genererQRcodesPourCourseManuelles=Parametres["genererQRcodesPourCourseManuelles"]
+    if not "nbreDossardsAGenererPourCourseManuelles" in Parametres :
+        Parametres["nbreDossardsAGenererPourCourseManuelles"] = 120
+    nbreDossardsAGenererPourCourseManuelles=Parametres["nbreDossardsAGenererPourCourseManuelles"]
+    if not "genererListingQRcodes" in Parametres :
+        Parametres["genererListingQRcodes"] = False
+    genererListingQRcodes=Parametres["genererListingQRcodes"]
+    if not "genererListing" in Parametres :
+        Parametres["genererListing"] = True
+    genererListing=Parametres["genererListing"]
+    if not "diplomeModele" in Parametres :
+        Parametres["diplomeModele"] = "Randon-Trail"
+    diplomeModele=Parametres["diplomeModele"]
+    if not "diplomeDiffusionApresNMin" in Parametres :
+        Parametres["diplomeDiffusionApresNMin"] = 2
+    diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
+    if not "diplomeEmailExpediteur" in Parametres :
+        Parametres["diplomeEmailExpediteur"] = "lax.olivier@gmail.com"
+    diplomeEmailExpediteur=Parametres["diplomeEmailExpediteur"]
+    if not "diplomeMdpExpediteur" in Parametres :
+        Parametres["diplomeMdpExpediteur"] = ""
+    diplomeMdpExpediteur=Parametres["diplomeMdpExpediteur"]
+    if not "diplomeDiffusionAutomatique" in Parametres :
+        Parametres["diplomeDiffusionAutomatique"] = 0
+    diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
+    if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
+        Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
+    actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
+    if not "FTPlogin" in Parametres :
+        Parametres["FTPlogin"] = "mathlacroix@free.fr"
+    FTPlogin=Parametres["FTPlogin"]
+    if not "FTPmdp" in Parametres :
+        Parametres["FTPmdp"] = "mdp"
+    FTPmdp=Parametres["FTPmdp"]
+    if not "FTPURL" in Parametres :
+        Parametres["FTPURL"] = "ftp://mathlacroix.free.fr"
+    FTPURL=Parametres["FTPURL"]
     ##transaction.commit()
     return globals()
-
+    
 chargerDonnees()
 
 if os.name=="posix" :
@@ -1572,9 +1614,11 @@ def listCourses():
     ##transaction.commit()
 
 def listEtablissements():
+    # print(Coureurs.afficher())
     retour = []
-    if len(Coureurs)!=0:
-        for coureur in Coureurs :
+    if Coureurs.nombreDeCoureurs !=0:
+        for coureur in Coureurs.liste() :
+            # print(coureur)
             if coureur.etablissement not in retour :
                 retour.append(coureur.etablissement)
         retour.sort()
@@ -1658,7 +1702,8 @@ def listChallenges():
     listeCourses = []
     retour = []
     if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
-        #print("There are Courses.")
+        print("There are Courses.", Courses)
+        print("Coureurs", Coureurs.afficher())
         for cat in Courses :
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
@@ -1730,6 +1775,9 @@ def listNomsGroupementsCommences(nomStandard = False):
 
 def listNomsGroupementsNonCommences(nomStandard = False):
     retour = []
+=======
+    for groupement in Groupements :
+        print("listNomsGroupementsNonCommences",groupement.nom,":", groupement.listeDesCourses)
     for groupement in Groupements :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
@@ -1815,6 +1863,49 @@ def generateListCoureursPourSmartphone() :
             result += "\n"
             f.write(result)
     f.close()
+    """ on génère désormais un fichier CoureursA.txt, CoureursB.txt, etc... par course pour une recherche rapide à la n-ème ligne des coordonnées du coureur en fonction de son dossard.
+        on ajoute Coureurs.txt qui contient tous les coureurs de toutes les courses pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
+    """
+    fichierDonneesSmartphoneAvecTousLesCoureurs = "Coureurs.txt"
+    fichierDonneesSmartphone = "Coureurs"
+    print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
+    fComplet = open(fichierDonneesSmartphoneAvecTousLesCoureurs, 'w')
+    for lettre in Coureurs.cles() :
+        with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
+            for coureur in Coureurs[lettre] :
+                try :
+                    #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+                    if CoursesManuelles :
+##                        print("Nom : " , coureur.nom)
+##                        print("course :",coureur.course)
+##                        print("Description:",Courses[coureur.course].description)
+##                        print("Groupements",listNomGroupements())
+##                        nomStandard = Courses[coureur.course].description
+##                        c = groupementAPartirDUneCategorie(nomStandard).nom
+                        c = Courses[coureur.course].description
+                    else :
+                        c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+
+                    result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
+                             str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
+                             str(c) + "," +\
+                             str(coureur.commentaireArrivee).replace(",",";") + \
+                             "," + str(coureur.etablissement)
+                except :
+                    result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," + \
+                             "," + "," +str(coureur.commentaireArrivee).replace(",",";") + "," + str(coureur.etablissement)
+                    #print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
+                    #print("Courses.keys()", Courses.keys())
+                    #print("course", Courses[coureur.course].description)
+                    print("Coureur non pleinement ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
+                          str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
+                          str(coureur.commentaireArrivee))
+                result += "\n"
+                f.write(result)
+                fComplet.write(result)
+        f.close()
+    fComplet.close()
 
 def generateQRcode(n) :
     osCWD = os.getcwd()
@@ -3768,6 +3859,24 @@ def addCourse(categorie) :
         Courses.update({categorie : c})
     #print("cat",Courses[categorie].categorie)
 
+        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+        estPresent = False
+        for grpment in Groupements :
+            if course in grpment.listeDesCourses :
+                estPresent = True
+                break
+        if not estPresent:
+            print("Création du groupement dans addCourse", course)
+            Groupements.append(Groupement(course,[course]))
+            #print("Groupements = ",[i.nom for i in Groupements])
+        # création de la course si elle n'existe pas.
+        #print(course, " est dans ", Courses,"?")
+        if course not in Courses :
+            print("Création de la course", course)
+            c = Course(course)
+            Courses.update({course : c})
+        return course
+        #print("cat",Courses[course].categorie)
 
 
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
