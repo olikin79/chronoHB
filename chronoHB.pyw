@@ -1768,6 +1768,8 @@ zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
 
 
+## DEBUGGAGE 
+
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
 zoneAffichageDeparts = Frame(Affichageframe, relief=GROOVE, bd=2)

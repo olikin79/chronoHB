@@ -27,7 +27,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 version = "1.8"
 
@@ -890,9 +890,9 @@ class Course():#persistent.Persistent):
 ##        self.equipesClasses.append(equipe)
 ##    def delEquipesClasses() :
 ##        self.equipesClasses.clear()
-    def addResultat(coureur) :
+    def addResultat(self, coureur) :
         self.resultats.append(coureur)
-    def delResultat(coureur) :
+    def delResultat(self, coureur) :
         i = 0
         while i < len(self.resultats) :
             if self.resultats[i].dossard == coureur.dossard :
@@ -4974,7 +4974,7 @@ def tupleEtablissement() :
 
 def delCoureur(dossard):
     if not Parametres["CourseCommencee"] :
-        course = Coureurs.recuperer(doss).course
+        course = Coureurs.recuperer(dossard).course
         Coureurs.efface(dossard)
         delCourse(course)
         print("Coureur effacé :", dossard,".")
@@ -5988,10 +5988,10 @@ def recupCSV(fichierSelectionne=""):
 ##        print("Liste des coureurs pour smartphone créée.")
 ##    return retour
 
-def setDistances():
-    for nom in listeDeCourses :
-        print("ajout de la distance 1.2 km à", nom)
-        Courses[nom].setDistance(1.2)
+# def setDistances():
+#     for nom in listCourses() :
+#         print("ajout de la distance 1.2 km à", nom)
+#         Courses[nom].setDistance(1.2)
 
 def setDistanceToutesCourses(distance):
     for nom in listCourses() :

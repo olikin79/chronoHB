@@ -18,6 +18,7 @@ Todolist pour le cross HB 2023 :
 - depot vers serveur sftp
 - affichage actualisé non défilant.
 - deplacer les fichiers du serveur web dans www
+- absents dispenses cumulable
 
 
 
