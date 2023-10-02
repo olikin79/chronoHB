@@ -71,7 +71,7 @@ function testChargement() {
 	}
 --->
 
-<script>
+<script async>
 function MAJ(i) {
 	$("#conteneurGlobal1").load("Affichage-tab" + i.toString() + ".html") ;
 }
@@ -148,7 +148,7 @@ function chronoStart(i){
 var dureeActualisation = 10000 ; // au début 10 s puis cela varie en fonction du contexte.
 
 function chargerStart(i){
-	console.debug("chargerStart(" + i.toString())
+	console.debug("chargerStart(" + i.toString() + ")")
 	$("#conteneurGlobal"+i.toString()).load("Affichage-tab"+i.toString()+".html") ;
 	// si c'est une course qui n'a pas commencé (et ce n'est pas un challenge)
 	if (chronometres[i][0] == 0) {
