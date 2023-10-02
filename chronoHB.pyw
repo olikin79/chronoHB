@@ -53,6 +53,7 @@ from FonctionsMetiers import *
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
+from FonctionsDiffusionInternet import *
 # from PIL import ImageTk,Image 
 
 
@@ -1108,6 +1109,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
+            print("groupements",groupements)
+            print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
@@ -1514,6 +1517,7 @@ class AbsDispFrame(Frame) :
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
         if Parametres["CategorieDAge"] == 2 :
+            #print("listeEtab", listEtablissements())
             self.tupleClasses = tuple(listEtablissements())
         elif Parametres["CategorieDAge"] == 1 :
             self.tupleClasses = tuple(listCategories())
@@ -2583,6 +2587,18 @@ class Clock():
         if zoneTopDepart.departsAnnulesRecemment :
             construireMenuAnnulDepart()
             zoneTopDepart.nettoieDepartsAnnules()
+
+        # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
+        # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
+        if actualisationAutomatiqueDeLAffichageTV  and self.auMoinsUnImport :
+            corrigerLesCasesCocheesPourLAffichageTV()
+
+        # on actualise l'affichageTV à chaque nouvel import.
+        #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
+        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
+            ActualiseAffichageTV()
+            checkBoxBarAffichage.change(valeur=False)
+            ActualiseAffichageInternet()
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
