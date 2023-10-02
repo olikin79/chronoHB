@@ -1245,7 +1245,6 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPURL
@@ -4458,6 +4457,41 @@ def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
         print("La première lettre non encore utilisée est", retour)
     return retour
 
+
+
+def estDansGroupementsEnModeManuel(course):
+    retour = ""
+    for g in Groupements :
+        if g.nomStandard == course :
+            retour = g.nomStandard
+            break
+    return retour
+    
+
+def addCourse(course, lettreCourse="") :
+    """ addCourse prend en argument le nom personnalisé de la course (obligatoire)
+    En mode CoursesManuelles, la lettre que l'on veut attribuer à cette course peut être fourni (facultatif)
+    Comportement :
+    en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
+    en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
+    Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+    et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
+##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
+##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
+##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
+    if CoursesManuelles :
+        if not lettreCourse :
+            lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+            print("La lettre attribuée manuellement à la course est :",lettreCourse)
+        #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+        if not lettreCourse in Courses :
+            print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
+            Groupements.append(Groupement(lettreCourse,[lettreCourse]))
+            Groupements[-1].setNom(course)
+            c = Course(course)
+            Courses.update({lettreCourse : c})
+        return lettreCourse
+    else :
         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
         estPresent = False
         for grpment in Groupements :
