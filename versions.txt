@@ -2,6 +2,14 @@ Manque pour la branche trail-rieutort :
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 - tester toute la suite : impression des dossards, déroulement des courses,...
+Travail du 16/09/23 :
+- ajout d'une case à cocher (désactivée au démarrage de l'application) pour permettre ou non l'envoi automatique des diplomes (au fil de l'eau)
+
+
+Travail du 02/02/23 :
+- correction de bug : si le dossard sélectionné était au delà de 100 dans le treeview, impossible de le monter ou le descendre (codage en hexadécimal du numéro d'item du treeview pris en compte).
+- import de l'email possible via tableur ou CSV
+- champ entry pour l'email dans ajout-modification de coureur ajouté et fonctionnel.
 
 -------------------------------------------------------------
 
