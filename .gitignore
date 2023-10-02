@@ -1577,4 +1577,10 @@ CoureursA.txt
 CoureursB.txt
 CoureursC.txt
 chronoHB.code-workspace
+CoureursD.txt
 resultatsDiffusionIdentifiants.py
+*.gz
+*.aux
+*.log
+chronoHB.code-workspace
+

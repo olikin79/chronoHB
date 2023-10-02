@@ -2,6 +2,8 @@ Manque pour la branche trail-rieutort :
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 - tester toute la suite : impression des dossards, déroulement des courses,...
+
+
 Travail du 16/09/23 :
 - ajout d'une case à cocher (désactivée au démarrage de l'application) pour permettre ou non l'envoi automatique des diplomes (au fil de l'eau)
 
@@ -11,9 +13,228 @@ Travail du 02/02/23 :
 - import de l'email possible via tableur ou CSV
 - champ entry pour l'email dans ajout-modification de coureur ajouté et fonctionnel.
 
--------------------------------------------------------------
 
-Travail du 29/11/22 :
+Travail du 01/02/23 : version 1.8 (avec diplomes et affichage automatique sur TV)
+- implémentation fonctionnelle de l'affichage TV automatique en fonction des arrivées de dossards
+- sépération du menu paramètres en deux : la partie "dossards" et "diplômes" est déportée dans un menu dédié
+- mise à jour de la documentation
+
+
+Travail du 31/01/23 :
+- correctif class Coureur : la propriété emailDejaEnvoye repassait à False lors de l'actualisation du temps par un temps identique ! Pfff !
+- correctif permettant de modifier les nom-prénom d'un coureur existant depuis l'interface.
+- ajout de méthodes et propriétés à la class Coureur pour connaître la durée depuis la dernière modification.
+- ajout de paramètres relatifs aux diplômes, à interfacer plus tard.
+- envoi des diplomes automatique après n minutes suite à la dernière modification de temps ou de rang.
+- pause sur les derniers coureurs sur la TV (correction suite au défilement uniquement dans un seul sens)
+
+
+Travail du 30/01/23 :
+- seconde retenue pour le temps H:M:S : valeur par excès pour se conformer au règlement FFA.
+
+
+Travail du 29/01/23 :
+- finalisation-correction des informations ajoutées sur le diplôme.
+- ajout d'un menu permettant d'envoyer tous les diplômes.
+- si l'un des rangs change, le temps change..., repasse la propriété Coureur.emailEnvoiEffectue à False. Ainsi, le coureur recevra un mail correctif.
+
+
+Travail du 28/01/23 :
+- Suppression des QR-codes générés à part (devenu obsolète)
+- Premières fonctions permettant l'envoi d'un diplome après la course par gmail.
+- Correction texlive pour compilation correcte avec les fonds ajoutés (dossards+diplomes)
+
+
+Travail du 26/01/23 :
+- déplacement des modèles de dossard dans un dossard dédié. Noms plus explicites.
+
+
+Travail du 22/01/23 :
+- protection de Arrivee.pyw contre les demandes d'information sur un dossard qui n'existe pas (comme 1AA).
+- correctif pour n'activer selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) que lorsque dossard est un vrai dossard
+- correction bug graphique si aucune donnée à afficher (introduit le 15/01).
+
+
+Travail du 15/01/23 :
+- les boutons vidéos bougent lors du scroll dans le treeview. :-)
+- empêche l'affichage de pourcentages de VMA plus grand que 100% (stupide). N'affiche que la vitesse dans ce cas.
+- correctif nombre de coureurs sur la ligne d'arrivée ne s'affichait plus
+- Correctif : si on ne supprimait qu'une seule ligne de temps en fin d'affichage, cela ne disparaissait pas immédiatement.
+- remplacement de tous les .upper() sur des dossards par la fonction de formatage des dossards dédiée (formateDossardNG()).
+- le bouton video bouge horizontalement si la taille des colonnes change automatiquement en s'adaptant à la fenêtre.
+- possibilité de recréer le treeview pour des imports de sauvegarde, réinitialisation de treeview qui rendent l'indexation correcte.
+Correction du bug : quand j'ai avancé un dossard lors du trail, cela n'a pas fonctionné et cela a fonctionné après redémarrage du logiciel. 
+L'indexation du treeview était incorrecte suite à des mises à jour de ligne.
+
+
+Travail du 14/01/23 :
+- actualisation du menu "modification d'un coureur" après import XLSX ou CSV
+- correctif Coureurs.liste() retournait des coureurs vides supprimés
+- possibilité de supprimer un coureur et d'ajouter un coureur à la place d'un coureur supprimé
+
+
+Travail du 13/01/23 :
+- possibilité d'importer le numéro de dossard dans le logiciel, ce qui permettra d'importer depuis des inscriptions autonomes sur un formulaire.
+
+
+Travail du 11/01/23 :
+- défilement uniquement du haut vers le bas + ajout d'une pause plus longue sur les derniers arrivés.
+- dans le fichier xlsx exporté, il y a A et B comme courses et non les noms personnalisés : 8 km etc...
+
+
+Travail du 08/01/23 :
+- meilleur formatage des noms et prénoms : une majuscule imposée à chaque initiale. Des minuscules pour tous les autres caractères.
+- Dans la création du rang par catégorie sur la TV, cela ne tenait pas compte du sexe. J'ai séparé le rang des filles et des garçons pour chaque catégorie d'âge.
+- ajout de la colonne "sexe" dans les tableaux de résultats pour les courses non scolaires (CategorieDAge = 1)
+- création d'une solution via google forms d'inscription autonome
+- (pour toutes les courses non scolaires) Dans le tableau imprimé, il fallait ajouter une colonne "sexe" pour les courses par catégories.
+- Elargissement de la colonne rang sur les pdf et resserrement de celle du nom (pas de VMA lors d'un trail)
+
+
+Travail du 06/01/23 :
+- ajout d'un menu "mise à jour" dans "aide".
+- ajout du téléchargement d'un script de mise à jour et de son lancement au prochain redémarrage qui suit le téléchargement.
+
+
+Travail du 01/01/23 :
+- les premiers d'une course apparaissent surlignés de jaune s'ils ne sont pas en erreur.
+- quand on supprime un dossard en doublon depuis l'interface GUI, cela ne supprime plus la première occurrence mais bien celle sélectionnée.
+- idem sur le smartphone via la 1.71 du 01/01/23
+- correctif pour avancer-reculer un dossard depuis l'interface GUI
+- documentation mise à jour en version 1.7 finalisée.
+
+
+Travail du 31/12/22 :
+- correctif message "La course A n'a pas encore commencé" en remplaçant par le nom personnalisé.
+- affichage interface : Vitesse de défilement conseillée entre 1 et 6 (et non plus 3)
+- Vitesse de défilement sur TV par défaut : 3
+- suite au travail de fond entrepris sur l'utilisation des noms standards en arrière plan, 
+on permet de modifier le nom d'une course même quand elle est lancée.
+- Le menu d'affichage sur la TV n'apparaît que s'il y a des courses (et non après un départ, bug introduit récemment).
+- tentative pour pallier le problème du défilement tous les deux ajouts de lignes. A tester.
+- lignes en erreurs en orange dans l'interface. Plus facile à repérer.
+- Correction nouveau dossard nul "0A" dans la class Erreur
+- on doit forcer tous les recalculs de temps de l'interface avec rejouerToutesLesActionsMemorisees() si on lance une course.
+
+
+Travail du 30/12/22 :
+- nomGroupementAPartirDUneCategorie() utilise groupementAPartirDUneCategorie().nomStandard : plus cohérent pour l'ensemble du code.
+- correctif Courses.initNomGroupement() qui doit bien utiliser ancienGroupementAPartirDUneCategorie(cat).nomStandard au risque de créer une boucle.
+Cela permet de maintenir une compatibilité avec l'import d'anciennes sauvegardes.
+- fonctions obsolètes commentées. Esthétique de popup (génération de dossard)
+- refonte remplacement des champs lors de la création de dossards
+- dans ajout manuel de coureur, gestion du cas où l'on ajoute un  coureur déjà existant.
+- menu annul départ adapté aux noms standards + on regénère l'affichage si annulDepart sans attendre l'arrivée à venir d'un coureur.
+
+
+Travail du 28/12/22 :
+- largeur du champ "lieu" dans paramètres doublée
+- exemple modele 4 prototype en tex
+- logo.png (ou jpg) personnalisé pris en compte si placé dans ./media/
+
+
+Travail du 27/12/22 :
+- correction bug affichage choix supplémentaire pour les courses manuelles dans les paramètres.
+- adaptation de CoureursParClasseUpdate() aux courses manuelles (oubliée)
+- création de CoureursParClasseOrdonnes pour que les listings soient systématiquement ordonnés.
+- création d'un listing sous forme de tableau de coureurs.
+- factorisation de code : compilerTousLesTex()
+- suppression de la lettre sur le dossard généré.
+- rangement des logos dans media et adaptation des modèles de dossards
+- sécurisation de l'existence du dossier "videos" quand on coche l'enregistrement automatique dans l'interface. Cela le crée s'il n'existe pas.
+- script CGI arrivee.pyw : protection contre les dossards saisis manuellement : vide ou avec plusieurs lettres.
+
+Interface smartphone (correctifs) :
+	* déblocage de l'interface si on tente d'affecter un dossard à un temps. La zone n'apparaissait plus et on ne pouvait plus cliquer sur les boutons.
+	* l'ajout de 1 ou 1A ou 1a signale un doublon !
+	* l'affichage indique seulement le numéro pour tous les dossards A et la lettre pour tous les autres.
+	Cela permet de cacher la lettre pour tous les cas autres que CoursesManuelles où elle n'apparaît plus sur le smartphone.
+
+
+Travail du 26/12/22 :
+- export xlsx complètement remanié et optimisé. Champs complémentaires exportés pour permettre un export directement à partir de l'export réalisé.
+- refonte de listCoureursDUneCourse() pour accepter les noms standards par défaut mais aussi les noms personnalisés de course (issus des comboboxbox)
+- rétablissement du fonctionnement du menu "absent" et "dispensés" suite à la fusion des branches.
+- rétablissement du fonctionnement du menu "impression d'un dossard particulier" suite à la fusion des branches.
+- début de factorisation de code pour la génération des dossards : facilitera des évolutions liées aux éléments à insérer sur un dossard...
+- les pdf générés pour les groupements portent désormais le nom "Course" plus évocateur et portent le nom personnalisé et non plus le nom standard
+(suite à l'utilisation systématique des noms standards en arrière plan et à la fusion récente).
+- paramètres ajoutés dans le menu GUI : QRcodes à imprimer en plus ou non (et nombre).
+
+
+Travail du 23/12/22 :
+- Fusion des branches "cross UNSS" (dans main) et "class Coureurs Arrivees Dossards" afin de comuler les fonctions pour le cross UNSS et
+la nouvelle gestion interne des dossards avec des lettres 1A, 2A, 3A, ..., 1B, ...
+
+
+Travail du 22/12/22 :
+- calculeTousLesTemps ne fonctionnait plus bien après avoir affecté des dossards à des temps puis les avoir annulés. Corrigé.
+- correctif non affichage des erreurs dans l'interface GUI. Lignes commentées par erreur dans un précédent commit.
+- En mode CoursesManuelles, la modification des caractéristiques d'un coureur ne provoquait plus l'affichage du bouton ok pour des filles et
+cela souhaitait un type d'établissement (cross UNSS) même pour des categories de course qui n'avaient rien à voir.
+- quand on ajoute un coureur dans une course manuelle existante, il recréait une nouvelle course dans Coureurs... 
+C'était suite à l'utilisation du nomStandard pour les noms de groupements dans coureur.course. 
+Corrigé pour s'adapter au nouveau fonctionnement (noms standards utilisés systématiquement en arrière plan).
+Cela devrait pouvoir permettre à terme de changer le nom d'un groupement quand la course sera lancée. Verrouillé actuellement.
+- dans l'affichage TV en mode CoursesManuelles, le tableau n'était pas correct 
+(il manquait la catégorie dans le contenu du tableau si le coureur n'avait pas de médaille pour sa performance dans une catégorie supérieure). Corrigé.
+- correctif en-têtes des statistiques pour ne pas construire de tableau par catégorie dans le cas CourseManuelles.
+- lors de l'export tableur en mode CoursesManuelles, la course n'était pas exportée dans le fichier tableur créé.
+- dans l'affichage TV, à l'heure d'hiver, il y avait un décalage horaire d'une heure sur le temps de course.
+Corrigé en exportant l'heure GMT depuis le code python et en faisant la différence heureGMT - heure de départ sur le navigateur.
+Ainsi, quelque soit le fuseau horaire du navigateur qui affiche, il affichera toujours la bonne durée de course, heure d'été ou d'hiver !
+- Coureurs.ajouter() retourne le bon numéro de dossard
+- En mode Courses manuelles, après saisie, indique le numéro de dossard affecté pour pouvoir donner le dossard physiquement à la personne.
+
+
+Travail du 18/12/22 :
+- dans paramètres des courses, si la base est vide, cela crée une course A sans coureur pour que le menu s'affiche.
+- dans paramètres des courses, le bouton "nettoyer les courses vides" corrigé.
+
+
+Travail du 17/12/22 : 
+- correction de bugs dans addArriveeDossard et delArriveeDossard 
+=> on peut de nouveau avancer ou reculer un dossard sur la ligne d'arrivée depuis le smartphone ou l'interface GUI.
+- dans Arrivee.pyw, la recherche par nom-prénom-classe-catégorie ne s'effectuait pas dans tous les fichiers CoureursA.txt, CoureursB.txt...
+Problème résolu en créant un unique fichier Coureurs.txt qui contient tous les coureurs de toutes les courses, uniquement pour cela.
+- le coureur vide a un dossard vide pour compatibilité ascendante (correctif d'affichage).
+- les lettres ne seront plus affichées sur l'interface GUI pour les courses non manuelles mais resteront dans le fonctionnement sous-jacent.
+
+Travail du 15/12/22 :
+Bugs divers corrigés (introduits lors de la refonte du coeur du système de dossards fin novembre-début décembre.
+- lors de la génération du fichier de QR-codes, il génèrait des dossards C alors qu'il n'y avait que deux courses !
+- correctif export en pdf des résultats.
+- correctif si dossard saisi en minuscule. La casse venant du smartphone et sur l'interface GUI n'aura aucune conséquence...
+On autorise la saisie de lettres dans la colonne dossards affectés sur l'interface GUI.
+- dans la entry pour affecter un dossard à un temps, seuls les chiffres étaient autorisés. Il fallait autoriser une lettre finale.
+- idem dans l'interface de smartphone : on peut désormais affecter un dossard avec une lettre à un temps.
+
+
+Travail du 04/12/22 :
+- lorsque l'on effaçait les coureurs depuis le menu, cela ne supprimait pas CoursesA.txt, CoursesB.txt etc... Corrigé.
+
+
+Travail du 03/12/22 : 
+- corrections de bugs introduits la veille.
+- modification de l'interface smartphone afin d'autoriser des dossards non numériques.
+- modification de l'interface smartphone afin d'autoriser des saisies au clavier non numériques si les courses manuelles sont activées.
+- si CoursesManuelles alors création d'un listing de 100 QR-codes (1A-100A et 1B-100B) pour impressions cross Rieutort
+
+
+Travail du 02/12/22 : branche class Coureurs-ArriveesDossards
+- Tests, compléments et correction du travail du 29/11/22. Toutes les méthodes ont été testées et protégées.
+Il reste à faire de même pour l'implémentation de ArriveeDossards : idem mais avec des dossards contenus et non des Coureurs.
+Puis remplacer toutes les occurences de Coureurs dans tout le code (voir todolist).
+
+
+Travail du 29/11/22 : branche class Coureurs-ArriveesDossards
+- ajout d'une classe héritée de dict : DictionnaireDeCoureurs avec la propriété nombreDeCoureurs et les 
+méthodes recuperer(doss), liste(), ajouter(coureur), effacer(coureur), effacer(dossard) afin de gérer les dossards
+au format "23A", "54B". Tentative de conserver la compatibilité avec les dossards uniquement numérotés.
+A tester conscienceusement plus tard.
+
+
+Travail du 29/11/22 : branche pour cross UNSS
 - ajout de l'établissement dans les fichiers pdf de courses générés pour les cross UNSS.
 - correction d'un léger bug d'affichage lié au formatage du temps quand le temps obtenu était x,999 secondes qui était affiché "x s 100''".
 
@@ -48,6 +269,8 @@ Travail du 17/11/22 :
 - trier par ordre alphabétique les listes fournies par listCoureursDUnEtablissement(), listCoureursDUneCategorie(), listCoureursDUneClasse(), listCoureursDUneCourse().
 Avant, les retours étaient triés par dossard, en fonction de l'import.
 - dans l'impression individuelle de dossards, dans le cas UNSS, sélection par établissement au lieu des catégories.
+- création d'une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), 
+actionnée par un bouton dédié en utilisant delCourse().
 
 
 Travail du 15/11/22 : branche trail-rieutort
@@ -68,6 +291,7 @@ Travail du 14/11/22 : branche trail-rieutort
 - ajout d'un combobox de 1 à 20 en fonction du nombre de courses souhaitées. Les champs des groupements se remplissent avec "numéro 1", etc...
 
 (correctif message incorrect lors d'un deuxième import stritement identique au précédent)
+
 
 Travail du 13/11/22 : 
 - actualisation du dossard UNSS

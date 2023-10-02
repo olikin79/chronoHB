@@ -38,7 +38,7 @@ function changeTimeZone(date, ianatz) {
 }
 function chrono(){
                 //end = new Date() ;
-				end = changeTimeZone(new Date(), 'UTC');
+				end = changeTimeZone(new Date(), 'Europe/London');
                 diff = end - start ;
                 diff = new Date(diff) ;
                 var msec = diff.getMilliseconds() ;
@@ -71,7 +71,7 @@ function chronoStart(i){
                     }
                     else {
                         start = new Date(chronometres[i][0],chronometres[i][1],chronometres[i][2],chronometres[i][3],chronometres[i][4],chronometres[i][5]);
-						start = changeTimeZone(start, 'UTC');
+						//start = changeTimeZone(start, 'UTC');
 						document.getElementById("chronotime").style.display = "line" ;
                         chrono();
                     }
@@ -114,13 +114,18 @@ function changeContenus(i) {
 					//txt += "Temps défilement : " + temps + " s<br>";
 					//document.getElementById("demo").innerHTML = txt;
 					var style = document.createElement("style");
-					 style.innerHTML="@keyframes defilement-rtl {0%  {left: 0px; top: 0px;} 49% {left: 0px; top: -"+difference+"px;} 52% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: 0px;}}" +
-			  ".marquee-rtl > :first-child {animation: defilement-rtl " + temps +"s reverse ease running;} .marquee-rtl > :first-child {animation-delay : "+ pauseEntreDeuxPages +"s;}";
+					 style.innerHTML="@keyframes defilement-rtl {0% {left: 0px; top: 0px;} 70% {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: -"+difference+"px;}} " +
+					".marquee-rtl > :first-child {animation: defilement-rtl " + temps 
+					+ "s ease running; animation-delay : " + pauseEntreDeuxPages + "s; transition-delay : " + 6*pauseEntreDeuxPages + "s;}";
+					//".marquee-rtl > :first-child {animation: fixeALaFin ; animation-delay : 10s;}";
+					//"@keyframes fixeALaFin {0%  {left: 0px; top: -"+difference+"px;} 100% {left: 0px; top: -"+difference+"px;}}" +
 					 //WebKit Hack
 					 style.appendChild(document.createTextNode(""));
 					 // Add the <style> element to the page
 					 document.head.appendChild(style);		
-					var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages)*1000+ 2000, i);
+					var t3 = setTimeout(changeContenus, (temps+pauseEntreDeuxPages*1)*1000, i);
+					// le pauseEntreDeuxPages est multiplié par 3 car il est utilisé au tout début une fois et deux fois à la fin.
+					// Ensuite, il permet une pause longue sur les derniers coureurs arrivés : 1.5 fois le pauseEntreDeuxPages.
 					return style.sheet;
 				}
 			}

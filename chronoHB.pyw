@@ -24,7 +24,17 @@ from pprint import pprint
 
 import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
-version="1.63"
+# pour les MAJ
+# superflu from tqdm import tqdm
+import requests,importlib
+# bibliothèque personnelle qui sera téléchargée pour mise à jour.
+sys.path.append('maj')
+#importlib.import_module('maj')
+from maj import *
+#import git
+
+
+version="1.8"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -33,13 +43,8 @@ if not os.path.exists(LOGDIR) :
 
 CoureursParClasse = {}
 
-### déjà initialisé dans fonctionsMetiers.py
-### tableauGUI = []
-### ligneTableauGUI = [1,0] # [noligne du tableau, noligneAStabiliser en deça ne pas actualiser la prochiane fois]
-
-
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -49,14 +54,19 @@ def LOGstandards():
 
 LOGstandards()    
 
-from FonctionsMetiers import *
+from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
+from resultatsDiffusion import * # création puis diffusion des diplomes par email
+
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
 from FonctionsDiffusionInternet import *
 # from PIL import ImageTk,Image 
 
-
+### temporaire pour un retraitement des données d'un trail où les noms n'étaient pas corrects. Corrigé pour l'avenir.
+##for c in Coureurs.liste() :
+##    print("coureur retraité",c.nom)
+##    c.reformateNomPrenom()
 
 
 ##class Logger(object):
@@ -174,7 +184,19 @@ class MonTableau(Frame):
         #self.largeursColonnes = largeursColonnes
         self.defilementAuto = defilementAuto
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
+        self.parent = parent
+        self.initTreeview()
+        
+    def initTreeview(self) :
+        try :
+            self.treeview.destroy()
+            self.vsb.destroy()
+            self.hsb.destroy()
+        except :
+            print("Première exécution")
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
+        self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
+        self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
             #print(i, enTete)
@@ -184,24 +206,25 @@ class MonTableau(Frame):
 ##        ### correction d'un bug lié aux numéros de ligne : chaque ligne effacée garde son numéro initial.
 ##        ### après effacement de 10 lignes, les autres lignes sont décalées et la première ligne est la n°11 (exemple)
 ##        self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
-
         def treeviewYscrollCompl (x1,x2) :
+            self.treeview.yview(x1,x2)
             try :
-                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                self.afficheBoutonVideo("")# on détruit puis replace le bouton Vidéo
             except :
                 True # rien à détruire.
-            self.treeview.yview(x1,x2)
+            
 
         def YscrollCompl (x1,x2) :
+            self.vsb.set(x1,x2)
             try :
-                self.buttonVideo.destroy() # on détruit l'ancien bouton dans tous les cas.
+                self.afficheBoutonVideo("") # on détruit puis replace le bouton Vidéo
             except :
                 True # rien à détruire.
-            self.vsb.set(x1,x2)
+            
         
-        self.vsb = Scrollbar(parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
+        self.vsb = Scrollbar(self.parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
-        self.hsb = Scrollbar(parent, orient="horizontal", command=self.treeview.xview)
+        self.hsb = Scrollbar(self.parent, orient="horizontal", command=self.treeview.xview)
         self.hsb.pack(side='bottom', fill='y')
         self.treeview.configure(yscrollcommand=YscrollCompl, xscrollcommand=self.hsb.set) #yscrollcommand=self.vsb.set
         self.treeview.pack(side=LEFT, fill=BOTH, expand=True)
@@ -219,6 +242,8 @@ class MonTableau(Frame):
                 self.colonneTemps = i
             elif el == "Chrono" :
                 self.colonneChrono = i
+            elif el == "Doss. Aff." :
+                self.colonneDossAff = i
             i += 1
         #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
 ##        self.update()
@@ -264,15 +289,19 @@ class MonTableau(Frame):
 ##                    retour = 15
 ##            return retour
         def testVal(content,acttyp, column):
-            #print("column pour tester le contenu", column)
+            print("column pour tester le contenu", column)
             if acttyp == '1' or acttyp == '0' : #input
                 if content :
                     inStr = content[-1:]
                 else :
                     inStr = ""
                 #print("Contenu : ", content,"Saisie:",inStr)
-                if inStr not in ["-", ":", "", "\n"] and not inStr.isdigit() :
-                    return False
+                if column == "#2" : # saisie d'une heure de passage
+                    if inStr not in [":", "", "\n"] and not inStr.isdigit() :
+                        return False
+                elif column == "#3" : # saisie d'un numéro de dossard uniquement
+                    if inStr not in ["-", "", "\n"] and not inStr.isdigit() and not inStr.isalpha() :
+                        return False
             else :
                 print("action non prévue :", acttyp,"saisie :",inStr)
             return True
@@ -324,8 +353,8 @@ class MonTableau(Frame):
                         p = re.compile('[0-9]*')
                         if p.match(saisie) :
                             try :
-                                dossard = int(saisie)
-                                if len(Coureurs) > dossard and dossard >= 0:
+                                dossard = str(saisie)
+                                if Coureurs.existe(dossard) :
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -392,7 +421,7 @@ class MonTableau(Frame):
                 #print(self.vsb.get())
         self.treeview.bind('<Double-1>', set_cell_value) # Double-click the left button to enter the edit
 
-            
+        
     def conv_Hexa_vers_Dec(self,chaine) :
         ch = chaine
         retour = 0
@@ -401,6 +430,9 @@ class MonTableau(Frame):
             retour +=  self.valeurChiffre(dernierCaractere) * 16**i
             ch = ch[:-1]
         return retour
+
+    def conv_Dec_vers_Hexa(self,chaine) :
+        return hex(int(chaine))[2:].upper()
     
     def valeurChiffre(self,chiffreHexa) :
         try :
@@ -438,31 +470,36 @@ class MonTableau(Frame):
         #cn = self.conv_Hexa_vers_Dec(str(column).replace('#',''))
         #rn = self.conv_Hexa_vers_Dec(str(row).replace('I','')) - self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance
         ### amélioration suite aux bugs liés aux effacements successifs possibles dans le treevoew. Les numéros supprimés ne sont pas réaffectés.
-        rn = self.treeview.get_children().index(row)
-        ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
-        #print("focus",self.treeview.focus())
-        #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
-        #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
-        fichiers = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
-        j = 0
-        decalage = 0
-        while j < len(fichiers) : # si au moins une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 4 s près par exempl)
-            fichier = fichiers[j]
-            if len(fichiers) == 1 :
-                texte = 'Vidéo'
-            else :
-                texte = 'V' + str(j)
-            self.buttonVideos.append(Button(self,text=texte,command=lambda f=fichier : ouvrirVideo(f)))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
-            self.buttonVideos[j]['font'] = font.Font(size=7)
-            premierNomVisible = self.vsb.get()[0]*self.effectif+1
-            sommeLargeurColonnes = 0
-            for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
-                sommeLargeurColonnes += self.largeursColonnes[i]
-            self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=(rn+1-premierNomVisible)*20.01+25)
-            decalage += 20
-            j += 1
-        #except :
-        #    print("Clic sur le treeview en dehors d'une ligne valide")
+        if row : # s'il y a une sélection, on continue le travail.
+            rn = self.treeview.get_children().index(row)
+            ### compléter ici avec une recherche par date et heure dans le dossier videos afin de voir si une vidéo semble correspondre. Trouver la plus proche de l'heure de passage.
+            #print("focus",self.treeview.focus())
+            #print("  Numéro de ligne sélectionné :", rn)#, " Nbre Lignes effacées :", self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance)
+            #print("temps sélectionné",self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True), "ligne", rn)
+            fichiers = rechercheVideoProcheDe(self.listeDesTemps[rn].tempsReelFormateDateHeure(sansCentieme = True))#manque l'année dans item_text[1])
+            j = 0
+            decalage = 0
+            while j < len(fichiers) : # si au moins une vidéo est proche de l'horaire sélectionné (la webcam a enregistré quelque chose à 4 s près par exempl)
+                fichier = fichiers[j]
+                if len(fichiers) == 1 :
+                    texte = 'Vidéo'
+                else :
+                    texte = 'V' + str(j)
+                self.buttonVideos.append(Button(self,text=texte,command=lambda f=fichier : ouvrirVideo(f)))###,width=int(self.largeursColonnes[cn-1]/6),height=1)# - 5.5 avec le bouton ok
+                self.buttonVideos[j]['font'] = font.Font(size=7)
+                premierNomVisible = self.vsb.get()[0]*self.effectif+1
+                sommeLargeurColonnes = 0
+                for i in range(5) : ### on place les boutons dans la sixième colonne, à la place des numéros de dossards
+                    sommeLargeurColonnes += self.largeursColonnes[i]
+                placeY = (rn+1-premierNomVisible)*20.01+25
+                if placeY >= 25 :
+                    self.buttonVideos[j].place(x=sommeLargeurColonnes+decalage, y=placeY)
+    ##            else :
+    ##                print("Bouton vidéo sur la barre de titre suite au scroll, on n'affiche rien.")
+                decalage += 20
+                j += 1
+            #except :
+            #    print("Clic sur le treeview en dehors d'une ligne valide")
                 
     def setLargeurColonnesAuto(self):
         largeurFrame = self.treeview.winfo_width()
@@ -476,6 +513,11 @@ class MonTableau(Frame):
                     self.largeursColonnes[i] = nouvelleLargeurDeLaColonne
                     self.treeview.column('#' + str(i+1), width=nouvelleLargeurDeLaColonne) # indicates column, not displayed
                 self.AncienneLargeurFrame = largeurFrame
+                # on vient de redimensionner les colonnes. On repositionne le bouton video si présent
+                try :
+                    self.afficheBoutonVideo("") # on détruit puis replace le bouton Vidéo
+                except :
+                    True # rien à repositionner.
     
     def setDefilementAuto(self, booleen) :
         self.defilementAuto = booleen
@@ -488,12 +530,13 @@ class MonTableau(Frame):
         self.listeDesTemps = []
         self.effectif = 0
         self.delTreeviewFrom(1)
+        self.initTreeview()
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
         x = self.treeview.get_children()
         #print(self.treeview.get_children(), len(x))
-        if ligne < len(x) :
+        if ligne <= len(x) :
             ToDeleteList = x[ligne - 1 : ]
             print("suppression des lignes en trop en bas du tableau :", len(ToDeleteList))
             #print("liste a supprimer",ToDeleteList)
@@ -513,6 +556,7 @@ class MonTableau(Frame):
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
     def maj (self, TableauGUI) :
+        #print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -545,6 +589,7 @@ class MonTableau(Frame):
                 #nbreFileAttenteLabel.pack()
                 if self.defilementAuto :      
                     #print("défilement automatique activé. AVANT :", self.vsb.get())
+                    self.treeview.yview_moveto('0.9999') # tentative pour pallier le problème du défilement tous les deux ajouts de lignes.
                     self.treeview.yview_moveto('1.0')
 
         #print(self.effectif , ligneTableauGUI)
@@ -578,6 +623,25 @@ class MonTableau(Frame):
         else :
             nbreFileAttenteLabel.config(text="Il ne devrait y avoir personne dans la file d'attente d'arrivée.")
 
+    def metsEnEvidenceErreurs(self, listeDesErreursEnCours, reinitialise = True) :
+        listeDesDossardsConcernees = []
+        for err in listeDesErreursEnCours :
+            listeDesDossardsConcernees.append(err.dossard)
+        #print("dossards concernés",listeDesDossardsConcernees)
+        #indDansListeDesLignesConcernees = 0
+        #noLigneDansTreeview = 1
+        for iid in self.treeview.get_children() :
+            #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
+            #print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
+            if self.treeview.item(iid)['values'][self.colonneDossard] in listeDesDossardsConcernees :
+                self.treeview.item(iid, tags="erreurs")
+                #indDansListeDesLignesConcernees += 1
+            elif Coureurs.recuperer(self.treeview.item(iid)['values'][self.colonneDossard]).rang == 1 :
+                self.treeview.item(iid, tags="premiers")
+            elif reinitialise :
+                self.treeview.item(iid, tags=())
+            #noLigneDansTreeview += 1
+
     def setIncoherenceFutureACorriger(self,val):
         self.incoherenceFutureACorriger = val
         
@@ -603,24 +667,30 @@ class MonTableau(Frame):
         #index = int(donnee[0])
         #print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
-        if donnee[self.colonneDossard] == 0 : # si pas de coureur, pas de dossard à l'affichage.
+        if donnee[self.colonneDossard] == "" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
             if self.noPremierTempsSansCorrespondance == 0 :
                 self.noPremierTempsSansCorrespondance = int(donnee[0])
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
-        doss = int(donnee[self.colonneDossard])
+        doss = str(donnee[self.colonneDossard])
+        c = Coureurs.recuperer(doss)
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
-        if doss == 0:
+        if doss == "0":
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         else :
-            if Coureurs[doss-1].rang :
-                ligneAAjouter[self.colonneRang] = Coureurs[doss-1].rang
+            if Coureurs.recuperer(doss).rang :
+                ligneAAjouter[self.colonneRang] = c.rang
             else :
-                ligneAAjouter[self.colonneRang] = "?"
+                ligneAAjouter[self.colonneRang] = "-"
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
+        ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
+        #print("Dossard affecté",ligneAAjouter[self.colonneDossAff])
+        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=CoursesManuelles)
+        if ligneAAjouter[self.colonneDossAff] != "-" and not CoursesManuelles :
+            ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
 ##        print("temps de la ligne", ligne)
 ##        print(donnee)
@@ -671,10 +741,31 @@ class MonTableau(Frame):
         for item in self.treeview.selection():
             item_text = self.treeview.item(item, "values")
             # on ne garde que le dernier sélectionné si sélection multiple
-        if item_text == "" or item_text[5] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
+        if item_text == "" or item_text[self.colonneDossard] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
             return ""
         else :
-            return item_text[5]
+            return item_text[self.colonneDossard]
+
+    def getDossardEtPredecesseur(self) :
+        item_text = ""
+        for item in self.treeview.selection():
+            itemSelect = item
+            item_text = self.treeview.item(item, "values")
+            # on ne garde que le dernier sélectionné si sélection multiple
+        if item_text == "" or item_text[self.colonneDossard] == "-" : # si pas de sélection ou seul un temps sans dossard sélectionné
+            return "", ""
+        else :
+            print("itemSelect",itemSelect)
+            # cas classique où une vraie sélection a eu lieu
+            dossSelect = item_text[self.colonneDossard]
+            itemPrecNum = self.conv_Dec_vers_Hexa((int(self.conv_Hexa_vers_Dec(itemSelect[1:])) -1))
+            if itemSelect != "I001" : #cas classique où le premier élément de la liste n'est pas sélectionné
+                itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
+                dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
+            else :
+                dossPrec = "0"
+            #print(dossSelect, dossPrec)
+            return dossSelect, dossPrec
 
 def ouvrirVideo(fichier) :
     print("Ouverture du fichier", fichier)
@@ -693,7 +784,7 @@ def rechercheVideoProcheDe(horaire) :
     ecartTolere = 4 # on cherche un fichier à moins de ecartTolere secondes de l'horaire fourni
     try :
         heurePassage = time.strptime(horaire, "%m/%d/%y-%H:%M:%S")
-        print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
+        #print(horaire, "sélectionné. Recherche d'une vidéo correspondante.")
         annee=time.strftime("%Y",heurePassage)
         mois=time.strftime("%m",heurePassage)
         jour=time.strftime("%d",heurePassage)
@@ -731,17 +822,8 @@ def rechercheVideoProcheDe(horaire) :
             ecart = abs(tpsSelectionne - tpsFile)
             if (ecart <= ecartTolere and tpsFile <= tpsSelectionne) or (ecart <= 1 and tpsFile >= tpsSelectionne) :
                 retour.append(file)
-            #print("nom fichier sans extension",nom, ". Ecart:",nouvelEcart)
-                ### la méthode suivante ne convenait pas. Il se peut qu'il n'y ait pas d'enregistrement après celui souhaité.
-    ##        if nouvelEcart > ecart or tpsSelectionne < tpsFile : # on n'affiche que les vidéos dont le début précède le passage sur la ligne
-    ##            break
-    ##        else :
-    ##            fichierChoisi = file
-    ##            ecart = nouvelEcart
-    ##    if ecart < ecartTolere : # tolérance choisie en début de fonction
-    ##        retour = fichierChoisi
-        if retour :
-            print("Affichage des vidéos",retour)
+##        if retour :
+##            print("Affichage des vidéos",retour)
     except :
         print("La ligne sélectionné ne contient pas d'horaire")
     return retour
@@ -812,6 +894,17 @@ class Checkbar(Frame):
         self.listeAffichageTV = listeAffichageTV
         self.auMoinsUnChangement = False
         self.actualise(picks)
+    def setState(self,listeDeCoursesAuFormatNonStandard, listeDeBooleenDeMemeTaille) :
+        indiceDansListeFournie = 0
+        for course in listeDeCoursesAuFormatNonStandard :
+            indiceDansListeDeCheckBox = 0
+            for nomCourse in self.picks :
+                if nomCourse == course : # on a trouvé le nom de la course à actualiser
+                    self.vars[indiceDansListeDeCheckBox].set(listeDeBooleenDeMemeTaille[indiceDansListeFournie]) # on impose la valeur présente dans listeDeBooleenDeMemeTaille au même indice
+                    break # inutile de continuer la recherche pour cette course.
+                indiceDansListeDeCheckBox += 1
+            indiceDansListeFournie += 1 
+            
     def state(self):
         return [var.get() for var in self.vars]
 ##    def resetState(self, listeAffichageTV) :
@@ -836,7 +929,9 @@ class Checkbar(Frame):
     def change(self, valeur = True):
         self.auMoinsUnChangement = valeur
     def actualise(self,picks) :
+        self.picks = picks
         #print("Labels à créer",picks)
+        #print("self.listeAffichageTV",self.listeAffichageTV)
         for chkb in self.checkbuttons :
             #print("suppression d'un checkbox")
             chkb.destroy()
@@ -974,7 +1069,10 @@ class EntryParam(Frame):
             if self.nombre :
                 try :
                     ch = ch.replace(",",".")
-                    float(ch)
+                    if "." in ch :
+                        ch = float(ch)
+                    else :
+                        ch = int(ch)
                     setParam(self.param, ch)
                 except :
                     dontsaveedit(None)
@@ -1024,12 +1122,13 @@ class EntryCourse(Frame):
             self.entryNom.insert(0,str(self.nomCourse))
         def memoriseValeurNomBind(event) :
             ch = self.entryNom.get()
-            if len(ch) < 2 :
-                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
-            else :
-                self.nomCourse = ch
-                updateNomGroupement(self.groupement.nomStandard,ch)
-                actualiseToutLAffichage()
+##            if len(ch) < 2 :
+##                print("Interdit de fixer un nom inférieur à 2 caractères. C'est réservé aux challenges par classes.")
+##            else :
+            self.nomCourse = ch
+            updateNomGroupement(self.groupement.nomStandard,ch)
+            construireMenuAnnulDepart()            
+            actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
         self.entry.bind("<FocusOut>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
@@ -1055,7 +1154,8 @@ class EntryCourse(Frame):
         self.lbl2.pack(side=LEFT)
         self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
-        self.actualiseEtat()
+        # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
+        #self.actualiseEtat()
         
     def formateValeur(self):
         self.entryNom.delete(0, END)
@@ -1079,11 +1179,11 @@ class EntryCourse(Frame):
         groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setDistance(newVal)
         self.distance = newVal
         
-    def actualiseEtat(self):
-        if Courses[self.groupement.listeDesCourses[0]].depart :
-            self.entryNom.configure(state="readonly")
-        else :
-            self.entryNom.configure(state="normal")
+##    def actualiseEtat(self):
+##        if Courses[self.groupement.listeDesCourses[0]].depart :
+##            self.entryNom.configure(state="readonly")
+##        else :
+##            self.entryNom.configure(state="normal")
 
 
 ##def updateDistancesGroupements() :
@@ -1172,16 +1272,17 @@ class EntryGroupement(Frame):
             #actualiserDistanceDesCourses()
             actualiseToutLAffichage()
         self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
-        self.actualiseEtat()
+        # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
+        # self.actualiseEtat()
         self.nomAffiche = self.course + "  : "
         self.lbl = Label(self, text=self.nomAffiche)
         self.lbl.pack(side=LEFT) 
         self.combobox.pack(side=LEFT)
-    def actualiseEtat(self):
-        if Courses[self.course].depart :
-            self.combobox.configure(state="disabled")
-        else :
-            self.combobox.configure(state="normal")
+##    def actualiseEtat(self):
+##        if Courses[self.course].depart :
+##            self.combobox.configure(state="disabled")
+##        else :
+##            self.combobox.configure(state="normal")
 
 
 
@@ -1335,7 +1436,7 @@ GaucheFrameDossards = Frame(root)
 #GaucheFrameParametres = Frame(root)
 GaucheFrameDistanceCourses = Frame(root)
 GaucheFrameParametresCourses = Frame(root)
-
+GaucheFrameParametresDossardsDiplomes = Frame(root)
 
 
 ## menu interactif déroulant en haut
@@ -1407,6 +1508,7 @@ class TopDepartFrame(Frame) :
         #print("TOP DEPART pour :", listeCochee)
         topDepart(listeCochee)
         self.actualise()
+        rejouerToutesLesActionsMemorisees()
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
@@ -1415,7 +1517,7 @@ class TopDepartFrame(Frame) :
         #ActualiseZoneAffichageTV() # on actualise l'affichage sur la TV pour que le chrono démarre
         checkBoxBarAffichage.change(True)
     def actualise(self) :
-        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences()
+        self.listeDeCoursesNonCommencees = listNomsGroupementsNonCommences(nomStandard=False)
         self.checkBoxBarDepart.actualise(self.listeDeCoursesNonCommencees)
         if self.listeDeCoursesNonCommencees :
             self.TopDepartLabel.config(text="Cocher les résultats de courses dont vous souhaitez donner le départ :")
@@ -1520,7 +1622,7 @@ class AbsDispFrame(Frame) :
             #print("listeEtab", listEtablissements())
             self.tupleClasses = tuple(listEtablissements())
         elif Parametres["CategorieDAge"] == 1 :
-            self.tupleClasses = tuple(listCategories())
+            self.tupleClasses = tuple(listCategories(nomStandard=False))
         else :
             self.tupleClasses = tuple(listClasses())
         #print("liste Catégories",self.tupleClasses)
@@ -1539,7 +1641,10 @@ class AbsDispFrame(Frame) :
             if Parametres["CategorieDAge"] == 2 :
                 cat = "établissement"
             elif Parametres["CategorieDAge"] ==1 :
-                cat = "catégorie"
+                if CoursesManuelles :
+                    cat = "course"
+                else :
+                    cat = "catégorie"
             else :
                 cat = "classe"
             self.TopDepartLabel.configure(text="Absents et dispensés par " + cat + " : utiliser le menu déroulant. \
@@ -1550,7 +1655,10 @@ Compléter les absents ou dispensés (enregistrement automatique).")
             if Parametres["CategorieDAge"] == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
             elif Parametres["CategorieDAge"] == 1 :
-                self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
+                if CoursesManuelles :
+                    self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
+                else :
+                    self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
             self.comboBoxBarClasse.actualise(self.listeCoureursDeLaClasse)
@@ -1827,10 +1935,10 @@ def ajouterDossardApresOKAction() :
 
 def supprimerDossardAction() :
     supprimerDossardButton.configure(state=DISABLED)
-    dossard = tableau.getDossard()
+    dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent=-1'
+        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
         print("requete :", requete)
         r = requests.get(requete)
         regenereAffichageGUI()
@@ -1844,14 +1952,14 @@ def supprimerDossardAction() :
         
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
-    dossardSelectionne = tableau.getDossard()
+    dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossardSelectionne :
-        i = dossardPrecedentDansArriveeDossards(dossardSelectionne)
-        if i > 0 :
-            dossardPrecedent = str(i)
-            dossardSelectionne = str(dossardSelectionne)
-            print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",i)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=-1'
+        dossardEncoreAvant = dossardPrecedentDansArriveeDossards(dossardPrecedent)
+        if dossardPrecedent != "" :
+            #dossardPrecedent = str(i)
+            #dossardSelectionne = str(dossardSelectionne)
+            print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=' + dossardEncoreAvant
             print("requete :", requete)
             r = requests.get(requete)
             requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardPrecedent+'&dossardPrecedent='+dossardSelectionne
@@ -1859,7 +1967,7 @@ def avancerDossardAction() :
             r = requests.get(requete)
             regenereAffichageGUI()
         else :
-            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",i)
+            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",dossardEncoreAvant)
             reponse = showinfo("ERREUR","Impossible d'avancer le premier dossard.")
     avancerDossardButton.configure(state=NORMAL)
 
@@ -1867,14 +1975,14 @@ def avancerDossardAction() :
 
 def reculerDossardAction() :
     reculerDossardButton.configure(state=DISABLED)
-    dossardSelectionne = tableau.getDossard()
+    dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossardSelectionne :
-        i = dossardSuivantDansArriveeDossards(dossardSelectionne)
-        if i > 0 :
-            dossardSuivant = str(i)
-            dossardSelectionne = str(dossardSelectionne)
-            print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",i)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent=-1'
+        dossardSuivant = dossardSuivantDansArriveeDossards(dossardSelectionne)
+        if dossardSuivant != "0" or dossardSuivant != "-1" :
+            #dossardSuivant = str(i)
+            #dossardSelectionne = str(dossardSelectionne)
+            print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",dossardSuivant)
+            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardPrecedent
             print("requete :", requete)
             r = requests.get(requete)
             requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
@@ -1893,15 +2001,15 @@ gestionDossards = Frame(ModifDonneesFrame)
 ajouterTemps = Frame(ModifDonneesFrame)
 ajouterDossardApres = Frame(ModifDonneesFrame)
 
-gestionTempsButton = Button(menuInitial, text="Gérer les temps d'arrivée", width=30, command=gestionTempsAction)
+gestionTempsButton = Button(menuInitial, text="Gérer les heures d'arrivée", width=30, command=gestionTempsAction)
 gestionDossardsButton = Button(menuInitial, text="Gérer les dossards arrivés", width=30, command=gestionDossardsAction)
 gestionTempsButton.pack(side=LEFT)
 gestionDossardsButton.pack(side=LEFT)
 menuInitial.pack()
 
-ajouterTempsButton = Button(gestionTemps, text="Ajouter un temps", width=15, command=ajouterTempsAction)
-dupliquerTempsButton = Button(gestionTemps, text="Dupliquer le temps", width=15, command=dupliquerTempsAction)
-supprimerTempsButton = Button(gestionTemps, text="Supprimer le temps", width=15, command=supprimerTempsAction)
+ajouterTempsButton = Button(gestionTemps, text="Ajouter une heure d'arrivée", width=20, command=ajouterTempsAction)
+dupliquerTempsButton = Button(gestionTemps, text="Dupliquer l'heure d'arrivée", width=20, command=dupliquerTempsAction)
+supprimerTempsButton = Button(gestionTemps, text="Supprimer l'heure d'arrivée", width=20, command=supprimerTempsAction)
 AnnulerTempsButton = Button(gestionTemps, text="Retour", width=5, command=annulerTempsDossards)
 ajouterTempsButton.pack(side=LEFT)
 dupliquerTempsButton.pack(side=LEFT)
@@ -1990,8 +2098,10 @@ checkBoxBarAffichage.pack(side=TOP,  fill=X)
 ##    topDepart(listeCochee)
 
 def ActualiseAffichageTV():
+    global listeDeGroupementsEtChallenge
+    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
     listeCochee = []
-    #print(checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
+    #print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :
@@ -2012,7 +2122,7 @@ def OuvrirNavigateur():
 
 ZoneParametresTV = Frame(zoneAffichageTV)
 ZoneEntryPageWeb = Frame(ZoneParametresTV) # souhait de mettre les deux entry en gauche droite
-VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 3)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
+VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 6)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 VitesseDefilementFrame.pack(side=TOP,anchor="w")
 TempsPauseFrame.pack(side=TOP,anchor="w")
@@ -2027,7 +2137,7 @@ ouvrirBouton.pack(side=LEFT)
 boutonsFrameNavigateur.pack(side=LEFT)
 ZoneEntryPageWeb.pack(side=LEFT)#,anchor="w",fill=X)
 
-ZoneParametresTV.pack(side=TOP)
+
 
 
 
@@ -2048,9 +2158,15 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+def parametreEMailAuto():
+    print("Réglage de l'envoi automatique des diplômes au démarrage :", envoiAutoDesEMails.get())
+    Parametres["diplomeDiffusionAutomatique"] = envoiAutoDesEMails.get()
+    
+
 def activerDesactiverLEnregistrement():
     global time_counter, enregistrementVideo
     if time.time() - time_counter > 3 :
+        creerDir("videos")
         activerDesactiverLaVideo()
         time_counter = time.time()
     else :
@@ -2098,14 +2214,21 @@ defilementFrame = Frame(defilementEtHeureFrame)
 heureFrame = Frame(defilementEtHeureFrame)
 
 defilement = IntVar()
-defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement automatique',
+defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement auto',
     variable=defilement, command=parametreTableau)
 defilementAutoCB.pack(side=LEFT)
+
+# on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
+Parametres["diplomeDiffusionAutomatique"] = 0
+envoiAutoDesEMails = IntVar()
+envoiAutoDesEMailsCB  = Checkbutton(defilementFrame, text='Envoi auto diplômes',
+    variable=envoiAutoDesEMails, command=parametreEMailAuto)
+envoiAutoDesEMailsCB.pack(side=LEFT)
 
 time_counter = 0
 
 enregistrementVideo = IntVar()
-enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement mouvements',
+enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement webcam',
     variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
 enregistrementVideoCB.pack(side=LEFT)
 
@@ -2195,13 +2318,17 @@ def onClickE(err):
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 421 :
-        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",Coureurs[err.dossard-1].nom,Coureurs[err.dossard-1].prenom)
+        print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
+              Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
         if CategorieDAge ==2 :
-            saisieAbsDisp(Coureurs[err.dossard-1].etablissement)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
         elif CategorieDAge == 1 :
-            saisieAbsDisp(Coureurs[err.dossard-1].course)
+            if CoursesManuelles :
+                saisieAbsDisp(groupementAPartirDUneCategorie(Coureurs.recuperer(err.dossard).course).nom)
+            else :
+                saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
         else :
-            saisieAbsDisp(Coureurs[err.dossard-1].classe)
+            saisieAbsDisp(Coureurs.recuperer(err.dossard).classe)
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
@@ -2209,12 +2336,12 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-Pour retrouver rapidement les multiples passages, cliquer sur l'en-tête de colonne 'Dossard' afin de trier le tableau.\n\n\
-ATTENTION : lors de la suppression du dossard, seul le premier passage est supprimé.\n\
-Si le contraire est souhaité, noter après quel dossard le premier passage se situe, supprimer les deux en deux fois,\
- puis utiliser le bouton 'ajouter un dossard' pour remettre le passage n°1 en place.\n\
-La correction de ce cas rarissime n'a pas été implémentée simplement. De plus, un smartphone ne peut pas ajouter deux fois le même dossard.\n\
-Cela ne doit donc pas survenir !"
+Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en orange ou cliquer sur l'en-tête de colonne 'Dossard'\
+afin de trier le tableau.\n\n\
+Cela provient d'une manipulation volontaire de l'opérateur sur ordinateur (ajout manuel) ou d'un relai de smartphones.\n\
+En effet, un smartphone ne peut pas scanner un même dossard deux fois. Cela provoquerait une erreur.\n\
+Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
+la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
@@ -2238,9 +2365,10 @@ def actualiseAffichageErreurs(listErreursEnCours):
                 errBouton.pack(side=TOP)
                 #lblFrE.pack(side=TOP)
                 lblListE.append(errBouton)#[lblTemps,lblFrE]
-        #zoneAffichageErreurs.pack(side=TOP,fill=X)
-    #else :
-        #zoneAffichageErreurs.forget()
+        zoneAffichageErreurs.pack(side=TOP,fill=X)
+    else :
+        zoneAffichageErreurs.forget()
+    tableau.metsEnEvidenceErreurs(listErreursEnCours)
 
 
 
@@ -2248,9 +2376,10 @@ def actualiseAffichageErreurs(listErreursEnCours):
 ##print(Groupements[0].nom,Groupements[0].nomStandard)
 ##print(Courses["SE-G"].nomGroupement)
 
-#print("correctif Course.nomGroupements incorrects dans precedentes versions.\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
-for c in Courses :
-    Courses[c].initNomGroupement(Courses[c].categorie)
+#print("correctif Course.nomGroupements incorrects dans precedentes versions.\
+                #\nUtile uniquement pour des imports de vieilles sauvegardes (avant 08/2022)")
+##for c in Courses :
+##    Courses[c].initNomGroupement(Courses[c].categorie)
 
 
 listGroupementsCommences = []
@@ -2259,9 +2388,12 @@ lblDict={}
 fr = Frame(zoneAffichageDeparts)#, relief=GROOVE, bd=2)
 Label(fr, text="Les groupements dont les départs ont été donnés sont :").pack(side=TOP)
 
+zoneAffichageTV.pack(fill=X)
+
 def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
     '''on impose l'ordre d'affichage des frames à droite'''
     #global listGroupementsCommences
+    ZoneParametresTV.forget()
     zoneAffichageTV.forget()
     zoneAffichageErreurs.forget()
     zoneAffichageDeparts.forget()
@@ -2278,13 +2410,10 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
         #zoneTopDepart.pack(side=TOP,fill=X)
         fr.pack(side=TOP,fill=X)
         zoneAffichageDeparts.pack(side=TOP,fill=X)
-##    else :
-##        zoneAffichageDeparts.forget()
-##        #zoneTopDepart.forget()
-##        zoneTopDepartBienPlacee.forget()
-##        fr.forget()
-    # l'affichage TV paramétrable.
-    zoneAffichageTV.pack(fill=X)
+        # l'affichage TV paramétrable.
+    if listNomsGroupements() :
+        zoneAffichageTV.pack(fill=X)
+        ZoneParametresTV.pack(side=TOP, fill=X)
     # les erreurs en cours
     #print("erreurs en cours",erreursEnCours)
     if erreursEnCours :
@@ -2347,7 +2476,7 @@ Cela peut figer momentanément l'interface...")
             file = open(filePath, "a")
             tmp = sys.stdout # sauvegarde de la sortie standard.
             sys.stdout = file
-            BilanCreationModifErreur = recupImportNG(file_path)
+            BilanCreationModifErreur, d = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
             file.close()
             sys.stdout = tmp
@@ -2408,6 +2537,7 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
+    zoneCoureursAjoutModif.actualiseAffichage()
     #timer.reinitErreursATraiter()
 
 
@@ -2415,8 +2545,8 @@ def actualiseToutLAffichage() :
 
 
 def onClick(grpe):
-    #print(grpe)
-    groupement = groupementAPartirDeSonNom(grpe, nomStandard=False)
+    print("grpe",grpe)
+    groupement = groupementAPartirDeSonNom(grpe, nomStandard=True)
     print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
     inputDialog = departDialog(groupement ,root)
     root.wait_window(inputDialog.top)
@@ -2431,17 +2561,22 @@ def actualiseAffichageDeparts():
         lblDict[grp][2].destroy()
         #lblDict[grp][1].destroy()
     lblDict.clear()
-    listGroupementsCommences = listNomsGroupementsCommences()
-    if listGroupementsCommences : 
-        for grp in listGroupementsCommences :
+    listGroupementsCommences = listNomsGroupementsCommences(nomStandard=False)
+    listGroupementsCommencesNomsStandards = listNomsGroupementsCommences(nomStandard=True)
+    if listGroupementsCommences :
+        i = 0
+        while i < len(listGroupementsCommences):# for grp in listGroupementsCommences :
+            grp = listGroupementsCommencesNomsStandards[i]
+            grpNomAffiche = listGroupementsCommences[i]
             lblFr = Frame(fr)
-            lblLegende = Label(lblFr, text= grp + " : ")
-            #print("bouton avec commande : onClick(",grp,")")
+            lblLegende = Label(lblFr, text= grpNomAffiche + " : ")
+            #print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
             lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
             lblLegende.pack(side=LEFT)
             lblTemps.pack(side=LEFT)
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
+            i += 1
     else :
         zoneAffichageDeparts.forget()
     if not tagActualiseTemps :
@@ -2455,9 +2590,10 @@ def actualiseTempsAffichageDeparts():
     global listGroupementsCommences, lblDict, tagActualiseTemps
     tagActualiseTemps = True
     for grp in lblDict.keys() :
-        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=False).listeDesCourses[0]
-        #print("-"+nomCourse+"-", "est dans ?", Courses)
-        addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=True).listeDesCourses[0]
+        ##print("-"+nomCourse+"-", "est dans ?", Courses)
+        ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
+        ### addCourse(nomCourse)
         #print(listCoursesEtChallenges())
         tps = Courses[nomCourse].dureeFormatee()
         #print("course",nomCourse,tps)
@@ -2466,10 +2602,11 @@ def actualiseTempsAffichageDeparts():
         
 def annulUnDepart(nomGroupement) :
     global annulDepart
-    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=False)
+    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=True)
     for course in groupement.listeDesCourses :
         Courses[course].reset()
     annulDepart.delete(groupement.nom)
+    rejouerToutesLesActionsMemorisees()
     actualiseToutLAffichage()
     
 
@@ -2482,19 +2619,86 @@ def construireMenuAnnulDepart():
         True
         #print("pas de menu à effacer")
     annulDepart = Menu(editmenu, tearoff=0)
-    L = listNomsGroupementsCommences()
+    L = listNomsGroupementsCommences(nomStandard=False)
     if L :
-        for course in L :
-            #print("ajout du menu ", course)
+        Lstandard = listNomsGroupementsCommences(nomStandard=True)
+        i = 0
+        while i < len(L) :
+            course = Lstandard[i]
+            courseAffichee = L[i]
+        #for course in L :
             #annulDepart.add_command(label=course, command=partial(annulDepart,"3-F"))
-            annulDepart.add_command(label=course, command=lambda c=course : annulUnDepart(c))
+            annulDepart.add_command(label=courseAffichee, command=lambda c=course : annulUnDepart(c))
+            i += 1
         editmenu.add_cascade(label="Annuler un départ", menu=annulDepart)
         zoneTopDepart.menuActualise()
     # quand on annule un départ, il faut actualiser affichagedepart
     actualiseAffichageDeparts()
     #actualiseAffichageZoneDeDroite(timer.erreursEnCours)
-    
 
+### fonctions d'envoi des diplomes
+tagEnvoiDiplomeEnCours = False
+
+def envoiDiplomesMessageFinal():
+    global tagEnvoiDiplomeEnCours
+    # print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
+    envoiDiplomePourTousLesCoureurs()
+    tagEnvoiDiplomeEnCours = False
+    showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
+    
+def envoiDiplomesSansMessageFinal():
+    global tagEnvoiDiplomeEnCours
+    envoiDiplomePourTousLesCoureurs()
+    tagEnvoiDiplomeEnCours = False
+
+def envoiDiplomes(avecQuestion = True):
+    global tagEnvoiDiplomeEnCours
+    if not tagEnvoiDiplomeEnCours :
+        if avecQuestion :
+            reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
+Un message de fin de diffusion apparaîtra quand cette opération sera terminée.")
+            if reponse :
+                print("Début d'envoi de diplômes manuellement demandé via le menu...")
+                tagEnvoiDiplomeEnCours = True
+                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
+                mon_thread_Diplomes.start()
+        else :
+            if diplomeDiffusionAutomatique :
+                tagEnvoiDiplomeEnCours = True
+                #print("Début d'envoi de diplômes automatisé...")
+                mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+                mon_thread_Diplomes.start()
+                # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+##    else :
+##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
+
+
+def corrigerLesCasesCocheesPourLAffichageTV() :
+    """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
+    coursesRecemmentCourues = set([])
+    i = len(ArriveeDossards) - 1
+    continuer = True
+    while i >= 0 and continuer :
+        doss = ArriveeDossards[i]
+        tps = ArriveeTemps[i]
+        #print("on calcule", time.time(),"-", tps.tempsReel ,"=",time.time() - tps.tempsReel)
+        if time.time() - tps.tempsReel < 300 :
+            #print("Le dossard", doss,"a passé la ligne il y a moins de 300 s")
+            coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
+        else :
+            continuer = False
+        i -= 1
+    listeDeCoursesEtChallengeAvecNomsNonStandards = listNomsGroupementsEtChallenges() 
+    listeDeBooleen = [False]*len(listeDeCoursesEtChallengeAvecNomsNonStandards)
+    for course in coursesRecemmentCourues :
+        #print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
+        try :
+            i = listeDeCoursesEtChallengeAvecNomsNonStandards.index(groupementAPartirDeSonNom(course).nom)
+            listeDeBooleen[i] = True
+        except :
+            print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
+    ## on demande à l'objet d'appliquer les modifications calculées
+    checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
 # timer 
 class Clock():
@@ -2537,9 +2741,9 @@ class Clock():
         traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
-
         listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
-        #if self.actualiserAffichageDeDroite(True)
+
+        #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
 ##            if err.numero : 
 ##                print("retour en erreur n°", err.numero, ":", err.description)
@@ -2555,11 +2759,6 @@ class Clock():
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
 
-        # on actualise l'affichageTV à chaque nouvel import.
-        #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
-        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
-            ActualiseAffichageTV()
-            checkBoxBarAffichage.change(valeur=False)
 
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -2574,6 +2773,11 @@ class Clock():
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.compteurSauvegarde = 1
+
+        ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
+        if Parametres["diplomeDiffusionAutomatique"] :
+            # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+            envoiDiplomes(avecQuestion = False)
         self.compteurSauvegarde += 1
         # fin sauvegarde des données
 
@@ -2625,7 +2829,7 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 401, 441, 451]:
+            if not erreur.numero in [0, 311, 312, 321, 401, 411, 441, 451]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
@@ -2645,7 +2849,7 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
-        #print("Numéros d'erreurs",self.erreursEnCoursNumeros)
+        #print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours)
 
@@ -2656,10 +2860,172 @@ class Clock():
             actualiseAffichageZoneDeDroite(self.erreursEnCours)
             self.affichageDeDroiteAActualiser = False
             self.dejaDesErreurs = bool(self.erreursEnCours)
+
+
+# pour compatibilité ascendante avec les anciennes sauvegardes
+# ajout d'une méthode pour dénombrer les effectifs pour les diplomes
+try :
+    Coureurs.nombreDeCoureursParSexe
+except : 
+    Coureurs.initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
+
+print("initEffectifs lancé, on arrive dans clock init")
+
         
 timer=Clock(root, "tableau.maj")
 
 rejouerToutesLesActionsMemorisees()
+
+
+##def regenereAffichageGUI() :
+##    rejouerToutesLesActionsMemorisees()
+####    Parametres["calculateAll"] = True
+####    traiterDonneesLocales()
+####    genereResultatsCoursesEtClasses(True)
+####    #print(tableauGUI)
+####    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
+####    tableau.maj(tableauGUI)
+##
+##
+##
+##def importSIECLEAction() :
+##    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
+##    if file_path :
+##        nomFichier = os.path.basename(file_path)
+##        #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
+##        #print(file_path)
+##        reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir compléter les données sur les coureurs actuels avec celles-ci?\n\
+##Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
+##Cela peut figer momentanément l'interface...")
+##        if reponse :
+##            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+##            # redirection temporaire pour les messages liés à l'import
+##            filePath = LOGDIR + os.sep + "dernierImport.txt"
+##            if os.path.exists(filePath) :
+##                os.remove(filePath)
+##            if not DEBUG :
+##                file = open(filePath, "a")
+##                tmp = sys.stdout # sauvegarde de la sortie standard.
+##                sys.stdout = file
+##            #retourImport,
+##            BilanCreationModifErreur, d = recupImportNG(file_path)
+##            #print("Affichage des Coureurs juste après l'importation")
+##            #Coureurs.afficher()
+##            # fin de la redirection des logs temporaire
+##            if not DEBUG :
+##                file.close()
+##                sys.stdout = tmp
+####            mon_threadter = Thread(target=recupCSVSIECLE, args=(file_path))
+####            mon_threadter.start()
+####            #reponse = showinfo("DEBUT DE L'IMPORT SIECLE","L'import SIECLE à partir du fichier "+nomFichier+ " va se poursuivre en arrière plan...")
+####            mon_threadter.join()
+##            ### bilan des données importées
+##            if not BilanCreationModifErreur[0] and not BilanCreationModifErreur[1] and not BilanCreationModifErreur[2] : # les trois sont nuls. Même fichier.
+##                reponse = showinfo("PAS D'IMPORT DE DONNEES","Le fichier "+nomFichier +" ne semble contenir aucun changement par rapport \
+##au(x) précédent(s) import(s).")
+##            else :
+##                chaineBilan = ""
+##                if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] : # s'il y a au moins une donnée correctement importée.
+##                    chaineBilan += "\nBilan :\n"
+##                    if BilanCreationModifErreur[0] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[0]) + " coureurs importés.\n"
+##                    if BilanCreationModifErreur[1] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[1]) + " coureurs actualisés.\n"
+##                    if BilanCreationModifErreur[2] :
+##                        chaineBilan += "- " + str(BilanCreationModifErreur[2]) + " erreurs d'import.\n"
+##                    chaineBilan += "\n"
+##                else :
+##                    retourImport = False # Que des erreurs dans le fichier, le signaler.
+##                if retourImport :
+##                    actualiseToutLAffichage()
+##                    reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
+##    chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
+##    Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
+##                else :
+##                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+##    chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
+##    Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
+##    D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
+##    et le nom de 'établissement' et sa nature 'établissementType' qui doit être 'CLG', 'LGT' ou 'LP'\n\
+##    Les champs facultatifs autorisés sont 'Absent', 'Dispensé' (autre que vide pour signaler un absent ou dispensé), \
+##    'CommentaireArrivée' (pour un commentaire audio personnalisé sur la ligne d'arrivée) \
+##    et 'VMA' (pour la VMA en km/h). \
+##    L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
+##                #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
+##                if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
+##                    os.startfile(filePath)
+##            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
+##            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+                
+
+def actualiseToutLAffichage() :
+    print("Actualise tout l'affichage")
+    actualiseAffichageZoneDeDroite()
+    zoneTopDepart.actualise()
+    actualiseAffichageDeparts()  
+    actualiserDistanceDesCourses()
+    #listeDeCourses = listCourses() # encore utile ?
+    actualiseZoneAffichageTV()
+    absDispZone.actualiseListeDesClasses()
+    dossardsZone.actualiseListeDesClasses()
+    actualiseEtatBoutonsRadioConfig()
+    #timer.reinitErreursATraiter()
+
+
+#### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
+
+
+##def onClick(grpe):
+##    #print(grpe)
+##    groupement = groupementAPartirDeSonNom(grpe, nomStandard=True)
+##    print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
+##    inputDialog = departDialog(groupement ,root)
+##    root.wait_window(inputDialog.top)
+##    #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
+    
+##
+##tagActualiseTemps = False
+
+##def actualiseAffichageDeparts():
+##    global listGroupementsCommences, lblDict, tagActualiseTemps
+##    for grp in lblDict.keys() :
+##        lblDict[grp][2].destroy()
+##        #lblDict[grp][1].destroy()
+##    lblDict.clear()
+##    listGroupementsCommences = listNomsGroupementsCommences()
+##    #print("coucou",listGroupementsCommences)
+##    if listGroupementsCommences : 
+##        for grp in listGroupementsCommences :
+##            lblFr = Frame(fr)
+##            lblLegende = Label(lblFr, text= grp + " : ")
+##            #print("bouton avec commande : onClick(",grp,")")
+##            lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
+##            lblLegende.pack(side=LEFT)
+##            lblTemps.pack(side=LEFT)
+##            lblFr.pack(side=TOP)
+##            lblDict[grp] = [lblLegende,lblTemps,lblFr]
+##    if not tagActualiseTemps :
+##        actualiseTempsAffichageDeparts()
+##        #zoneAffichageDeparts.pack(side=TOP,fill=X)
+##        #fr.pack(side=TOP,fill=X)
+##    #else :
+##        #zoneAffichageDeparts.forget()
+##        #fr.forget()
+
+##def actualiseTempsAffichageDeparts():
+##    global listGroupementsCommences, lblDict, tagActualiseTemps
+##    # tagActualiseTemps = True
+##    for grp in lblDict.keys() :
+##        #print("Recherche du groupement", grp)
+##        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=True).listeDesCourses[0]
+##        #print("-"+nomCourse+"-", "est dans ?", Courses)
+##        # SUPPRIME : s'il y a une erreur, la corriger et non pallier le problème !!! addCourse(nomCourse) # pour assurer l'existence de la course et donc l'existence de la clé nomCourse.
+##        #print(listCoursesEtChallenges())
+##        tps = Courses[nomCourse].dureeFormatee()
+##        #print("course",nomCourse,tps)
+##        lblDict[grp][1].configure(text=tps)
+##    zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
+        
 
 #### FIN DE LA zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
 
@@ -2708,24 +3074,28 @@ def effaceDonneesGUI ():
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
 
 
-def generateDossardsArrierePlan():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
-    if reponse :
-        mon_thread = Thread(target=generateDossardsMessage)
-        mon_thread.start()
+##def generateDossardsArrierePlan():
+##    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue \
+##        (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+##Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
+##    if reponse :
+##        mon_thread = Thread(target=generateDossardsMessage)
+##        mon_thread.start()
 
 def generateDossardsArrierePlanNG():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des dossards est une opération très longue. Vous devez attendre un message de fin de compilation...")
+    reponse = askokcancel("OPERATION LONGUE", "La première génération de dossards est une opération qui peut être très longue \
+(en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
+Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
         mon_thread = Thread(target=generateDossardsMessageNG)
         mon_thread.start()
 
-def generateDossardsMessage() :
-    generateDossards()
-    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier 'dossards' qui s'est ouvert dans l'explorateur (windows).")
-    path = os.getcwd()
-    #print('explorer /select,"' + path + os.sep +  'dossards"')
-    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
+##def generateDossardsMessage() :
+##    generateDossards()
+##    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier 'dossards' qui s'est ouvert dans l'explorateur (windows).")
+##    path = os.getcwd()
+##    #print('explorer /select,"' + path + os.sep +  'dossards"')
+##    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
 
 def generateDossardsMessageNG() :
     generateDossardsNG()
@@ -2784,6 +3154,7 @@ def saisieDossards() :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -2796,6 +3167,7 @@ def saisieAbsDisp(classeOuCategorie="") :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -2813,6 +3185,7 @@ def ajoutManuelCoureur():
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -2825,6 +3198,7 @@ def modifManuelleCoureur(dossard=0):
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -2839,6 +3213,7 @@ def tempsDesCoureurs():
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
@@ -2857,9 +3232,21 @@ def distanceDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
-
+def parametrerDossardsDiplomes():
+    GaucheFrame.forget()
+    DroiteFrame.forget()
+    GaucheFrameAbsDisp.forget()
+    GaucheFrameCoureur.forget()
+    GaucheFrameDossards.forget()
+    GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresCourses.forget()
+##    affectationGroupementsFrame.forget()
+##    affectationDesDistancesFrame.forget()
+    GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
+    
 
 
 def parametresDesCourses():
@@ -2869,6 +3256,7 @@ def parametresDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     actualiseEtatBoutonsRadioConfig()
@@ -2878,15 +3266,19 @@ def parametresDesCourses():
 def actualiseEtatBoutonsRadioConfig():
     # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
     svRadio.set(str(Parametres["CategorieDAge"]))
-    if len(Coureurs) :
+    if Coureurs.nombreDeCoureurs :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
         rb3.configure(state='disabled')
+        rbCM1.configure(state='disabled')
+        rbCM2.configure(state='disabled')
         rbLbl.pack(side=TOP,anchor="w")
     else :
         rb1.configure(state='normal')
         rb2.configure(state='normal')
         rb3.configure(state='normal')
+        rbCM1.configure(state='normal')
+        rbCM2.configure(state='normal')
         rbLbl.forget()
 
 GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
@@ -2907,13 +3299,45 @@ def updateZoneGroupements():
         pass
     GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
     affectationGroupementsFrame.pack(side=LEFT,fill=X)
-    GroupementsFrame.pack(side=TOP)
+    if not Parametres["CoursesManuelles"] :
+        GroupementsFrame.pack(side=TOP)
 
 
 lblInfoDistance = Label(affectationDesDistancesFrame)
 lblInfoDistance.pack()
 
 listeDesEntryGroupements = []
+
+def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
+    global Courses, Groupements
+    print("actualisation des Courses manuelles",Courses)
+    if len(Courses.keys()) == 0 :
+        addCourse("A")
+    # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
+    if event == None : # on vient de nettoyer les courses vides, on impose le nouveau nombre
+        nbreCoursesDesire.configure(values=tuple(range(len(Courses.keys()),21)))
+        nbreCoursesDesire.set(len(Courses.keys()))
+    nbreDeCoursesDesire = int(nbreCoursesDesire.get())
+    nbreCoursesDesire.configure(values=tuple(range(nbreDeCoursesDesire,21)))
+    nbreDeCoursesActuel = len(Courses.keys())
+    if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
+        # il manque des courses
+        for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
+            addCourse(chr(64+i))
+    ### on ne permet pas de supprimer une course violemment pour éviter d'avoir des coureurs dont la course n'existe plus.
+    ### création à venir d'un bouton pour supprimer les courses sans coureur automatiquement.
+##    elif nbreDeCoursesDesire <  nbreDeCoursesActuel :
+##        ### comment choisir les courses à supprimer ? Pour l'instant, ce sera fait au hasard.
+##        nbreASupprimer = nbreDeCoursesActuel - nbreDeCoursesDesire
+##        i = 0
+##        for cat in Courses.copy() :
+##            i += 1
+##            if nbreDeCoursesDesire < i :
+##                # on efface la course et le groupement correspondant.
+##                delCourse(cat)
+##                supprimeCourseDuGroupementEtNettoieGroupements(cat)
+    # on actualise l'affichage par rapport à cela comme cela se fait dans les autres modes.
+    actualiserDistanceDesCourses()
 
 def actualiserDistanceDesCourses():
     updateZoneGroupements()
@@ -2923,13 +3347,24 @@ def actualiserDistanceDesCourses():
     for x in listeDesEntryGroupements :
         x.destroy()
     listeDesEntryGroupements.clear()
-    #print(Courses)
+    #print("Courses",Courses)
+    #print("GRoupements", Groupements)
     if Groupements :
-        lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
-        boutonRecopie.pack(side=TOP)
+        if Parametres["CoursesManuelles"] :
+            lblNbreCoursesDesire.pack(side=TOP)
+            nbreCoursesDesire.pack(side=TOP)
+            lblInfoDistance.configure(text="")
+        else :
+            lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
+        boutonsParametresGroupementsFrame.pack(side=TOP)
+        if CoursesManuelles :
+            boutonNettoyage.pack(side=LEFT)
+        boutonRecopie.pack(side=LEFT)
     else:
         lblInfoDistance.configure(text="")
-        boutonRecopie.forget()
+        boutonsParametresGroupementsFrame.forget()
+        lblNbreCoursesDesire.forget()
+        nbreCoursesDesire.forget()
     for groupement in Groupements :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
@@ -2950,16 +3385,33 @@ def actionBoutonRecopie() :
             zoneTexte.set(valeur)
  
             
+# utilisé uniquement si CoursesManuelles est True. Dans le cas contraire, pas de pack()
+lblNbreCoursesDesire = Label(affectationDesDistancesFrame, text="Combien souhaitez vous gérer de courses au total ?")
+nbreCoursesDesire = Combobox(affectationDesDistancesFrame, width=5, values=tuple(range(1,21)), state='readonly')
+if len(Courses.keys()) == 0 :
+    nbreCoursesDesire.set(1)
+else :
+    nbreCoursesDesire.set(len(Courses.keys()))
+nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
 
+def nettoieCourseManuellesAction() :
+    global Courses, Groupements
+    Courses, Groupements = nettoieCoursesManuelles()
+    actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
-boutonRecopie = Button(affectationDesDistancesFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
-#boutonRecopie.pack(side=TOP)
+boutonsParametresGroupementsFrame = Frame(affectationDesDistancesFrame)
+boutonNettoyage = Button(boutonsParametresGroupementsFrame, text="Nettoyer les courses vides", command=nettoieCourseManuellesAction)
+boutonRecopie = Button(boutonsParametresGroupementsFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 
 
 def affecterDistances() :
     distanceDesCourses()
     #print("Affectation des distances à chaque course")
-    actualiserDistanceDesCourses()
+    if Parametres["CoursesManuelles"] :
+        actualiserDistanceDesCoursesAvecCoursesManuelles(None)
+    else :
+        actualiserDistanceDesCourses()
 
 def affecterParametres() :
     parametresDesCourses()
@@ -2989,8 +3441,8 @@ def imprimerDossardsNonImprimes() :
             if reponse :
                 print(listeDesDossardsGeneres)
                 for n in listeDesDossardsGeneres :
-                    print("le coureur",Coureurs[n-1].nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                    Coureurs[n-1].setAImprimer(False)
+                    print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+                    Coureurs.recuperer(n).setAImprimer(False)
         else :
             print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
     else :
@@ -3049,10 +3501,11 @@ resetmenu.add_command(label="Quitter", command=root.quit)
 menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
-filemenu.add_command(label="Paramètres du cross", command=affecterParametres)
+filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
 filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
-filemenu.add_command(label="Générer tous les dossards", command=generateDossardsArrierePlanNG)
+filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
+filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
@@ -3069,7 +3522,7 @@ filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDi
 #filemenu.add_command(label="Liste Coureurs", command=hello)
 #filemenu.add_command(label="Affecter Distance aux courses", command=setDistances)
 #filemenu.add_command(label="Listing des Données dans le terminal (amené à disparaître)", command=listerDonneesTerminal)
-menubar.add_cascade(label="Préparation course", menu=filemenu)
+menubar.add_cascade(label="Préparation courses", menu=filemenu)
 
 ##affichage.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
 ##affichage.add_command(label="Ajout d'un coureur", command=ajoutManuelCoureur)
@@ -3100,8 +3553,22 @@ class CoureurFrame(Frame) :
         self.lblClasse = Label(self.parent)
         self.classeE = Entry(self.parent)
         self.classeE.bind("<KeyRelease>", self.reactiverBoutons)
-        self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        if Parametres["CoursesManuelles"] :
+            self.lblCat = Label(self.parent, text="Course", fg='black')
+        else :
+            self.lblCat = Label(self.parent, text="Catégorie inconnue", fg='red')
+        self.comboBoxCategorie = Combobox(self.parent, width=20, justify="center", state='readonly') #Entry(self.parent)
+        self.comboBoxCategorie.bind("<<ComboboxSelected>>", self.reactiverBoutons)
+        L = listNomGroupements()
+        self.comboBoxCategorie['values'] = L
+        try :
+            self.comboBoxCategorie.set(L[0])
+        except :
+            True # pas encore de catégorie créée.
         self.vma = 0
+        self.lblemail = Label(self.parent, text="e-mail (facultatif) :")
+        self.emailE = Entry(self.parent)
+        self.emailE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
         self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
@@ -3124,6 +3591,7 @@ class CoureurFrame(Frame) :
         self.coureurBoksuivant = Button(self.boutonsFrame, command=self.okButtonCoureurPuisSaisie)
         self.coureurBannul = Button(self.boutonsFrame, text="Annuler", command=self.annulAction)
         self.coureurBimprimer = Button(self.boutonsFrame, text="Imprimer les dossards non imprimés", command=self.imprimerNonImprimes)
+        self.coureurBeffacer = Button(self.boutonsFrame, text="Effacer le coureur sélectionné", command=self.effacerCoureur)
         #self.coureurBok = Button(self.boutonsFrame, text="OK", command=self.okButtonCoureur)
         self.actualiseAffichage()
 
@@ -3145,6 +3613,9 @@ class CoureurFrame(Frame) :
         self.lblClasse.forget()
         self.classeE.forget()
         self.lblCat.forget()
+        self.comboBoxCategorie.forget()
+        self.lblemail.forget()
+        self.emailE.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3153,6 +3624,7 @@ class CoureurFrame(Frame) :
         self.etabC.forget()
         self.lblEtabNature.forget()
         self.etabNatureC.forget()
+        self.coureurBeffacer.forget()
         self.coureurBannul.forget()
         self.coureurBoksuivant.forget()
         self.coureurBimprimer.forget()
@@ -3161,9 +3633,13 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeC.get()
-        nature = self.etabNatureC.get()
+        if CoursesManuelles :
+            nature = self.comboBoxCategorie.get()
+        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            ### A tester...
+            nature = self.etabNatureC.get()
         #print("nature",nature)
-        if s ==  "G" or s == "F" and nature :
+        if (s ==  "G" or s == "F") and nature :
             if Parametres["CategorieDAge"] :
                 anneeNaissance = self.classeE.get()[6:]
                 if len(anneeNaissance) == 4 :
@@ -3183,35 +3659,43 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         self.activerBoutons(None)
     
+
     def reinitialiserChamps(self):
         # ménage
         self.nomE.delete(0, END)
         self.prenomE.delete(0, END)
         self.classeE.delete(0, END)
         #self.sexeE.delete(0, END)
+        self.emailE.delete(0,END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
         self.etabC['values'] = tupleEtablissement()
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
-            doss = int(self.choixDossardCombo.get())
-            coureur = Coureurs[doss-1]
-            #print(coureur.nom, "établissement",coureur.etablissement)
-            self.nomE.insert(0, coureur.nom)
-            self.prenomE.insert(0, coureur.prenom)
-            if Parametres['CategorieDAge'] :
-                self.classeE.insert(0, coureur.naissance)
-            else :
-                self.classeE.insert(0, coureur.classe)
-            self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
-            self.sexeC.set(coureur.sexe)
-            #self.sexeE.insert(0, coureur.sexe)
-            self.vmaE.insert(0, coureur.VMA)
-            self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
-            self.etabC.set(coureur.etablissement)
-            self.etabNatureC.set(coureur.etablissementNature)
+            doss = str(self.choixDossardCombo.get())
+            print("dossard:",doss)
+            if doss : # la combobox n'est pas vide 
+                coureur = Coureurs.recuperer(doss)
+                self.nomE.insert(0, coureur.nom)
+                self.prenomE.insert(0, coureur.prenom)
+                if Parametres['CategorieDAge'] :
+                    self.classeE.insert(0, coureur.naissance)
+                else :
+                    self.classeE.insert(0, coureur.classe)
+                self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
+                self.sexeC.set(coureur.sexe)
+                #self.sexeE.insert(0, coureur.sexe)
+                self.emailE.insert(0, coureur.email)
+                self.vmaE.insert(0, coureur.VMA)
+                self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
+                self.etabC.set(coureur.etablissement)
+                self.etabNatureC.set(coureur.etablissementNature)
+                if CoursesManuelles :
+                    self.comboBoxCategorie.config(values=listNomGroupements())
+                    self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
         self.modif = False
+
 
     def packChampsModificationCoureur(self) :
         #### on place les champs sans modif ultérieure.
@@ -3235,6 +3719,12 @@ class CoureurFrame(Frame) :
             self.lblEtabNature.pack()
             self.etabNatureC.pack()
         self.lblCat.pack()
+        if Parametres["CoursesManuelles"] :
+            self.comboBoxCategorie.pack()
+        else :
+            self.comboBoxCategorie.forget()
+        self.lblemail.pack()
+        self.emailE.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3243,11 +3733,16 @@ class CoureurFrame(Frame) :
         self.reinitialiserChamps()
         ### on active ou non les boutons en bas en fonction du cas.
         self.activerBoutons(None)
-        
-        
+
+            
+            
     def actualiseAffichage(self) :
         ### on desactive tout
         self.cacherLesChamps()
+        ### on active ou non la combobox
+        if not self.ajoutCoureur :
+            self.choixDossardCombo.pack()
+            #self.choixDossardCombo.current(0)
         ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
         self.lblCommentaireInfoAddCoureur.pack(side=TOP)
         self.etabC['values'] = tupleEtablissement()
@@ -3268,19 +3763,20 @@ class CoureurFrame(Frame) :
                 self.lblCommentaireInfoAddCoureur.configure(text=\
                                          "Saisir toutes les informations utiles sur le coureur que vous souhaitez ajouter.")
                 self.coureurBoksuivant.configure(text="OK puis nouvelle saisie")
-            else : # il y a au moins un coureur dans la base à modifier
-                self.choixDossardCombo.pack()
+            else :
                 # cas où on modifie un coureur existant
                 self.lblCommentaireInfoAddCoureur.configure(text=\
-                                         "Modifier les caractistiques du coureur correspondant en sélectionnant son numéro de dossard.")
+                                         "Modifier les caractéristiques du coureur correspondant en sélectionnant son numéro de dossard.")
                 self.coureurBoksuivant.configure(text="Valider")
                 # afficher le menu déroulant ici.
-                self.tupleDesDossards = tuple(range(1,len(Coureurs)+1))
+                L = []
+                for c in Coureurs.liste() :
+                    L.append(c.getDossard())
+                self.tupleDesDossards = tuple(L)
                 self.choixDossardCombo['values']=self.tupleDesDossards
                 if self.tupleDesDossards :
                     self.choixDossardCombo.current(0)
             self.packChampsModificationCoureur()
-
         
     def actualiseBoutonImpression(self) :
         if self.ajoutCoureur :
@@ -3297,11 +3793,21 @@ class CoureurFrame(Frame) :
         return CategorieDAge != 2 or (len(self.etabC.get())>= 1 and len(self.etabNatureC.get())>= 1)
     
     def activerBoutons(self,event) :
-        """ méthode chargée d'actualiser l'état des boutons en bas du formulaire"""
+        """ méthode chargée d'actualiser l'état des boutons en bas du formulaire, d'afficher la validité de la catégorie ou de l'email saisi"""
+        emailSaisi = self.emailE.get()
+        if emailEstValide(emailSaisi) :
+            self.emailE.configure(fg='black')
+        else :
+            self.emailE.configure(fg='red')
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
+        #print("resultat" , resultat)
         # on affiche la catégorie en fonction des contenus.
         if resultat :
+            if Parametres["CoursesManuelles"] :
+                self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : " + resultat, fg='black')
             self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
@@ -3313,6 +3819,7 @@ class CoureurFrame(Frame) :
                     self.coureurBannul.forget()
                     self.coureurBoksuivant.forget()
             else :
+                self.coureurBeffacer.pack(side=LEFT)
                 if self.modif and self.etablissementEstValide() :
                     self.coureurBannul.pack(side=LEFT)
                     self.coureurBoksuivant.pack(side=LEFT)
@@ -3320,7 +3827,10 @@ class CoureurFrame(Frame) :
                     self.coureurBannul.forget()
                     self.coureurBoksuivant.forget()
         else :
-            self.lblCat.configure(text="Catégorie : inconnue")
+            if Parametres["CoursesManuelles"] :
+                self.lblCat.configure(text="Course :", fg='black')
+            else :
+                self.lblCat.configure(text="Catégorie : inconnue", fg='red')
             self.actualiseBoutonImpression()
             self.coureurBannul.forget()
             self.coureurBoksuivant.forget()
@@ -3328,31 +3838,56 @@ class CoureurFrame(Frame) :
 
     def imprimerNonImprimes(self) :
         imprimerDossardsNonImprimes()
+
+    def effacerCoureur(self) :
+        doss = self.choixDossardCombo.get()
+        c = Coureurs.recuperer(doss)
+        message = "Voulez vraiment supprimer le coureur " + c.nom + " " + c.prenom + " portant le dossard " + doss + "?"
+        reponse = askyesno(title="SUPPRESSION D'UN COUREUR", message = message)
+        if reponse :
+            Coureurs.effacer(doss)
+            self.actualiseAffichage()
         
     def okButtonCoureurPuisSaisie(self) :
         try :
             self.vma = float(self.vmaE.get())
         except :
             self.vma = 0
+        if CoursesManuelles :
+            #nomAffiche = self.comboBoxCategorie.get()
+            c = self.comboBoxCategorie.get() # groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
+        else :
+            c = ""
+        #print("c",c)
         if self.ajoutCoureur :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
-                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get())
+                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get())
+                if retourInutile[1] :
+                    message ="Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " EXISTE DEJA.\nIl a été actualisé et porte le dossard " + doss + " (course " +c + ")." 
+                else :
+                    message = "Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " portera le dossard " + doss + " (course " +c + ")." 
+                reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get())
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
-            doss = int(self.choixDossardCombo.get())
-            if Parametres['CategorieDAge'] :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+            doss = self.choixDossardCombo.get()
+            if CoursesManuelles : # cas des courses manuelles
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+            elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
             else :
-                modifyCoureur(doss, self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
-                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True)
+                addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
+                              commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss,\
+                           email=self.emailE.get())
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.etabC['values'] = tupleEtablissement()
@@ -3418,7 +3953,7 @@ zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 # zone saisie des distances des courses et paramètres
 
 def choixCC():		# Fonction associée à Catégories par Classes
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=0
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
@@ -3426,7 +3961,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     packAutresWidgets()
     
 def choixCA():		# Fonction associée à catégories par Age
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=1
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
@@ -3434,7 +3969,7 @@ def choixCA():		# Fonction associée à catégories par Age
     packAutresWidgets()
 
 def choixUNSS():		# Fonction associée à catégories par Age
-    #print('Case à cocher : ',str(svRadio.get()))
+    print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=2
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
@@ -3442,6 +3977,17 @@ def choixUNSS():		# Fonction associée à catégories par Age
     packAutresWidgets()
 
 def packAutresWidgets():
+    if Parametres["CategorieDAge"] == 1 :
+        CoursesManuellesFrame.pack(side=TOP,anchor="w")       
+    #if CoursesManuelles :
+        #cbCMgenerer.set(1)
+        #CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
+        #cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
+        #choixCMQRCodes()
+    cbListingsFrame.pack(side=TOP,anchor="w")
+    cbListingsLbl.pack(side=LEFT,anchor="w")
+    cbCMgenererListing.pack(side=LEFT,anchor="w")
+    cbCMgenererListingQRCodes.pack(side=LEFT,anchor="w")
     MessageParDefautFrameL.pack(side=TOP,anchor="w")
     MessageParDefautFrame.pack(side=LEFT,anchor="w")
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
@@ -3452,27 +3998,38 @@ def packAutresWidgets():
     webcamComboFVide.pack(side=LEFT)
     webcamScale.pack(side=LEFT)
     webcamF.pack(side=TOP,anchor="w")
-    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
-    ModeleDeDossardsLbl.pack(side=LEFT)
-    ModeleDeDossardsCombo.pack(side=LEFT)
-    ModeleDeDossardsCanvas.pack(side=TOP)
     setParametres()
     
 def forgetAutresWidgets():
+    cbListingsFrame.forget()
+    CoursesManuellesFrame.forget()
+    #CoursesManuellesFrameChoixSupplementaires.forget()
+    cbCMgenererListing.forget()
+    cbCMgenererListingQRCodes.forget()
     MessageParDefautFrameL.pack_forget()
     MessageParDefautFrame.pack_forget()
     SauvegardeUSBFrameL.pack_forget()
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
-    ModeleDeDossardsFrame.pack_forget()
+    #ModeleDeDossardsFrame.pack_forget()
     webcamF.pack_forget()
+
+def packMenuParametresDossardsDiplomes() :
+    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
+    ModeleDeDossardsLbl.pack(side=LEFT)
+    ModeleDeDossardsCombo.pack(side=LEFT)
+    ModeleDeDossardsCanvas.pack(side=TOP)
+    ModeleDeDiplomeFrame.pack(side=TOP,anchor="w")
+    ModeleDeDiplomeLbl.pack(side=LEFT)
+    ModeleDeDiplomeCombo.pack(side=LEFT)
+    ModeleDeDiplomeCanvas.pack(side=TOP)
 
 
 titresCourseF = Frame(GaucheFrameParametresCourses)
 #IntituleFrameL = Frame(GaucheFrameParametresCourses)
 IntituleEntry = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=titresCourseF)
 #LieuFrameL = Frame(GaucheFrameParametresCourses)
-LieuEntry = EntryParam("lieu", "Lieu", largeur=15, parent=titresCourseF)
+LieuEntry = EntryParam("lieu", "Lieu", largeur=30, parent=titresCourseF)
 
 ### compatibilité ascendante (pour les anciennes sauvegarde où ce paramètre était un boolean.
 if isinstance(Parametres["CategorieDAge"],bool) :
@@ -3494,6 +4051,76 @@ rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitiali
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
+
+
+def choixCNM():		# Fonction associée à catégorie non manuelle
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CoursesManuelles"]=False
+
+    
+def choixCM():		# Fonction associée à catégories entièrement manuelles
+    #print('Case à cocher : ',str(svRadioCM.get()))
+    Parametres["CoursesManuelles"]=True
+
+
+CoursesManuellesFrame = Frame(GaucheFrameParametresCourses)
+svRadioCM  = StringVar()
+if Parametres["CoursesManuelles"] :
+    svRadioCM.set('1')
+else :
+    svRadioCM.set('0')
+rbCM1 = Radiobutton(CoursesManuellesFrame, text="Courses automatiques (par catégories d'âge et sexe)", variable=svRadioCM, value='0', command=choixCNM)
+rbCM2 = Radiobutton(CoursesManuellesFrame, text="Courses fixées manuellement (Trail,...).", variable=svRadioCM, value='1', command=choixCM)
+##rbLblCM = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
+
+## choix supplémentaires pour les courses manuelles
+##def choixCMQRCodes():
+##    if cbCMgenerer.get() :
+##        Parametres["genererQRcodesPourCourseManuelles"]=True
+##        # afficher l'entrybox pour spécifier le nombre de QR-codes souhaités.
+##        cbCMgenererQRCodesSupplNombre.pack(side=LEFT)
+##    else :
+##        Parametres["genererQRcodesPourCourseManuelles"]=False
+##        cbCMgenererQRCodesSupplNombre.forget()
+
+      
+#CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
+#cbCMgenerer = IntVar()
+#cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, \
+#                                      text="Générer des QR-codes à part pour ajout sur des dossards existants.", \
+#                                      variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
+#cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ",\
+#                                           largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
+
+### choix de génération de documents qui apparaissent pour tous les types de courses.
+def choixQRCodesListing():
+    if cbCMgenerer.get() :
+        Parametres["genererListingQRcodes"]=True
+    else :
+        Parametres["genererListingQRcodes"]=False
+
+def choixListing():
+    if cbCMgenerer.get() :
+        Parametres["genererListing"]=True
+    else :
+        Parametres["genererListing"]=False
+
+cbgenererListing = BooleanVar()
+cbgenererListingQRCodes = BooleanVar()
+if genererListing:
+    cbgenererListing.set(True)
+else :
+    cbgenererListing.set(False)
+if genererListingQRcodes:
+    cbgenererListingQRCodes.set(True)
+else :
+    cbgenererListingQRCodes.set(False)
+cbListingsFrame = Frame(GaucheFrameParametresCourses)
+cbListingsLbl = Label(cbListingsFrame,text="En cas de pertes de dossards : ")
+cbCMgenererListing = Checkbutton(cbListingsFrame, text="Générer un tableau des associations noms-dossards", variable=cbgenererListing, onvalue=1, offvalue=0, command=choixListing)
+cbCMgenererListingQRCodes = Checkbutton(cbListingsFrame, text="Générer un listing des QR-codes", variable=cbgenererListingQRCodes, onvalue=1, offvalue=0, command=choixQRCodesListing)
+
+### Autres paramètres
 
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
@@ -3525,12 +4152,15 @@ def actualiseCanvasModeleDossards(event):
     global canvas_image,ModeleDeDossardsCanvas
     fichierChoisi = ModeleDeDossardsCombo.get()
     Parametres["dossardModele"] = fichierChoisi
-    imageFile = fichierChoisi[:-3] + "png"
+    imageFile = fichierChoisi + ".png"
     if event == "" :
         print("Initialisation du choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
     else :
         print("Changement de choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    canvas_image = PhotoImage(file = "./modeles/"+imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/dossards/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/dossards/cross-HB.png")
     h = canvas_image.height()
     w = canvas_image.width()
     rappH = h // int(ModeleDeDossardsCanvas['height']) + 1
@@ -3538,15 +4168,50 @@ def actualiseCanvasModeleDossards(event):
     ModeleDeDossardsCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
     ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
     
+def actualiseCanvasModeleDiplome(event):
+    global canvas_image,ModeleDeDiplomeCanvas
+    fichierChoisi = ModeleDeDiplomeCombo.get()
+    Parametres["diplomeModele"] = fichierChoisi
+    imageFile = fichierChoisi + ".png"
+    if event == "" :
+        print("Initialisation du choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    else :
+        print("Changement de choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/diplomes/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/diplomes/cross-HB.png")
+    h = canvas_image.height()
+    w = canvas_image.width()
+    rappH = h // int(ModeleDeDiplomeCanvas['height']) + 1
+    rappW = w // int(ModeleDeDiplomeCanvas['width']) + 1
+    ModeleDeDiplomeCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
+    ModeleDeDiplomeCanvas.create_image(0, 0, image = ModeleDeDiplomeCanvas.imgMem, anchor = NW)
+    
 
-ModeleDeDossardsFrame = Frame(GaucheFrameParametresCourses)
+ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
 ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
-files = tuple(map(os.path.basename,glob.glob('./modeles/dossard-modele-*.tex', recursive = False)))
-ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files)
+files = []
+for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
+    files.append(os.path.basename(el)[:-4])
+files = tuple(files)
+ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
 ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
 ModeleDeDossardsCombo.set(dossardModele)
-ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=600,height=350)
+ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
 actualiseCanvasModeleDossards("")
+
+ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
+files = []
+for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
+    files.append(os.path.basename(el)[:-4])
+files = tuple(files)
+ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
+ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
+ModeleDeDiplomeCombo.set(dossardModele)
+ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
+actualiseCanvasModeleDiplome("")
 
 ## tests
 ##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
@@ -3565,6 +4230,15 @@ rbF.pack(side=TOP,anchor="w")
 rbLbl.pack(side=TOP,anchor="w")
 rbGF.pack(side=TOP,anchor="w")
 
+rbCM1.pack(side=LEFT,anchor="w")
+rbCM2.pack(side=LEFT,anchor="w")
+
+
+packMenuParametresDossardsDiplomes()
+##if CoursesManuelles :
+##    cbCMgenerer.set(1)
+##    choixCMQRCodes()
+
 if Parametres["CategorieDAge"] :
     if Parametres["CategorieDAge"]== 1 :
         choixCA()
@@ -3572,6 +4246,7 @@ if Parametres["CategorieDAge"] :
         choixUNSS()
 else :
     choixCC()
+
 
 
 def exportCourse():
@@ -3582,6 +4257,69 @@ def exportCourse():
         reponse = showinfo("INFORMATION","Sauvegarde effectuée dans le dossier " + dossierChoisi)
     else :
         reponse = showinfo("ATTENTION","Pas de sauvegarde effectuée. Sélectionner un dossier pour archivage de la course.")
+
+def lireFichierTexte(nom) :
+    if os.path.exists(nom) :
+        fichier = open(nom, "r")
+        retour = fichier.read()
+        fichier.close()
+    else :
+        retour = "-1"
+    return retour
+
+def MAJChronoHB():
+    # télécharge un script de MAJ depuis une URL fixe
+    try :
+        creerDir("maj")
+        print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
+        url = "http://mathlacroix.free.fr/chronoHB/"
+        nomFichierVersionActuelle = "maj/version.txt"
+        nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+        # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
+        response = requests.get(url + "maj/maj.py", stream=True)
+        with open("maj/maj.py", "wb") as handle:
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+        response = requests.get(url + nomFichierVersionActuelle, stream=True)
+        with open(nomFichierVersionDeployee, "wb") as handle :
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+            #f.write("mise à jour en cours")
+        print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
+        relancer()
+    except :
+        print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+        showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+    # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
+##    # importe les nouvelles fonctions du fichier
+##    importlib.reload(maj)
+##    # lance un script prédéfini
+##    reboot = majScript()
+    # relance le programme avec un flag qui provoquera l'exécution de la mise à jour.
+##    # relance l'ordinateur à la fin de l'exécution si imposé.
+##    if reboot :
+##        relancer()
+
+# exécution éventuelle de la mise à jour programmée.
+nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+nomFichierVersionActuelle = "maj/version.txt"
+if os.path.exists(nomFichierVersionDeployee) :
+    # comparaison des versions.
+    versionActuelle = lireFichierTexte(nomFichierVersionActuelle)
+    versionDeployee = lireFichierTexte(nomFichierVersionDeployee)
+    reboot, message = majScript(versionActuelle,versionDeployee)
+    os.remove(nomFichierVersionDeployee)
+    showinfo("MISE A JOUR",message)
+    if reboot :
+        relancer()
+    
+
+def relancer():
+##    sys.stdout.flush()
+##    print(sys.argv[0], sys.argv)
+##    os.execv(sys.argv[0],sys.argv)
+    root.destroy()
+    os.startfile("chronoHB.pyw")
 
 
 ####################### MENUS ################################
@@ -3603,6 +4341,7 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
+postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
 postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)
@@ -3612,6 +4351,7 @@ menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 # help menu
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Documentation", command=documentation)
+helpmenu.add_command(label="Mise à jour", command=MAJChronoHB)
 helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 

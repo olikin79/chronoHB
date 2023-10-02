@@ -1,3 +1,4 @@
+
 EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
 - générer un pdf avec 6 qrcodes par page.
 - faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
@@ -6,6 +7,9 @@ Dans les paramètres, une checkbox permettrait de choisir "courses en fonction d
 Un champ Entry apparaîtrait en cas de choix "courses manuelles" qui engendrerait l'apparition d'un combobox dans ajout-modif de coureur lié à une propriété
 Coureur.course, qui pourrait être importée via le tableur ou CSV.
 Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la partie droite prendrait alors en compte ce nouveau paramètre.
+
+
+
 Todolist pour le cross HB 2023 :
 - debug import
 - email 2 possible et envoi programmé pour les deux adresses si présentes.
@@ -19,11 +23,10 @@ Todolist pour le cross HB 2023 :
 
 Todolist pour version 1.8 (mai 2023) :
 
-- Idéalement, les dossards coderaient 1A, 2A, 3A pour la première course, 1B, 2B, ... pour la 2ème course. 
-Coureurs deviendrait un dictionnaire {A:[Coureur 1A, Coureur 2A,...],B:[coureur 1B, ...],...}
-Même schéma pour ArriveeTemps, ArriveeTempsAffectes, ArriveeDossards, 
+A tester suite trail Rieutort :
+- plusieurs imports successifs ne semblent pas avoir le bon comportement. Certains coureurs sont actualisés (alors qu'ils n'ont pas changé).
 
-=======
+
 Bugs détectés :
 - non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
 - les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
@@ -70,6 +73,7 @@ Créer un affichage qui dépend de la longueur totale à afficher avec retour à
 Actuellement, on coupe en deux lignes les combobox. Il faudrait pouvoir faire plus de deux lignes en fonction de la largeur de 
 la fenêtre parent en pixels.
 
+
 - vérifier que le classement s'effectue à l'intérieur d'une catégorie : un M2 n'est pas en concurrence avec un M3, etc... Surtout pour le Randon Trail.
 
 Fonctionnalités :
@@ -77,6 +81,8 @@ Fonctionnalités :
 et de pouvoir "tout afficher" avec une case à cocher, qui restera toujours visible.
 Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
 - Inscription en ligne : envoi d'un email automatique aux inscrits avec leur numéro de dossard, la couleur et l'indication "Donner votre nom et indiquez que vous avez le dossard "23 vert".
+
+Fonctionnalités :
 - Installation automatique de l'ensemble dont extensions installées localement.
 - Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
 Chaque smartphone sera considéré comme une pix différente. Le premier smartphone à envoyer des données sera la pic de base importée
@@ -109,51 +115,75 @@ Cela devrait permettre un export (copier-coller) vers OPUSS de la forme (combien
 ...
 Voir à quoi correspond le Q.
 - pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
-
-
-BUGS RESTANTS dans chronoHB :
-PRIORITAIRES :
-
-
-
-MOYENNEMENT PRIORITAIRES :
-- rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
-
-- rajouter une coche sur l'affichage TV lorsque le premier coureur de la course en question est scanné. 
-Cela permettrait de pallier les oublis de l'opérateur.
-
+- export vers OPUSS à créer à partir d'un modèle.
 - pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
+
+
+
+#####################################################
+
+A tester dans chronoHB :
+- vers la ligne 3203 de chronoHB.pyw, chercher le commentaire "### A tester..." : 
+il faudra tester le menu d'ajout de coureur pour les quatre types de catégories d'âge (0, 1 en mode manuel ou automatique et 2) afin 
+de vérifier que les critères de validation d'une saisie soient corrects et que les boutons s'affichent pour toutes les saisies correctes
+et uniquement celles-ci.
+
+
+Retour suite au trail de Randon :
+- Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
+- voir pourquoi la vitesse de défilement n'est pas uniforme : 
+pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
+A creuser pour obtenir une vitesse uniforme.
+
+
+Dernière idées en vrac :
+- créer un export html qui ne défile pas, à onglets
+- créer un export ftp pour des résultats en temps réel sur internet.
+
+
+Pour déploiement du logiciel sur d'autres ordinateurs et maintenance automatique :
+- mettre au point script de mise à jour de chronoHB.
+- créer un système web avec base de donnée permettant de valider une installation sur un poste : 
+	* création d'un identifiant unique associé au poste (associé à l'adresse MAC de la carte réseau et à un code unique : md5 de la concaténation des deux ?)
+	* création d'une page de validation de l'installation : la requête contiendrait le code à usage unique et lUUID unique (adresse mac par exemple).
+	La page en question valide le code (si présent dans la BDD sans adresse mac) et invalide celui-ci si adresse mac déjà renseignée.
+	* possibilité de désinstaller le logiciel d'un poste pour le copier sur un autre en recrédidant le compte via une requête particulière.
+- au lancement, vérifie que l'installation de chronoHB est valide (via internet). Mémorise la date de la dernière vérification.
+Voir quelle période de sursis on laisse sans accès au web ? 1 an ? Signaler dans la documentation ce délai
+Si l'accès à internet n'est pas fonctionnel, signale le délai restant au lancement.
+Si délai dépassé, introduit des restrictions pour mode démo (20 coureurs dans la base et passent la ligne max). Tous les autres menus actifs et fonctionnels.
+
+	
+
+
+DEVELOPPEMENTS :
+MOYENNEMENT PRIORITAIRES :
+- trouver pourquoi une erreur est généré par setARegenererPourImpression() , liée à l'usage des noms standards en arrière plan (rendue non bloquante)
+
+- moyen de déploiement de mises à jour de chronoHB sur des postes déjà déployés.
+
+- rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
 
 - sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
 c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
 puis agir si besoin puis revenir à l'écran classique.
 
-- un paramètre comme le changement de type de dossard ne s'actualise qu'après un redémarrage de l'application. Bug confirmé à corriger.
-
-- (confirmé) : on modifie le nom d'un groupement et on demande son affichage sur la TV en cochant la case
-correspondant. Cela provoque un bug... Redémarrer chronoHB résout le bug.
-
 - (à tester) : la compatibilité ascendante avec d'anciennes sauvegardes à tester. Pas assurée... 
 Exemple : réimport du cross HB 2022 dans la version 1.62
 
-- (à tester) : l'archivage contient-il les vidéos ? on dirait que non!
 
 
-NON PRIORITAIRES :
-- FONCTIONNELS : si on remplit le tableau avec quelques temps puis on le vide, on constate le bug suivant :
-si on supprime d'un coup plusieurs lignes, elles disparaissent effectivement de l'affichage.
-si on ne supprime qu'une seule ligne, alors elle persiste dans l'affichage (mais pas dans la base, ce qui fait qu'un nouveau lancement du logiciel
-ou un nouveau temps ajouté ensuite la font disparaître.
+DEVELOPPEMENTS NON PRIORITAIRES :
+- FONCTIONNELS :
+- l'optimisation de la non regénération des pdf n'a pas lieu pour les courses manuelles. Il faudrait reprendre la ligne env .2575 de generateImpressions()
+casOuOnSupprime = (aSupprimer) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Groupement" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
+et utiliser le nom au lieu du nom standard... Quelle incidence sur le reste ?
 
-- Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
-Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
-La class Coureur() permet déjà le cumul, je pense...
 
-- Selon la taille des noms des catégories, les cases à cocher pour l'affichage TV débordent de l'écran. Faire en sorte que cela soit adaptatif.
-Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne. Actuellement, on coupe en deux les combobox.
-
-- changer les fichiers textes de db en une extension comme chb (pour chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
 
 
 - ULTRA-PEU-PROBABLE (ignoré lors de l'implémentation de l'UNSS) :
@@ -169,8 +199,6 @@ toutes les catégories. Pas créé de cas particulier pour cette éventualité (
 
 
 - ESTHETIQUE :
-	* les boutons des vidéos ne se déplacent pas vers le haut ou le bas quand la scrollbar de monTableau est utilisée 
-		(ou se décale toute seule avec les nouvelles arrivées)
 	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
 	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
 	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
@@ -189,10 +217,8 @@ A TESTER :
 
 
 
-FONCTIONNALITES MANQUANTES dans chronoHB.py à plus long terme :
+FONCTIONNALITES MANQUANTES OU EVOLUTIONS dans chronoHB.py à plus long terme :
 
-	
-MOYENNEMENT PRIORITAIRE :
 - remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.
 - mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
 Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
@@ -220,7 +246,7 @@ IndexError: list index out of range
 Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une base correcte.
 
 
-A PLUS LONG TERME :
+A ENCORE PLUS LONG TERME : quelques idées en vrac.
 - permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
 les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
 Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
@@ -238,8 +264,6 @@ Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain (sans 
 Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
 - si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
 	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
-- possibilité de configurer les dossards générés : possibilité de trier les coureurs du listing par ordre alphabétique (et non par création=> dossard, comme actuellement)
-d'imprimer les dossards par groupements, catégories, classes avec des cases à cocher dans un menu dédié...
 - dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
 - Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
 - segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)

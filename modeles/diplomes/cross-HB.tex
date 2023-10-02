@@ -1,0 +1,97 @@
+\documentclass{article}		
+\usepackage{etex}
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+%\input{preambule}
+%\usepackage{graphicx}
+%\usepackage{qrcode}
+\usepackage{fix-cm}
+\pagestyle{empty} 
+
+% fond d'écran
+\usepackage{eso-pic}
+\newcommand\BackgroundA{%
+	\put(0,0){%
+		\parbox[b][\paperheight]{\paperwidth}{%
+			\vfill
+			\centering
+			\includegraphics[width=\paperwidth,height=\paperheight,%
+			keepaspectratio]{../../media/@fondDiplome@}%
+			\vfill
+}}}
+
+
+\usepackage[a5paper,landscape]{geometry}
+\geometry{right=0.5cm,left=0.5cm,top=1cm,bottom=1cm}
+
+\usepackage{ifthen}
+
+\begin{document}
+\AddToShipoutPicture*{\BackgroundA}
+
+
+% \color{white}
+
+% {\phantom{.}}
+
+% \vspace{-1cm}
+
+% {}\hfill
+% \resizebox{!}{20pt}{@intituleCross@}
+% \hfill {}
+
+% % \bigskip
+
+% % {}\hfill
+% % {\Huge\textbf{@intituleCross@}}
+
+% \bigskip
+
+% \vfill
+
+
+% {\Huge \textbf{@date@}}
+
+% \vspace{1cm}
+
+
+% %\begin{minipage}[c]{6cm}
+% \textbf{\Huge Pour ELA, merci !}
+% % \resizebox{!}{20pt}{\textbf{@rang@}}
+
+
+\smallskip
+%\end{minipage}
+%\begin{minipage}[c]{18cm}
+
+\begin{flushright}
+	\begin{minipage}{7cm}
+	\raggedleft
+	\textbf{\Huge @nom@ @prenom@}
+	\end{minipage}
+	\end{flushright}
+
+\smallskip
+
+{} \hfill {\huge\textbf{@rang@} / @nbreTotal@ participants}
+
+\smallskip
+
+{}\hfill
+\begin{minipage}[c]{1.5cm}
+	\includegraphics[width=\textwidth]{../../media/chronometre-noir.png}
+\end{minipage}
+\begin{minipage}[c]{2.5cm}
+	\textbf{\huge @temps@}
+\end{minipage}
+\hspace{0.2cm}
+\begin{minipage}[c]{1.5cm}
+	\includegraphics[width=\textwidth]{../../media/vitesse-noir.png}
+\end{minipage}
+\begin{minipage}[c]{4cm}
+	\textbf{\huge @vitesse@}
+\end{minipage}
+%\hspace{0.5cm}
+
+
+\end{document}

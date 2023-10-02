@@ -1,0 +1,89 @@
+\documentclass{article}		
+\usepackage{etex}
+\usepackage[pdftex]{graphicx}
+\usepackage{xcolor}
+%\input{preambule}
+%\usepackage{graphicx}
+%\usepackage{qrcode}
+\usepackage{fix-cm}
+\pagestyle{empty} 
+
+% fond d'écran
+\usepackage{eso-pic}
+\newcommand\BackgroundA{%
+	\put(0,0){%
+		\parbox[b][\paperheight]{\paperwidth}{%
+			\vfill
+			\centering
+			\includegraphics[width=\paperwidth,height=\paperheight,%
+			keepaspectratio]{../../media/@fondDiplome@}%
+			\vfill
+}}}
+
+
+\usepackage[a5paper,landscape]{geometry}
+\geometry{right=0.5cm,left=0.5cm,top=1cm,bottom=1cm}
+
+\usepackage{ifthen}
+
+\begin{document}
+\AddToShipoutPicture*{\BackgroundA}
+
+\color{white}
+
+\phantom{\Huge\textbf{@intituleCross@ @lieu@}}
+
+\vspace{2cm}
+
+\vfill
+
+\resizebox{!}{30pt}{@nomCourse@}
+\hfill
+{\Huge \textbf{@date@}}
+
+\vfill
+
+%\begin{minipage}[c]{6cm}
+\resizebox{!}{40pt}{\textbf{@rang@} 	} {\Huge / @nbreTotal@ participants}
+
+\bigskip
+%\end{minipage}
+%\begin{minipage}[c]{18cm}
+\textbf{\Huge @nom@ @prenom@}
+
+\bigskip
+
+\ifthenelse{\equal{@cat@}{SE}}
+{}
+{\textbf{\huge @categorie@ : @rangCat@ / @nbreTotalCategorie@}
+	
+\bigskip}
+
+
+
+
+
+\begin{minipage}[c]{1.5cm}
+	\includegraphics[width=\textwidth]{../../media/chronometre-blanc.png}
+\end{minipage}
+\begin{minipage}[c]{4cm}
+	\textbf{\huge @temps@}
+\end{minipage}
+%\hspace{0.5cm}
+\hfill
+\begin{minipage}[c]{1.5cm}
+	\includegraphics[width=\textwidth]{../../media/vitesse-blanc.png}
+\end{minipage}
+\begin{minipage}[c]{4cm}
+	\textbf{\huge @vitesse@}
+\end{minipage}
+%\hspace{0.5cm}
+\hfill
+\begin{minipage}[c]{1cm}
+	\includegraphics[width=\textwidth]{../../media/@logoSexe@}
+\end{minipage}
+\begin{minipage}[c]{5cm}
+	\textbf{\huge @rangSexe@ / @nbreTotalSexe@}
+\end{minipage}
+
+\end{document}
