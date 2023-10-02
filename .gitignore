@@ -1581,3 +1581,4 @@ resultatsDiffusionIdentifiants.py
 *.gz
 *.aux
 *.log
+chronoHB.code-workspace
