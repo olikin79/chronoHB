@@ -1,7 +1,9 @@
-Manque pour la branche trail-rieutort :
-- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
-- tester toute la suite : impression des dossards, déroulement des courses,...
+
+
+Travail du 04/01/23 :
+- correctif bug import pour le cross du collège lié au fait que DictionnaireDeCoureurs traitait la catégorie d'âge 
+alors que la date de naissance n'est pas obligatoire lors de l'import pour le cross du collège.
+
 
 
 Travail du 16/09/23 :

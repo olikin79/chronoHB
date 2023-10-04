@@ -11,7 +11,7 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 
 
 Todolist pour le cross HB 2023 :
-- debug import
+- champ classe considéré comme un float alors qu'il s'agit d'une classe dans le cas Parametre["CategorieDAge"] == 0.
 - email 2 possible et envoi programmé pour les deux adresses si présentes.
 - envoi des emails depuis deux adresses google.
 - envoi d'email avec "repondre à" différent de l'expéditeur.
@@ -20,6 +20,11 @@ Todolist pour le cross HB 2023 :
 - deplacer les fichiers du serveur web dans www
 - absents dispenses cumulable
 
+
+Manque pour la branche trail-rieutort :
+- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+- tester toute la suite : impression des dossards, déroulement des courses,...
 
 
 Todolist pour version 1.8 (mai 2023) :

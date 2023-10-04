@@ -263,14 +263,16 @@ class DictionnaireDeCoureurs(dict) :
                 self.nombreDeCoureursParSexe[1] += 1
             else :
                 self.nombreDeCoureursParSexe[0] += 1
-            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
+            if Parametres["CategorieDAge"] > 0 :
+                incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
     def evolutionDUnAuxEffectifsTotaux(self, coureur, evolution=1):
         self.nombreDeCoureurs += evolution
         if coureur.sexe == "F" :
             self.nombreDeCoureursParSexe[1] += evolution
         else :
             self.nombreDeCoureursParSexe[0] += evolution
-        incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+        if Parametres["CategorieDAge"] > 0 :
+            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
     def getTotalParCategorie(self,catFFA, sexe):
         return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
@@ -4300,7 +4302,7 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
                temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
-        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
+        # print("addCoureur", nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
     except :
         vma = "0"
@@ -4393,15 +4395,15 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettre = ""
                 if dossard : 
                     lettre = dossard[-1]
-                lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
-                print("lettreCourse",lettreCourse)
+                # lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                # print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
                     #nomStandard = addCourse(course)
             else :
                 lettreCourse = "A"
-                addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                # addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
                 # si oui, alors, on crée le coureur.
                 if (not Coureurs.existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
@@ -4419,6 +4421,12 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
                                                 course=lettreCourse, email=email), course = lettreCourse)
+            # on crée la course après le coureur pour disposer de la catégorie quand elle est calculée par l'objet Coureur.
+            if CoursesManuelles :
+                lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                print("lettreCourse",lettreCourse)
+            else :
+                addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
