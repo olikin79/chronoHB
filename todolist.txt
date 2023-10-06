@@ -11,17 +11,19 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 
 
 Todolist pour le cross HB 2023 :
-- champ classe considéré comme un float alors qu'il s'agit d'une classe dans le cas Parametre["CategorieDAge"] == 0.
-- email 2 possible et envoi programmé pour les deux adresses si présentes.
+- envoi programmé pour les deux adresses si présentes.
 - envoi des emails depuis deux adresses google.
 - envoi d'email avec "repondre à" différent de l'expéditeur.
 - depot vers serveur sftp
 - affichage actualisé non défilant.
 - deplacer les fichiers du serveur web dans www
-- absents dispenses cumulable
+- absents dispenses cumulables
+
 
 Dès que possible : 
 - bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+- bug constaté une fois : champ classe considéré comme un float alors qu'il s'agit d'une classe dans le cas Parametre["CategorieDAge"] == 0.
+Il devrait être considéré systématiquement comme une string en mode Parametre["CategorieDAge"] == 0.
 
 
 Manque pour la branche trail-rieutort :

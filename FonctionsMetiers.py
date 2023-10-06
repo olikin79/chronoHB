@@ -4379,7 +4379,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 coureur.setNom(nom)
                 print("nom changé de ", coureur.nom, "en", nom, "(", dossard, ")")
                 auMoinsUnChangement = True
-            if prenom != coureur.prenom :
+            if prenom.lower() != coureur.prenom.lower() :
                 coureur.setPrenom(prenom)
                 print("prenom changé")
                 auMoinsUnChangement = True
