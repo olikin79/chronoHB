@@ -1,9 +1,10 @@
+Travail du 06/10/23 :
+- correctif bug si nom ou prénom ou sexe non présents.
 
 
 Travail du 04/01/23 :
 - correctif bug import pour le cross du collège lié au fait que DictionnaireDeCoureurs traitait la catégorie d'âge 
 alors que la date de naissance n'est pas obligatoire lors de l'import pour le cross du collège.
-
 
 
 Travail du 16/09/23 :
