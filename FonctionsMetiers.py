@@ -6130,19 +6130,22 @@ def creerCoureur(listePerso, informations) :
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
     #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
-                                               naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
-                                               CoureursParClasseUpdateActif = False, dossard = doss, email = email)
-        #print("retourCreationModifErreur",retourCreationModifErreur)
-    else :
-        if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
-            # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
-            retourCreationModifErreur, d = [0,0,0,0], "0"
+    try :
+        if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
+            retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
+                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
+                                                commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
+                                                CoureursParClasseUpdateActif = False, dossard = doss, email = email)
+            #print("retourCreationModifErreur",retourCreationModifErreur)
         else :
-            print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
-            retourCreationModifErreur, d = [0,0,1,0] , "0"  
+            if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
+                # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
+                retourCreationModifErreur, d = [0,0,0,0], "0"
+            else :
+                print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
+                retourCreationModifErreur, d = [0,0,1,0] , "0"
+    except :
+        print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe).")
     return retourCreationModifErreur, d
 
 

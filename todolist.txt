@@ -20,6 +20,9 @@ Todolist pour le cross HB 2023 :
 - deplacer les fichiers du serveur web dans www
 - absents dispenses cumulable
 
+Dès que possible : 
+- bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+
 
 Manque pour la branche trail-rieutort :
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
