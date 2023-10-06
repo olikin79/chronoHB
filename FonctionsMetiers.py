@@ -521,6 +521,8 @@ class Coureur():#persistent.Persistent):
         self.setEmail(email)
         self.email2=""
         self.setEmail2(email2)
+        self.setEmailEnvoiEffectue(False)
+        self.setEmailEnvoiEffectue2(False)
         self.emailNombreDEnvois = 0
         self.emailNombreDEnvois2 = 0
         self.tempsDerniereModif = 0
@@ -621,7 +623,7 @@ class Coureur():#persistent.Persistent):
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
-            print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
+            # print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
             self.email
@@ -637,7 +639,7 @@ class Coureur():#persistent.Persistent):
     def setEmailEnvoiEffectue2(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue2 = bool(val)
-            print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue2)
+            # print("emailEnvoiEffectue2 pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue2)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
             self.email2
