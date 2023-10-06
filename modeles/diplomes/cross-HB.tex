@@ -32,7 +32,9 @@
 
 % \color{white}
 
-% {\phantom{.}}
+{\phantom{.}}
+
+\vfill
 
 % \vspace{-1cm}
 
@@ -64,16 +66,26 @@
 %\end{minipage}
 %\begin{minipage}[c]{18cm}
 
-\begin{flushright}
+	
+% \begin{flushright}
+	{} \hfill
 	\begin{minipage}{7cm}
 	\raggedleft
 	\textbf{\Huge @nom@ @prenom@}
 	\end{minipage}
-\end{flushright}
+	\hspace{0.3cm} {}
+% \end{flushright}
 
-\smallskip
+\bigskip
+
+{} \hfill {\huge\textbf{@categorie@}}
+\hspace{0.3cm} {}
+
+
+\bigskip
 
 {} \hfill {\huge\textbf{@rang@} / @nbreTotal@ participants}
+\hspace{0.3cm} {}
 
 \smallskip
 
@@ -91,7 +103,9 @@
 \begin{minipage}[c]{4cm}
 	\textbf{\huge @vitesse@}
 \end{minipage}
-%\hspace{0.5cm}
 
+\vspace{-1cm}
+
+{\phantom{.}}
 
 \end{document}

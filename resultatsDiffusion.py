@@ -16,7 +16,12 @@ from FonctionsMetiers import *
 def replaceDansDiplomeEnFonctionDesResultats(modele, coureur, nomModele) :
     """ remplace les champs du modèle par les informations du coureur fourni"""
     groupement = groupementAPartirDeSonNom(coureur.course,nomStandard = True)
-    categorie = "Catégorie " + coureur.categorieSansSexe()
+    if Parametres["CategorieDAge"] == 0 :
+        # cas du cross du collège.
+        categorie = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nom
+    else :
+        # autres cas : les catégories d'âge sont indicatives.
+        categorie = "Catégorie " + coureur.categorieSansSexe()
     if coureur.sexe == "F" :
         logoSexe = "symbole-feminin-blanc.png"
         nbreTotalSexe = groupement.nombreDeCoureursFTotal
@@ -123,8 +128,8 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         ### pour les tests !
         elif __name__ == '__main__' and c.dossard == "1A" :
             genereDiplome(modele, c, nomModele)
-        elif c.dossard[:-1] != "C" and c.temps == 0.0 :
-            print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
+        # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
+        #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
         #else : #if c.dossard == "1A" :
         #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
 
@@ -185,8 +190,8 @@ def envoiDiplomeParMail(coureur):
                 return False
         else :
             print("Fichier absent :", fichier)
-    except SMTPAuthenticationError:
-        print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
+    # except SMTPAuthenticationError:
+    #     print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
     except:
         print("Erreur inconnue générée lors de l'envoi de l'email avec le diplome.")
 
