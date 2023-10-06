@@ -111,13 +111,15 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
 ##            c.setEmail("lax.olivier@gmail.com")
             #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
             #c.setEmailEnvoiEffectue(False)
-        
-        if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
-            # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on génère son diplome et on l'envoie
-            #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
+        if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
             genereDiplome(modele, c, nomModele)
             if envoiDiplomeParMail(c) :
                 c.setEmailEnvoiEffectue(True)
+
+        # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
+        #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
+        #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
+
         ### pour les tests !
         elif __name__ == '__main__' and c.dossard == "1A" :
             genereDiplome(modele, c, nomModele)
@@ -125,20 +127,11 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
             print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
         #else : #if c.dossard == "1A" :
         #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
-        
-            
-def envoiDiplomeParMail(coureur):
-    fichier = "resultats/" + coureur.dossard + ".png"
-    try :
-        if os.path.exists(fichier) :
-            print("Envoi par email du fichier", fichier)
-            if coureur.emailNombreDEnvois :
-                AjoutObjet = "Correctif : "
-            else :
-                AjoutObjet = ""
-            retour = gmail.send(
+
+def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
+    retour = gmail.send(
                 sender=gmail.username,
-                receivers=[coureur.email],
+                receivers=[mail],
                 subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
                 html="""
                     <h1>Bravo pour ta participation !</h1>
@@ -148,6 +141,42 @@ def envoiDiplomeParMail(coureur):
                     "my_image": fichier
                 }
             )
+    return retour
+            
+def envoiDiplomeParMail(coureur):
+    fichier = "resultats/" + coureur.dossard + ".png"
+    try :
+        if os.path.exists(fichier) :
+            print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email)
+            if coureur.emailNombreDEnvois :
+                AjoutObjet = "Correctif : "
+            else :
+                AjoutObjet = ""
+            retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email)
+            # retour = gmail.send(
+            #     sender=gmail.username,
+            #     receivers=[coureur.email],
+            #     subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
+            #     html="""
+            #         <h1>Bravo pour ta participation !</h1>
+            #         <img src="{{ my_image.src }}" width=100%>
+            #     """, 
+            #     body_images={
+            #         "my_image": fichier
+            #     }
+            # )
+            if retour :
+                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+                return True
+            else :
+                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                return False
+            print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email2)
+            if coureur.emailNombreDEnvois2 :
+                AjoutObjet = "Correctif : "
+            else :
+                AjoutObjet = ""
+            retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email2)
             if retour :
                 print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
                 return True
