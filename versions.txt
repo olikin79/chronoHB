@@ -1,5 +1,8 @@
 Travail du 06/10/23 :
 - correctif bug si nom ou prénom ou sexe non présents.
+- correctif bug import si sexe="M" ("G" imposé en interne).
+- ajout du support de l'email2 (import, modification dans l'interface).
+- correctif interface de modification d'un coureur : les boutons n'apparaissaient plus en mode Parametre["CategorieDAge"]==0.
 
 
 Travail du 04/01/23 :

@@ -3569,8 +3569,11 @@ class CoureurFrame(Frame) :
             True # pas encore de catégorie créée.
         self.vma = 0
         self.lblemail = Label(self.parent, text="e-mail (facultatif) :")
+        self.lblemail2 = Label(self.parent, text="e-mail 2 (facultatif) :")
         self.emailE = Entry(self.parent)
         self.emailE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.emailE2 = Entry(self.parent)
+        self.emailE2.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
         self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
@@ -3617,7 +3620,9 @@ class CoureurFrame(Frame) :
         self.lblCat.forget()
         self.comboBoxCategorie.forget()
         self.lblemail.forget()
+        self.lblemail2.forget()
         self.emailE.forget()
+        self.emailE2.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3637,20 +3642,24 @@ class CoureurFrame(Frame) :
         s = self.sexeC.get()
         if CoursesManuelles :
             nature = self.comboBoxCategorie.get()
-        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            resultat = "valide."
+        else : ### complété pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
             ### A tester...
             nature = self.etabNatureC.get()
-        #print("nature",nature)
-        if (s ==  "G" or s == "F") and nature :
-            if Parametres["CategorieDAge"] :
-                anneeNaissance = self.classeE.get()[6:]
-                if len(anneeNaissance) == 4 :
-                    c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
-                    if c :
-                        resultat = c + "-" + s
-            else :
-                if self.classeE.get() :
-                    resultat = self.classeE.get()[0] + s
+            #print("nature",nature)
+            if (s ==  "G" or s == "F") : # si le sexe est valide
+                if (Parametres["CategorieDAge"] == 1 and nature) or Parametres["CategorieDAge"] == 2 :
+                    # cas du cross UNSS : on affiche les deux champs supplémentaires self.etabE, self.etabNatureC. La nature doit être spécifiée.
+                    # ou cas d'un trail avec catégories d'ages imposées (puisque l'on n'est pas dans le mode CoursesManuelles).
+                    anneeNaissance = self.classeE.get()[6:]
+                    if len(anneeNaissance) == 4 :
+                        c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
+                        if c :
+                            resultat = c + "-" + s
+                elif Parametres["CategorieDAge"] == 0 :
+                    # cas du cross HB : le sexe et la classe sont psécifiés.
+                    if self.classeE.get() :
+                        resultat = self.classeE.get()[0] + s
         return resultat
 
     def afficheCoureur(self,dossard) :
@@ -3669,6 +3678,7 @@ class CoureurFrame(Frame) :
         self.classeE.delete(0, END)
         #self.sexeE.delete(0, END)
         self.emailE.delete(0,END)
+        self.emailE2.delete(0,END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
         self.etabC['values'] = tupleEtablissement()
@@ -3688,6 +3698,7 @@ class CoureurFrame(Frame) :
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
+                self.emailE2.insert(0, coureur.email2)
                 self.vmaE.insert(0, coureur.VMA)
                 self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
                 self.etabC.set(coureur.etablissement)
@@ -3727,6 +3738,8 @@ class CoureurFrame(Frame) :
             self.comboBoxCategorie.forget()
         self.lblemail.pack()
         self.emailE.pack()
+        self.lblemail2.pack()
+        self.emailE2.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3801,6 +3814,11 @@ class CoureurFrame(Frame) :
             self.emailE.configure(fg='black')
         else :
             self.emailE.configure(fg='red')
+        emailSaisi2 = self.emailE2.get()
+        if emailEstValide(emailSaisi2) :
+            self.emailE2.configure(fg='black')
+        else :
+            self.emailE2.configure(fg='red')
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
         #print("resultat" , resultat)
@@ -3865,7 +3883,7 @@ class CoureurFrame(Frame) :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
                 retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get())
+                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get(), email2=self.emailE2.get())
                 if retourInutile[1] :
                     message ="Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " EXISTE DEJA.\nIl a été actualisé et porte le dossard " + doss + " (course " +c + ")." 
                 else :
@@ -3873,7 +3891,7 @@ class CoureurFrame(Frame) :
                 reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get())
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get(), email2=self.emailE2.get())
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
@@ -3881,15 +3899,15 @@ class CoureurFrame(Frame) :
             if CoursesManuelles : # cas des courses manuelles
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             else :
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss,\
-                           email=self.emailE.get())
+                           email=self.emailE.get(), email2=self.emailE2.get())
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.etabC['values'] = tupleEtablissement()

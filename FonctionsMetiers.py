@@ -376,7 +376,8 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if cle in self.cles() and indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
-        #print("Le coureur ", element, "existe",retour)
+        if retour :
+            print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
         try :
@@ -491,7 +492,7 @@ def emailEstValide(email) :
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence="", email=""):
+                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence="", email="", email2=""):
         self.setDossard(dossard)
         self.nom = self.formateNomPrenom(nom)
         self.prenom = self.formateNomPrenom(prenom)
@@ -516,8 +517,12 @@ class Coureur():#persistent.Persistent):
         self.categorieAuto = True
         self.course = course
         self.setLicence(licence)
-        self.email = ""
+        self.email=""
+        self.setEmail(email)
+        self.email2=""
+        self.setEmail2(email2)
         self.emailNombreDEnvois = 0
+        self.emailNombreDEnvois2 = 0
         self.tempsDerniereModif = 0
         self.setEmailEnvoiEffectue(False)
         self.setEmail(email)
@@ -603,6 +608,16 @@ class Coureur():#persistent.Persistent):
             self.email = ""
             self.setEmailEnvoiEffectue(False)
             self.emailNombreDEnvois = 0
+    def setEmail2(self,email2):
+        if email2 :
+            if emailEstValide(email2) and self.email2 != email2 : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+                self.email2 = str(email2)
+                self.setEmailEnvoiEffectue2(False)
+                self.emailNombreDEnvois2 = 0
+        else :
+            self.email2 = ""
+            self.setEmailEnvoiEffectue(False)
+            self.emailNombreDEnvois2 = 0
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
@@ -619,6 +634,22 @@ class Coureur():#persistent.Persistent):
                 self.emailNombreDEnvois = 1
             else :
                 self.emailNombreDEnvois = 0
+    def setEmailEnvoiEffectue2(self, val = True) :
+        if self.dossard :
+            self.emailEnvoiEffectue2 = bool(val)
+            print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue2)
+        # compatbilité ascendante avec vieilles sauvegardes
+        try : 
+            self.email2
+        except :
+            self.email2 = ""
+        try :
+            self.emailNombreDEnvois2 += 1 
+        except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
+            if bool(val) : # initialisation correcte en fonction de l'action demandée.
+                self.emailNombreDEnvois2 = 1
+            else :
+                self.emailNombreDEnvois2 = 0
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
     def scoreUNSSFormate(self) :
@@ -1288,7 +1319,7 @@ def chargerDonnees() :
                     estPresent = True
                     break
             if not estPresent:
-                print("Création du groupement ", cat)
+                print("Création du groupement à partir de la catégorie", cat)
                 root["Groupements"].append(Groupement(cat,[cat])) # on crée les groupements de même nom que les catégories existantes.
     Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
@@ -4299,8 +4330,9 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              # 1 - cas de courses organisées en fonction des catégories de la FFA
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
 
-def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
+def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0,\
+                commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", email2="",\
+                CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
         # print("addCoureur", nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
@@ -4314,6 +4346,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
         dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
         if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent :
+            if dossard == "" :
+                dossard = dossardTrouve
             # # on empêche de créer plusieurs fois le même coureur avec des dossards différents.
             # if (dossard != "" and dossardTrouve == dossard) or  :
             print("On met à jour les caractéristiques du coureur au dossard", dossard)            
@@ -4324,6 +4358,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if coureur.sexe != sexe :
                 coureur.setSexe(sexe)
+                print("sexe changé de",coureur.sexe,"en",sexe)
                 auMoinsUnChangement = True
             if CoursesManuelles :
 ##                if courseDonneeSousSonNomStandard :
@@ -4338,40 +4373,57 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 if lettreCourse != coureur.course :
                     addCourse(course, lettreCourse = lettreCourse) # création si besoin de la course
                     coureur.setCourse(lettreCourse)
+                    print("lettre course changée")
                     auMoinsUnChangement = True
-            if nom != coureur.nom :
+            if nom.upper() != coureur.nom.upper() :
                 coureur.setNom(nom)
+                print("nom changé de ", coureur.nom, "en", nom, "(", dossard, ")")
                 auMoinsUnChangement = True
             if prenom != coureur.prenom :
                 coureur.setPrenom(prenom)
+                print("prenom changé")
                 auMoinsUnChangement = True
+            # print("email",email, "emailDeux", email2, "coureur.email",coureur.email, "coureur.email2",coureur.email2)
             if email != coureur.email :
                 coureur.setEmail(email)
+                print("email changé")
+                auMoinsUnChangement = True
+            if email2 != coureur.email2 :
+                coureur.setEmail2(email2)
+                print("email2 changé")
                 auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
-                print("coureur",coureur.nom)
+                # print("coureur",coureur.nom)
                 coureur.setDispense(dispense)
+                print("dispense changée")
                 auMoinsUnChangement = True
             if absent != None and coureur.absent != absent :
                 coureur.setAbsent(absent)
+                print("absent changé")
                 auMoinsUnChangement = True
             if coureur.commentaireArrivee != commentaireArrivee :
                 coureur.setCommentaire(commentaireArrivee)
+                print("commentaire changé")
                 auMoinsUnChangement = True
             if coureur.classe != classe :
                 coureur.setClasse(classe)
+                print("classe changée")
                 auMoinsUnChangement = True
             if coureur.licence != licence :
                 coureur.setLicence(licence)
+                print("licence changée")
                 auMoinsUnChangement = True
             if coureur.VMA != vma :
                 coureur.setVMA(vma)
+                print("VMA changée")
                 auMoinsUnChangement = True
             if coureur.naissance != naissance :
                 coureur.setNaissance(naissance)
+                print("naissance changée")
                 auMoinsUnChangement = True
             if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
                 coureur.setEtablissement(etablissement,etablissementNature)
+                print("etablissement changé")
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 if not CoursesManuelles :
@@ -4412,7 +4464,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email), dossard = dossard)
+                                                course=lettreCourse, email=email, email2=email2), dossard = dossard)
                 else :
                     print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
             else :
@@ -4420,7 +4472,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email), course = lettreCourse)
+                                                course=lettreCourse, email=email, email2=email2), course = lettreCourse)
             # on crée la course après le coureur pour disposer de la catégorie quand elle est calculée par l'objet Coureur.
             if CoursesManuelles :
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
@@ -4487,37 +4539,40 @@ def addCourse(course, lettreCourse="") :
 ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
-    if CoursesManuelles :
-        if not lettreCourse :
-            lettreCourse = lettreCourseEnModeCoursesManuelles(course)
-            print("La lettre attribuée manuellement à la course est :",lettreCourse)
-        #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
-        if not lettreCourse in Courses :
-            print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
-            Groupements.append(Groupement(lettreCourse,[lettreCourse]))
-            Groupements[-1].setNom(course)
-            c = Course(course)
-            Courses.update({lettreCourse : c})
-        return lettreCourse
+    if course :
+        if CoursesManuelles :
+            if not lettreCourse :
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+                print("La lettre attribuée manuellement à la course est :",lettreCourse)
+            #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+            if not lettreCourse in Courses :
+                print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
+                Groupements.append(Groupement(lettreCourse,[lettreCourse]))
+                Groupements[-1].setNom(course)
+                c = Course(course)
+                Courses.update({lettreCourse : c})
+            return lettreCourse
+        else :
+            # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+            estPresent = False
+            for grpment in Groupements :
+                if course in grpment.listeDesCourses :
+                    estPresent = True
+                    break
+            if not estPresent:
+                print("Création du groupement dans addCourse", course)
+                Groupements.append(Groupement(course,[course]))
+                #print("Groupements = ",[i.nom for i in Groupements])
+            # création de la course si elle n'existe pas.
+            #print(course, " est dans ", Courses,"?")
+            if course not in Courses :
+                print("Création de la course", course)
+                c = Course(course)
+                Courses.update({course : c})
+            return course
+            #print("cat",Courses[course].categorie)
     else :
-        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-        estPresent = False
-        for grpment in Groupements :
-            if course in grpment.listeDesCourses :
-                estPresent = True
-                break
-        if not estPresent:
-            print("Création du groupement dans addCourse", course)
-            Groupements.append(Groupement(course,[course]))
-            #print("Groupements = ",[i.nom for i in Groupements])
-        # création de la course si elle n'existe pas.
-        #print(course, " est dans ", Courses,"?")
-        if course not in Courses :
-            print("Création de la course", course)
-            c = Course(course)
-            Courses.update({course : c})
-        return course
-        #print("cat",Courses[course].categorie)
+        print("ERREUR qui ne devrait pas survenir, la course transmise vaut :", course)
 
 def estDansGroupementsEnModeManuel(course):
     retour = ""
@@ -6048,7 +6103,12 @@ def creerCoureur(listePerso, informations) :
     lic = ""
     doss = ""
     email=""
+    emailDeux=""
     courseManuelle=""
+    if "nom" in informations :
+        nom = supprLF(infos["nom"])
+    if "prénom" in informations :
+        prenom = supprLF(infos["prénom"])
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
@@ -6058,6 +6118,9 @@ def creerCoureur(listePerso, informations) :
                 ### dans les fichiers OPUS UNSS, le sexe n'est pas indiqué : on le déduit de la dernière lettre de la catégorie
             except :
                 sexe = ""
+    if sexe : # si spécifié, on transforme M en G
+        if sexe == "M" :
+            sexe = "G"
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
@@ -6107,7 +6170,17 @@ def creerCoureur(listePerso, informations) :
                 except :
                     nature = ""
     if "email" in informations and emailEstValide(supprLF(infos["email"])):
-        email = supprLF(infos["email"])
+        email = supprLF(str(infos["email"]))
+    if "email2" in informations and emailEstValide(supprLF(infos["email2"])):
+        emailDeux = supprLF(str(infos["email2"]))
+    ### traitement des emails afin de s'assurer que email soit bien le principal et email2 le secondaire.
+    ### que si email est égal à email2 alors, on vide email2.
+    ### que si email est vide et email2 n'est pas vide, alors, on transfère email2 dans email.
+    if email == "" and emailDeux != "" :
+        email = emailDeux
+        emailDeux = ""
+    if email == emailDeux :
+        emailDeux = ""
     #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
     if nature == "COL" :
         nature = "CLG"
@@ -6129,23 +6202,25 @@ def creerCoureur(listePerso, informations) :
         doss = formateDossardNG(infos["dossard"])
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
-    #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    try :
-        if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-            retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
-                                                naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                                commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
-                                                CoureursParClasseUpdateActif = False, dossard = doss, email = email)
-            #print("retourCreationModifErreur",retourCreationModifErreur)
+    print('addCoureur(',nom, prenom, sexe , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
+    # try :
+    if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
+        # print("test 06102023", type(email), email, type(emailDeux))
+        retourCreationModifErreur, d = addCoureur(nom, prenom, sexe , classe=clas, \
+                                            naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
+                                            temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
+                                            dossard=doss, email=str(email), email2=str(emailDeux), CoureursParClasseUpdateActif=False)
+        # print("retourCreationModifErreur",retourCreationModifErreur)
+    else :
+        if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
+            # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
+            retourCreationModifErreur, d = [0,0,0,0], "0"
         else :
-            if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
-                # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
-                retourCreationModifErreur, d = [0,0,0,0], "0"
-            else :
-                print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
-                retourCreationModifErreur, d = [0,0,1,0] , "0"
-    except :
-        print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe).")
+            print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
+            retourCreationModifErreur, d = [0,0,1,0] , "0"
+    # except :
+    #     retourCreationModifErreur, d = [0,0,1,0] , "0"
+    #     print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe).")
     return retourCreationModifErreur, d
 
 
