@@ -521,6 +521,8 @@ class Coureur():#persistent.Persistent):
         self.setEmail(email)
         self.email2=""
         self.setEmail2(email2)
+        self.emailEnvoiEffectue = False
+        self.emailEnvoiEffectue2 = False
         self.setEmailEnvoiEffectue(False)
         self.setEmailEnvoiEffectue2(False)
         self.emailNombreDEnvois = 0
@@ -787,7 +789,11 @@ class Coureur():#persistent.Persistent):
             minu = "0" + minu
         if len(sec) == 1 :
             sec = "0" + sec
-        return heures + ":" + minu + ":" + sec
+        if heures == "00" :
+            retour = minu + ":" + sec
+        else :
+            retour = heures + ":" + minu + ":" + sec
+        return retour
     def tempsFormate(self) :
         #print(self.dossard,self.nom,self.temps)
         if self.temps > 0 : # ajouté suite au coureurVide utile pour affiché le temps potentiel du prochain coureur. 
