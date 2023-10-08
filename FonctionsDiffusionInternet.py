@@ -1,6 +1,8 @@
 ### Fichier contenant les fonctions de :
 ### - création des pages internet de résultats avec des onglets par course.
 ### - diffusion vers un serveur FTP ou SFTP 
+from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
+
 
 def ActualiseAffichageInternet():
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
@@ -17,7 +19,5 @@ def deposePagesHTMLInternet(liste) :
 def generePagesHTMLInternet() :
     '''crée les pages internet en HTML avec un onglet par course.
     Retourne la liste des pages générées.'''
-    listeFichiers = []
-    print("Création des pages HTML pour Internet : à faire")
-
+    listeFichiers = genereAffichageWWW(Groupements)
     return listeFichiers

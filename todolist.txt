@@ -15,9 +15,11 @@ Todolist pour le cross HB 2023 :
 - envoi programmé pour les deux adresses si présentes.
 - envoi des emails depuis deux adresses google.
 - depot vers serveur sftp
-- affichage actualisé non défilant.
+- COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
 - deplacer les fichiers du serveur web dans www
 - absents dispenses cumulables
+- VMA sur le diplome.
+- suppression d'un dossard arrivé non fonctionnelle !
 
 
 Dès que possible : 
