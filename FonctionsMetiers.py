@@ -1288,7 +1288,7 @@ def chargerDonnees() :
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPURL
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1468,14 +1468,26 @@ def chargerDonnees() :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     if not "FTPlogin" in Parametres :
-        Parametres["FTPlogin"] = "mathlacroix@free.fr"
+        Parametres["FTPlogin"] = "olivier.lax@free.fr"
     FTPlogin=Parametres["FTPlogin"]
     if not "FTPmdp" in Parametres :
         Parametres["FTPmdp"] = "mdp"
     FTPmdp=Parametres["FTPmdp"]
-    if not "FTPURL" in Parametres :
-        Parametres["FTPURL"] = "ftp://mathlacroix.free.fr"
-    FTPURL=Parametres["FTPURL"]
+    if not "FTPserveur" in Parametres :
+        Parametres["FTPserveur"] = "ftp://mathlacroix.free.fr"
+    FTPserveur=Parametres["FTPserveur"]
+    if not "email" in Parametres :
+        Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com"
+    email=Parametres["email"]
+    if not "emailMDP" in Parametres :
+        Parametres["emailMDP"] = "mdp"
+    emailMDP=Parametres["emailMDP"]
+    if not "emailNombreDEnvoisMax" in Parametres :
+        Parametres["emailNombreDEnvoisMax"] = "2"
+    emailNombreDEnvoisMax=Parametres["emailNombreDEnvoisMax"]
+    if not "emailNombreDEnvoisDuJour" in Parametres :
+        Parametres["emailNombreDEnvoisDuJour"] = {}
+    emailNombreDEnvoisDuJour=Parametres["emailNombreDEnvoisDuJour"]
     ##transaction.commit()
     return globals()
     
