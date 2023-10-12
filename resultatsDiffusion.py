@@ -133,19 +133,72 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         #else : #if c.dossard == "1A" :
         #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
 
+def dateDuJour():
+    """retourne la date du jour"""
+    return datetime.datetime.now().strftime("%d/%m/%Y")
+
+def choixDuMailAUtiliser() :
+    """retourne un couple identifiant-mot de passe parmi ceux mémorisés dans les paramètres,
+    en prenant soin de tenir un décompte du nombre de mail envoyé et de ne pas dépasser le nombre fixé
+    en Parametres["emailNombreDEnvoisMax"]"""
+
+    # si la date d'aujourd'hui est dans Parametres["emailNombreDEnvoisDuJour"]
+    listeDesEmails = Parametres["email"].split(";")
+    listeDesMDP = Parametres["emailMDP"].split(";")
+    if dateDuJour() in Parametres["emailNombreDEnvoisDuJour"] :
+        # on récupère le nombre d'envois du jour
+        listeNombresDEnvoisDuJour = Parametres["emailNombreDEnvoisDuJour"][dateDuJour()]
+        if len(listeNombresDEnvoisDuJour)< len(listeDesEmails) :
+            # on complète le tableau avec des 0
+            listeNombresDEnvoisDuJour += [0]*(len(listeDesEmails)-len(listeNombresDEnvoisDuJour))
+            Parametres["emailNombreDEnvoisDuJour"][dateDuJour()] = listeNombresDEnvoisDuJour
+    else :
+        listeNombresDEnvoisDuJour = [0]*len(Parametres["email"])
+        Parametres["emailNombreDEnvoisDuJour"][dateDuJour()] = listeNombresDEnvoisDuJour
+    # si la chaine Parametres["emailNombreDEnvoisMax"] est vide, on la remplit avec 100, autant de fois qu'il y a d'emails (séparées par des points virgules).
+    # sinon, on la complète avec la dernière valeur, autant de fois qu'il y a d'emails (séparées par des points virgules).
+    if Parametres["emailNombreDEnvoisMax"] == "" :
+        Parametres["emailNombreDEnvoisMax"] = "100"*len(listeDesEmails)
+    else :
+        listeDesEmailsNombreDEnvois = Parametres["emailNombreDEnvoisMax"].split(";")
+        nombreEmailsNombreDEnvois = len(listeDesEmailsNombreDEnvois)
+        if nombreEmailsNombreDEnvois < len(listeDesEmails) :
+            complement = ";" + listeDesEmailsNombreDEnvois[-1]
+            Parametres["emailNombreDEnvoisMax"] += complement*(len(listeDesEmails)-nombreEmailsNombreDEnvois)
+    listeDesEmailsNombreDEnvois = Parametres["emailNombreDEnvoisMax"].split(";")
+    # pour chaque mail, on regarde si le nombre d'envois du jour est inférieur au nombre maximum d'envois pour cette boite mail
+    # si oui, on retourne le mail, si non, on passe au suivant.
+    for i in range(len(listeDesEmails)) :
+        if listeNombresDEnvoisDuJour[i] < listeDesEmailsNombreDEnvois[i] :
+            Parametres["emailNombreDEnvoisDuJour"][dateDuJour()][i] += 1
+            username = listeDesEmails[i]
+            if i < len(listeDesMDP) :
+                password = listeDesMDP[i]
+            else :
+                password = listeDesMDP[-1]
+            return username, password
+    # si on arrive ici, c'est que tous les mails ont atteint leur quota d'envoi.
+    # on retourne "", """ pour indiquer qu'il n'y a plus de mail disponible.
+    return "", ""
+
 def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
-    retour = gmail.send(
-                sender=gmail.username,
-                receivers=[mail],
-                subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
-                html="""
-                    <h1>Bravo pour ta participation !</h1>
-                    <img src="{{ my_image.src }}" width=100%>
-                """, 
-                body_images={
-                    "my_image": fichier
-                }
-            )
+    gmail.username, gmail.password = choixDuMailAUtiliser()
+    if gmail.username != "" :
+        retour = gmail.send(
+                    sender=gmail.username,
+                    receivers=[mail],
+                    subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
+                    html="""
+                        <h1>Bravo pour ta participation !</h1>
+                        <img src="{{ my_image.src }}" width=100%>
+                    """, 
+                    body_images={
+                        "my_image": fichier
+                    }
+                )
+    else :
+        print("Plus de mail disponible pour l'envoi des diplomes.")
+        retour = False
     return retour
             
 def envoiDiplomeParMail(coureur):
@@ -158,18 +211,6 @@ def envoiDiplomeParMail(coureur):
             else :
                 AjoutObjet = ""
             retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email)
-            # retour = gmail.send(
-            #     sender=gmail.username,
-            #     receivers=[coureur.email],
-            #     subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
-            #     html="""
-            #         <h1>Bravo pour ta participation !</h1>
-            #         <img src="{{ my_image.src }}" width=100%>
-            #     """, 
-            #     body_images={
-            #         "my_image": fichier
-            #     }
-            # )
             if retour :
                 print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
                 return True
