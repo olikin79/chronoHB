@@ -1209,8 +1209,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
-            print("groupements",groupements)
-            print(groupement.listeDesCourses)
+            # print("groupements",groupements)
+            # print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())

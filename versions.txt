@@ -1,6 +1,10 @@
+Travail du 12/10/23 :
+- correction bug delArriveeDossard : suppression impossible suite au passage aux dossards NG (le dossard "0" aurait dû être transformé en "0A" suite au nouveau formatage).
+
 
 Travail du 08/10/23 :
 - document HTML généré pour affichage non défilant en ligne.
+
 
 Travail du 07/10/23 :
 - affichage des temps sur le diplome au format MM:SS si inférieur à 1H.

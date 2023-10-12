@@ -2150,7 +2150,7 @@ def listChallenges():
     listeCourses = []
     retour = []
     if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
-        print("There are Courses.", Courses)
+        # print("There are Courses.", Courses)
         # print("Coureurs", Coureurs.afficher())
         for cat in Courses :
             #tests Courses[cat].top()
@@ -5087,17 +5087,17 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
                 print(message)
                 retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
-        elif dossardPrecedent == "0" : # le dossard à supprimer est le premier de la liste, normalement.
+        elif dossardPrecedent == "0A" : # le dossard à supprimer est le premier de la liste, normalement.
             if ArriveeDossards[0] == doss :
                 # on supprime le premier élément de la liste.
-                print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
                 ArriveeDossards.pop(0)
                 retour = Erreur(0)
             else :
                 message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
                 print(message)
                 retour = Erreur(441, doss, message)
-        elif len(dossardPrecedent) > 1 : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
+        elif len(dossardPrec) > 1 : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
         # Le dossard prédécesseur sera forcément spécifié pour ne pas supprimer n'importe lequel !
             i = 1
             pasTrouve = True
@@ -5385,6 +5385,7 @@ def genereAffichageWWW(listeDesGroupements) :
 	  </div>
      </div>
     """
+    ## à remettre dans onglet modèle, à côté du titre du groupement : 
     ## affichage tab modèle
     tabModele = """
     <html><head></head><body>
@@ -5402,9 +5403,9 @@ def genereAffichageWWW(listeDesGroupements) :
     dureesActualisation = []
     i = 0
     for groupement in listeDesGroupements :
-        chrono = yATIlUCoureurArrive(groupement)
+        chrono = yATIlUCoureurArrive(groupement.nomStandard)
         onglet = ongletModele.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
-        print(groupement.nomStandard)
+        # print(groupement.nomStandard)
         groupementNomStandard = groupement.nomStandard
         if estChallenge(groupement) :
             #print("C'est un challenge par niveau")
@@ -5601,7 +5602,7 @@ def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True) :
 
 def yATIlUCoureurArrive(groupement) :
     retour = False
-    #print(ResultatsGroupements)
+    # print(ResultatsGroupements)
     try :
         # Fonctionne même si ResultatsGroupements contient les dossards des absents, dispensés et abandons... D'où la raison du parcours de ArriveeDossards.
         Dossards = ResultatsGroupements[groupement]
