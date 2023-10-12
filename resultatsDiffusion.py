@@ -12,6 +12,8 @@ from FonctionsMetiers import *
 ##    cls_smtp=SMTP_SSL  
 ##)
 
+# au redémarrage , on force à retester. Une fois lancé, plus de test pour la journée.
+diplomeEmailQuotaDepasse=False
 
 def replaceDansDiplomeEnFonctionDesResultats(modele, coureur, nomModele) :
     """ remplace les champs du modèle par les informations du coureur fourni"""
@@ -93,45 +95,55 @@ def genereDiplome(modele, coureur, nomModele) :
 
 def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
     ''' diffuse les diplomes non encore envoyés aux coureurs '''
-    # pour les tests
-    if diplomeImpose != "" :
-        nomModele = diplomeImpose
+    if not diplomeEmailQuotaDepasse :
+        # pour les tests
+        if diplomeImpose != "" :
+            nomModele = diplomeImpose
+        else :
+            nomModele = Parametres["diplomeModele"]
+            # charger le modèle de diplome des paramètres
+        modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
+        #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
+        with open(modeleDiplome , 'r') as f :
+            modele = f.read()
+        f.close()
+        for c in Coureurs.liste() :
+            if not diplomeEmailQuotaDepasse :
+                if DEBUG :
+                    print("Coureur", c.nom, "examiné", c.dossard)
+                try :
+                    c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailNombreDEnvois
+                    c.emailEnvoiEffectue2 # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailNombreDEnvois2
+                except :
+                    c.setEmailEnvoiEffectue(False)
+                    c.setEmailEnvoiEffectue2(False)
+
+        ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
+        ##            c.setEmail("lax.olivier@gmail.com")
+                    #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
+                    #c.setEmailEnvoiEffectue(False)
+                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
+                    genereDiplome(modele, c, nomModele)
+                    if envoiDiplomeParMail(c) :
+                        c.setEmailEnvoiEffectue(True)
+                # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
+                #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
+                #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
+
+                ### pour les tests !
+                elif __name__ == '__main__' and c.dossard == "1A" :
+                    genereDiplome(modele, c, nomModele)
+                # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
+                #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
+                #else : #if c.dossard == "1A" :
+                #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
+                # else :
+                #     print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,">", 60*diplomeDiffusionApresNMin)
     else :
-        nomModele = Parametres["diplomeModele"]
-        # charger le modèle de diplome des paramètres
-    modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
-    #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
-    with open(modeleDiplome , 'r') as f :
-        modele = f.read()
-    f.close()
-    for c in Coureurs.liste() :
-        #print("Coureur", c.nom, "examiné", c.dossard)
-        try :
-            c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
-            c.emailNombreDEnvois
-        except :
-            c.setEmailEnvoiEffectue(False)
-
-##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
-##            c.setEmail("lax.olivier@gmail.com")
-            #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
-            #c.setEmailEnvoiEffectue(False)
-        if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
-            genereDiplome(modele, c, nomModele)
-            if envoiDiplomeParMail(c) :
-                c.setEmailEnvoiEffectue(True)
-
-        # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
-        #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
-        #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
-
-        ### pour les tests !
-        elif __name__ == '__main__' and c.dossard == "1A" :
-            genereDiplome(modele, c, nomModele)
-        # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
-        #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
-        #else : #if c.dossard == "1A" :
-        #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
+        if DEBUG :
+            print("Le quota d'envoi d'email a été dépassé pour aujourd'hui. Pas d'envoi de diplome possible.")
 
 def dateDuJour():
     """retourne la date du jour"""
@@ -169,7 +181,7 @@ def choixDuMailAUtiliser() :
     # pour chaque mail, on regarde si le nombre d'envois du jour est inférieur au nombre maximum d'envois pour cette boite mail
     # si oui, on retourne le mail, si non, on passe au suivant.
     for i in range(len(listeDesEmails)) :
-        if listeNombresDEnvoisDuJour[i] < listeDesEmailsNombreDEnvois[i] :
+        if listeNombresDEnvoisDuJour[i] < int(listeDesEmailsNombreDEnvois[i]) :
             Parametres["emailNombreDEnvoisDuJour"][dateDuJour()][i] += 1
             username = listeDesEmails[i]
             if i < len(listeDesMDP) :
@@ -182,8 +194,10 @@ def choixDuMailAUtiliser() :
     return "", ""
 
 def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
+    global diplomeEmailQuotaDepasse
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
+        print("Envoi du diplome pour le coureur sur le mail", gmail.username)
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],
@@ -198,6 +212,7 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
                 )
     else :
         print("Plus de mail disponible pour l'envoi des diplomes.")
+        diplomeEmailQuotaDepasse = True
         retour = False
     return retour
             
@@ -205,25 +220,29 @@ def envoiDiplomeParMail(coureur):
     fichier = "resultats/" + coureur.dossard + ".png"
     try :
         if os.path.exists(fichier) :
-            print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email)
+            print("Envoi par email du fichier", fichier,  "à l'adresse", coureur.email)
             if coureur.emailNombreDEnvois :
                 AjoutObjet = "Correctif : "
             else :
                 AjoutObjet = ""
             retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email)
             if retour :
+                coureur.setEmailEnvoiEffectue(True)
                 print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
-                return True
             else :
                 print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
                 return False
             print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email2)
-            if coureur.emailNombreDEnvois2 :
-                AjoutObjet = "Correctif : "
-            else :
+            try :
+                if coureur.emailNombreDEnvois2 :
+                    AjoutObjet = "Correctif : "
+                else :
+                    AjoutObjet = ""
+            except :
                 AjoutObjet = ""
             retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email2)
             if retour :
+                coureur.setEmailEnvoiEffectue2(True)
                 print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
                 return True
             else :
@@ -237,6 +256,7 @@ def envoiDiplomeParMail(coureur):
         print("Erreur inconnue générée lors de l'envoi de l'email avec le diplome.")
 
 if __name__ == '__main__':
-    diplomeImpose = "cross-HB"
-    envoiDiplomePourTousLesCoureurs(diplomeImpose=diplomeImpose)
+    print(choixDuMailAUtiliser())
+    # diplomeImpose = "cross-HB"
+    # envoiDiplomePourTousLesCoureurs(diplomeImpose=diplomeImpose)
         

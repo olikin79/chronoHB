@@ -2665,12 +2665,12 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
                 mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
                 mon_thread_Diplomes.start()
         else :
-            if diplomeDiffusionAutomatique :
-                tagEnvoiDiplomeEnCours = True
-                #print("Début d'envoi de diplômes automatisé...")
-                mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
-                mon_thread_Diplomes.start()
-                # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+            tagEnvoiDiplomeEnCours = True
+            if DEBUG :
+                print("Début d'envoi de diplômes automatisé...")
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes.start()
+            # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
 ##    else :
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 

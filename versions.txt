@@ -1,5 +1,7 @@
 Travail du 12/10/23 :
 - correction bug delArriveeDossard : suppression impossible suite au passage aux dossards NG (le dossard "0" aurait dû être transformé en "0A" suite au nouveau formatage).
+- implémentation de l'envoi par plusieurs emails (pour dépasser la limite de 500 mails par jour).
+Gestion automatique des emails envoyés depuis une boite donnée dans la limite fixée. Fonctionnel.
 
 
 Travail du 08/10/23 :

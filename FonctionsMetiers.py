@@ -1453,7 +1453,7 @@ def chargerDonnees() :
         Parametres["diplomeModele"] = "Randon-Trail"
     diplomeModele=Parametres["diplomeModele"]
     if not "diplomeDiffusionApresNMin" in Parametres :
-        Parametres["diplomeDiffusionApresNMin"] = 2
+        Parametres["diplomeDiffusionApresNMin"] = 15
     diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
     if not "diplomeEmailExpediteur" in Parametres :
         Parametres["diplomeEmailExpediteur"] = "lax.olivier@gmail.com"
@@ -1476,6 +1476,9 @@ def chargerDonnees() :
     if not "FTPserveur" in Parametres :
         Parametres["FTPserveur"] = "ftp://mathlacroix.free.fr"
     FTPserveur=Parametres["FTPserveur"]
+    if not "FTPdir" in Parametres :
+        Parametres["FTPdir"] = "/public_html/chronoHB"
+    FTPdir=Parametres["FTPdir"]
     if not "email" in Parametres :
         Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com"
     email=Parametres["email"]
@@ -3773,7 +3776,7 @@ def getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , DecompteParCategoriesDA
                     else :
                         return el[1] 
                     break
-    if not present :
+    if not present and Parametres["CategorieDAge"] : # pour le cross du collège, les catégories FFA sont inutiles.
         print("ANORMAL : on devrait toujours trouver un nombre de coureurs par catégorie")
 
 
