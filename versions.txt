@@ -1,3 +1,8 @@
+Travail du 13/10/23 :
+- checkbox implémentées pour les dispensés et absents. Il est désormais possible d'être dispensé et absent en même temps!
+Import fonctionnel, les statistiques considèreront avant tout le statut de dispensé.
+
+
 Travail du 12/10/23 :
 - correction bug delArriveeDossard : suppression impossible suite au passage aux dossards NG (le dossard "0" aurait dû être transformé en "0A" suite au nouveau formatage).
 - implémentation de l'envoi par plusieurs emails (pour dépasser la limite de 500 mails par jour).

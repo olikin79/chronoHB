@@ -970,6 +970,42 @@ class Checkbar(Frame):
             else :
                 fr.pack(side=TOP)
 
+class CheckboxAbsDisp(Frame):
+    def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent)
+        # self.combobox = Combobox(self, width=5, values=('','Abs','Disp'))
+        self.varAbs = IntVar()
+        self.varDisp = IntVar()
+        if coureur.absent :
+            self.varAbs.set(1)
+        else :
+            self.varAbs.set(0)
+        if coureur.dispense :
+            self.varDisp.set(1)
+        else :
+            self.varDisp.set(0)
+        def memoriseValeurBindAbs() :
+            #print("coureur : ", self.coureur.nom)
+            if self.varAbs.get() == 1 :
+                self.coureur.setAbsent(True)
+            else :
+                self.coureur.setAbsent(False)
+        def memoriseValeurBindDisp() :
+            if self.varDisp.get() == 1 :
+                self.coureur.setDispense(True)
+            else :
+                self.coureur.setDispense(False)
+        self.checkbuttonAbs = Checkbutton(self, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
+        self.checkbuttonDisp = Checkbutton(self, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
+        self.coureur = coureur
+        nomAffiche = coureur.nom + " " + coureur.prenom
+        self.lbl = Label(self, text=nomAffiche)
+        #self.checkbuttons.append(chk)
+        self.lbl.pack(side=LEFT)
+        self.checkbuttonAbs.pack(side=LEFT) # à la verticale
+        self.checkbuttonDisp.pack(side=LEFT)
+        
+
 class ComboboxAbsDisp(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
@@ -1331,7 +1367,7 @@ class Combobar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            self.combos.append(ComboboxAbsDisp(pick, frm))
+            self.combos.append(CheckboxAbsDisp(pick, frm))
             chk = self.combos[-1]
             chk.pack()
             frm.pack(side=TOP, anchor=W, padx=3, pady=3)

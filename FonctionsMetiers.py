@@ -752,13 +752,11 @@ class Coureur():#persistent.Persistent):
     def setAbsent(self, absent) :
         if absent :
             self.absent = True
-            self.dispense = False
         else :
             self.absent = False
     def setDispense(self, dispense) :
         if dispense :
             self.dispense = True
-            self.absent = False
         else :
             self.dispense = False
     def setTemps(self, temps=0, distance=0):
@@ -6257,10 +6255,8 @@ def creerCoureur(listePerso, informations) :
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
-    if "absent" in informations and not disp :# on ne peut pas être dispensé et absent.
-        if infos["absent"] == "" :
-            abse = False
-        else :
+    if "absent" in informations :
+        if infos["absent"] != "" :
             abse = True
     if "classe" in informations :
         try :

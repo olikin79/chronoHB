@@ -12,8 +12,8 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 
 Todolist pour le cross HB 2023 :
 - FAIT : le temps sur le diplome s'affichera en min:sec et non en HH:MM:SS.
-- envoi programmé pour les deux adresses si présentes.
-- envoi des emails depuis deux adresses google.
+- FAIT envoi programmé pour les deux adresses si présentes.
+- FAIT envoi des emails depuis deux adresses google.
 - depot vers serveur sftp
 - COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
 - deplacer les fichiers du serveur web dans www
