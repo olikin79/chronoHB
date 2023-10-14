@@ -17,9 +17,11 @@ Todolist pour le cross HB 2023 :
 - depot vers serveur sftp
 - COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
 - deplacer les fichiers du serveur web dans www
-- absents dispenses cumulables
-- VMA sur le diplome.
-- suppression d'un dossard arrivé non fonctionnelle !
+- FAIT : absents dispenses cumulables
+- FAIT : VMA sur le diplome.
+- FAIT : suppression d'un dossard arrivé non fonctionnelle !
+- configurer la borne wifi pour étendre le réseau lax de mon téléphone.
+- les noms standards des catégories devraient être utilisés pour lancer les courses (afin de ne pas déborder)
 
 
 Dès que possible : 

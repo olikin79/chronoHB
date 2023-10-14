@@ -528,8 +528,6 @@ class Coureur():#persistent.Persistent):
         self.emailNombreDEnvois = 0
         self.emailNombreDEnvois2 = 0
         self.tempsDerniereModif = 0
-        self.setEmailEnvoiEffectue(False)
-        self.setEmail(email)
         self.categorie(CategorieDAge)
         self.__private_categorie = None
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
@@ -632,7 +630,9 @@ class Coureur():#persistent.Persistent):
         except :
             self.email = ""
         try :
-            self.emailNombreDEnvois += 1 
+            self.emailNombreDEnvois
+            if val :
+                self.emailNombreDEnvois += 1 
         except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
             if bool(val) : # initialisation correcte en fonction de l'action demandée.
                 self.emailNombreDEnvois = 1
@@ -648,7 +648,9 @@ class Coureur():#persistent.Persistent):
         except :
             self.email2 = ""
         try :
-            self.emailNombreDEnvois2 += 1 
+            self.emailNombreDEnvois2
+            if val :
+                self.emailNombreDEnvois2 += 1 
         except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
             if bool(val) : # initialisation correcte en fonction de l'action demandée.
                 self.emailNombreDEnvois2 = 1
@@ -673,6 +675,7 @@ class Coureur():#persistent.Persistent):
         if CoursesManuelles and self.course != c : # si la course change, on renvoie l'email. Sinon, on ne fait rien.
             self.course = c
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
         else :
             print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
@@ -764,6 +767,7 @@ class Coureur():#persistent.Persistent):
             if self.temps != float(temps) : # si le temps change, on renvoie l'email, sinon, on ne fait rien.
                 self.temps = float(temps)
                 self.setEmailEnvoiEffectue(False)
+                self.setEmailEnvoiEffectue2(False)
                 self.tempsDerniereModif = time.time()
         except :
             self.temps = 0
@@ -844,16 +848,19 @@ class Coureur():#persistent.Persistent):
         if int(rang) != self.rang :
             self.rang = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setRangCat(self, rang) :
         if int(rang) != self.rangCat :
             self.rangCat = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setRangSexe(self, rang) :
         if int(rang) != self.rangSexe :
             self.rangSexe = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
@@ -861,11 +868,13 @@ class Coureur():#persistent.Persistent):
         if self.nom != str(valeur) : # si la valeur change, on envoie un diplome correctif
             self.nom = str(valeur)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setPrenom(self, valeur) :
         if self.prenom != str(valeur) :
             self.prenom = str(valeur)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
 
 
@@ -5103,7 +5112,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
                 print(message)
                 retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
-        elif dossardPrecedent == "0A" : # le dossard à supprimer est le premier de la liste, normalement.
+        elif dossardPrecedent == "0A" or dossardPrecedent == "0" : # le dossard à supprimer est le premier de la liste, normalement.
             if ArriveeDossards[0] == doss :
                 # on supprime le premier élément de la liste.
                 print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
@@ -5121,7 +5130,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 #print(ArriveeDossards[i]," == ",doss," and ",ArriveeDossards[i-1]," == ",dossardPrec)
                 if ArriveeDossards[i] == doss and ArriveeDossards[i-1] == dossardPrec :
                     # suppression de l'élément i de la liste.
-                    print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                    print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
                     ArriveeDossards.pop(i)
                     pasTrouve = False
                 i += 1

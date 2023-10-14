@@ -110,7 +110,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         for c in Coureurs.liste() :
             if not diplomeEmailQuotaDepasse :
                 if DEBUG :
-                    print("Coureur", c.nom, "examiné", c.dossard)
+                    print("Coureur", c.nom, "examiné email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2, "dossard" , c.dossard, "nbreenvois", c.emailNombreDEnvois, "nbreenvois2", c.emailNombreDEnvois2, "email", c.email, "email2", c.email2)
                 try :
                     c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
                     c.emailNombreDEnvois
@@ -127,7 +127,10 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                 if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
                     genereDiplome(modele, c, nomModele)
                     if envoiDiplomeParMail(c) :
-                        c.setEmailEnvoiEffectue(True)
+                        # c.setEmailEnvoiEffectue(True)
+                        if DEBUG : 
+                            print("Envoi du diplome pour le coureur sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
+                        
                 # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
                 #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
                 #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
@@ -220,36 +223,45 @@ def envoiDiplomeParMail(coureur):
     fichier = "resultats/" + coureur.dossard + ".png"
     try :
         if os.path.exists(fichier) :
-            print("Envoi par email du fichier", fichier,  "à l'adresse", coureur.email)
-            if coureur.emailNombreDEnvois :
-                AjoutObjet = "Correctif : "
-            else :
-                AjoutObjet = ""
-            retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email)
-            if retour :
-                coureur.setEmailEnvoiEffectue(True)
-                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
-            else :
-                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
-                return False
-            print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email2)
-            try :
-                if coureur.emailNombreDEnvois2 :
+            print(coureur.nom, coureur.prenom, "a passé la ligne, nombre d'envois sur email", coureur.emailNombreDEnvois, "et sur email2", coureur.emailNombreDEnvois2)
+            retour = True
+            retour2 = True # par défaut, il n'y a pas d'erreur générée.
+            if coureur.email and coureur.emailEnvoiEffectue == False :
+                print("Envoi par email du fichier", fichier,  "à l'adresse", coureur.email)
+                if coureur.emailNombreDEnvois :
                     AjoutObjet = "Correctif : "
                 else :
                     AjoutObjet = ""
-            except :
-                AjoutObjet = ""
-            retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email2)
-            if retour :
-                coureur.setEmailEnvoiEffectue2(True)
-                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+                retour = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email)
+                if retour :
+                    coureur.setEmailEnvoiEffectue(True)
+                    print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+                else :
+                    print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                    retour = False
+            if coureur.email2 and coureur.emailEnvoiEffectue2 == False :
+                print("Envoi par email du fichier", fichier, "à l'adresse", coureur.email2)
+                try :
+                    if coureur.emailNombreDEnvois2 :
+                        AjoutObjet = "Correctif : "
+                    else :
+                        AjoutObjet = ""
+                except :
+                    AjoutObjet = ""
+                retour2 = envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, coureur.email2)
+                if retour :
+                    coureur.setEmailEnvoiEffectue2(True)
+                    print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+                    retour2 = True
+                else :
+                    print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                    retour2 = False
+            if retour and retour2 :
                 return True
             else :
-                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
                 return False
         else :
-            print("Fichier absent :", fichier)
+            print("Fichier absent (non généré) :", fichier)
     # except SMTPAuthenticationError:
     #     print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
     except:
