@@ -1,3 +1,6 @@
+Travail du 14/10/23 :
+- ajout du pourcentage de VMA dans le diplôme, si pertinent.
+
 Travail du 13/10/23 :
 - checkbox implémentées pour les dispensés et absents. Il est désormais possible d'être dispensé et absent en même temps!
 Import fonctionnel, les statistiques considèreront avant tout le statut de dispensé.

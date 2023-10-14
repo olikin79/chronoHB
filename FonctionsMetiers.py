@@ -835,8 +835,11 @@ class Coureur():#persistent.Persistent):
         else :
             pourcVMA = "-"
         return pourcVMA
-    def vitesseFormateeAvecVMAtex(self) :
-        return self.vitesseFormateeAvecVMA().replace("%","\%")
+    def vitesseFormateeAvecVMAtex(self, retourALaLigne=False) :
+        retour = self.vitesseFormateeAvecVMA().replace("%","\%")
+        if retourALaLigne :
+            retour = retour.replace("(","\\\\(")
+        return retour
     def setRang(self, rang) :
         if int(rang) != self.rang :
             self.rang = int(rang)
