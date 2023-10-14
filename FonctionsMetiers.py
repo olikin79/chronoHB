@@ -838,7 +838,7 @@ class Coureur():#persistent.Persistent):
     def vitesseFormateeAvecVMAtex(self, retourALaLigne=False) :
         retour = self.vitesseFormateeAvecVMA().replace("%","\%")
         if retourALaLigne :
-            retour = retour.replace("(","\\\\(")
+            retour = retour.replace("(","\\\\").replace(")","")# sur le diplôme, on supprime les parenthèses et on met le % de VMA à la ligne.
         return retour
     def setRang(self, rang) :
         if int(rang) != self.rang :
