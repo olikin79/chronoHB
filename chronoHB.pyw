@@ -1052,7 +1052,7 @@ class ButtonBoxDossards(Frame):
             if os.path.exists(nomFichierGenere):
                 if windows() :
                     if imprimePDF(nomFichierGenere) :
-                        reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
+                        reponse = True # askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
                     else :
                         reponse = False
                 else :
