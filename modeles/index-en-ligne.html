@@ -6,7 +6,7 @@
 </head>
 <body>
 
-
+<h1> Choisir l'onglet de la course qui vous intéresse.</h1>
     <div class=tabs >
 	@@onglets@@
    </div>
@@ -54,12 +54,12 @@ function chrono(i){
                         sec = "0" + sec ;
                 }
 				// A décommenter plus tard pour la production
-				if (start.getDay() == end.getDay() && start.getMonth() == end.getMonth() && start.getYear() == end.getYear()) {
+				//if (start.getDay() == end.getDay() && start.getMonth() == end.getMonth() && start.getYear() == end.getYear()) {
 					document.getElementById("chronotime" + i.toString()).innerHTML = "(" + hr + ":" + min + ":" + sec + ")" ;
 					timerIDbis = setTimeout("chrono(" + i.toString() + ")", 900) ;
-				} else {
+				//} else {
 					document.getElementById("chronotime" + i.toString()).innerHTML = "" ;
-				}
+				//}
         }
 		
 function chronoStart(i){
@@ -97,8 +97,10 @@ function chargerStart(i){
 		dureesActualisation[i] = Math.min(120000,dureesActualisation[i]*2);
 	} else {
 		// la course a commencé, on augmente la fréquence d'actualisation tant que personne n'est arrivé
-		if (document.getElementById("conteneurGlobal"+i.toString()).textContent.length < 100) {
-			// le div est quasiment vide (titre + chrono), on actualise de plus en plus fréquemment pour ne pas rater les premiers.
+		console.debug("longueur du contenur:" + document.getElementById("conteneurGlobal"+i.toString()).textContent.length)
+		if (document.getElementById("conteneurGlobal"+i.toString()).textContent.length < 2000) {
+			// 2000 correspond à environ 50 participants.
+			// on actualise fréquemment au début pour les premiers.
 			dureesActualisation[i] = Math.max(5000,dureesActualisation[i]/2);
 		} else {
 			// sinon (si des arrivées), on diminue la fréquence d'actualisation jusqu'à 1 minutes si des changements réguliers.
@@ -106,7 +108,7 @@ function chargerStart(i){
 			if (contenuPrecedent == document.getElementById("conteneurGlobal"+i.toString()).textContent) { 
 				//$("#conteneurGlobal"+i.toString()).innerHTML) {
 				// plus de changement depuis la dernière actualisation.
-				dureesActualisation[i] = Math.min(300000,dureesActualisation[i]*2);
+				dureesActualisation[i] = Math.min(120000,dureesActualisation[i]*2);
 			} else {
 				// encore des changements récents, actualisation dans une minute.
 				dureesActualisation[i] = Math.min(60000,dureesActualisation[i]*2);
