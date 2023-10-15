@@ -54,12 +54,12 @@ function chrono(i){
                         sec = "0" + sec ;
                 }
 				// A décommenter plus tard pour la production
-				//if (start.getDay() == end.getDay() && start.getMonth() == end.getMonth() && start.getYear() == end.getYear()) {
+				if (start.getDay() == end.getDay() && start.getMonth() == end.getMonth() && start.getYear() == end.getYear()) {
 					document.getElementById("chronotime" + i.toString()).innerHTML = "(" + hr + ":" + min + ":" + sec + ")" ;
 					timerIDbis = setTimeout("chrono(" + i.toString() + ")", 900) ;
-				//} else {
-				//	document.getElementById("chronotime" + i.toString()).innerHTML = "" ;
-				//}
+				} else {
+					document.getElementById("chronotime" + i.toString()).innerHTML = "" ;
+				}
         }
 		
 function chronoStart(i){
