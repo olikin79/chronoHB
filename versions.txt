@@ -7,6 +7,7 @@ Travail du 15/10/23 :
 - le dossard du cross du collège doit comporter le groupement.
 - correctif pdf de statistiques non fonctionnel
 - correctif chronomètre non fonctionnel si course en cours.
+- correctif affichage challenge collège sur la TV : calculait avec le score UNSS même en mode cross HB
 
 
 Travail du 14/10/23 :

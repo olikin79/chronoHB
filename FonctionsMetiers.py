@@ -1240,7 +1240,10 @@ class EquipeClasse():
         self.listeCF = listeCF
         self.score = 0
         for c in listeCG + listeCF :
-            self.score += c.scoreUNSS
+            if Parametres["CategorieDAge"] == 0 :
+                self.score += c.rang
+            else:
+                self.score += c.scoreUNSS
         self.ponderation = ponderation
         if ponderation :
             self.score = self.score * Parametres["nbreDeCoureursPrisEnCompte"]*2/(len(listeCG) + len(listeCF))
@@ -1276,7 +1279,10 @@ class EquipeClasse():
     def listeDesRangs(self) :
         listeRangs = []
         for c in self.listeCG + self.listeCF :
-            listeRangs.append(c.scoreUNSS) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+            if Parametres['CategorieDAge'] == 0 :
+                listeRangs.append(c.rang)
+            else:
+                listeRangs.append(c.scoreUNSS) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
         return listeRangs.sort()
     def complet(self) :
         if Parametres["CategorieDAge"] == 2 :
@@ -3924,7 +3930,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             i += 1
         # on définit combien de coureurs appartiennent à un groupement.
         ### inutile car fait au fur et à mesure par groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
-    ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
+    ### ETAPE 3 : On traite les rangs dans les classes (pour le cross HB) ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
     keyList = []
     for nom in Resultats :
         keyList.append(nom)
@@ -3950,14 +3956,16 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
-        #print(keyList)
+        # print(keyList)
         for nom in keyList :
-            Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
             if Parametres["CategorieDAge"] == 0 :
                 challenge = nom[0]
+                #print(Resultats[nom])
+                # Resultats[nom] = triParScore(Resultats[nom])
             else :
                 challenge = nom[:2]
+                Resultats[nom] = triParScoreUNSS(Resultats[nom])
             # création du challenge pour ce niveau, si inexistant
             if challenge not in ResultatsGroupements :
                 ResultatsGroupements[challenge] = []
@@ -3968,7 +3976,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
                 if Parametres["ponderationAcceptee"] :
                     ResultatsGroupements[challenge].append(equ)
-                elif equ.complet :
+                elif equ.complet() :
+                    # print("ajout de l'équipe complète",equ.nom,"dans le challenge",challenge)
                     ResultatsGroupements[challenge].append(equ)
             elif Parametres["CategorieDAge"] == 2 :
                 Lequ = generateResultatsChallengeUNSS(nom, Resultats[nom])
@@ -4033,6 +4042,7 @@ def estSuperieur(d1, d2):
 
 def estSuperieurS(E1, E2):
     ''' on trie par EquipeClasse.score puis en fonction de listeDesRangs()'''
+    # print(E1, E2)
     if E1.score == 0 :
         # si le score est nul, c'est que le challenge n'est pas jouable pour cette équipe.
         return True
@@ -5392,6 +5402,7 @@ def estNomDeGroupement(nom):
     return nom in listNomsGroupements()
 
 def estChallenge(obj):
+    # print("est challenge", obj, isinstance(obj,str), "and", obj in listChallenges())
     return (isinstance(obj,str) and obj in listChallenges())
 
 def genereAffichageWWW(listeDesGroupements) :
