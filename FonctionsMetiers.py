@@ -2456,7 +2456,7 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
                 .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise).replace("@lettreCourse@",coureur.course)
     if CategorieDAge == 0 : # cas du cross du collège : seuls les noms de classe sont importants
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
-                       .replace("@groupement@","").replace("@etablissement@","")
+                       .replace("@groupement@",groupement).replace("@etablissement@","")
     elif CategorieDAge == 1 :
         if CoursesManuelles : # cas de courses personnalisées : trail Randon
             retour = modele.replace("@classe@","").replace("@categorie@","")\
@@ -6273,8 +6273,12 @@ def creerCoureur(listePerso, informations) :
     if "classe" in informations :
         try :
             clas = supprLF(infos["classe"])
+            # si la classe est un entier (comme au collège bourrillon), on vire la partie décimale
+            # print("classe:", clas)
+            if float(clas) == float(int(float(clas))) :
+                clas = str(int(float(clas)))
         except :
-            clas = ""
+            clas = supprLF(infos["classe"])
     if "licence" in informations or "n° licence" in informations  :
         try :
             lic = supprLF(infos["licence"])

@@ -18,11 +18,12 @@ Todolist pour le cross HB 2023 :
 - FAIT : absents dispenses cumulables
 - FAIT : VMA sur le diplome.
 - FAIT : suppression d'un dossard arrivé non fonctionnelle !
-- configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 - FAIT : les noms des catégories débordaient de l'affichage. Corrigé.
+- FAIT : les noms des classes ne devrait pas être des float
 
 URGENT :
-- les noms des classes ne devrait pas être des float
+- tester tous les boutons des interfaces pour vérifier le fonctionnement.
+- configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 
 
 Moins urgent :

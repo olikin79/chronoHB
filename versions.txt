@@ -2,6 +2,9 @@ Travail du 15/10/23 :
 - checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.
 - dépôt FTP automatisé.
 - sur le fichier des résultats en ligne : ne pas afficher le chronomètre quand la date est passée.
+- suppression de la boite de dialogue lors de l'impression d'un dossard individuel.
+- les classes importées sont des chaines de caractère (à Bourrillon) et non des float.
+- le dossard du cross du collège doit comporter le groupement.
 
 Travail du 14/10/23 :
 - ajout du pourcentage de VMA dans le diplôme, si pertinent.
