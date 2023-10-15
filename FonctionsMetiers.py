@@ -5404,12 +5404,13 @@ def genereAffichageWWW(listeDesGroupements) :
     ongletModele = """
     <div id=tab@@indicePartantDe1@@ > <a href="#tab@@indicePartantDe1@@">@@groupement@@</a>
 	  <div>
-		  <h2> @@groupementTitre@@ <span id='chronotime@@indicePartantDe0@@'></span></h2>
+		  <h2> @@groupementTitre@@ @@chronoSousCondition@@</h2>
 		  <div id="conteneurGlobal@@indicePartantDe0@@" >
 		  </div>
 	  </div>
      </div>
     """
+    # supprimé de la fin de h2> : 
     ## à remettre dans onglet modèle, à côté du titre du groupement : 
     ## affichage tab modèle
     tabModele = """
@@ -5429,7 +5430,8 @@ def genereAffichageWWW(listeDesGroupements) :
     i = 0
     for groupement in listeDesGroupements :
         chrono = not yATIlUCoureurArrive(groupement.nomStandard)
-        onglet = ongletModele.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
+        onglet = ongletModele.replace("@@chronoSousCondition@@","<span id='chronotime@@indicePartantDe0@@'></span>")
+        onglet = onglet.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
         # print(groupement.nomStandard)
         groupementNomStandard = groupement.nomStandard
         if estChallenge(groupement) :
@@ -5449,7 +5451,8 @@ def genereAffichageWWW(listeDesGroupements) :
         timerID.append(0)
         dureesActualisation.append(10000) # actualisation par défaut de 10 secondes. Varie ensuite selon le contexte.
         # création du fichier lié à l'onglet 
-        tableauComplet = genereEnTetesHTML(groupementNomStandard, chrono, avecFermetureTABLE=False) + genereTableauHTML(groupementNomStandard, chrono, avecOuvertureTABLE=False)
+        tableauComplet = genereEnTetesHTML(groupementNomStandard, chrono, avecFermetureTABLE=False) + genereTableauHTML(groupementNomStandard, chrono, avecOuvertureTABLE=False, affichageWWW=True)
+        tableauComplet.replace("Chronomètre actuel","")
         tabActuel = tabModele.replace("@@heureDepartGroupement@@",str(hdep)).replace("@@indicePartantDe0@@",str(i))\
             .replace("@@tableauCourse@@", tableauComplet)
         fichierTabActuel = "Affichage-tab" + str(i) + ".html"
@@ -5461,34 +5464,6 @@ def genereAffichageWWW(listeDesGroupements) :
     ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
     contenu = contenu.replace("@@onglets@@",onglets).replace("@@dureesActualisation@@", str(dureesActualisation))\
               .replace("@@heuresDeparts@@",str(heuresDeparts)).replace("@@timerID@@",str(timerID))
-    # TableauxHTML = []
-    # EnTetesHTML = []
-    # TitresHTML = []
-    # heuresDeparts = []
-    # for groupement in listeDesGroupements :
-    #     #print(groupement)
-    #     if yATIlUCoureurArrive(groupement) :
-    #         chrono = False
-    #     else :
-    #         chrono = True
-    #     if estChallenge(groupement) :
-    #         #print("C'est un challenge par niveau")
-    #         if Parametres["CategorieDAge"] == 2 :
-    #             TitresHTML.append( "<h2> Challenge entre les établissements : catégorie " + groupement + ". </h2><span id='chronotime'></span>" )
-    #         else :
-    #             TitresHTML.append( "<h2> Challenge entre les classes : niveau " + groupement + "ème. </h2><span id='chronotime'></span>" )
-    #     else :
-    #         nomGroupementAffiche = groupementAPartirDeSonNom(groupement, nomStandard=True).nom
-    #         if chrono :
-    #             TitresHTML.append( "<h2> Catégorie " + nomGroupementAffiche + "</h2>" )
-    #         else :
-    #             TitresHTML.append( "<h2> Catégorie " + nomGroupementAffiche + " ( <span id='chronotime'></span> )</h2>" )
-    #     TableauxHTML.append(genereTableauHTML(groupement, chrono))
-    #     EnTetesHTML.append(genereEnTetesHTML(groupement, chrono))
-    #     heuresDeparts.append(genereHeureDepartHTML(groupement))
-    # ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
-    # contenu = contenu.replace("@@tempsPause@@",str(Parametres["tempsPause"]))\
-    #           .replace("@@heuresDeparts@@",str(heuresDeparts))
     fichierIndex = "index-en-ligne.html"
     with open(fichierIndex,"w", encoding='utf8') as f :
         f.write(contenu)
@@ -5583,7 +5558,8 @@ def genereEnTetesHTML(groupement, chrono=False, avecFermetureTABLE = True) :
         tableau += '</table>'
     return tableau
 
-def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True) :
+def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True, affichageWWW=False) :
+    """numero indique quel doit être le nom du div chronotime : avec un numéro ou sans numéro."""
     tableau = ""
     if avecOuvertureTABLE :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'>"
@@ -5616,7 +5592,10 @@ def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True) :
             print("Impossible d'afficher le challenge vide sur la TV :",courseName)
     else :
         if chrono :
-            tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
+            if affichageWWW :
+                tableau += "<tr><td class='chronometre'> </td></tr>"
+            else :
+                tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
         else :
             Dossards = ResultatsGroupements[courseName]
             #print("ArriveeDossards",ArriveeDossards)

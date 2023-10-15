@@ -58,7 +58,7 @@ function chrono(i){
 					document.getElementById("chronotime" + i.toString()).innerHTML = "(" + hr + ":" + min + ":" + sec + ")" ;
 					timerIDbis = setTimeout("chrono(" + i.toString() + ")", 900) ;
 				//} else {
-					document.getElementById("chronotime" + i.toString()).innerHTML = "" ;
+					//document.getElementById("chronotime" + i.toString()).innerHTML = "" ;
 				//}
         }
 		
@@ -68,7 +68,7 @@ function chronoStart(i){
 				var idChrono = "chronotime"+ i.toString() ;
                 if (chronometres[i][0] == 0) {
                     // c'est une course qui n'a pas commencé
-                    document.getElementById(idChrono).innerHTML = "00:00:00";
+                    document.getElementById(idChrono).innerHTML = "(00:00:00)";
 					document.getElementById(idChrono).style.display = "line" ;
                 }
                 else {
