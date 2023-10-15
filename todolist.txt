@@ -25,8 +25,8 @@ URGENT :
 - tester tous les boutons des interfaces pour vérifier le fonctionnement.
 	- challenges non fonctionnels ?
 	- suppression des dossards depuis l'interface non effective ?
-	- pdf de statistiques non fonctionnel
-	- chronomètre non fonctionnel si course en cours.
+	- FAIT : pdf de statistiques non fonctionnel
+	- FAIT : chronomètre non fonctionnel si course en cours.
 - arrondi de la vitesse à l'unité (pour gagner de la place)
 - configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 

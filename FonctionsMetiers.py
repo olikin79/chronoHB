@@ -3004,27 +3004,27 @@ def generateImpressions() :
         denomination = "Categorie"
     if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
-        enTeteDesStatistiquesParCategories = """\textbf{Statistiques par @categorie@ :}
+        enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
-\begin{center}
-\begin{tabular}{|*{11}{c|}}
+\\begin{center}
+\\begin{tabular}{|*{11}{c|}}
 \hline
 
-\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{@categorie@ }}}
+\multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{@categorie@ }}}
   & 
-  \multicolumn{2}{|c|}{\textbf{Arrivés} } 
+  \multicolumn{2}{|c|}{\\textbf{Arrivés} } 
   & 
-  \multicolumn{2}{|c|}{\textbf{Dispensés} }
+  \multicolumn{2}{|c|}{\\textbf{Dispensés} }
   & 
-  \multicolumn{2}{|c|}{\textbf{Absents} }
+  \multicolumn{2}{|c|}{\\textbf{Absents} }
   & 
-  \multicolumn{2}{|c|}{\textbf{Abandons} }
-  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Moyenne}}} 
-  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Médiane}}} \\
+  \multicolumn{2}{|c|}{\\textbf{Abandons} }
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Moyenne}}} 
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Médiane}}} \\\\
   \cline{2-9}
 \multicolumn{1}{|c|}{} & F & G & F & G &F & G &F & G & \multicolumn{1}{|c|}{} & \multicolumn{1}{|c|}{}
- \\
-\hline"""
+ \\\\
+\hline""".replace("@categorie@", "Classes" if Parametres["CategorieDAge"] == 0 else "Catégories")
         fstats.write(enTeteDesStatistiquesParCategories)
         for classe in Resultats :  # doute lors d'une fusion manuelle de deux branches. Est ce "for classe in ResultatsPourImpressions:" ?
             #print(classe,"est traité pour création tex", Resultats[classe])
