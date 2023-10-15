@@ -14,15 +14,22 @@ Todolist pour le cross HB 2023 :
 - FAIT : le temps sur le diplome s'affichera en min:sec et non en HH:MM:SS.
 - FAIT envoi programmé pour les deux adresses si présentes.
 - FAIT envoi des emails depuis deux adresses google.
-- depot vers serveur sftp
-- COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
-- deplacer les fichiers du serveur web dans www
+- FAIT : depot vers serveur sftp
 - FAIT : absents dispenses cumulables
 - FAIT : VMA sur le diplome.
 - FAIT : suppression d'un dossard arrivé non fonctionnelle !
 - configurer la borne wifi pour étendre le réseau lax de mon téléphone.
-- les noms standards des catégories devraient être utilisés pour lancer les courses (afin de ne pas déborder)
+- FAIT : les noms des catégories débordaient de l'affichage. Corrigé.
 
+URGENT :
+- les noms des classes ne devrait pas être des float
+
+
+Moins urgent :
+- COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
+- deplacer les fichiers du serveur web dans www
+- nouveaux paramètres à ajouter dans l'interface : FTP, diplômes, etc...
+- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
 
 Dès que possible : 
 - bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.

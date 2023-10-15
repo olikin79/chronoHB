@@ -1,3 +1,7 @@
+Travail du 15/10/23 :
+- checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.
+- dépôt FTP automatisé.
+
 Travail du 14/10/23 :
 - ajout du pourcentage de VMA dans le diplôme, si pertinent.
 - correctif comptage du nombre d'emails envoyés vers email et vers email2.

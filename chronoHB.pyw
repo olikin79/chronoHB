@@ -941,11 +941,13 @@ class Checkbar(Frame):
         self.vars = []
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
-        if len(picks) > 7 :
-            # coupe en deux à partir de 8
-            moitie = len(picks)//2 -1
-        else :
-            moitie = 20 # on ne coupe pas !
+        # désormais, on coupe tous les quatre et on ajoute autant de lignes que nécessaire
+        # if len(picks) > 7 :
+        #     # coupe en deux à partir de 8
+        #     moitie = len(picks)//2 -1
+        # else :
+        #     moitie = 20 # on ne coupe pas !
+        seuil = 0 # valeur de i//4 à partir de laquelle on ajoute une nouvelle ligne
         i = 0
         for pick in picks:
             if i < len(self.listeAffichageTV) and self.listeAffichageTV[i] :
@@ -956,12 +958,14 @@ class Checkbar(Frame):
             self.checkbuttons.append(chk)
             if self.vertical :
                 chk.pack(anchor=self.anchor, expand=YES) # à la verticale
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             else :
                 chk.pack(side=self.side, anchor=self.anchor, expand=YES)# côte à côte
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             self.vars.append(var)
             i+=1
         for fr in self.fr :
@@ -1001,9 +1005,9 @@ class CheckboxAbsDisp(Frame):
         nomAffiche = coureur.nom + " " + coureur.prenom
         self.lbl = Label(self, text=nomAffiche)
         #self.checkbuttons.append(chk)
-        self.lbl.pack(side=LEFT)
         self.checkbuttonAbs.pack(side=LEFT) # à la verticale
         self.checkbuttonDisp.pack(side=LEFT)
+        self.lbl.pack(side=LEFT)
         
 
 class ComboboxAbsDisp(Frame):
@@ -2710,6 +2714,24 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
 ##    else :
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
+tagDepotFTPEnCours = False
+
+def depotFTPResultats():
+    """Dépose les fichiers de résultats sur serveur FTP en initiant un thread"""
+    global tagDepotFTPEnCours
+    if not tagDepotFTPEnCours :
+        tagDepotFTPEnCours = True
+        if DEBUG :
+            print("Début de dépôt FTP automatique...")
+        mon_thread = Thread(target=depotFTPResultatsSansMessage)
+        mon_thread.start()
+
+def depotFTPResultatsSansMessage():
+    """Dépose les résultats sur le serveur FTP sans afficher de message de fin
+    Exécuté dans un thread"""
+    global tagDepotFTPEnCours
+    ActualiseAffichageInternet()
+    tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
     """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
@@ -2840,7 +2862,7 @@ class Clock():
         if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
-            ActualiseAffichageInternet()
+            depotFTPResultats() # exécute le dépot FTP dans un thread.
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
