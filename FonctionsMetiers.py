@@ -3232,7 +3232,7 @@ def generateImpressions() :
         listeChallenges = listChallenges()
         #print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
-            #print(ResultatsGroupements[challenge])
+            print(ResultatsGroupements[challenge])
             try :
                 if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
                     print("Création du fichier du challenge", challenge)
@@ -5642,6 +5642,8 @@ def creerFichierChallenge(challenge, entete):
         challengeNomAffiche = "minimes"
     elif challenge == "BE" :
         challengeNomAffiche = "benjamin(e)s"
+    else :
+        challengeNomAffiche = challenge
         
     titre = "{\\Large {} \\hfill Challenge " + challengeNomAffiche
     if Parametres["CategorieDAge"] == 0 :
@@ -5661,7 +5663,7 @@ def creerFichierChallenge(challenge, entete):
     i = 0
     while i < len(ResultatsGroupements[challenge]) :
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
-        score = ResultatsGroupements[challenge][i].score
+        # score = ResultatsGroupements[challenge][i].score
         classe = ResultatsGroupements[challenge][i].nom
         if CategorieDAge == 2 : ## pour l'UNSS , on ajoute le numéro d'établissement
             L = ResultatsGroupements[challenge][i].listeCG + ResultatsGroupements[challenge][i].listeCF
@@ -5671,7 +5673,7 @@ def creerFichierChallenge(challenge, entete):
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
         #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
-        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-2em}\\begin{center} "+ classe +"\\end{center}&  "
+        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-1em}\\begin{center} "+ classe +"\\end{center}&  "
         tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
         #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
         tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
