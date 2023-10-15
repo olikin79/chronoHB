@@ -19,12 +19,15 @@ def deposePagesHTMLInternet(liste) :
     print("Dépôt des pages générées sur internet :", liste)
     dossierWWW = Parametres["FTPdir"] # dossier sur le serveur FTP ou SFTP
     with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp :
+        # Change directory to the remote directory where the file is located
+        # if not dossierWWW in ftp.dir() :
+        #     ftp.mkd(dossierWWW)
+        ftp.cwd(dossierWWW)
         for file in liste :
-            # if not dossierWWW in ftp.dir() :
-            #     ftp.mkd(dossierWWW)
-            # Change directory to the remote directory where the file is located
-            ftp.cwd(dossierWWW)
+            
             ftp.storbinary('STOR '+file, open(file, 'rb'))
+            if DEBUG :
+                print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
         ftp.close()
         # cnopts = pysftp.CnOpts()
         # cnopts.hostkeys = None
