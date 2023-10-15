@@ -5428,7 +5428,7 @@ def genereAffichageWWW(listeDesGroupements) :
     dureesActualisation = []
     i = 0
     for groupement in listeDesGroupements :
-        chrono = yATIlUCoureurArrive(groupement.nomStandard)
+        chrono = not yATIlUCoureurArrive(groupement.nomStandard)
         onglet = ongletModele.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
         # print(groupement.nomStandard)
         groupementNomStandard = groupement.nomStandard
