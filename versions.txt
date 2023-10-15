@@ -9,6 +9,7 @@ Travail du 15/10/23 :
 - correctif chronomètre non fonctionnel si course en cours.
 - correctif affichage challenge collège sur la TV : calculait avec le score UNSS même en mode cross HB
 - correctif pdf généré pour le challenge du cross HB.
+- Vitesse finalement arrondie à l'entier le plus proche en km/h
 
 
 Travail du 14/10/23 :

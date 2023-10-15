@@ -28,7 +28,7 @@ URGENT :
 	- dans le pdf d'une classe, remettre le tri alphabétique.
 	- FAIT : pdf de statistiques non fonctionnel
 	- FAIT : chronomètre non fonctionnel si course en cours.
-- arrondi de la vitesse à l'unité (pour gagner de la place)
+- FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
 - configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 
 

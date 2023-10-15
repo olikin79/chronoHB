@@ -821,11 +821,12 @@ class Coureur():#persistent.Persistent):
         else :
             ch = "Pas de temps"
         return ch
-    def vitesseFormatee(self) :
-        if self.vitesse >=100 :
-            ch = str(int(self.vitesse)) + " km/h"
-        else :
-            ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
+    def vitesseFormatee(self) : 
+        """Vitesse finalement arrondie à l'entier le plus proche en km/h"""
+        # if self.vitesse >=10 :
+        ch = str(round(self.vitesse)) + " km/h"
+        # else :
+        #     ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
         return ch
     def vitesseFormateeAvecVMA(self) :
         if self.VMA and self.VMA > self.vitesse :
