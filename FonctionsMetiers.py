@@ -5740,16 +5740,18 @@ def creerFichierClasse(nom, entete, estGroupement):
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Catégorie " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
-        Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
         #print("Dossards du groupement :",Dossards)
         rangCourse = False
         if Parametres["CategorieDAge"] == 2 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = True
             garderAbsDispAbandons = True
         elif Parametres["CategorieDAge"] == 1 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = True
             garderAbsDispAbandons = False
         else :
+            Dossards = triParNomPrenom(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = False
             garderAbsDispAbandons = False
     else :

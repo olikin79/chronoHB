@@ -23,9 +23,9 @@ Todolist pour le cross HB 2023 :
 
 URGENT :
 - tester tous les boutons des interfaces pour vérifier le fonctionnement.
-	- challenges non fonctionnels ?
+	- FAIT : challenges non fonctionnels ?
 	- suppression des dossards depuis l'interface non effective ?
-	- dans le pdf d'une classe, remettre le tri alphabétique.
+	- FAIT : dans le pdf d'une classe, remettre le tri alphabétique.
 	- FAIT : pdf de statistiques non fonctionnel
 	- FAIT : chronomètre non fonctionnel si course en cours.
 - FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
