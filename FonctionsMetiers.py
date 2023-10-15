@@ -2198,6 +2198,7 @@ def listChallenges():
                     NomDuChallenge = "LG"
                 if NomDuChallenge not in retour :
                     retour.append(NomDuChallenge)
+    # print("liste des challenges", retour)
     return retour
 
 def listCoursesEtChallenges():
@@ -2207,11 +2208,12 @@ def listCoursesEtChallenges():
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
             retour.append(Courses[cat].categorie)
-        if not Parametres["CategorieDAge"] :
-            for cat in retour :
-                NomDuChallenge = cat[0]
-                if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
-                    retour.append(NomDuChallenge)
+        retour += listChallenges()
+        # if not Parametres["CategorieDAge"] :
+        #     for cat in retour :
+        #         NomDuChallenge = cat[0]
+        #         if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
+        #             retour.append(NomDuChallenge)
     return retour
     ##transaction.commit()
 
