@@ -25,6 +25,7 @@ URGENT :
 - tester tous les boutons des interfaces pour vérifier le fonctionnement.
 	- FAIT : challenges non fonctionnels ?
 	- suppression des dossards depuis l'interface non effective ?
+	- cases absents-dispensés à la verticale.
 	- FAIT : dans le pdf d'une classe, remettre le tri alphabétique.
 	- FAIT : pdf de statistiques non fonctionnel
 	- FAIT : chronomètre non fonctionnel si course en cours.

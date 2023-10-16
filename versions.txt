@@ -1,3 +1,7 @@
+Travail du 16/10/23 :
+- checkbox pour absents dispensés, placées à la verticale + ajout d'un cadre autour de chaque frame afin de bien distinguer les cases pour chaque coureur.
+
+
 Travail du 15/10/23 :
 - checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.
 - dépôt FTP automatisé.

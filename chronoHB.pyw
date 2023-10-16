@@ -976,8 +976,10 @@ class Checkbar(Frame):
 
 class CheckboxAbsDisp(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
-        Frame.__init__(self, parent)
+        Frame.__init__(self, parent, relief=GROOVE, borderwidth=2)
         # self.combobox = Combobox(self, width=5, values=('','Abs','Disp'))
+        # self.relief=GROOVE
+        # self.borderwidth=2
         self.varAbs = IntVar()
         self.varDisp = IntVar()
         if coureur.absent :
@@ -999,14 +1001,17 @@ class CheckboxAbsDisp(Frame):
                 self.coureur.setDispense(True)
             else :
                 self.coureur.setDispense(False)
-        self.checkbuttonAbs = Checkbutton(self, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
-        self.checkbuttonDisp = Checkbutton(self, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
+        self.frameConteneurCheckBox = Frame(self)
+        self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
+        self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
         self.coureur = coureur
         nomAffiche = coureur.nom + " " + coureur.prenom
         self.lbl = Label(self, text=nomAffiche)
+
         #self.checkbuttons.append(chk)
-        self.checkbuttonAbs.pack(side=LEFT) # à la verticale
-        self.checkbuttonDisp.pack(side=LEFT)
+        self.frameConteneurCheckBox.pack(side=LEFT) # à la verticale
+        self.checkbuttonAbs.pack(side=TOP) # à la verticale
+        self.checkbuttonDisp.pack(side=TOP)
         self.lbl.pack(side=LEFT)
         
 
@@ -1373,8 +1378,8 @@ class Combobar(ScrollFrame):
             frm = Frame(self.fr[-1])
             self.combos.append(CheckboxAbsDisp(pick, frm))
             chk = self.combos[-1]
-            chk.pack()
-            frm.pack(side=TOP, anchor=W, padx=3, pady=3)
+            chk.pack(anchor=W,fill=BOTH, expand=YES)
+            frm.pack(side=TOP, anchor=W, padx=3, pady=3, fill=BOTH, expand=YES)
             if i in IndicesDesChangementsDeColonne :
                 self.fr.append(Frame(self))
             self.vars.append(var)
