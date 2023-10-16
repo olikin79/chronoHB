@@ -775,6 +775,8 @@ class Coureur():#persistent.Persistent):
             self.vitesse = distance *3600 / self.temps
         else :
             self.vitesse = 0
+            self.setRang(0)
+            self.setRangCat(0)
     def tempsHMS(self) :
         # réglement FFA , arrondir à la seconde supérieure.
         if self.temps - int(self.temps) == 0 : # cas rarissime où il n'y a pas de partie décimale
@@ -5131,6 +5133,8 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
             if formateDossardNG(ArriveeDossards[0]) == doss :
                 # on supprime le premier élément de la liste.
                 print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
+                Coureurs.recuperer(doss).setTemps(0)
+                Parametres["calculateAll"] = True
                 ArriveeDossards.pop(0)
                 retour = Erreur(0)
             else :
@@ -5146,6 +5150,8 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 if formateDossardNG(ArriveeDossards[i]) == doss and formateDossardNG(ArriveeDossards[i-1]) == dossardPrec :
                     # suppression de l'élément i de la liste.
                     print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
+                    Coureurs.recuperer(doss).setTemps(0)
+                    Parametres["calculateAll"] = True
                     ArriveeDossards.pop(i)
                     pasTrouve = False
                 i += 1

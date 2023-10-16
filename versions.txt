@@ -2,6 +2,8 @@ Travail du 16/10/23 :
 - checkbox pour absents dispensés, placées à la verticale + ajout d'un cadre autour de chaque frame afin de bien distinguer les cases pour chaque coureur.
 - correctif dans le combobox des diplômes. Le nom du diplome paramétré était celui du dossard. Méchant copier-coller... Corrigé.
 - création d'un menu "Auto-envoi d'un diplôme de test du coureur sélectionné".
+- Lors de la suppression d'un dossard avec l'interface, cela ne remettait pas à 0 les temps, rangs du coureur. Cela créait un décalage dans les rangs des autres coureurs. Corrigé
+
 
 Travail du 15/10/23 :
 - checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.

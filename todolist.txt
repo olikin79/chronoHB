@@ -30,7 +30,7 @@ URGENT :
 	- FAIT : pdf de statistiques non fonctionnel
 	- FAIT : chronomètre non fonctionnel si course en cours.
 	- FAIT : possibilité de s'envoyer un diplome de test via le menu.
-	- ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
+	- FAIT : ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
 - FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
 - FAIT : configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 
@@ -71,8 +71,7 @@ Si un jour, j'ai du temps, autant supprimer ce problème.
 - bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
 A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
 la permutation est souhaitée. Cela fonctionne dans l'autre sens.
-- si un coureur est scanné à l'arrivée, qu'un temps et qu'un rang lui sont affectés.
-Lors de la suppression de ce dossard avec l'interface, cela ne remet pas à 0 les temps, rangs du coureur...
+
 
 
 Fonctionnalités :
