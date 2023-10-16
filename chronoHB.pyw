@@ -1996,6 +1996,21 @@ def supprimerDossardAction() :
         reponse = showinfo("ERREUR",message)
     supprimerDossardButton.configure(state=NORMAL)
 
+def envoiEmailDeTest() :
+    """Envoi un email avec le diplome du coureur sélectionné à l'expéditeur des emails présent dans Parametres["email"] à l'aide de la fonction envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest()"""
+    dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
+    if dossard :
+        print("Envoi d'un email de test pour le dossard", dossard)
+        coureur = Coureurs.recuperer(dossard)
+        if envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
+            message = "Diplôme de test envoyé à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("INFORMATION",message)
+        else :
+            message = "Erreur lors de l'envoi du diplôme de test à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("ERREUR",message)
+    else :
+        message = "Aucun dossard sélectionné dans le tableau."
+        reponse = showinfo("ERREUR",message)
         
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
@@ -4292,7 +4307,7 @@ for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
 files = tuple(files)
 ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
 ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-ModeleDeDiplomeCombo.set(dossardModele)
+ModeleDeDiplomeCombo.set(diplomeModele)
 ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
 actualiseCanvasModeleDiplome("")
 
@@ -4424,6 +4439,7 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
+postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTest)
 postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)

@@ -26,8 +26,8 @@ def deposePagesHTMLInternet(liste) :
         for file in liste :
             
             ftp.storbinary('STOR '+file, open(file, 'rb'))
-            if DEBUG :
-                print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
+            # if DEBUG :
+            #     print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
         ftp.close()
         # cnopts = pysftp.CnOpts()
         # cnopts.hostkeys = None

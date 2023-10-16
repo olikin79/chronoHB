@@ -24,13 +24,15 @@ Todolist pour le cross HB 2023 :
 URGENT :
 - tester tous les boutons des interfaces pour vérifier le fonctionnement.
 	- FAIT : challenges non fonctionnels ?
-	- suppression des dossards depuis l'interface non effective ?
-	- cases absents-dispensés à la verticale.
+	- FAIT : suppression des dossards depuis l'interface non effective. Fonctionnel.
+	- FAIT : cases absents-dispensés à la verticale.
 	- FAIT : dans le pdf d'une classe, remettre le tri alphabétique.
 	- FAIT : pdf de statistiques non fonctionnel
 	- FAIT : chronomètre non fonctionnel si course en cours.
+	- FAIT : possibilité de s'envoyer un diplome de test via le menu.
+	- ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
 - FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
-- configurer la borne wifi pour étendre le réseau lax de mon téléphone.
+- FAIT : configurer la borne wifi pour étendre le réseau lax de mon téléphone.
 
 
 Moins urgent :
@@ -63,6 +65,15 @@ Bugs détectés :
 - le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
 Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemple pour les noms de course personnalisés.
 - (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
+- l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
+Le serveur la traite comme un doublon grace à l'UID unique lié à la communication. Cela n'a donc aucune incidence en pratique.
+Si un jour, j'ai du temps, autant supprimer ce problème.
+- bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
+A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
+la permutation est souhaitée. Cela fonctionne dans l'autre sens.
+- si un coureur est scanné à l'arrivée, qu'un temps et qu'un rang lui sont affectés.
+Lors de la suppression de ce dossard avec l'interface, cela ne remet pas à 0 les temps, rangs du coureur...
+
 
 Fonctionnalités :
 - ajouter les paramètres généraux, déjà documentés : 

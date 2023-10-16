@@ -3,6 +3,7 @@ from redmail import EmailSender, gmail
 
 from resultatsDiffusionIdentifiants import *
 import os
+from copy import deepcopy
 
 from FonctionsMetiers import *
 
@@ -92,6 +93,23 @@ def genereDiplome(modele, coureur, nomModele) :
                 os.remove("resultats/" + coureur.dossard + "." + ext)
     else :
         print("Le fichier",fichier,"n'a pas été généré")
+
+def envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
+    nomModele = Parametres["diplomeModele"]
+    modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
+    #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
+    with open(modeleDiplome , 'r') as f :
+        modele = f.read()
+    f.close()
+    genereDiplome(modele, coureur, nomModele)
+    ctmp = deepcopy(coureur)
+    # c = Coureur(coureur.nom,coureur.prenom,coureur.sexe,coureur.dossard, coureur.classe, coureur.naissance, coureur...)
+    listeDesEmails = Parametres["email"].split(";")
+    if listeDesEmails :
+        ctmp.setEmail(listeDesEmails[0])
+        if len(listeDesEmails) > 1 :
+            ctmp.setEmail2(listeDesEmails[1])
+    return envoiDiplomeParMail(ctmp)
 
 def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
     ''' diffuse les diplomes non encore envoyés aux coureurs '''
