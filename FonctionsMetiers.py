@@ -376,7 +376,7 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if cle in self.cles() and indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
-        if retour :
+        if DEBUG :
             print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
@@ -1921,8 +1921,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
     action = listeAction[1]
-    dossard = str(listeAction[2])
-    if dossard != "0" and dossard != "-1" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+    dossard = formateDossardNG(str(listeAction[2]))
+    if dossard != "-1A" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
@@ -1974,7 +1974,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)
     elif listeAction[0] =="dossard" :
-        dossardPrecedent = str(listeAction[3])
+        dossardPrecedent = formateDossardNG(str(listeAction[3]))
         try :
             uid = int(listeAction[4])
         except :
@@ -2001,6 +2001,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     else :
         print("Type d'action venant du smartphone incorrecte", ligne)
         retour = Erreur(301)
+    # print("ligne", ligne, "\nretour", retour.numero, retour.description)
+    # Parametres["calculateAll"] = True
     #print('Parametres["calculateAll"] après decodeAction... : ',Parametres["calculateAll"])
     return retour
 
@@ -4888,7 +4890,7 @@ def calculeTousLesTemps(reinitialise = False):
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
     #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
-        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        # print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
@@ -5125,8 +5127,8 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
                 print(message)
                 retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
-        elif dossardPrecedent == "0A" or dossardPrecedent == "0" : # le dossard à supprimer est le premier de la liste, normalement.
-            if ArriveeDossards[0] == doss :
+        elif formateDossardNG(dossardPrecedent) == "0A" : # le dossard à supprimer est le premier de la liste, normalement.
+            if formateDossardNG(ArriveeDossards[0]) == doss :
                 # on supprime le premier élément de la liste.
                 print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
                 ArriveeDossards.pop(0)
@@ -5141,7 +5143,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
             pasTrouve = True
             while i < len(ArriveeDossards) and pasTrouve: 
                 #print(ArriveeDossards[i]," == ",doss," and ",ArriveeDossards[i-1]," == ",dossardPrec)
-                if ArriveeDossards[i] == doss and ArriveeDossards[i-1] == dossardPrec :
+                if formateDossardNG(ArriveeDossards[i]) == doss and formateDossardNG(ArriveeDossards[i-1]) == dossardPrec :
                     # suppression de l'élément i de la liste.
                     print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
                     ArriveeDossards.pop(i)
