@@ -21,7 +21,6 @@ Todolist pour le cross HB 2023 :
 - FAIT : les noms des catégories débordaient de l'affichage. Corrigé.
 - FAIT : les noms des classes ne devrait pas être des float
 
-URGENT :
 - tester tous les boutons des interfaces pour vérifier le fonctionnement.
 	- FAIT : challenges non fonctionnels ?
 	- FAIT : suppression des dossards depuis l'interface non effective. Fonctionnel.
@@ -31,8 +30,11 @@ URGENT :
 	- FAIT : chronomètre non fonctionnel si course en cours.
 	- FAIT : possibilité de s'envoyer un diplome de test via le menu.
 	- FAIT : ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
+	- FAIT : le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
 - FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
 - FAIT : configurer la borne wifi pour étendre le réseau lax de mon téléphone.
+- FAIT : l'accès HTTP aux pages synology.me ne semble pas fonctionner sur safari.
+- élève en plus à créer Julien Mezy 6ème G => imprimer dossard.
 
 
 Moins urgent :

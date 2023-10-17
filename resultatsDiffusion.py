@@ -35,7 +35,7 @@ def replaceDansDiplomeEnFonctionDesResultats(modele, coureur, nomModele) :
     #print(coureur.nom,nomCourse)
     temps = coureur.tempsHMS()
     dateDuTrail = Courses[coureur.course].dateFormatee()
-    nbreTotal = str(groupement.nombreDeCoureursTotal)
+    nbreTotal = str(Coureurs.getTotalDeLaCourse(coureur)) # str(groupement.nombreDeCoureursTotal)
     nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
     rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
     fondDiplome = nomModele + ".jpg" ### pour l'instant le fond utilisé a le même nom que le dossard utilisé.

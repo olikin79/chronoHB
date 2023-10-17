@@ -1,3 +1,7 @@
+Travail du 17/10/23 :
+- le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
+
+
 Travail du 16/10/23 :
 - checkbox pour absents dispensés, placées à la verticale + ajout d'un cadre autour de chaque frame afin de bien distinguer les cases pour chaque coureur.
 - correctif dans le combobox des diplômes. Le nom du diplome paramétré était celui du dossard. Méchant copier-coller... Corrigé.

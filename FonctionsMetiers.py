@@ -273,8 +273,25 @@ class DictionnaireDeCoureurs(dict) :
             self.nombreDeCoureursParSexe[0] += evolution
         if Parametres["CategorieDAge"] > 0 :
             incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
-    def getTotalParCategorie(self,catFFA, sexe):
-        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
+    # def getTotalParCategorie(self,catFFA, sexe):
+    #     return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
+    def getTotalDeLaCourse(self, coureur) :
+        """Retoune le nombre total de coureurs de la course du coureur fourni."""
+        total = 0
+        course = coureur.categorie(Parametres["CategorieDAge"])
+        # if Parametres["CategorieDAge"] == 0 : # cross du collège
+        if Parametres["CoursesManuelles"] : # courses manuelles activées
+            print("ATTENTION : à implémenter total de la course en mode manuel")
+        else :
+            for c in self.liste() :
+                print("Coureur", c.nom, "examiné", c.categorie(Parametres["CategorieDAge"]) )
+                if c.categorie(Parametres["CategorieDAge"]) == course and (not c.absent) and (not c.dispense):
+                    total += 1
+            print("catégorie cherchée :", course , "total", total)
+        return total
+        # else :
+        #     else :
+        #         print("ATTENTION : à implémenter total de la course en mode automatique")
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
         # actualiser les dossards de tous les coureurs déjà présents 
