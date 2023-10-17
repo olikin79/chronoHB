@@ -148,9 +148,10 @@ div.tabs {
   min-height: 7em;		/* No height: can grow if :target doesn't work */
   position: sticky;
   top: 10px;		/* Establish a containing block */
-  line-height: 1;		/* Easier to calculate with */
+  line-height: 1.5;		/* gestion du menu sur deux lignes */
   z-index: 0}			/* So that we can put other things behind */
 div.tabs > div {
+  line-height: 1;		/* Easier to calculate with */
   display: inline}		/* We want the buttons all on one line */
 div.tabs > div > a {
   color: black;			/* Looks more like a button than a link */
