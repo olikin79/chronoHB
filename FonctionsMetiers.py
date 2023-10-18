@@ -6014,34 +6014,36 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "") :
     # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
     # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
     # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
-    correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
-    try :
-        anneeNaissance = int(anneeNaissance)
-        currentDateTime = datetime.datetime.now()
-        date = currentDateTime.date()
-        year = currentDateTime.year
-        if currentDateTime.month > 8 :
-            #changement d'année sportive au premier septembre.
-            year += 1
-        ecart2022 = year - 2022
-        anneeCherchee = anneeNaissance - ecart2022
-        i = 0
-        continuer = True
-        while i< len(correspondanceAnneeCategories) and continuer :
-            if anneeCherchee <= correspondanceAnneeCategories[i][0] :
-                continuer = False
-                categorie = correspondanceAnneeCategories[i][1]
-            i += 1
-        # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
-        if Parametres["CategorieDAge"] == 2 :
-            if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
-                categorie = "MI"
-            elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
-                categorie = "CA"
-        return categorie
-    except :
-        print("argument fourni incorrect : pas au format nombre entier")
-        return ""
+    categorie = ""
+    if CategorieDAge :
+        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
+        try :
+            anneeNaissance = int(anneeNaissance)
+            currentDateTime = datetime.datetime.now()
+            date = currentDateTime.date()
+            year = currentDateTime.year
+            if currentDateTime.month > 8 :
+                #changement d'année sportive au premier septembre.
+                year += 1
+            ecart2022 = year - 2022
+            anneeCherchee = anneeNaissance - ecart2022
+            i = 0
+            continuer = True
+            while i< len(correspondanceAnneeCategories) and continuer :
+                if anneeCherchee <= correspondanceAnneeCategories[i][0] :
+                    continuer = False
+                    categorie = correspondanceAnneeCategories[i][1]
+                i += 1
+            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
+            if Parametres["CategorieDAge"] == 2 :
+                if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
+                    categorie = "MI"
+                elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
+                    categorie = "CA"
+            # return categorie
+        except :
+            print("argument fourni incorrect : pas au format nombre entier")
+    return categorie
 
 #print(categorieAthletisme(2003))
 
