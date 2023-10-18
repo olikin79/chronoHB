@@ -34,7 +34,7 @@ from maj import *
 #import git
 
 
-version="1.8"
+version="1.9"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :

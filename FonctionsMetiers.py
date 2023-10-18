@@ -29,7 +29,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = True
 
-version = "1.8"
+version = "1.9"
 
 LOGDIR="logs"
 
@@ -222,6 +222,7 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
     for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
         # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
         ## tester d'abord si la catégorie existe dans la liste.
+        rangDansCategorie = 0
         present = False
         for el in L :
             if el[0] == catFFA:
@@ -5776,7 +5777,7 @@ def creerFichierClasse(nom, entete, estGroupement):
             garderAbandons = True
             garderAbsDispAbandons = False
         else :
-            Dossards = triParNomPrenom(ResultatsGroupementsPourImpressions[nom])
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = False
             garderAbsDispAbandons = False
     else :
