@@ -1,5 +1,7 @@
 Travail du 18/10/23 :
 - Correctif DecompteParCategorieDAge() + tri par temps des courses du cross.
+- Taille des caractères pour saisie des absents dispensés augmentée uniquement pour le cross du collège.
+- 
 
 
 Travail du 17/10/23 :

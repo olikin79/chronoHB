@@ -1005,13 +1005,20 @@ class CheckboxAbsDisp(Frame):
         self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
         self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
         self.coureur = coureur
-        nomAffiche = coureur.nom + " " + coureur.prenom
+        nomAffiche = coureur.nom.upper() + " " + coureur.prenom
+        if Parametres["CategorieDAge"] :
+            f = font.Font(weight="bold",size=11)
+        else :
+            f = font.Font(weight="bold",size=14)
         self.lbl = Label(self, text=nomAffiche)
+        self.lbl['font'] = f
+        self.checkbuttonAbs['font'] = f
+        self.checkbuttonDisp['font'] = f
 
         #self.checkbuttons.append(chk)
         self.frameConteneurCheckBox.pack(side=LEFT) # à la verticale
-        self.checkbuttonAbs.pack(side=TOP) # à la verticale
-        self.checkbuttonDisp.pack(side=TOP)
+        self.checkbuttonAbs.pack(side=LEFT) # à la verticale ou pas ?
+        self.checkbuttonDisp.pack(side=LEFT)
         self.lbl.pack(side=LEFT)
         
 
@@ -1657,7 +1664,10 @@ class AbsDispFrame(Frame) :
         self.choixClasseCombo = Combobox(self.parent, width=45, justify="center", state='readonly')
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
-        self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        if Parametres["CategorieDAge"] :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        else :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True, nombreColonnes=3)
         self.TopDepartLabel = Label(self.parent)
         self.TopDepartLabel.pack(side=TOP)
         self.actualiseListeDesClasses()
