@@ -1,6 +1,6 @@
 Travail du 19/10/23 :
 - chemin relatif vers les images exportées sur serveur www
-- première implémentation des PICS dans Arrivee.pyw
+- première implémentation des PICS dans Arrivee.pyw et dans chronoHB.apk (création de la case à cocher, ajout de "&pique=true" ssi pique activée.
 
 
 Travail du 18/10/23 :
