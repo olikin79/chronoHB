@@ -113,6 +113,7 @@ def envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
 
 def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
     ''' diffuse les diplomes non encore envoyés aux coureurs '''
+    global tagMessageQuotaDepasseDejaAffiche
     if not diplomeEmailQuotaDepasse :
         # pour les tests
         if diplomeImpose != "" :
@@ -127,8 +128,8 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         f.close()
         for c in Coureurs.liste() :
             if not diplomeEmailQuotaDepasse :
-                if DEBUG :
-                    print("Coureur", c.nom, "examiné email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2, "dossard" , c.dossard, "nbreenvois", c.emailNombreDEnvois, "nbreenvois2", c.emailNombreDEnvois2, "email", c.email, "email2", c.email2)
+                # if DEBUG :
+                    # print("Coureur", c.nom, "examiné email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2, "dossard" , c.dossard, "nbreenvois", c.emailNombreDEnvois, "nbreenvois2", c.emailNombreDEnvois2, "email", c.email, "email2", c.email2)
                 try :
                     c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
                     c.emailNombreDEnvois
@@ -163,8 +164,11 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                 # else :
                 #     print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,">", 60*diplomeDiffusionApresNMin)
     else :
-        if DEBUG :
+        if DEBUG and not tagMessageQuotaDepasseDejaAffiche :
             print("Le quota d'envoi d'email a été dépassé pour aujourd'hui. Pas d'envoi de diplome possible.")
+            tagMessageQuotaDepasseDejaAffiche = True
+
+tagMessageQuotaDepasseDejaAffiche = False
 
 def dateDuJour():
     """retourne la date du jour"""
