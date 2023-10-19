@@ -34,7 +34,7 @@ from maj import *
 #import git
 
 
-version="1.8"
+version="1.9"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -941,11 +941,13 @@ class Checkbar(Frame):
         self.vars = []
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
-        if len(picks) > 7 :
-            # coupe en deux à partir de 8
-            moitie = len(picks)//2 -1
-        else :
-            moitie = 20 # on ne coupe pas !
+        # désormais, on coupe tous les quatre et on ajoute autant de lignes que nécessaire
+        # if len(picks) > 7 :
+        #     # coupe en deux à partir de 8
+        #     moitie = len(picks)//2 -1
+        # else :
+        #     moitie = 20 # on ne coupe pas !
+        seuil = 0 # valeur de i//4 à partir de laquelle on ajoute une nouvelle ligne
         i = 0
         for pick in picks:
             if i < len(self.listeAffichageTV) and self.listeAffichageTV[i] :
@@ -956,12 +958,14 @@ class Checkbar(Frame):
             self.checkbuttons.append(chk)
             if self.vertical :
                 chk.pack(anchor=self.anchor, expand=YES) # à la verticale
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             else :
                 chk.pack(side=self.side, anchor=self.anchor, expand=YES)# côte à côte
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             self.vars.append(var)
             i+=1
         for fr in self.fr :
@@ -969,6 +973,54 @@ class Checkbar(Frame):
                 fr.pack(side=LEFT)
             else :
                 fr.pack(side=TOP)
+
+class CheckboxAbsDisp(Frame):
+    def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent, relief=GROOVE, borderwidth=2)
+        # self.combobox = Combobox(self, width=5, values=('','Abs','Disp'))
+        # self.relief=GROOVE
+        # self.borderwidth=2
+        self.varAbs = IntVar()
+        self.varDisp = IntVar()
+        if coureur.absent :
+            self.varAbs.set(1)
+        else :
+            self.varAbs.set(0)
+        if coureur.dispense :
+            self.varDisp.set(1)
+        else :
+            self.varDisp.set(0)
+        def memoriseValeurBindAbs() :
+            #print("coureur : ", self.coureur.nom)
+            if self.varAbs.get() == 1 :
+                self.coureur.setAbsent(True)
+            else :
+                self.coureur.setAbsent(False)
+        def memoriseValeurBindDisp() :
+            if self.varDisp.get() == 1 :
+                self.coureur.setDispense(True)
+            else :
+                self.coureur.setDispense(False)
+        self.frameConteneurCheckBox = Frame(self)
+        self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
+        self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
+        self.coureur = coureur
+        nomAffiche = coureur.nom.upper() + " " + coureur.prenom
+        if Parametres["CategorieDAge"] :
+            f = font.Font(weight="bold",size=11)
+        else :
+            f = font.Font(weight="bold",size=14)
+        self.lbl = Label(self, text=nomAffiche)
+        self.lbl['font'] = f
+        self.checkbuttonAbs['font'] = f
+        self.checkbuttonDisp['font'] = f
+
+        #self.checkbuttons.append(chk)
+        self.frameConteneurCheckBox.pack(side=LEFT) # à la verticale
+        self.checkbuttonAbs.pack(side=LEFT) # à la verticale ou pas ?
+        self.checkbuttonDisp.pack(side=LEFT)
+        self.lbl.pack(side=LEFT)
+        
 
 class ComboboxAbsDisp(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
@@ -1012,7 +1064,7 @@ class ButtonBoxDossards(Frame):
             if os.path.exists(nomFichierGenere):
                 if windows() :
                     if imprimePDF(nomFichierGenere) :
-                        reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
+                        reponse = True # askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
                     else :
                         reponse = False
                 else :
@@ -1209,8 +1261,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
-            print("groupements",groupements)
-            print(groupement.listeDesCourses)
+            # print("groupements",groupements)
+            # print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
@@ -1331,10 +1383,10 @@ class Combobar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            self.combos.append(ComboboxAbsDisp(pick, frm))
+            self.combos.append(CheckboxAbsDisp(pick, frm))
             chk = self.combos[-1]
-            chk.pack()
-            frm.pack(side=TOP, anchor=W, padx=3, pady=3)
+            chk.pack(anchor=W,fill=BOTH, expand=YES)
+            frm.pack(side=TOP, anchor=W, padx=3, pady=3, fill=BOTH, expand=YES)
             if i in IndicesDesChangementsDeColonne :
                 self.fr.append(Frame(self))
             self.vars.append(var)
@@ -1612,7 +1664,10 @@ class AbsDispFrame(Frame) :
         self.choixClasseCombo = Combobox(self.parent, width=45, justify="center", state='readonly')
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
-        self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        if Parametres["CategorieDAge"] :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        else :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True, nombreColonnes=3)
         self.TopDepartLabel = Label(self.parent)
         self.TopDepartLabel.pack(side=TOP)
         self.actualiseListeDesClasses()
@@ -1767,6 +1822,8 @@ zoneTopDepartBienPlacee = Frame(Affichageframe)
 zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
 
+
+## DEBUGGAGE 
 
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
@@ -1949,6 +2006,21 @@ def supprimerDossardAction() :
         reponse = showinfo("ERREUR",message)
     supprimerDossardButton.configure(state=NORMAL)
 
+def envoiEmailDeTest() :
+    """Envoi un email avec le diplome du coureur sélectionné à l'expéditeur des emails présent dans Parametres["email"] à l'aide de la fonction envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest()"""
+    dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
+    if dossard :
+        print("Envoi d'un email de test pour le dossard", dossard)
+        coureur = Coureurs.recuperer(dossard)
+        if envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
+            message = "Diplôme de test envoyé à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("INFORMATION",message)
+        else :
+            message = "Erreur lors de l'envoi du diplôme de test à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("ERREUR",message)
+    else :
+        message = "Aucun dossard sélectionné dans le tableau."
+        reponse = showinfo("ERREUR",message)
         
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
@@ -2663,15 +2735,33 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
                 mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
                 mon_thread_Diplomes.start()
         else :
-            if diplomeDiffusionAutomatique :
-                tagEnvoiDiplomeEnCours = True
-                #print("Début d'envoi de diplômes automatisé...")
-                mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
-                mon_thread_Diplomes.start()
-                # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+            tagEnvoiDiplomeEnCours = True
+            # if DEBUG :
+            #     print("Début d'envoi de diplômes automatisé...")
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes.start()
+            # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
 ##    else :
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
+tagDepotFTPEnCours = False
+
+def depotFTPResultats():
+    """Dépose les fichiers de résultats sur serveur FTP en initiant un thread"""
+    global tagDepotFTPEnCours
+    if not tagDepotFTPEnCours :
+        tagDepotFTPEnCours = True
+        if DEBUG :
+            print("Début de dépôt FTP automatique...")
+        mon_thread = Thread(target=depotFTPResultatsSansMessage)
+        mon_thread.start()
+
+def depotFTPResultatsSansMessage():
+    """Dépose les résultats sur le serveur FTP sans afficher de message de fin
+    Exécuté dans un thread"""
+    global tagDepotFTPEnCours
+    ActualiseAffichageInternet()
+    tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
     """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
@@ -2802,7 +2892,7 @@ class Clock():
         if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
-            ActualiseAffichageInternet()
+            depotFTPResultats() # exécute le dépot FTP dans un thread.
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
@@ -3567,8 +3657,11 @@ class CoureurFrame(Frame) :
             True # pas encore de catégorie créée.
         self.vma = 0
         self.lblemail = Label(self.parent, text="e-mail (facultatif) :")
+        self.lblemail2 = Label(self.parent, text="e-mail 2 (facultatif) :")
         self.emailE = Entry(self.parent)
         self.emailE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.emailE2 = Entry(self.parent)
+        self.emailE2.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
         self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
@@ -3615,7 +3708,9 @@ class CoureurFrame(Frame) :
         self.lblCat.forget()
         self.comboBoxCategorie.forget()
         self.lblemail.forget()
+        self.lblemail2.forget()
         self.emailE.forget()
+        self.emailE2.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3635,20 +3730,24 @@ class CoureurFrame(Frame) :
         s = self.sexeC.get()
         if CoursesManuelles :
             nature = self.comboBoxCategorie.get()
-        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            resultat = "valide."
+        else : ### complété pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
             ### A tester...
             nature = self.etabNatureC.get()
-        #print("nature",nature)
-        if (s ==  "G" or s == "F") and nature :
-            if Parametres["CategorieDAge"] :
-                anneeNaissance = self.classeE.get()[6:]
-                if len(anneeNaissance) == 4 :
-                    c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
-                    if c :
-                        resultat = c + "-" + s
-            else :
-                if self.classeE.get() :
-                    resultat = self.classeE.get()[0] + s
+            #print("nature",nature)
+            if (s ==  "G" or s == "F") : # si le sexe est valide
+                if (Parametres["CategorieDAge"] == 1 and nature) or Parametres["CategorieDAge"] == 2 :
+                    # cas du cross UNSS : on affiche les deux champs supplémentaires self.etabE, self.etabNatureC. La nature doit être spécifiée.
+                    # ou cas d'un trail avec catégories d'ages imposées (puisque l'on n'est pas dans le mode CoursesManuelles).
+                    anneeNaissance = self.classeE.get()[6:]
+                    if len(anneeNaissance) == 4 :
+                        c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
+                        if c :
+                            resultat = c + "-" + s
+                elif Parametres["CategorieDAge"] == 0 :
+                    # cas du cross HB : le sexe et la classe sont psécifiés.
+                    if self.classeE.get() :
+                        resultat = self.classeE.get()[0] + s
         return resultat
 
     def afficheCoureur(self,dossard) :
@@ -3667,6 +3766,7 @@ class CoureurFrame(Frame) :
         self.classeE.delete(0, END)
         #self.sexeE.delete(0, END)
         self.emailE.delete(0,END)
+        self.emailE2.delete(0,END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
         self.etabC['values'] = tupleEtablissement()
@@ -3686,6 +3786,7 @@ class CoureurFrame(Frame) :
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
+                self.emailE2.insert(0, coureur.email2)
                 self.vmaE.insert(0, coureur.VMA)
                 self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
                 self.etabC.set(coureur.etablissement)
@@ -3725,6 +3826,8 @@ class CoureurFrame(Frame) :
             self.comboBoxCategorie.forget()
         self.lblemail.pack()
         self.emailE.pack()
+        self.lblemail2.pack()
+        self.emailE2.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3799,6 +3902,11 @@ class CoureurFrame(Frame) :
             self.emailE.configure(fg='black')
         else :
             self.emailE.configure(fg='red')
+        emailSaisi2 = self.emailE2.get()
+        if emailEstValide(emailSaisi2) :
+            self.emailE2.configure(fg='black')
+        else :
+            self.emailE2.configure(fg='red')
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
         #print("resultat" , resultat)
@@ -3863,7 +3971,7 @@ class CoureurFrame(Frame) :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
                 retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get())
+                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get(), email2=self.emailE2.get())
                 if retourInutile[1] :
                     message ="Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " EXISTE DEJA.\nIl a été actualisé et porte le dossard " + doss + " (course " +c + ")." 
                 else :
@@ -3871,7 +3979,7 @@ class CoureurFrame(Frame) :
                 reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get())
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get(), email2=self.emailE2.get())
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
@@ -3879,15 +3987,15 @@ class CoureurFrame(Frame) :
             if CoursesManuelles : # cas des courses manuelles
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             else :
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss,\
-                           email=self.emailE.get())
+                           email=self.emailE.get(), email2=self.emailE2.get())
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.etabC['values'] = tupleEtablissement()
@@ -4209,7 +4317,7 @@ for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
 files = tuple(files)
 ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
 ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-ModeleDeDiplomeCombo.set(dossardModele)
+ModeleDeDiplomeCombo.set(diplomeModele)
 ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
 actualiseCanvasModeleDiplome("")
 
@@ -4341,6 +4449,7 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
+postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTest)
 postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)

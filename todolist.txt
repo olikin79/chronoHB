@@ -11,14 +11,47 @@ Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la part
 
 
 Todolist pour le cross HB 2023 :
-- debug import
-- email 2 possible et envoi programmé pour les deux adresses si présentes.
-- envoi des emails depuis deux adresses google.
-- envoi d'email avec "repondre à" différent de l'expéditeur.
-- depot vers serveur sftp
-- affichage actualisé non défilant.
-- deplacer les fichiers du serveur web dans www
+- FAIT : le temps sur le diplome s'affichera en min:sec et non en HH:MM:SS.
+- FAIT envoi programmé pour les deux adresses si présentes.
+- FAIT envoi des emails depuis deux adresses google.
+- FAIT : depot vers serveur sftp
+- FAIT : absents dispenses cumulables
+- FAIT : VMA sur le diplome.
+- FAIT : suppression d'un dossard arrivé non fonctionnelle !
+- FAIT : les noms des catégories débordaient de l'affichage. Corrigé.
+- FAIT : les noms des classes ne devrait pas être des float
 
+- tester tous les boutons des interfaces pour vérifier le fonctionnement.
+	- FAIT : challenges non fonctionnels ?
+	- FAIT : suppression des dossards depuis l'interface non effective. Fonctionnel.
+	- FAIT : cases absents-dispensés à la verticale.
+	- FAIT : dans le pdf d'une classe, remettre le tri alphabétique.
+	- FAIT : pdf de statistiques non fonctionnel
+	- FAIT : chronomètre non fonctionnel si course en cours.
+	- FAIT : possibilité de s'envoyer un diplome de test via le menu.
+	- FAIT : ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
+	- FAIT : le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
+- FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
+- FAIT : configurer la borne wifi pour étendre le réseau lax de mon téléphone.
+- FAIT : l'accès HTTP aux pages synology.me ne semble pas fonctionner sur safari.
+- élève en plus à créer Julien Mezy 6ème G => imprimer dossard.
+
+
+Moins urgent :
+- COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
+- deplacer les fichiers du serveur web dans www
+- nouveaux paramètres à ajouter dans l'interface : FTP, diplômes, etc...
+- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
+
+Dès que possible : 
+- bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+
+
+
+Manque pour la branche trail-rieutort :
+- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+- tester toute la suite : impression des dossards, déroulement des courses,...
 
 
 Todolist pour version 1.8 (mai 2023) :
@@ -34,6 +67,14 @@ Bugs détectés :
 - le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
 Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemple pour les noms de course personnalisés.
 - (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
+- l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
+Le serveur la traite comme un doublon grace à l'UID unique lié à la communication. Cela n'a donc aucune incidence en pratique.
+Si un jour, j'ai du temps, autant supprimer ce problème.
+- bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
+A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
+la permutation est souhaitée. Cela fonctionne dans l'autre sens.
+
+
 
 Fonctionnalités :
 - ajouter les paramètres généraux, déjà documentés : 
@@ -44,10 +85,8 @@ Fonctionnalités :
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
 Si possible pour la 1.8 :
-- l'affichage de la TV disponible sur un site web (sans défilement automatique), dont le lien serait transmis par mail + QR-code dans la salle.
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - import + export en .chb des fichiers de données.
-- créer une case à cocher pour bloquer l'envoi des emails. La décocher systématiquement au redémarrage de chronoHB.
 - variable "message dans le mail" : bravo pour ta participation !
 
 
