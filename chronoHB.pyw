@@ -2829,9 +2829,10 @@ class Clock():
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
         traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
+        traitementSmartphonePiques = traiterDonneesSmartphonePiques()
         traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
-        listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
+        listeNouvellesErreursATraiter = traitementSmartphone + traitementSmartphonePiques + traitementLocal + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :

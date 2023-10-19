@@ -1,4 +1,14 @@
 
+EVOLUTION pour le cross départemental :
+- piques à rendre fonctionnelles.
+Chercher dans decodeActionsRecupSmartphone() appelé ligne 1853 de FonctionsMetiers.py pourquoi cela semble sans effet.
+Dans AI2, dans l'idéal, il faudrait que si pique=true, constructeurRequeteHTTP soit appelé avec le dossard qui précède celui en cours d'ajout, sauf pour le premier envoi.
+A défaut, traité dans la fonction python d'import du fichier de données "pique". Par contre, il faut trouver pourquoi l'uid est 0.
+Cela devrait être un nombre aléatoire.
+- export vers OPUSS
+- tester l'import depuis un google sheet et vérifier qu'il est fonctionnel (import du trail du randon à creuser).
+
+
 EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
 - générer un pdf avec 6 qrcodes par page.
 - faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
