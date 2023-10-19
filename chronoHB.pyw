@@ -2736,8 +2736,8 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
                 mon_thread_Diplomes.start()
         else :
             tagEnvoiDiplomeEnCours = True
-            if DEBUG :
-                print("Début d'envoi de diplômes automatisé...")
+            # if DEBUG :
+            #     print("Début d'envoi de diplômes automatisé...")
             mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
             mon_thread_Diplomes.start()
             # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
