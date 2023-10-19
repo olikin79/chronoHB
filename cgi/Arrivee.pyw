@@ -42,7 +42,10 @@ def addInstruction(liste) :
     if local == "true" :
         fichierDonneesSmartphone = "donneesModifLocale.txt"
     else:
-        fichierDonneesSmartphone = "donneesSmartphone.txt"
+        if pic == "" :
+            fichierDonneesSmartphone = "donneesSmartphone.txt"
+        else :
+            fichierDonneesSmartphone = "donneesSmartphone-PIC-" + uid + ".txt"
     with open(fichierDonneesSmartphone, 'a') as f :
         result = ""
         for el in liste :
@@ -293,6 +296,10 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
 
 local = form.getvalue("local")
 nature = form.getvalue("nature").lower()
+try :
+    pic = form.getvalue("pic").lower()
+except:
+    pic = ""
 try :
     action = form.getvalue("action").lower()
 except:
