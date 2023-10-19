@@ -1,3 +1,8 @@
+Travail du 19/10/23 :
+- chemin relatif vers les images exportées sur serveur www
+
+
+
 Travail du 18/10/23 :
 - Correctif DecompteParCategorieDAge() + tri par temps des courses du cross.
 - Taille des caractères pour saisie des absents dispensés augmentée uniquement pour le cross du collège.

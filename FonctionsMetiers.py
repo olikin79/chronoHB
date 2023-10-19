@@ -285,7 +285,7 @@ class DictionnaireDeCoureurs(dict) :
             print("ATTENTION : à implémenter total de la course en mode manuel")
         else :
             for c in self.liste() :
-                print("Coureur", c.nom, "examiné", c.categorie(Parametres["CategorieDAge"]) )
+                # print("Coureur", c.nom, "examiné", c.categorie(Parametres["CategorieDAge"]) )
                 if c.categorie(Parametres["CategorieDAge"]) == course and (not c.absent) and (not c.dispense):
                     total += 1
             print("catégorie cherchée :", course , "total", total)
@@ -394,8 +394,8 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if cle in self.cles() and indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
-        if DEBUG :
-            print("Le coureur ", element, "existe",retour)
+        # if DEBUG :
+        #     print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
         try :
@@ -6000,11 +6000,11 @@ def ajoutMedailleEnFonctionDuRang(r,masculin=True) :
                 ordinal = "1er"
             else :
                 ordinal = "1ère"
-            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="/media/or.webp" alt="(' + ordinal + ')">'
+            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="./media/or.webp" alt="(' + ordinal + ')">'
         elif r == 2 :
-            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/argent.webp" alt="(2ème)">'
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="./media/argent.webp" alt="(2ème)">'
         elif r == 3 :
-            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/bronze.webp" alt="(3ème)">'
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="./media/bronze.webp" alt="(3ème)">'
     return ligne
 
 
