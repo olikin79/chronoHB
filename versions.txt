@@ -4,9 +4,13 @@ A venir :
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 
+Travail du 22/10/23 :
+- l'envoi individuel des diplômes est dans un thread. Création d'une barre de bouton pour envois individuels.
+
+
 Travail du 21/10/23 :
 - en cas de réinitialisation des données, efface les fichiers "donneesSmartphone-pique-*.txt"
-- smartphone "pique" fonctionnel et documenté.
+- Bonne gestion de l'erreur 601 : smartphone "pique" fonctionnel et documenté.
 
 
 

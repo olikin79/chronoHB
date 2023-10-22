@@ -70,6 +70,8 @@ A tester suite trail Rieutort :
 
 
 Bugs détectés :
+- si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
+Si rédémarrage de l'application, plus de soucis. Pas très gênant car rare en pratique.
 - non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
 - les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).

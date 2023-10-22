@@ -1052,6 +1052,24 @@ class ComboboxAbsDisp(Frame):
         self.combobox.pack(side=LEFT) # à la verticale
         self.lbl.pack(side=LEFT)
 
+class ButtonBoxDiplomes(Frame):
+    def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent)
+        self.coureur = coureur
+        def envoyerDiplome() :
+            nomModele = Parametres["diplomeModele"]
+            modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
+            with open(modeleDiplome , 'r') as f :
+                modele = f.read()
+            f.close()
+            print("Envoi du diplome pour le coureur : ", self.coureur.nom, self.coureur.prenom)
+            genereDiplome(modele, coureur, nomModele)
+            envoiDiplomeParMail(coureur)
+        nomAffiche = coureur.nom + " " + coureur.prenom
+        self.combobox = Button(self, text= nomAffiche, command=envoyerDiplome, width = 20)
+        self.combobox.pack(side=TOP, expand=YES) # à la verticale
+        #self.lbl.pack(side=LEFT)
+
 class ButtonBoxDossards(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
@@ -1443,7 +1461,10 @@ class Buttonbar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            self.combos.append(ButtonBoxDossards(pick, frm))
+            if Parametres["buttonBarMode"] == 0 :
+                self.combos.append(ButtonBoxDossards(pick, frm))
+            else :
+                self.combos.append(ButtonBoxDiplomes(pick, frm))
             chk = self.combos[-1]
             chk.pack()
             frm.pack(side=TOP, anchor=W, padx=3, pady=3, expand=YES)
@@ -1456,6 +1477,8 @@ class Buttonbar(ScrollFrame):
                 fr.pack(side=LEFT)
             else :
                 fr.pack(side=TOP)
+
+Parametres["buttonBarMode"] = 0 # 0 pour imprimer les dossards, 1 pour envoyer les diplomes par mail.
 
 def extract_ip():
     st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -2005,6 +2028,10 @@ def supprimerDossardAction() :
         #print(message)
         reponse = showinfo("ERREUR",message)
     supprimerDossardButton.configure(state=NORMAL)
+
+def envoiEmailDeTestLanceur():
+    mon_thread_Diplomes = Thread(target=envoiEmailDeTest)
+    mon_thread_Diplomes.start()
 
 def envoiEmailDeTest() :
     """Envoi un email avec le diplome du coureur sélectionné à l'expéditeur des emails présent dans Parametres["email"] à l'aide de la fonction envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest()"""
@@ -3254,7 +3281,15 @@ def cb() :
 absDispZone = AbsDispFrame(GaucheFrameAbsDisp)
 dossardsZone = DossardsFrame(GaucheFrameDossards)
 
-def saisieDossards() :
+def envoiDiplomeIndividuelsLanceur():
+    mon_thread_Diplomes = Thread(target=envoiDiplomeIndividuels)
+    mon_thread_Diplomes.start()
+
+def envoiDiplomeIndividuels() :
+    saisieDossards(buttonBarMode=1)
+
+def saisieDossards(buttonBarMode = 0) :
+    Parametres["buttonBarMode"] = buttonBarMode
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
@@ -4464,7 +4499,8 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
-postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTest)
+postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTestLanceur)
+postcoursemenu.add_command(label="Envois individuels des diplômes", command=envoiDiplomeIndividuelsLanceur)
 postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
