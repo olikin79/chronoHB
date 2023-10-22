@@ -1,4 +1,17 @@
+A venir :
+- fichier de sauvegarde contenant tout zippé.
+- en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
+- en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
+
+
+Travail du 21/10/23 :
+- en cas de réinitialisation des données, efface les fichiers "donneesSmartphone-pique-*.txt"
+- smartphone "pique" fonctionnel et documenté.
+
+
+
 Travail du 19/10/23 :
+- empêcher la mise en veille des smartphones, même si le délai de mise en veille est court.
 - chemin relatif vers les images exportées sur serveur www
 - première implémentation des PICS dans Arrivee.pyw et dans chronoHB.apk (création de la case à cocher, ajout de "&pique=true" ssi pique activée.
 

@@ -2415,6 +2415,12 @@ En effet, un smartphone ne peut pas scanner un même dossard deux fois. Cela pro
 Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
 la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
+    elif err.numero == 601 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
+        message = "Le smartphone " + str(err.smartphone) + " en mode 'pique' a scanné la liste de dossards suivante. Ils seront intégrés dans la " + \
+            "liste principale là où le premier dossard sera scanné ou saisi :\n" + str(err.listeDesDossardsConcernes) + ".\n\n" + \
+            "Cette situation transitoire est tout à fait 'normale' quand deux files de dossards sont scannées en même temps. " + \
+            "Ajouter le dossard " + str(err.listeDesDossardsConcernes[0]) + " dans les dossards arrivés pour insérer tous les dossards de cette pique à la suite de celui-ci et faire disparaitre cette erreur."
+        showinfo("ERREUR TEMPORAIRE DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
 
@@ -2510,6 +2516,8 @@ def rejouerToutesLesActionsMemorisees() :
     Parametres["ligneDerniereRecuperationSmartphone"]=1
     Parametres["tempsDerniereRecuperationLocale"]=0
     Parametres["ligneDerniereRecuperationLocale"]=1
+    # on retraite les piques également désormais.
+    Parametres["DerniereRecuperationSmartphonePiques"] = {}
     dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
@@ -2823,6 +2831,10 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
         
+        # debug afficher les paramètres du coureur 576A
+        # c= Coureurs.recuperer("576A")
+        # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
+
         #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
         if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
             self.auMoinsUnImport = True
@@ -2911,9 +2923,11 @@ class Clock():
     def erreursATraiter(self,listeNouvellesErreursATraiter):
         # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
+        # 601 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone pique.
+        # on procède de même par un ménage.
         i = len(self.erreursEnCoursNumeros) - 1
         while i >= 0 : # on supprime l'erreur 331 des erreurs précédentes
-            if self.erreursEnCoursNumeros[i] in [331] :
+            if self.erreursEnCoursNumeros[i] in [331, 601] :
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
