@@ -130,6 +130,10 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
                     if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
                         # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
                         shutil.copy2(file, dest)
+            listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+            for fichier in listeFichiersPiques :
+                numeroPique = fichier[24:-4]
+                shutil.copy2(fichier, destination + os.sep + os.path.basename(fichier)+"_"+ date + commentaire + "-"+ numeroPique + ".txt")
             #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
             # désormais, on sauvegarde snas overwrite pour limiter les les flux
                 #shutil.copytree("videos", "chronoHBvideos")
@@ -155,6 +159,7 @@ def recupere_sauvegarde(sauvegardeChoisie) :
     #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
     fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
     fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+    listeFichiersPiques = glob.glob(sauvegardeChoisie[:-3] + "-*.txt")
     dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
     tousPresents = True
     ### tester si les trois fichiers existent.
@@ -455,9 +460,11 @@ class DictionnaireDeCoureurs(dict) :
 
 class Erreur():
     """ Une erreur de chronoHB"""
-    def __init__(self, numero, courteDescription="", elementConcerne=""):
+    def __init__(self, numero, courteDescription="", elementConcerne="", listeDesDossardsConcernes=[], smartphone=0):
         self.numero = numero
         self.description = courteDescription
+        self.listeDesDossardsConcernes = listeDesDossardsConcernes
+        self.smartphone = smartphone
         if isinstance(elementConcerne,str) : # c'est un dossard.
             self.dossard = elementConcerne
             self.temps = 0.0
@@ -641,6 +648,8 @@ class Coureur():#persistent.Persistent):
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
+        else :
+            self.emailEnvoiEffectue = False
             # print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
@@ -1849,19 +1858,30 @@ def traiterDonneesSmartphonePiques():
                 dossardPrecedent = premierDossardDeLaPique
                 for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
                     ligneT = ligne.split(",")
-                    ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement.
-                    codeErreur = decodeActionsRecupSmartphone(ligne)
+                    action = ligneT[1]
+                    if action == "add" :
+                        ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
+                    nouvelle_ligne = ",".join(ligneT)
+                    print("Ligne en cours de traitement", nouvelle_ligne)
+                    codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
                     if codeErreur.numero :
                         print("Code erreur :", codeErreur.numero)
-                        print(ligne)
+                        print(nouvelle_ligne)
                         retour.append(codeErreur)
                     dossardPrecedent = ligneT[2]
+                Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
             else :
-                print("Le premier dossard de la pique", fichier, "n'est pas encore arrivé. On ne traite pas les données de la pique.")
-                erreur = Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + fichier + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
+                noSmartphone = fichier[24:-4]
+                listeDossardsPique = []
+                for ligne in listeLigne :
+                    listeDossardsPique.append(ligne.split(",")[2])
+                if DEBUG :
+                    print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
+
+                erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
                 retour.append(erreur)
-                print("Code erreur :", erreur.numero, erreur.description)
-            Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
+                # print("Code erreur :", erreur.numero, erreur.description)
+            
         # else :
         #     print("Fichier pique", fichier, "déjà traité à cette heure")
     return retour
@@ -2093,6 +2113,10 @@ def effacerFichierDonnneesSmartphone() :
     file = "donneesSmartphone.txt"
     if os.path.exists(file) :
         os.remove(file)
+    files = glob.glob("donneesSmartphone-pique-*.txt")
+    for file in files :
+        os.remove(file)
+
 
 def effacerFichierDonnneesLocales() :
     print("Effacement des modifications locales  effectué")
@@ -2637,25 +2661,25 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
-    # if CoursesManuelles and genererQRcodesPourCourseManuelles :
-        # with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
-            # enteteQR = f.read()
-        # f.close()
-        # generateQRcodesCoursesManuelles()
-        # fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
-        # ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
-        # with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
-            # fL.write(enteteQR + "\n\n")
-            # L = Coureurs.cles()
-            # Coureurs.afficher()
-            # print("Affichage des Coureurs pour comprendre")
-            # print("Clés",Coureurs.cles())
-            # for nomCourse in L :
-                # alimenteListingPourCourse(nomCourse, fL)
-                # if nomCourse != L[:-1] :
-                    # fL.write("\n\\newpage\n\n")
-            # fL.write("\\end{document}")
-        # fL.close()
+    if CoursesManuelles and genererQRcodesPourCourseManuelles :
+        with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
+            enteteQR = f.read()
+        f.close()
+        generateQRcodesCoursesManuelles()
+        fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
+        ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
+        with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
+            fL.write(enteteQR + "\n\n")
+            L = Coureurs.cles()
+            Coureurs.afficher()
+            print("Affichage des Coureurs pour comprendre")
+            print("Clés",Coureurs.cles())
+            for nomCourse in L :
+                alimenteListingPourCourse(nomCourse, fL)
+                if nomCourse != L[:-1] :
+                    fL.write("\n\\newpage\n\n")
+            fL.write("\\end{document}")
+        fL.close()
     ### compilation de tous les fichier sprésents 
     compilerTousLesTex(TEXDIR, "dossards")
     #print(listeCategories)
@@ -4575,7 +4599,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettre = ""
                 if dossard : 
                     lettre = dossard[-1]
-                # lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                # pourquoi avais je commenté la ligne suivante ? Est ce pour le cross du collège ou pour l'UNSS ? Elle est utile en mode courses mnanuelles.
+                lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 # print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
