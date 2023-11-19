@@ -1002,12 +1002,26 @@ class CheckboxAbsDisp(Frame):
             else :
                 self.coureur.setDispense(False)
         self.frameConteneurCheckBox = Frame(self)
-        self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text="Abs", variable=self.varAbs, command=memoriseValeurBindAbs)
-        self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text="Disp", variable=self.varDisp, command=memoriseValeurBindDisp)
-        self.coureur = coureur
-        nomAffiche = coureur.nom.upper() + " " + coureur.prenom
         if Parametres["CategorieDAge"] :
-            f = font.Font(weight="bold",size=11)
+            textAbs = "A"
+            textDisp = "D"
+        else :
+            textAbs = "Abs"
+            textDisp = "Disp"
+        self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text=textAbs, variable=self.varAbs, command=memoriseValeurBindAbs)
+        self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text=textDisp, variable=self.varDisp, command=memoriseValeurBindDisp)
+        self.coureur = coureur
+        # formatage du nom affiché afin de couper les noms prénoms trop longs (somme supérieure à x caractères) et de conserver le prénom en entier en coupant la fin du nom.
+        longueurNom = len(coureur.nom)
+        longueurPrenom = len(coureur.prenom)
+        longueurTotale = longueurNom + longueurPrenom
+        if longueurTotale > 16 : 
+            nomAffiche = coureur.nom[0:13-longueurPrenom].upper() + "[..] " + coureur.prenom
+        else :
+            nomAffiche = coureur.nom.upper() + " " + coureur.prenom
+        # fin du formatage du nom-prénom
+        if Parametres["CategorieDAge"] :
+            f = font.Font(size=10)
         else :
             f = font.Font(weight="bold",size=14)
         self.lbl = Label(self, text=nomAffiche)
