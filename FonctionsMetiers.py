@@ -6420,6 +6420,8 @@ def creerCoureur(listePerso, informations) :
                 etab = supprLF(infos["nom étab."])
             except :
                 etab = ""
+        # filtrage des mots inutiles dans les noms d'établissements sur OPUSS
+        etab = etab.replace(" général et technologique","").replace(" (voie générale et technologique)","").replace(" général technologique et professionnel agricole","")
     if "établissementtype" in informations or "type" in informations or "type étab." in informations :
         try :
             nature = supprLF(infos["établissementtype"])

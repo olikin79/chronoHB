@@ -7,6 +7,7 @@ A venir :
 Travail du 19/11/23 :
 - on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
 - mise en page des absents et dispensés sur 5 colonnes, compactée quand le nom est trop long...
+- suppression des éléments en trop dans les noms d'établissement (pour dossards corrects et affichage lisible) : général et technologique, etc... supprimés.
 
 Travail du 22/10/23 :
 - l'envoi individuel des diplômes est dans un thread. Création d'une barre de bouton pour envois individuels.
