@@ -579,7 +579,7 @@ class Coureur():#persistent.Persistent):
 
 
 
-    def categorie(self, CategorieDAge=False):
+    def categorie(self, CategorieDAge=0):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
         except:
@@ -593,19 +593,23 @@ class Coureur():#persistent.Persistent):
             self.course
         except :
             self.course = ""
-        #if not Parametres["CoursesManuelles"] :
+        #if not Parametres["CoursesManuelles"] : 
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
                     anneeNaissance = self.naissance[6:]
                     if CategorieDAge == 2 : ## UNSS
-                         ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
-                         ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
+                            ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
+                            ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
                         cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
                         if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
                             cat = "MI"
                         elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
                             cat = "CA"
+                        elif Parametres["crossUNSScollegeLycee"] and cat == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                            cat = "BE"
+                        if self.dossard == "19A" :
+                            print("TEMP",Parametres["crossUNSScollegeLycee"], cat)
                         self.__private_categorie = cat + "-" + self.sexe
                     else: ## catégories FFA
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -1334,7 +1338,7 @@ def chargerDonnees() :
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1537,6 +1541,9 @@ def chargerDonnees() :
     if not "emailNombreDEnvoisDuJour" in Parametres :
         Parametres["emailNombreDEnvoisDuJour"] = {}
     emailNombreDEnvoisDuJour=Parametres["emailNombreDEnvoisDuJour"]
+    if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
+        Parametres["crossUNSScollegeLycee"] = True
+    crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]
     ##transaction.commit()
     return globals()
     
@@ -2269,7 +2276,7 @@ def listCoureursDUneCategorie(categorie):
 
 def listCoureursDUnEtablissement(etablissement):
     retour = []
-    for coureur in Coureurs :
+    for coureur in Coureurs.liste() :
         if coureur.etablissement == etablissement :
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
@@ -6457,7 +6464,7 @@ def creerCoureur(listePerso, informations) :
         doss = formateDossardNG(infos["dossard"])
         #print("Commentaire personnalisé :" + comment+ ".")
     # on crée le coureur avec toutes les informations utiles.
-    print('addCoureur(',nom, prenom, sexe , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
+    print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
     # try :
     if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
         # print("test 06102023", type(email), email, type(emailDeux))
