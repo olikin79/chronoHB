@@ -70,6 +70,9 @@ A tester suite trail Rieutort :
 
 
 Bugs détectés :
+- quand on impose Parametres[CategorieDAge]!=1, il faudrait remettre CoursesManuelles à False. Cela n'est pas fait actuellement.
+- si création de QR-codes pour agrafage sur des dossards, les courses A, B, C ne sont pas créées dans l'ordre alphabétique 
+mais dans l'ordre dans lequel on y a ajouté des coureurs. Bizarre mais pas problèmatique.
 - si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
 Si rédémarrage de l'application, plus de soucis. Pas très gênant car rare en pratique.
 - non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
@@ -85,7 +88,10 @@ Si un jour, j'ai du temps, autant supprimer ce problème.
 A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
 la permutation est souhaitée. Cela fonctionne dans l'autre sens.
 
+A ajouter :
+- checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
 
+nettoyage des fichiers tex ayant servi à créer les QR-codes. Cela serait ça de moins de présent sur le disque.
 
 Fonctionnalités :
 - ajouter les paramètres généraux, déjà documentés : 

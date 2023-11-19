@@ -126,6 +126,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         with open(modeleDiplome , 'r') as f :
             modele = f.read()
         f.close()
+        # n = 0 
         for c in Coureurs.liste() :
             if not diplomeEmailQuotaDepasse :
                 # if DEBUG :
@@ -139,6 +140,21 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                     c.setEmailEnvoiEffectue(False)
                     c.setEmailEnvoiEffectue2(False)
 
+
+                ### CORRECTIF TEMPORAIRE POUR RENVOYER TOUS LES MAILS VERS LES ADRESSES HOTMAIL
+                ### A SUPPRIMER UNE FOIS QUE LES MAILS SERONT CORRECTEMENT ENVOYES
+                # tag = False 
+                # if c.email and "hotmail" in c.email :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue(False)
+                # if c.email2 and "hotmail" in c.email2 :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue2(False)
+                # if tag : # si on doit renvoyer le mail, on attend 60 secondes pour éviter d'être considéré comme un spammer
+                #     n += 1 # compteur de mails renvoyés
+                #     print("Mail n°",n,"renvoyé pour le coureur",c.nom,c.dossard,"sur",c.email,"et",c.email2,"à",time.strftime("%H:%M:%S", time.localtime()),"car adresse hotmail.")
+                #     time.sleep(60)
+                ### FIN DU CORRECTIF TEMPORAIRE
         ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
         ##            c.setEmail("lax.olivier@gmail.com")
                     #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
@@ -149,7 +165,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                         # c.setEmailEnvoiEffectue(True)
                         if DEBUG : 
                             print("Envoi du diplome pour le coureur sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
-                        
+        
                 # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
                 #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
                 #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
