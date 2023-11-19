@@ -6351,6 +6351,8 @@ def creerCoureur(listePerso, informations) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     #print(infos)
+    nom=""
+    prenom=""
     sexe=""
     clas = ""
     naiss = ""

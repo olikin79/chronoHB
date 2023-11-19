@@ -101,6 +101,8 @@ Fonctionnalités :
 - refaire les captures d'écran p5 de la documentation.
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
+- en cas de modification dans l'interface GUI avec les boutons de droite, forcer l'actualisation graphique immédiatement, sans attendre.
+
 Si possible pour la 1.8 :
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - import + export en .chb des fichiers de données.
