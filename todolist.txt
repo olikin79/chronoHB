@@ -163,7 +163,7 @@ La class Coureur() permet déjà le cumul, je pense...
 
 
 Fonctionnalités pour le cross UNSS :
-- créer une méthode pour récupérer le numéro d'AS de chaque coureur (à partir de son numéro de licence). 
+- (FAIT) créer une méthode pour récupérer le numéro d'AS de chaque coureur (à partir de son numéro de licence). 
 Cela devrait permettre un export (copier-coller) vers OPUSS de la forme (combien de qualifiés par catégorie ?):
 1	14771	1	6 pts (1+2+1+2+0)	Q
 2	14771	2	14 pts (3+4+3+4+0)	Q
@@ -173,7 +173,6 @@ Cela devrait permettre un export (copier-coller) vers OPUSS de la forme (combien
 ...
 Voir à quoi correspond le Q.
 - pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
-- export vers OPUSS à créer à partir d'un modèle.
 - pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
 
 
