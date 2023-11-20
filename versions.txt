@@ -4,6 +4,10 @@ A venir :
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 
+Travail du 20/11/23 :
+- export vers OPUSS des équipes UNSS qualifiées (créé et interfacé).
+
+
 Travail du 19/11/23 :
 - on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
 - mise en page des absents et dispensés sur 5 colonnes, compactée quand le nom est trop long...
