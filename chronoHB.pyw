@@ -4493,6 +4493,60 @@ def relancer():
     root.destroy()
     os.startfile("chronoHB.pyw")
 
+### UNSS ####
+
+def exportOPUSS():
+    if Parametres['CategorieDAge'] == 2 :
+        challenges = listChallenges()
+        if challenges :
+            def valider():
+                challenge = groupement_var.get()
+                nombre_qualifies = nombre_qualifies_var.get()
+
+                chaine_opuss = genereChainePourOPUSS(challenge, nombre_qualifies)
+
+                # Copier la chaîne générée dans le presse-papiers
+                root.clipboard_clear()
+                root.clipboard_append(chaine_opuss)
+                root.update()
+
+                # Afficher le deuxième popup
+                popup2 = Toplevel(root)
+                popup2.title("Coller le contenu généré dans le logiciel OPUSS")
+                label2 = Label(popup2, text="Collez le contenu généré dans le logiciel OPUSS.")
+                label2.pack(padx=10, pady=10)
+                button2 = Button(popup2, text="Fermer", command=popup2.destroy)
+                button2.pack(pady=10)
+                popup.destroy()
+
+            # Configuration de la fenêtre principale
+            popup = Toplevel(root)
+            popup.title("Sélection pour export vers OPUSS")
+
+            # Liste déroulante pour le choix du groupement
+            groupement_var = StringVar(value=challenges[0])
+            groupement_label = Label(popup, text="Choisissez le groupement :")
+            groupement_label.pack(pady=10)
+            groupement_dropdown = Combobox(popup, textvariable=groupement_var, values=challenges)
+            groupement_dropdown.pack(pady=10)
+
+            # Liste déroulante pour le choix du nombre de qualifiés
+            nombre_qualifies_var = IntVar(value=1)
+            nombre_qualifies_label = Label(popup, text="Choisissez le nombre de qualifiés :")
+            nombre_qualifies_label.pack(pady=10)
+            nombre_qualifies_dropdown = Combobox(popup, textvariable=nombre_qualifies_var, values=list(range(1, 11)))
+            nombre_qualifies_dropdown.pack(pady=10)
+
+            # Boutons Valider et Annuler
+            valider_button = Button(popup, text="Valider", command=valider)
+            valider_button.pack(side=LEFT, padx=10)
+            annuler_button = Button(popup, text="Annuler", command=popup.destroy)
+            annuler_button.pack(side=RIGHT, padx=10)
+        else :
+            showinfo("PAS DE CHALLENGE CALCULE","Il n'y a pas ce challenge calculé.")
+    else :
+        showinfo("FONCTION DESACTIVEE","Ce menu 'export vers OPUSS' n'est disponible que pour les courses UNSS.")
+
 
 ####################### MENUS ################################
 
@@ -4519,6 +4573,7 @@ postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", c
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
 postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)
+postcoursemenu.add_command(label="Export vers OPUSS", command=exportOPUSS)
 #postcoursemenu.add_cascade(label="Gestion d'après course", menu=editmenu)
 menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 
