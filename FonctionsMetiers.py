@@ -148,6 +148,42 @@ def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False
 ##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
         return nomFichierCopie
 
+#### catégories d'athlétisme
+
+def categorieAthletisme(anneeNaissance, etablissementNature = "") :
+    # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
+    # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
+    # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
+    categorie = ""
+    if CategorieDAge :
+        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
+        try :
+            anneeNaissance = int(anneeNaissance)
+            currentDateTime = datetime.datetime.now()
+            date = currentDateTime.date()
+            year = currentDateTime.year
+            if currentDateTime.month > 8 :
+                #changement d'année sportive au premier septembre.
+                year += 1
+            ecart2022 = year - 2022
+            anneeCherchee = anneeNaissance - ecart2022
+            i = 0
+            continuer = True
+            while i< len(correspondanceAnneeCategories) and continuer :
+                if anneeCherchee <= correspondanceAnneeCategories[i][0] :
+                    continuer = False
+                    categorie = correspondanceAnneeCategories[i][1]
+                i += 1
+            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
+            if Parametres["CategorieDAge"] == 2 :
+                if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
+                    categorie = "MI"
+                elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
+                    categorie = "CA"
+            # return categorie
+        except :
+            print("argument fourni incorrect : pas au format nombre entier")
+    return categorie
 
 # enregistre les données de sauvegarde
 # récupère les données de sauvegarde
@@ -186,9 +222,9 @@ def recupere_sauvegarde(sauvegardeChoisie) :
         if os.path.exists(dossierVideos) :
             shutil.copytree(dossierVideos,"videos")
         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
-        retour = chargerDonnees()
-        setParametres() # fichier à destination du smartphone à regéréner.
-        return retour
+    retour = chargerDonnees()
+    setParametres() # fichier à destination du smartphone à regéréner.
+    return retour
 
 
 ##    d = open(sauvegarde+".db","wb")
@@ -608,8 +644,6 @@ class Coureur():#persistent.Persistent):
                             cat = "CA"
                         elif Parametres["crossUNSScollegeLycee"] and cat == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
                             cat = "BE"
-                        if self.dossard == "19A" :
-                            print("TEMP",Parametres["crossUNSScollegeLycee"], cat)
                         self.__private_categorie = cat + "-" + self.sexe
                     else: ## catégories FFA
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -626,7 +660,7 @@ class Coureur():#persistent.Persistent):
     def setLicence(self,licence):
         self.licence = str(licence)
         try :
-            self.etablissementNoUNSS  = self.licence[:7]
+            self.etablissementNoUNSS  = self.licence[2:7]
         except :
             self.etablissementNoUNSS = ""
     def setEmail(self,email):
@@ -891,6 +925,10 @@ class Coureur():#persistent.Persistent):
             self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setRangSexe(self, rang) :
+        try :
+            self.rangSexe
+        except :
+            self.rangSexe = 0 
         if int(rang) != self.rangSexe :
             self.rangSexe = int(rang)
             self.setEmailEnvoiEffectue(False)
@@ -1329,6 +1367,16 @@ class EquipeClasse():
                 return True
             else :
                 return False
+    def scoreFormatePourOPUSS(self) :
+        ''' exemple : 6 pts (1+2+1+2+0)'''
+        retour = str(self.score) + " pts ("
+        for c in self.listeCG + self.listeCF :
+            if Parametres['CategorieDAge'] == 0 :
+                retour += str(c.rang) + "+"
+            else:
+                retour += str(c.scoreUNSS) + "+" # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+        retour = retour[:-1] + ")"
+        return retour
 
 # setup the database
 def chargerDonnees() :
@@ -1351,14 +1399,7 @@ def chargerDonnees() :
         root = {}
     #print("Sauvegarde récupérée:", root)
     # get the data, creating an empty mapping if necessary
-    if not "Coureurs" in root:
-        #root["Coureurs"] = persistent.list.PersistentList()
-        root["Coureurs"] = DictionnaireDeCoureurs()
-    Coureurs=root["Coureurs"]
-    tagConvertionEnCours = False
-    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
-        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
-        tagConvertionEnCours = True
+    ### Coureurs déplacés en fin de fichiers.
     if not "Courses" in root :
         #print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
@@ -1389,21 +1430,6 @@ def chargerDonnees() :
     if not "ArriveeDossards" in root :
         root["ArriveeDossards"] = []
     ArriveeDossards=root["ArriveeDossards"]
-    if tagConvertionEnCours :
-        ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
-        i = 0
-        while i < len(ArriveeDossards) :
-            if not str(ArriveeDossards[i])[-1].isalpha() : # sécurité si lancé plusieurs fois
-                ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
-            i += 1
-        i = 0
-        while i < len(ArriveeTempsAffectes) :
-            if str(ArriveeTempsAffectes[i]) != 0 and not str(ArriveeTempsAffectes[i])[-1].isalpha() :
-                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
-            else :
-                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
-            i += 1
-
     if not "LignesIgnoreesSmartphone" in root :
         root["LignesIgnoreesSmartphone"] = []
     LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
@@ -1545,6 +1571,28 @@ def chargerDonnees() :
         Parametres["crossUNSScollegeLycee"] = True
     crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]
     ##transaction.commit()
+    if not "Coureurs" in root:
+        #root["Coureurs"] = persistent.list.PersistentList()
+        root["Coureurs"] = DictionnaireDeCoureurs()
+    Coureurs=root["Coureurs"]
+    tagConvertionEnCours = False
+    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
+        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
+        tagConvertionEnCours = True
+    if tagConvertionEnCours :
+        ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
+        i = 0
+        while i < len(ArriveeDossards) :
+            if not str(ArriveeDossards[i])[-1].isalpha() : # sécurité si lancé plusieurs fois
+                ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
+            i += 1
+        i = 0
+        while i < len(ArriveeTempsAffectes) :
+            if str(ArriveeTempsAffectes[i]) != 0 and not str(ArriveeTempsAffectes[i])[-1].isalpha() :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
+            else :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
+            i += 1
     return globals()
     
 chargerDonnees()
@@ -2311,7 +2359,7 @@ def listChallenges():
                 ### en théorie, il faudrait créer le challenge même s'il n'y a que des filles cadettes et des garçons juniors. 
                 ### Actuellement, c'est un "bug" qui n'apparaitra jamais car il y a toujours des coureurs en cadets et junior dans les deux sexes.
                 if Parametres["CategorieDAge"]== 2 and \
-                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
+                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA", "MI", "BE", "PO" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
                     # on ajoute les deux challenges LP et LG violemment.
                     if "LP" not in retour :
                         retour.append("LP")
@@ -6100,44 +6148,43 @@ def ajoutMedailleEnFonctionDuRang(r,masculin=True) :
     return ligne
 
 
-#### catégories d'athlétisme
 
-def categorieAthletisme(anneeNaissance, etablissementNature = "") :
-    # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
-    # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
-    # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
-    categorie = ""
-    if CategorieDAge :
-        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
-        try :
-            anneeNaissance = int(anneeNaissance)
-            currentDateTime = datetime.datetime.now()
-            date = currentDateTime.date()
-            year = currentDateTime.year
-            if currentDateTime.month > 8 :
-                #changement d'année sportive au premier septembre.
-                year += 1
-            ecart2022 = year - 2022
-            anneeCherchee = anneeNaissance - ecart2022
-            i = 0
-            continuer = True
-            while i< len(correspondanceAnneeCategories) and continuer :
-                if anneeCherchee <= correspondanceAnneeCategories[i][0] :
-                    continuer = False
-                    categorie = correspondanceAnneeCategories[i][1]
-                i += 1
-            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
-            if Parametres["CategorieDAge"] == 2 :
-                if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
-                    categorie = "MI"
-                elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
-                    categorie = "CA"
-            # return categorie
-        except :
-            print("argument fourni incorrect : pas au format nombre entier")
-    return categorie
 
 #print(categorieAthletisme(2003))
+### cross UNSS
+# coureur.etablissementNoUNSS donne le numéro d'AS
+def genereChainePourOPUSS(challenge, nombreQualifies) :
+    '''retourne une chaine de caractères de la forme suivante à partir du challenge, du nombre de qualifiés fournis en paramètres. Le challenge est celui du cross UNSS.
+    Les points attribués sont ceux du cross UNSS et les parenthèses contiennent le mode de calcul du total de points. Un Q indique les qualifiés en fonction du paramètre nombreQualifies
+    1	coureur.etablissementNoUNSS	1	6 pts (1+2+1+2+0)	Q
+    2	14771	2	14 pts (3+4+3+4+0)	Q
+    3	14785		28 pts (8+9+5+6+0)	
+    4	14758		30 pts (6+7+8+9+0)	
+    '''
+    chaine = ""
+    if challenge :
+        i = 0
+        for equipe in ResultatsGroupements[challenge] :
+            if equipe.complet() :
+                coureur = equipe.listeCG[0]
+                i += 1
+                chaine += str(i) + "\t" + coureur.etablissementNoUNSS + "\t" 
+                if i <= nombreQualifies : 
+                    chaine += str(i)
+                chaine += "\t" + equipe.scoreFormatePourOPUSS + "\t"
+                if i <= nombreQualifies :
+                    chaine += "Q"
+                chaine += "\n"
+    # chaine = '''1	14771	1	6 pts (1+2+1+2+0)	Q
+    # 2	14771	2	14 pts (3+4+3+4+0)	Q
+    # 3	14785		28 pts (8+9+5+6+0)	
+    # 4	14758		30 pts (6+7+8+9+0)'''
+    return chaine
+
+
+
+#### fin cross UNSS
+
 
 #### Import des données nouvelle génération (post 2022) à tester...
 def traitementDesDonneesAImporter(donneesBrutes) :
@@ -6482,6 +6529,7 @@ def creerCoureur(listePerso, informations) :
             # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
             retourCreationModifErreur, d = [0,0,0,0], "0"
         else :
+            print("########### ERREUR #################")
             print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
             retourCreationModifErreur, d = [0,0,1,0] , "0"
     # except :

@@ -47,7 +47,7 @@ Todolist pour le cross HB 2023 :
 
 
 Moins urgent :
-- COMMENCE : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
+- FAIT : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
 - deplacer les fichiers du serveur web dans www
 - nouveaux paramètres à ajouter dans l'interface : FTP, diplômes, etc...
 - lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
