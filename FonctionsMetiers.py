@@ -569,7 +569,6 @@ class Coureur():#persistent.Persistent):
         self.VMA = float(VMA)
         self.vitesse = 0
         self.rang = 0
-        self.scoreUNSS = scoreUNSS 
         self.rangCat = 0
         self.rangSexe = 0
         self.commentaireArrivee = commentaireArrivee
@@ -723,11 +722,13 @@ class Coureur():#persistent.Persistent):
                 self.emailNombreDEnvois2 = 0
     def categorieFFA(self) :
         return categorieAthletisme(self.naissance[6:])
-    def scoreUNSSFormate(self) :
+    def scoreUNSSFormate(self, avecVirgule = True) :
         if int(self.scoreUNSS) == self.scoreUNSS : # scoreUNSS est un entier au type float.
             retour = str(int(self.scoreUNSS))
         else :
-            retour = str(round(self.scoreUNSS,1)).replace(".",",")
+            retour = str(round(self.scoreUNSS,1))
+        if avecVirgule :
+            retour = retour.replace(".",",")
         return retour
     def nombreDeSecondesDepuisDerniereModif(self) :
         try :
@@ -1342,11 +1343,13 @@ class EquipeClasse():
 ##            print("Application d'une pondération à la classe", self.nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
-    def scoreFormate(self) :
+    def scoreFormate(self, avecVirgule=True) :
         if int(self.score) == self.score :
             retour = str(self.score)
         else :
-            retour = str(round(self.score,1)).replace(".",",")
+            retour = str(round(self.score,1))
+        if avecVirgule :
+            retour = retour.replace(".",",")
         return retour
     def listeDesRangs(self) :
         listeRangs = []
@@ -1369,12 +1372,12 @@ class EquipeClasse():
                 return False
     def scoreFormatePourOPUSS(self) :
         ''' exemple : 6 pts (1+2+1+2+0)'''
-        retour = str(self.score) + " pts ("
+        retour = str(self.scoreFormate(avecVirgule=False)) + " pts ("
         for c in self.listeCG + self.listeCF :
             if Parametres['CategorieDAge'] == 0 :
                 retour += str(c.rang) + "+"
             else:
-                retour += str(c.scoreUNSS) + "+" # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+                retour += str(c.scoreUNSSFormate(avecVirgule = False)) + "+" # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
         retour = retour[:-1] + ")"
         return retour
 
@@ -2349,22 +2352,24 @@ def listChallenges():
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
             listeCourses.append(Courses[cat].categorie)
+        # print("liste des courses examinées", listeCourses)
         for cat in listeCourses :
             if Parametres["CategorieDAge"]== 0 :
                 NomDuChallenge = cat[0]
             else :
                 NomDuChallenge = cat[:2] 
-            #print("nom de challenge potentiel", NomDuChallenge)
+            # print("nom de challenge potentiel", NomDuChallenge)
             if NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
                 ### en théorie, il faudrait créer le challenge même s'il n'y a que des filles cadettes et des garçons juniors. 
                 ### Actuellement, c'est un "bug" qui n'apparaitra jamais car il y a toujours des coureurs en cadets et junior dans les deux sexes.
                 if Parametres["CategorieDAge"]== 2 and \
-                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA", "MI", "BE", "PO" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
+                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA"] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
                     # on ajoute les deux challenges LP et LG violemment.
                     if "LP" not in retour :
                         retour.append("LP")
                     NomDuChallenge = "LG"
                 if NomDuChallenge not in retour :
+                    # print("nom de challenge ajouté :", NomDuChallenge)
                     retour.append(NomDuChallenge)
     # print("liste des challenges", retour)
     return retour
@@ -3456,7 +3461,7 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     ### il me faudrait changer tous les appels aux groupements partout dans le code pour optimiser.
     for groupement in Groupements :
         if nomStandard :
-            if groupement.nomStandard == nomGroupement :
+            if groupement.nomStandard == nomGroupement or nomGroupement in groupement.listeDesCourses : ### ajout UNSS
                 retour = groupement
                 break
         else :
@@ -3483,7 +3488,11 @@ def ancienGroupementAPartirDUneCategorie(categorie):
 
 def nomGroupementAPartirDUneCategorie(categorie, nomStandard = True):
     """ retourne un str nom du groupement à partir d'un nom de catégorie"""
-    return groupementAPartirDUneCategorie(categorie).nomStandard
+    nom = groupementAPartirDUneCategorie(categorie)
+    if nom :
+        return nom.nomStandard
+    else :
+        return ""
     # try :
         # retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     # except :
@@ -3511,7 +3520,11 @@ def groupementAPartirDUneCategorie(categorie):
         #print("nomGroupement",Courses[categorie].nomGroupement)
         retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
-        retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
+        try :
+            retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
+        except:
+            retour = None
+            print("ERREUR : groupementAPartirDUneCategorie", categorie, "n'a pas de groupement")
     return retour
 
 def findIndex(nom, L):
@@ -4591,11 +4604,19 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 print("prenom changé")
                 auMoinsUnChangement = True
             # print("email",email, "emailDeux", email2, "coureur.email",coureur.email, "coureur.email2",coureur.email2)
-            if email != coureur.email :
+            try :
+                emailActuel = coureur.email
+            except :
+                emailActuel = ""
+            if email != emailActuel :
                 coureur.setEmail(email)
                 print("email changé")
                 auMoinsUnChangement = True
-            if email2 != coureur.email2 :
+            try :
+                emailActuel2 = coureur.email2
+            except :
+                emailActuel2 = ""
+            if email2 != emailActuel2 :
                 coureur.setEmail2(email2)
                 print("email2 changé")
                 auMoinsUnChangement = True
@@ -6166,12 +6187,16 @@ def genereChainePourOPUSS(challenge, nombreQualifies) :
         i = 0
         for equipe in ResultatsGroupements[challenge] :
             if equipe.complet() :
-                coureur = equipe.listeCG[0]
+                L = equipe.listeCG + equipe.listeCF
+                for coureur in L :
+                    if coureur.etablissementNoUNSS :
+                        break # on recherche le premier coureur qui a un numéro d'AS non vide.
+                # coureur = equipe.listeCG[0]
                 i += 1
                 chaine += str(i) + "\t" + coureur.etablissementNoUNSS + "\t" 
                 if i <= nombreQualifies : 
                     chaine += str(i)
-                chaine += "\t" + equipe.scoreFormatePourOPUSS + "\t"
+                chaine += "\t" + equipe.scoreFormatePourOPUSS() + "\t"
                 if i <= nombreQualifies :
                     chaine += "Q"
                 chaine += "\n"
@@ -6497,7 +6522,7 @@ def creerCoureur(listePerso, informations) :
     #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
     if nature == "COL" :
         nature = "CLG"
-    if nature == "LYC" :
+    if nature == "LYC" or nature == "LPO" :
         nature = "LG"
     if "vma" in informations :
         try :
@@ -6523,7 +6548,7 @@ def creerCoureur(listePerso, informations) :
                                             naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                             temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
                                             dossard=doss, email=str(email), email2=str(emailDeux), CoureursParClasseUpdateActif=False)
-        # print("retourCreationModifErreur",retourCreationModifErreur)
+        print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
             # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
