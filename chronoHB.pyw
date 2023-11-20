@@ -3840,6 +3840,7 @@ class CoureurFrame(Frame) :
             print("dossard:",doss)
             if doss : # la combobox n'est pas vide 
                 coureur = Coureurs.recuperer(doss)
+                print("licence", coureur.licence)
                 self.nomE.insert(0, coureur.nom)
                 self.prenomE.insert(0, coureur.prenom)
                 if Parametres['CategorieDAge'] :
@@ -4523,18 +4524,22 @@ def exportOPUSS():
             popup = Toplevel(root)
             popup.title("Sélection pour export vers OPUSS")
 
+            # Style pour centrer le texte dans la Combobox
+            # style = Style()
+            # style.configure("TCombobox", justify="center")
+            
             # Liste déroulante pour le choix du groupement
             groupement_var = StringVar(value=challenges[0])
             groupement_label = Label(popup, text="Choisissez le groupement :")
             groupement_label.pack(pady=10)
-            groupement_dropdown = Combobox(popup, textvariable=groupement_var, values=challenges)
+            groupement_dropdown = Combobox(popup, textvariable=groupement_var, values=challenges, justify="center", state="readonly") #, style="TCombobox")
             groupement_dropdown.pack(pady=10)
 
             # Liste déroulante pour le choix du nombre de qualifiés
             nombre_qualifies_var = IntVar(value=1)
             nombre_qualifies_label = Label(popup, text="Choisissez le nombre de qualifiés :")
             nombre_qualifies_label.pack(pady=10)
-            nombre_qualifies_dropdown = Combobox(popup, textvariable=nombre_qualifies_var, values=list(range(1, 11)))
+            nombre_qualifies_dropdown = Combobox(popup, textvariable=nombre_qualifies_var, justify="center", values=list(range(1, 11)), state="readonly") #, style="TCombobox")
             nombre_qualifies_dropdown.pack(pady=10)
 
             # Boutons Valider et Annuler
@@ -4623,7 +4628,7 @@ Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 print("Fermeture de la BDD")
 
 # suppression de la sauvegarde automatique vers db à la fermeture
-# ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
+ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
 dump_sauvegarde()
 
 try :
