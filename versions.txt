@@ -4,6 +4,13 @@ A venir :
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 
+Travail du 04/10/24 :
+- correctif import pour les courses manuelles : on fournit soit le champ "course" soit le champ "dossard" mais pas les deux. A documenter.
+- correctif nombre total de coureurs pour le diplome des courses manuelles (n'était pas implémenté).
+- correctif pour que les classes catégories d'âges ne tiennent plus en compte des catégories d'âge "inférieures".
+Un master qui battrait un senior ne déclasse plus le senior d'un rang dans sa catégorie.
+
+
 Travail du 20/11/23 :
 - export vers OPUSS des équipes UNSS qualifiées (créé et interfacé).
 

@@ -27,7 +27,7 @@ from openpyxl import load_workbook
 from tkinter.messagebox import *
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 version = "1.9"
 
@@ -180,6 +180,8 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "") :
                     categorie = "MI"
                 elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
                     categorie = "CA"
+                elif Parametres["crossUNSScollegeLycee"] and categorie == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                    categorie = "BE"
             # return categorie
         except :
             print("argument fourni incorrect : pas au format nombre entier")
@@ -259,6 +261,12 @@ def recupere_sauvegarde(sauvegardeChoisie) :
 ##        return nomFichierCopie
 
 def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, sexe, evolution = 1) :
+    """Correctif pour ne plus déclasser les coureurs battus par les catégories infférieures.
+    Un master qui battrait un senior ne déclasse plus le senior d'un rang dans sa catégorie alors que c'était initialement prévu ainsi.
+    Initialement, si le meilleur master battait le meilleur senior, le senior était 2ème de sa catégorie senior.
+    Idem pour les jeunes dans l'autre sens.
+    J'annule tout au niveau du correctif indiqué ci-dessous.
+    """
     # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
     for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
         # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
@@ -273,16 +281,26 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
         ## sinon, ne rien faire.
         if present :
             for couple in L :
-                if sexe == "F" :
-                    couple[2] += evolution
-                else :
-                    couple[1] += evolution
+                # VERSION CORRIGEE : on ne déclasse plus les coureurs battus par les catégories inférieures.
                 if catFFA == couple[0] :
                     if sexe == "F" :
+                        couple[2] += evolution
                         rangDansCategorie = couple[2]
                     else :
+                        couple[1] += evolution
                         rangDansCategorie = couple[1]
                     break
+                # VERSION INITIALE : on déclasse les coureurs battus par les catégories inférieures.
+                # if sexe == "F" :
+                #     couple[2] += evolution
+                # else :
+                #     couple[1] += evolution
+                # if catFFA == couple[0] :
+                #     if sexe == "F" :
+                #         rangDansCategorie = couple[2]
+                #     else :
+                #         rangDansCategorie = couple[1]
+                #     break
             # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
             break
     return rangDansCategorie
@@ -324,6 +342,15 @@ class DictionnaireDeCoureurs(dict) :
         # if Parametres["CategorieDAge"] == 0 : # cross du collège
         if Parametres["CoursesManuelles"] : # courses manuelles activées
             print("ATTENTION : à implémenter total de la course en mode manuel")
+            course = coureur.dossard[-1].upper()
+            if course in self.keys() :
+                for c in self[course] :
+                    if not c.absent and not c.dispense :
+                        total += 1
+                # on a obtenu le nombre de coureurs non absents et non dispensés en comptant les coureurs vides liés à 
+                # des suppressions de coureurs après import ou à des numéros non attribués
+                # on doit donc retrancher les indices libres.
+                total -= len(self["CoureursElimines"][course])
         else :
             for c in self.liste() :
                 # print("Coureur", c.nom, "examiné", c.categorie(Parametres["CategorieDAge"]) )
@@ -628,7 +655,9 @@ class Coureur():#persistent.Persistent):
             self.course
         except :
             self.course = ""
-        #if not Parametres["CoursesManuelles"] : 
+        #if not Parametres["CoursesManuelles"] :
+        # if "217" in self.dossard : 
+        #     print("catégorie", self.__private_categorie, self.course, self.etablissement, self.etablissementNature)
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
@@ -637,12 +666,13 @@ class Coureur():#persistent.Persistent):
                             ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                             ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
                         cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                            cat = "MI"
-                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                            cat = "CA"
-                        elif Parametres["crossUNSScollegeLycee"] and cat == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
-                            cat = "BE"
+                        ### INUTILE car FAIT DANS categorieAthletisme :
+                        # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                        #     cat = "MI"
+                        # elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                        #     cat = "CA"
+                        # elif Parametres["crossUNSScollegeLycee"] and cat == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                        #     cat = "BE"
                         self.__private_categorie = cat + "-" + self.sexe
                     else: ## catégories FFA
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -652,6 +682,8 @@ class Coureur():#persistent.Persistent):
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
         if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
             self.course = self.__private_categorie
+        # if "217" in self.dossard :
+        #     print("catégorie", self.__private_categorie, self.course)
         return self.__private_categorie
 
     def categorieSansSexe(self) :
@@ -769,6 +801,7 @@ class Coureur():#persistent.Persistent):
         self.etablissementNature = "CLG"
         if nature == "LG" or nature == "LP" :
             self.etablissementNature = nature
+        self.__private_categorie = None # réinit
     def setDossard(self, dossard) :
         try :
             if dossard != "" :
@@ -799,6 +832,8 @@ class Coureur():#persistent.Persistent):
             chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
             if naissanceValide(chNaissance) :
                 self.naissance = chNaissance
+                self.__private_categorie = None # réinit
+                # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
             else :
                 chNaissance = None
 ##            if len(chNaissance) > 8 :
@@ -4538,17 +4573,28 @@ def coureurExists(nom, prenom) :
         # i += 1
     # return retour
 
-def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course) :
+def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
+    print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
+            "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and not Parametres["CoursesManuelles"] and naissanceValide(naissance)) \
              or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and len(course)) \
+             or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and dossardValide(dossard)) \
              or (Parametres["CategorieDAge"] == 2 and naissanceValide(naissance) and etablissement and etablissementNatureValide))
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
-             # 1 - cas de courses organisées en fonction des catégories de la FFA
+             # 1 - cas de courses organisées en fonction des catégories de la FFA. La naissance est obligatoire mais plusieurs cas se présentent :
+                    # * si les courses ne sont pas manuelles, on n'a besoin que de la naissance car la course dépend de la catégorie FFA
+                    # * si les courses sont choisies par les coureurs (cas du Trail du Randon), on a deux cas :
+                    #       - soit on a la naissance et la course (fournie dans le fichier tableur importé)
+                    #       - soit on a la naissance et le dossard (34B indique que le coureur courre la course B). On peut donc déduire la course du dossard fourni dans le tableur.
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+
+def dossardValide(dossard) :
+    ### retourne True uniquement si la chaine dossard est constituée de chiffres suivis d'une lettre majuscule
+    return dossard and dossard[-1].isalpha() and dossard[:-1].isdigit()
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0,\
                 commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", email2="",\
@@ -4561,7 +4607,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
     # si les données fournies sont valides ET 
     # si le dossard existe ou (si le dossard n'existe pas et qu'on le trouve par ses noms-prénoms), alors on modifie le coureur tel que spécifié.
     # sinon on crée le coureur
-    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
+    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
         dossardTrouve = coureurExists(nom, prenom)
         dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
         dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
@@ -5080,7 +5126,7 @@ def calculeTousLesTemps(reinitialise = False):
     return retour
 
 def categorieDuDernierDepart() :
-    ''' retourne l'heure du dernier départ lancé'''
+    ''' retourne la catégorie du dernier départ lancé'''
     cat = ""
     tempsMax = 0
     for nom in Courses :
@@ -5653,9 +5699,9 @@ def genereAffichageWWW(listeDesGroupements) :
         dureesActualisation.append(10000) # actualisation par défaut de 10 secondes. Varie ensuite selon le contexte.
         # création du fichier lié à l'onglet 
         tableauComplet = genereEnTetesHTML(groupementNomStandard, chrono, avecFermetureTABLE=False) + genereTableauHTML(groupementNomStandard, chrono, avecOuvertureTABLE=False, affichageWWW=True)
-        tableauComplet.replace("Chronomètre actuel","")
+        tableauComplet.replace("Chronomètre actuel","") # inutile ?
         tabActuel = tabModele.replace("@@heureDepartGroupement@@",str(hdep)).replace("@@indicePartantDe0@@",str(i))\
-            .replace("@@tableauCourse@@", tableauComplet)
+            .replace("@@tableauCourse@@", tableauComplet).replace("Chronomètre actuel","Pas de coureur arrivé.")
         fichierTabActuel = "Affichage-tab" + str(i) + ".html"
         with open(fichierTabActuel,"w", encoding='utf8') as f :
             f.write(tabActuel)

@@ -2,6 +2,7 @@
 import requests,os
 
 
+
 def majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee) :
     ''' retourne la liste des fichiers nécessaires pour passer de la version x à la version y.
         A implémenter.'''
@@ -26,16 +27,16 @@ def majScript(versionActuelle,versionDeployee) :
     if versionActuelle != versionDeployee and versionDeployee != -1 :
         listeDesFichiersATelecharger = majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee)
         if majScriptGenerique(URLracine, listeDesFichiersATelecharger) :
-            message = "MISE A JOUR","Application des mises à jour réussie. Redémarrage de chronoHB."
+            message = "Application des mises à jour réussie. Redémarrage de chronoHB."
             reboot = True
         else :
-            message = "MISE A JOUR","Application des mises à jour en échec."
+            message = "Application des mises à jour en échec."
     elif versionDeployee == -1 :
         # message pour l'utilisateur du succès.
-        message = "MISE A JOUR","La vérification de la dernière version disponible en ligne est impossible."
+        message = "La vérification de la dernière version disponible en ligne est impossible."
     else :
         # message pour l'utilisateur du succès.
-        message = "MISE A JOUR","Le logiciel est à jour en version " + versionActuelle
+        message = "Le logiciel est à jour en version " + versionActuelle
     return reboot, message
     
 

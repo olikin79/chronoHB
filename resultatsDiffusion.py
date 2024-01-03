@@ -245,6 +245,8 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
                     subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
                     html="""
                         <h1>Bravo pour ta participation !</h1>
+                        <a href="https://marielleetolivier2.synology.me/index-en-ligne.html">Lien vers les résultats en temps réel</a>
+                        <p>Voici ton diplôme :</p>
                         <img src="{{ my_image.src }}" width=100%>
                     """, 
                     body_images={
