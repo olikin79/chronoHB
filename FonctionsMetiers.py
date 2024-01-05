@@ -419,6 +419,7 @@ class DictionnaireDeCoureurs(dict) :
                 self[course].append(coureur)
                 #self.nombreDeCoureurs += 1
                 self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+                return dossard
             else : # le dossard affecté n'est pas spécifié, on affecte le coureur créé au premier dossard libre.
                 if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
                     premierIndiceLibre = self["CoureursElimines"][course].pop(0)
@@ -4750,14 +4751,15 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 course=lettreCourse, email=email, email2=email2), course = lettreCourse)
             # on crée la course après le coureur pour disposer de la catégorie quand elle est calculée par l'objet Coureur.
             if CoursesManuelles :
+                # inutile ? car déjà fait 28 lignes au dessus. Le addCourse ne semble utile qu'en mode "not CoursesManuelles"
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
-                print("lettreCourse",lettreCourse)
+                # print("lettreCourse",lettreCourse)
             else :
                 addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
-                  lettreCourse, " (",course,")")
+                  lettreCourse, " ",course,"\n")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour, d = [1,0,0,0], dossard
