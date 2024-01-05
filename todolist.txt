@@ -74,7 +74,7 @@ Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemp
 - l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
 Le serveur la traite comme un doublon grace à l'UID unique lié à la communication. Cela n'a donc aucune incidence en pratique.
 Si un jour, j'ai du temps, autant supprimer ce problème.
-- bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
+- (CORRIGE le 05/01/24) bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
 A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
 la permutation est souhaitée. Cela fonctionne dans l'autre sens.
 
@@ -125,7 +125,7 @@ la fenêtre parent en pixels.
 - (FAIT le 04/01) vérifier que le classement s'effectue à l'intérieur d'une catégorie : un M2 n'est pas en concurrence avec un M3, etc... Surtout pour le Randon Trail.
 
 Fonctionnalités :
-- Inscription en ligne avec case à cocher : trouver un moyen de cacher périodiquement les lignes "payées" 
+- (FAIT) Inscription en ligne avec case à cocher : trouver un moyen de cacher périodiquement les lignes "dossard distribué" 
 et de pouvoir "tout afficher" avec une case à cocher, qui restera toujours visible.
 Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
 - Inscription en ligne : envoi d'un email automatique aux inscrits avec leur numéro de dossard, la couleur et l'indication "Donner votre nom et indiquez que vous avez le dossard "23 vert".
@@ -133,9 +133,9 @@ Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
 Fonctionnalités :
 - Installation automatique de l'ensemble dont extensions installées localement.
 - Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
-Chaque smartphone sera considéré comme une pix différente. Le premier smartphone à envoyer des données sera la pic de base importée
+Chaque smartphone sera considéré comme une pique différente. Le premier smartphone à envoyer des données sera la pique de base importée
 ArriveesDossards sera complété par des propriétés et méthodes  :
-La documentation spécifiera que : le premier dossard scanné avec un smartphone "pic" (qui n'est pas celui de base) devra être :
+La documentation spécifiera que : le premier dossard scanné avec un smartphone "pique" (qui n'est pas celui de base) devra être :
 * un dossard (quelconque du smartphone principal)
 * ou le dernier dossard d'un autre smartphone "pic".
 Le dernier dossard d'un smartphone "pic" devra être :
@@ -180,11 +180,6 @@ Retour suite au trail de Randon :
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
-
-
-Dernière idées en vrac :
-- créer un export html qui ne défile pas, à onglets
-- créer un export ftp pour des résultats en temps réel sur internet.
 
 
 Pour déploiement du logiciel sur d'autres ordinateurs et maintenance automatique :

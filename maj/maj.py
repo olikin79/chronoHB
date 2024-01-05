@@ -11,7 +11,7 @@ def majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee) :
 
 def majScriptGenerique(URLracine, listeDesFichiersATelecharger) : # script de mise à jour en version 01.9
     ''' retourne True si mise à jour réussie et False sinon'''
-    URLracine = "https://mathlacroix.free.fr/chronoHB/"
+    URLracine = "http://mathlacroix.free.fr/chronoHB/"
     try :
         retour = True
         for f in listeDesFichiersATelecharger :
@@ -22,7 +22,7 @@ def majScriptGenerique(URLracine, listeDesFichiersATelecharger) : # script de mi
     return retour
 
 def majScript(versionActuelle,versionDeployee) :
-    URLracine = "https://mathlacroix.free.fr/chronoHB/"
+    URLracine = "http://mathlacroix.free.fr/chronoHB/"
     reboot = False # valeur par défaut.
     if versionActuelle != versionDeployee and versionDeployee != -1 :
         listeDesFichiersATelecharger = majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee)

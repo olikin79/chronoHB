@@ -4575,7 +4575,7 @@ def coureurExists(nom, prenom) :
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
-    print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
+    print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
             "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
     return nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
@@ -6303,12 +6303,15 @@ def traitementDesDonneesAImporter(donneesBrutes) :
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
-    BilanCreationModifErreur = [0,0,0,0]
-    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
-        if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
-        elif fichierSelectionne[-3:].lower() == "csv":
-            BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+    try :
+        BilanCreationModifErreur = [0,0,0,0]
+        if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
+            if fichierSelectionne[-4:].lower() == "xlsx" :
+                BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
+            elif fichierSelectionne[-3:].lower() == "csv":
+                BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+    except : 
+        print("ATTENTION : Exception non gérée dans recupXLSX() ou recupCSV().")
     #if retour :
     print("IMPORT CSV ou XLSX TERMINE")
     generateListCoureursPourSmartphone()
@@ -6594,7 +6597,7 @@ def creerCoureur(listePerso, informations) :
                                             naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                             temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
                                             dossard=doss, email=str(email), email2=str(emailDeux), CoureursParClasseUpdateActif=False)
-        print("retourCreationModifErreur",retourCreationModifErreur)
+        # print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
             # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
