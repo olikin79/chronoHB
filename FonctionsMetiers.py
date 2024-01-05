@@ -6588,11 +6588,11 @@ def creerCoureur(listePerso, informations) :
     if "dossard" in informations :
         doss = formateDossardNG(infos["dossard"])
         #print("Commentaire personnalisé :" + comment+ ".")
-    # on crée le coureur avec toutes les informations utiles.
-    print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
     # try :
     if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
         # print("test 06102023", type(email), email, type(emailDeux))
+        # on crée le coureur avec toutes les informations utiles.
+        print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
         retourCreationModifErreur, d = addCoureur(nom, prenom, sexe , classe=clas, \
                                             naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                             temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
