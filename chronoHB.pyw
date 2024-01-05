@@ -2103,7 +2103,7 @@ def reculerDossardAction() :
             r = requests.get(requete)
             regenereAffichageGUI()
         else :
-            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",i)
+            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible).")
             reponse = showinfo("ERREUR","Impossible de reculer le dernier dossard.")
     reculerDossardButton.configure(state=NORMAL)
 

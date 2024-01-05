@@ -4,6 +4,10 @@ A venir :
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 
+Travail du 05/01/24 :
+-correction bug exception non gérée quand on faisait reculer un dossard depuis l'interface GUI.
+
+
 Travail du 04/10/24 :
 - correctif import pour les courses manuelles : on fournit soit le champ "course" soit le champ "dossard" mais pas les deux. A documenter.
 - correctif nombre total de coureurs pour le diplome des courses manuelles (n'était pas implémenté).
