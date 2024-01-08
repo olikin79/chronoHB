@@ -4,8 +4,13 @@ A venir :
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 
+Travail du 08/01/24 :
+- ajout d'une décimale aux vitesses calculées.
+
+
 Travail du 05/01/24 :
 -correction bug exception non gérée quand on faisait reculer un dossard depuis l'interface GUI.
+- amélioration de la clarté du fichier log d'import de coureurs.
 
 
 Travail du 04/10/24 :

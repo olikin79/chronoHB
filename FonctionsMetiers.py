@@ -928,7 +928,7 @@ class Coureur():#persistent.Persistent):
     def vitesseFormatee(self) : 
         """Vitesse finalement arrondie à l'entier le plus proche en km/h"""
         # if self.vitesse >=10 :
-        ch = str(round(self.vitesse)) + " km/h"
+        ch = str(round(self.vitesse,1)) + " km/h"
         # else :
         #     ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
         return ch
@@ -2496,7 +2496,10 @@ def listNomsGroupementsEtChallenges(nomStandard = False):
 
 def listNomGroupements():
     retour = []
+    # tri par ordre alphabétique de nomStandard (en cas de créations inversée)
+    Groupements.sort(key=lambda x: x.nomStandard)
     for groupement in Groupements :
+        # print("Nom des groupements", groupement.nomStandard)
         retour.append(groupement.nom)
     return retour
 
@@ -2932,7 +2935,7 @@ def alimenteListingPourCourse(nomCourse, file):
     partie2 = """ } {}\\hfill {}
     
 \\medskip
-{}\\hfill {} \\includegraphics[width=8cm]{QRcodes/"""
+{}\\hfill {} \\includegraphics[width=6.5cm]{QRcodes/"""
     partie3 = """.pdf} {}\\hfill {}
     
 \\vspace{0.8cm}
