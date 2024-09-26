@@ -34,7 +34,7 @@ from maj import *
 #import git
 
 
-version="1.8"
+version="1.9"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -44,7 +44,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -941,11 +941,13 @@ class Checkbar(Frame):
         self.vars = []
         #print("Nouvelle liste:",picks)
         self.fr.append(Frame(self))
-        if len(picks) > 7 :
-            # coupe en deux à partir de 8
-            moitie = len(picks)//2 -1
-        else :
-            moitie = 20 # on ne coupe pas !
+        # désormais, on coupe tous les quatre et on ajoute autant de lignes que nécessaire
+        # if len(picks) > 7 :
+        #     # coupe en deux à partir de 8
+        #     moitie = len(picks)//2 -1
+        # else :
+        #     moitie = 20 # on ne coupe pas !
+        seuil = 0 # valeur de i//4 à partir de laquelle on ajoute une nouvelle ligne
         i = 0
         for pick in picks:
             if i < len(self.listeAffichageTV) and self.listeAffichageTV[i] :
@@ -956,12 +958,14 @@ class Checkbar(Frame):
             self.checkbuttons.append(chk)
             if self.vertical :
                 chk.pack(anchor=self.anchor, expand=YES) # à la verticale
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             else :
                 chk.pack(side=self.side, anchor=self.anchor, expand=YES)# côte à côte
-                if i == moitie :
+                if (i+1)//4 != seuil :
                     self.fr.append(Frame(self))
+                    seuil = (i+1)//4
             self.vars.append(var)
             i+=1
         for fr in self.fr :
@@ -969,6 +973,68 @@ class Checkbar(Frame):
                 fr.pack(side=LEFT)
             else :
                 fr.pack(side=TOP)
+
+class CheckboxAbsDisp(Frame):
+    def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent, relief=GROOVE, borderwidth=2)
+        # self.combobox = Combobox(self, width=5, values=('','Abs','Disp'))
+        # self.relief=GROOVE
+        # self.borderwidth=2
+        self.varAbs = IntVar()
+        self.varDisp = IntVar()
+        if coureur.absent :
+            self.varAbs.set(1)
+        else :
+            self.varAbs.set(0)
+        if coureur.dispense :
+            self.varDisp.set(1)
+        else :
+            self.varDisp.set(0)
+        def memoriseValeurBindAbs() :
+            #print("coureur : ", self.coureur.nom)
+            if self.varAbs.get() == 1 :
+                self.coureur.setAbsent(True)
+            else :
+                self.coureur.setAbsent(False)
+        def memoriseValeurBindDisp() :
+            if self.varDisp.get() == 1 :
+                self.coureur.setDispense(True)
+            else :
+                self.coureur.setDispense(False)
+        self.frameConteneurCheckBox = Frame(self)
+        if Parametres["CategorieDAge"] :
+            textAbs = "A"
+            textDisp = "D"
+        else :
+            textAbs = "Abs"
+            textDisp = "Disp"
+        self.checkbuttonAbs = Checkbutton(self.frameConteneurCheckBox, text=textAbs, variable=self.varAbs, command=memoriseValeurBindAbs)
+        self.checkbuttonDisp = Checkbutton(self.frameConteneurCheckBox, text=textDisp, variable=self.varDisp, command=memoriseValeurBindDisp)
+        self.coureur = coureur
+        # formatage du nom affiché afin de couper les noms prénoms trop longs (somme supérieure à x caractères) et de conserver le prénom en entier en coupant la fin du nom.
+        longueurNom = len(coureur.nom)
+        longueurPrenom = len(coureur.prenom)
+        longueurTotale = longueurNom + longueurPrenom
+        if longueurTotale > 16 : 
+            nomAffiche = coureur.nom[0:13-longueurPrenom].upper() + "[..] " + coureur.prenom
+        else :
+            nomAffiche = coureur.nom.upper() + " " + coureur.prenom
+        # fin du formatage du nom-prénom
+        if Parametres["CategorieDAge"] :
+            f = font.Font(size=10)
+        else :
+            f = font.Font(weight="bold",size=14)
+        self.lbl = Label(self, text=nomAffiche)
+        self.lbl['font'] = f
+        self.checkbuttonAbs['font'] = f
+        self.checkbuttonDisp['font'] = f
+
+        #self.checkbuttons.append(chk)
+        self.frameConteneurCheckBox.pack(side=LEFT) # à la verticale
+        self.checkbuttonAbs.pack(side=LEFT) # à la verticale ou pas ?
+        self.checkbuttonDisp.pack(side=LEFT)
+        self.lbl.pack(side=LEFT)
+        
 
 class ComboboxAbsDisp(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
@@ -1000,6 +1066,24 @@ class ComboboxAbsDisp(Frame):
         self.combobox.pack(side=LEFT) # à la verticale
         self.lbl.pack(side=LEFT)
 
+class ButtonBoxDiplomes(Frame):
+    def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
+        Frame.__init__(self, parent)
+        self.coureur = coureur
+        def envoyerDiplome() :
+            nomModele = Parametres["diplomeModele"]
+            modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
+            with open(modeleDiplome , 'r') as f :
+                modele = f.read()
+            f.close()
+            print("Envoi du diplome pour le coureur : ", self.coureur.nom, self.coureur.prenom)
+            genereDiplome(modele, coureur, nomModele)
+            envoiDiplomeParMail(coureur)
+        nomAffiche = coureur.nom + " " + coureur.prenom
+        self.combobox = Button(self, text= nomAffiche, command=envoyerDiplome, width = 20)
+        self.combobox.pack(side=TOP, expand=YES) # à la verticale
+        #self.lbl.pack(side=LEFT)
+
 class ButtonBoxDossards(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
@@ -1012,7 +1096,7 @@ class ButtonBoxDossards(Frame):
             if os.path.exists(nomFichierGenere):
                 if windows() :
                     if imprimePDF(nomFichierGenere) :
-                        reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
+                        reponse = True # askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que la feuille s'est bien imprimée ?")
                     else :
                         reponse = False
                 else :
@@ -1209,8 +1293,8 @@ class EntryGroupements(Frame):
         #valeurs=tuple(range (1,1+self.longueur))
         noGroupement = 1
         for groupement in groupements :
-            print("groupements",groupements)
-            print(groupement.listeDesCourses)
+            # print("groupements",groupements)
+            # print(groupement.listeDesCourses)
             for course in groupement.listeDesCourses :
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
@@ -1331,10 +1415,10 @@ class Combobar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            self.combos.append(ComboboxAbsDisp(pick, frm))
+            self.combos.append(CheckboxAbsDisp(pick, frm))
             chk = self.combos[-1]
-            chk.pack()
-            frm.pack(side=TOP, anchor=W, padx=3, pady=3)
+            chk.pack(anchor=W,fill=BOTH, expand=YES)
+            frm.pack(side=TOP, anchor=W, padx=3, pady=3, fill=BOTH, expand=YES)
             if i in IndicesDesChangementsDeColonne :
                 self.fr.append(Frame(self))
             self.vars.append(var)
@@ -1391,7 +1475,10 @@ class Buttonbar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            self.combos.append(ButtonBoxDossards(pick, frm))
+            if Parametres["buttonBarMode"] == 0 :
+                self.combos.append(ButtonBoxDossards(pick, frm))
+            else :
+                self.combos.append(ButtonBoxDiplomes(pick, frm))
             chk = self.combos[-1]
             chk.pack()
             frm.pack(side=TOP, anchor=W, padx=3, pady=3, expand=YES)
@@ -1404,6 +1491,8 @@ class Buttonbar(ScrollFrame):
                 fr.pack(side=LEFT)
             else :
                 fr.pack(side=TOP)
+
+Parametres["buttonBarMode"] = 0 # 0 pour imprimer les dossards, 1 pour envoyer les diplomes par mail.
 
 def extract_ip():
     st = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1612,7 +1701,10 @@ class AbsDispFrame(Frame) :
         self.choixClasseCombo = Combobox(self.parent, width=45, justify="center", state='readonly')
         self.choixClasseCombo['values']=self.tupleClasses
         self.choixClasseCombo.bind("<<ComboboxSelected>>", self.actualiseAffichageBind)
-        self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        if Parametres["CategorieDAge"] :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True)
+        else :
+            self.comboBoxBarClasse = Combobar(self.parent, vertical=True, nombreColonnes=3)
         self.TopDepartLabel = Label(self.parent)
         self.TopDepartLabel.pack(side=TOP)
         self.actualiseListeDesClasses()
@@ -1767,6 +1859,8 @@ zoneTopDepartBienPlacee = Frame(Affichageframe)
 zoneTopDepartBienPlacee.config(relief=GROOVE, bd=2)
 
 
+
+## DEBUGGAGE 
 
 
 zoneTopDepart = TopDepartFrame(zoneTopDepartBienPlacee)
@@ -1949,6 +2043,25 @@ def supprimerDossardAction() :
         reponse = showinfo("ERREUR",message)
     supprimerDossardButton.configure(state=NORMAL)
 
+def envoiEmailDeTestLanceur():
+    mon_thread_Diplomes = Thread(target=envoiEmailDeTest)
+    mon_thread_Diplomes.start()
+
+def envoiEmailDeTest() :
+    """Envoi un email avec le diplome du coureur sélectionné à l'expéditeur des emails présent dans Parametres["email"] à l'aide de la fonction envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest()"""
+    dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
+    if dossard :
+        print("Envoi d'un email de test pour le dossard", dossard)
+        coureur = Coureurs.recuperer(dossard)
+        if envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
+            message = "Diplôme de test envoyé à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("INFORMATION",message)
+        else :
+            message = "Erreur lors de l'envoi du diplôme de test à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
+            reponse = showinfo("ERREUR",message)
+    else :
+        message = "Aucun dossard sélectionné dans le tableau."
+        reponse = showinfo("ERREUR",message)
         
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
@@ -1990,7 +2103,7 @@ def reculerDossardAction() :
             r = requests.get(requete)
             regenereAffichageGUI()
         else :
-            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",i)
+            print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible).")
             reponse = showinfo("ERREUR","Impossible de reculer le dernier dossard.")
     reculerDossardButton.configure(state=NORMAL)
 
@@ -2343,6 +2456,12 @@ En effet, un smartphone ne peut pas scanner un même dossard deux fois. Cela pro
 Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
 la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
+    elif err.numero == 601 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
+        message = "Le smartphone " + str(err.smartphone) + " en mode 'pique' a scanné la liste de dossards suivante. Ils seront intégrés dans la " + \
+            "liste principale là où le premier dossard sera scanné ou saisi :\n" + str(err.listeDesDossardsConcernes) + ".\n\n" + \
+            "Cette situation transitoire est tout à fait 'normale' quand deux files de dossards sont scannées en même temps. " + \
+            "Ajouter le dossard " + str(err.listeDesDossardsConcernes[0]) + " dans les dossards arrivés pour insérer tous les dossards de cette pique à la suite de celui-ci et faire disparaitre cette erreur."
+        showinfo("ERREUR TEMPORAIRE DANS LE TRAITEMENT DES DONNEES" , message)
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
 
@@ -2438,6 +2557,8 @@ def rejouerToutesLesActionsMemorisees() :
     Parametres["ligneDerniereRecuperationSmartphone"]=1
     Parametres["tempsDerniereRecuperationLocale"]=0
     Parametres["ligneDerniereRecuperationLocale"]=1
+    # on retraite les piques également désormais.
+    Parametres["DerniereRecuperationSmartphonePiques"] = {}
     dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
@@ -2663,15 +2784,33 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
                 mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
                 mon_thread_Diplomes.start()
         else :
-            if diplomeDiffusionAutomatique :
-                tagEnvoiDiplomeEnCours = True
-                #print("Début d'envoi de diplômes automatisé...")
-                mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
-                mon_thread_Diplomes.start()
-                # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
+            tagEnvoiDiplomeEnCours = True
+            # if DEBUG :
+            #     print("Début d'envoi de diplômes automatisé...")
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes.start()
+            # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
 ##    else :
 ##        print("Des diplômes sont déjà en cours d'envoi, on ne relance pas le script.")    
 
+tagDepotFTPEnCours = False
+
+def depotFTPResultats():
+    """Dépose les fichiers de résultats sur serveur FTP en initiant un thread"""
+    global tagDepotFTPEnCours
+    if not tagDepotFTPEnCours :
+        tagDepotFTPEnCours = True
+        if DEBUG :
+            print("Début de dépôt FTP automatique...")
+        mon_thread = Thread(target=depotFTPResultatsSansMessage)
+        mon_thread.start()
+
+def depotFTPResultatsSansMessage():
+    """Dépose les résultats sur le serveur FTP sans afficher de message de fin
+    Exécuté dans un thread"""
+    global tagDepotFTPEnCours
+    ActualiseAffichageInternet()
+    tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
     """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
@@ -2733,15 +2872,20 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
         
+        # debug afficher les paramètres du coureur 576A
+        # c= Coureurs.recuperer("576A")
+        # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
+
         #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
         if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
             self.auMoinsUnImport = True
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
         traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
+        traitementSmartphonePiques = traiterDonneesSmartphonePiques()
         traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
         traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
-        listeNouvellesErreursATraiter = traitementSmartphone + traitementLocal + traitementDonneesRecuperees
+        listeNouvellesErreursATraiter = traitementSmartphone + traitementSmartphonePiques + traitementLocal + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
@@ -2802,7 +2946,7 @@ class Clock():
         if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
-            ActualiseAffichageInternet()
+            depotFTPResultats() # exécute le dépot FTP dans un thread.
         
         self.auMoinsUnImport = False
         # se relance dans un temps prédéfini.
@@ -2820,9 +2964,11 @@ class Clock():
     def erreursATraiter(self,listeNouvellesErreursATraiter):
         # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
+        # 601 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone pique.
+        # on procède de même par un ménage.
         i = len(self.erreursEnCoursNumeros) - 1
         while i >= 0 : # on supprime l'erreur 331 des erreurs précédentes
-            if self.erreursEnCoursNumeros[i] in [331] :
+            if self.erreursEnCoursNumeros[i] in [331, 601] :
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
@@ -3149,7 +3295,15 @@ def cb() :
 absDispZone = AbsDispFrame(GaucheFrameAbsDisp)
 dossardsZone = DossardsFrame(GaucheFrameDossards)
 
-def saisieDossards() :
+def envoiDiplomeIndividuelsLanceur():
+    mon_thread_Diplomes = Thread(target=envoiDiplomeIndividuels)
+    mon_thread_Diplomes.start()
+
+def envoiDiplomeIndividuels() :
+    saisieDossards(buttonBarMode=1)
+
+def saisieDossards(buttonBarMode = 0) :
+    Parametres["buttonBarMode"] = buttonBarMode
     GaucheFrame.forget()
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
@@ -3567,8 +3721,11 @@ class CoureurFrame(Frame) :
             True # pas encore de catégorie créée.
         self.vma = 0
         self.lblemail = Label(self.parent, text="e-mail (facultatif) :")
+        self.lblemail2 = Label(self.parent, text="e-mail 2 (facultatif) :")
         self.emailE = Entry(self.parent)
         self.emailE.bind("<KeyRelease>", self.reactiverBoutons)
+        self.emailE2 = Entry(self.parent)
+        self.emailE2.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
         self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
@@ -3615,7 +3772,9 @@ class CoureurFrame(Frame) :
         self.lblCat.forget()
         self.comboBoxCategorie.forget()
         self.lblemail.forget()
+        self.lblemail2.forget()
         self.emailE.forget()
+        self.emailE2.forget()
         self.lblVMA.forget()
         self.vmaE.forget()
         self.lblCommentaire.forget()
@@ -3635,20 +3794,24 @@ class CoureurFrame(Frame) :
         s = self.sexeC.get()
         if CoursesManuelles :
             nature = self.comboBoxCategorie.get()
-        else : ### à compléter pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
+            resultat = "valide."
+        else : ### complété pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
             ### A tester...
             nature = self.etabNatureC.get()
-        #print("nature",nature)
-        if (s ==  "G" or s == "F") and nature :
-            if Parametres["CategorieDAge"] :
-                anneeNaissance = self.classeE.get()[6:]
-                if len(anneeNaissance) == 4 :
-                    c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
-                    if c :
-                        resultat = c + "-" + s
-            else :
-                if self.classeE.get() :
-                    resultat = self.classeE.get()[0] + s
+            #print("nature",nature)
+            if (s ==  "G" or s == "F") : # si le sexe est valide
+                if (Parametres["CategorieDAge"] == 1 and nature) or Parametres["CategorieDAge"] == 2 :
+                    # cas du cross UNSS : on affiche les deux champs supplémentaires self.etabE, self.etabNatureC. La nature doit être spécifiée.
+                    # ou cas d'un trail avec catégories d'ages imposées (puisque l'on n'est pas dans le mode CoursesManuelles).
+                    anneeNaissance = self.classeE.get()[6:]
+                    if len(anneeNaissance) == 4 :
+                        c = categorieAthletisme(anneeNaissance, etablissementNature = nature)
+                        if c :
+                            resultat = c + "-" + s
+                elif Parametres["CategorieDAge"] == 0 :
+                    # cas du cross HB : le sexe et la classe sont psécifiés.
+                    if self.classeE.get() :
+                        resultat = self.classeE.get()[0] + s
         return resultat
 
     def afficheCoureur(self,dossard) :
@@ -3667,6 +3830,7 @@ class CoureurFrame(Frame) :
         self.classeE.delete(0, END)
         #self.sexeE.delete(0, END)
         self.emailE.delete(0,END)
+        self.emailE2.delete(0,END)
         self.vmaE.delete(0, END)
         self.commentaireArriveeE.delete(0, END)
         self.etabC['values'] = tupleEtablissement()
@@ -3676,6 +3840,7 @@ class CoureurFrame(Frame) :
             print("dossard:",doss)
             if doss : # la combobox n'est pas vide 
                 coureur = Coureurs.recuperer(doss)
+                print("licence", coureur.licence)
                 self.nomE.insert(0, coureur.nom)
                 self.prenomE.insert(0, coureur.prenom)
                 if Parametres['CategorieDAge'] :
@@ -3686,6 +3851,7 @@ class CoureurFrame(Frame) :
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
+                self.emailE2.insert(0, coureur.email2)
                 self.vmaE.insert(0, coureur.VMA)
                 self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
                 self.etabC.set(coureur.etablissement)
@@ -3725,6 +3891,8 @@ class CoureurFrame(Frame) :
             self.comboBoxCategorie.forget()
         self.lblemail.pack()
         self.emailE.pack()
+        self.lblemail2.pack()
+        self.emailE2.pack()
         self.lblVMA.pack()
         self.vmaE.pack()
         self.lblCommentaire.pack()
@@ -3799,6 +3967,11 @@ class CoureurFrame(Frame) :
             self.emailE.configure(fg='black')
         else :
             self.emailE.configure(fg='red')
+        emailSaisi2 = self.emailE2.get()
+        if emailEstValide(emailSaisi2) :
+            self.emailE2.configure(fg='black')
+        else :
+            self.emailE2.configure(fg='red')
         ### vérification de la présence d'un nom, prénom qui sont obligatoires et que la catégorie générée est valide.
         resultat = self.categorieEstCorrecte()
         #print("resultat" , resultat)
@@ -3863,7 +4036,7 @@ class CoureurFrame(Frame) :
             if Parametres['CategorieDAge'] : # cas des cross basés sur les catégories d'âge de la FFA
                 retourInutile, doss = addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                            commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get())
+                           etablissementNature = self.etabNatureC.get(), course=c, email=self.emailE.get(), email2=self.emailE2.get())
                 if retourInutile[1] :
                     message ="Le coureur " + self.nomE.get() + " " + self.prenomE.get() + " EXISTE DEJA.\nIl a été actualisé et porte le dossard " + doss + " (course " +c + ")." 
                 else :
@@ -3871,7 +4044,7 @@ class CoureurFrame(Frame) :
                 reponse = showinfo("Coureur créé avec succès",message)
             else : # cas du cross du collège
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(), \
-                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get())
+                           commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, email=self.emailE.get(), email2=self.emailE2.get())
             self.reinitialiserChamps()
         else :
             #self.boutonsFrame.forget()
@@ -3879,15 +4052,15 @@ class CoureurFrame(Frame) :
             if CoursesManuelles : # cas des courses manuelles
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             elif Parametres['CategorieDAge'] ==2 : # cas de l'UNSS
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
-                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get())
+                              etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
             else :
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), classe=self.classeE.get(),\
                               commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, course = c, dossard = doss,\
-                           email=self.emailE.get())
+                           email=self.emailE.get(), email2=self.emailE2.get())
         generateListCoureursPourSmartphone()
         CoureursParClasseUpdate()
         self.etabC['values'] = tupleEtablissement()
@@ -3979,11 +4152,11 @@ def choixUNSS():		# Fonction associée à catégories par Age
 def packAutresWidgets():
     if Parametres["CategorieDAge"] == 1 :
         CoursesManuellesFrame.pack(side=TOP,anchor="w")       
-    #if CoursesManuelles :
-        #cbCMgenerer.set(1)
-        #CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
-        #cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
-        #choixCMQRCodes()
+    if CoursesManuelles :
+        cbCMgenerer.set(1)
+        CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
+        cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
+        choixCMQRCodes()
     cbListingsFrame.pack(side=TOP,anchor="w")
     cbListingsLbl.pack(side=LEFT,anchor="w")
     cbCMgenererListing.pack(side=LEFT,anchor="w")
@@ -4074,23 +4247,23 @@ rbCM2 = Radiobutton(CoursesManuellesFrame, text="Courses fixées manuellement (T
 ##rbLblCM = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitialiser toutes les données" pour pouvoir changer le type de catégories.', fg='#f00')
 
 ## choix supplémentaires pour les courses manuelles
-##def choixCMQRCodes():
-##    if cbCMgenerer.get() :
-##        Parametres["genererQRcodesPourCourseManuelles"]=True
-##        # afficher l'entrybox pour spécifier le nombre de QR-codes souhaités.
-##        cbCMgenererQRCodesSupplNombre.pack(side=LEFT)
-##    else :
-##        Parametres["genererQRcodesPourCourseManuelles"]=False
-##        cbCMgenererQRCodesSupplNombre.forget()
+def choixCMQRCodes():
+   if cbCMgenerer.get() :
+       Parametres["genererQRcodesPourCourseManuelles"]=True
+       # afficher l'entrybox pour spécifier le nombre de QR-codes souhaités.
+       cbCMgenererQRCodesSupplNombre.pack(side=LEFT)
+   else :
+       Parametres["genererQRcodesPourCourseManuelles"]=False
+       cbCMgenererQRCodesSupplNombre.forget()
 
       
-#CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
-#cbCMgenerer = IntVar()
-#cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, \
-#                                      text="Générer des QR-codes à part pour ajout sur des dossards existants.", \
-#                                      variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
-#cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ",\
-#                                           largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
+CoursesManuellesFrameChoixSupplementaires = Frame(CoursesManuellesFrame)
+cbCMgenerer = IntVar()
+cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires, \
+                                     text="Générer des QR-codes à part pour ajout sur des dossards existants.", \
+                                     variable=cbCMgenerer, onvalue=1, offvalue=0, command=choixCMQRCodes)
+cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ",\
+                                          largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
 
 ### choix de génération de documents qui apparaissent pour tous les types de courses.
 def choixQRCodesListing():
@@ -4209,7 +4382,7 @@ for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
 files = tuple(files)
 ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
 ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-ModeleDeDiplomeCombo.set(dossardModele)
+ModeleDeDiplomeCombo.set(diplomeModele)
 ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
 actualiseCanvasModeleDiplome("")
 
@@ -4321,6 +4494,64 @@ def relancer():
     root.destroy()
     os.startfile("chronoHB.pyw")
 
+### UNSS ####
+
+def exportOPUSS():
+    if Parametres['CategorieDAge'] == 2 :
+        challenges = listChallenges()
+        if challenges :
+            def valider():
+                challenge = groupement_var.get()
+                nombre_qualifies = nombre_qualifies_var.get()
+
+                chaine_opuss = genereChainePourOPUSS(challenge, nombre_qualifies)
+
+                # Copier la chaîne générée dans le presse-papiers
+                root.clipboard_clear()
+                root.clipboard_append(chaine_opuss)
+                root.update()
+
+                # Afficher le deuxième popup
+                popup2 = Toplevel(root)
+                popup2.title("Coller le contenu généré dans le logiciel OPUSS")
+                label2 = Label(popup2, text="Collez le contenu généré dans le logiciel OPUSS.")
+                label2.pack(padx=10, pady=10)
+                button2 = Button(popup2, text="Fermer", command=popup2.destroy)
+                button2.pack(pady=10)
+                popup.destroy()
+
+            # Configuration de la fenêtre principale
+            popup = Toplevel(root)
+            popup.title("Sélection pour export vers OPUSS")
+
+            # Style pour centrer le texte dans la Combobox
+            # style = Style()
+            # style.configure("TCombobox", justify="center")
+            
+            # Liste déroulante pour le choix du groupement
+            groupement_var = StringVar(value=challenges[0])
+            groupement_label = Label(popup, text="Choisissez le groupement :")
+            groupement_label.pack(pady=10)
+            groupement_dropdown = Combobox(popup, textvariable=groupement_var, values=challenges, justify="center", state="readonly") #, style="TCombobox")
+            groupement_dropdown.pack(pady=10)
+
+            # Liste déroulante pour le choix du nombre de qualifiés
+            nombre_qualifies_var = IntVar(value=1)
+            nombre_qualifies_label = Label(popup, text="Choisissez le nombre de qualifiés :")
+            nombre_qualifies_label.pack(pady=10)
+            nombre_qualifies_dropdown = Combobox(popup, textvariable=nombre_qualifies_var, justify="center", values=list(range(1, 11)), state="readonly") #, style="TCombobox")
+            nombre_qualifies_dropdown.pack(pady=10)
+
+            # Boutons Valider et Annuler
+            valider_button = Button(popup, text="Valider", command=valider)
+            valider_button.pack(side=LEFT, padx=10)
+            annuler_button = Button(popup, text="Annuler", command=popup.destroy)
+            annuler_button.pack(side=RIGHT, padx=10)
+        else :
+            showinfo("PAS DE CHALLENGE CALCULE","Il n'y a pas ce challenge calculé.")
+    else :
+        showinfo("FONCTION DESACTIVEE","Ce menu 'export vers OPUSS' n'est disponible que pour les courses UNSS.")
+
 
 ####################### MENUS ################################
 
@@ -4341,10 +4572,13 @@ menubar.add_cascade(label="Gestion course en temps réel", menu=editmenu)
 
 ### post course menu
 postcoursemenu = Menu(menubar, tearoff=0)
+postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTestLanceur)
+postcoursemenu.add_command(label="Envois individuels des diplômes", command=envoiDiplomeIndividuelsLanceur)
 postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
 postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
 postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)
+postcoursemenu.add_command(label="Export vers OPUSS", command=exportOPUSS)
 #postcoursemenu.add_cascade(label="Gestion d'après course", menu=editmenu)
 menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 
@@ -4394,7 +4628,7 @@ Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 print("Fermeture de la BDD")
 
 # suppression de la sauvegarde automatique vers db à la fermeture
-# ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
+ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
 dump_sauvegarde()
 
 try :

@@ -1,24 +1,56 @@
 
-EVOLUTIONS DEMANDEES POUR LES TRAILEURS DU RANDON :
-- générer un pdf avec 6 qrcodes par page.
-- faire en sorte qu'un coureur d'une catégorie puisse s'inscrire à n'importe quelle course, de distances différentes.
-Ce ne serait plus la catégorie qui donnerait la course mais une propriété (à créer) du coureur.
-Dans les paramètres, une checkbox permettrait de choisir "courses en fonction des catégories ou non".
-Un champ Entry apparaîtrait en cas de choix "courses manuelles" qui engendrerait l'apparition d'un combobox dans ajout-modif de coureur lié à une propriété
-Coureur.course, qui pourrait être importée via le tableur ou CSV.
-Dans le menu "paramètres des courses", la partie gauche disparaîtrait, la partie droite prendrait alors en compte ce nouveau paramètre.
+EVOLUTION pour le cross départemental :
+- piques à rendre fonctionnelles.
+Chercher dans decodeActionsRecupSmartphone() appelé ligne 1853 de FonctionsMetiers.py pourquoi cela semble sans effet.
+Dans AI2, dans l'idéal, il faudrait que si pique=true, constructeurRequeteHTTP soit appelé avec le dossard qui précède celui en cours d'ajout, sauf pour le premier envoi.
+A défaut, traité dans la fonction python d'import du fichier de données "pique". Par contre, il faut trouver pourquoi l'uid est 0.
+Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprimer les données".
+- export vers OPUSS
+- tester l'import depuis un google sheet et vérifier qu'il est fonctionnel (import du trail du randon à creuser).
 
 
 
 Todolist pour le cross HB 2023 :
-- debug import
-- email 2 possible et envoi programmé pour les deux adresses si présentes.
-- envoi des emails depuis deux adresses google.
-- envoi d'email avec "repondre à" différent de l'expéditeur.
-- depot vers serveur sftp
-- affichage actualisé non défilant.
-- deplacer les fichiers du serveur web dans www
+- FAIT : le temps sur le diplome s'affichera en min:sec et non en HH:MM:SS.
+- FAIT envoi programmé pour les deux adresses si présentes.
+- FAIT envoi des emails depuis deux adresses google.
+- FAIT : depot vers serveur sftp
+- FAIT : absents dispenses cumulables
+- FAIT : VMA sur le diplome.
+- FAIT : suppression d'un dossard arrivé non fonctionnelle !
+- FAIT : les noms des catégories débordaient de l'affichage. Corrigé.
+- FAIT : les noms des classes ne devrait pas être des float
 
+- tester tous les boutons des interfaces pour vérifier le fonctionnement.
+	- FAIT : challenges non fonctionnels ?
+	- FAIT : suppression des dossards depuis l'interface non effective. Fonctionnel.
+	- FAIT : cases absents-dispensés à la verticale.
+	- FAIT : dans le pdf d'une classe, remettre le tri alphabétique.
+	- FAIT : pdf de statistiques non fonctionnel
+	- FAIT : chronomètre non fonctionnel si course en cours.
+	- FAIT : possibilité de s'envoyer un diplome de test via le menu.
+	- FAIT : ne recalcule pas les rangs quand je supprime un dossard de la ligne d'arrivée.
+	- FAIT : le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
+- FAIT : arrondi de la vitesse à l'unité (pour gagner de la place)
+- FAIT : configurer la borne wifi pour étendre le réseau lax de mon téléphone.
+- FAIT : l'accès HTTP aux pages synology.me ne semble pas fonctionner sur safari.
+
+
+Moins urgent :
+- FAIT : affichage actualisé non défilant. Supprimer le chronométrage qui ne s'actualise pas pour l'instant.
+- deplacer les fichiers du serveur web dans www
+- nouveaux paramètres à ajouter dans l'interface : FTP, diplômes, etc...
+- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
+
+Dès que possible : 
+- bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+
+
+
+Manque pour la branche trail-rieutort :
+- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+- tester toute la suite : impression des dossards, déroulement des courses,...
 
 
 Todolist pour version 1.8 (mai 2023) :
@@ -28,12 +60,28 @@ A tester suite trail Rieutort :
 
 
 Bugs détectés :
+- quand on impose Parametres[CategorieDAge]!=1, il faudrait remettre CoursesManuelles à False. Cela n'est pas fait actuellement.
+- si création de QR-codes pour agrafage sur des dossards, les courses A, B, C ne sont pas créées dans l'ordre alphabétique 
+mais dans l'ordre dans lequel on y a ajouté des coureurs. Bizarre mais pas problèmatique.
+- si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
+Si rédémarrage de l'application, plus de soucis. Pas très gênant car rare en pratique.
 - non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
 - les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 - le bind sur la saisie dans un champ Entry ne s'exécute qu'à la sortie de ce champ et non à chaque caractère saisi.
 Si on ne quitte pas le champ, la valeur n'est pas mémorisée en mémoire. Exemple pour les noms de course personnalisés.
 - (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
+- l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
+Le serveur la traite comme un doublon grace à l'UID unique lié à la communication. Cela n'a donc aucune incidence en pratique.
+Si un jour, j'ai du temps, autant supprimer ce problème.
+- (CORRIGE le 05/01/24) bug hyper rare détecté le 16/10/23 : il faut affecter un dossard à un temps puis tenter de reculer ce dossard. Cela crée une exception non gérée.
+A creuser si du temps. Solution : redémarrer le programme, supprimer le temps en double généré. Faire plutôt "avancer" l'autre temps avec lequel 
+la permutation est souhaitée. Cela fonctionne dans l'autre sens.
+
+A ajouter :
+- checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
+
+nettoyage des fichiers tex ayant servi à créer les QR-codes. Cela serait ça de moins de présent sur le disque.
 
 Fonctionnalités :
 - ajouter les paramètres généraux, déjà documentés : 
@@ -43,11 +91,11 @@ Fonctionnalités :
 - refaire les captures d'écran p5 de la documentation.
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
+- en cas de modification dans l'interface GUI avec les boutons de droite, forcer l'actualisation graphique immédiatement, sans attendre.
+
 Si possible pour la 1.8 :
-- l'affichage de la TV disponible sur un site web (sans défilement automatique), dont le lien serait transmis par mail + QR-code dans la salle.
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - import + export en .chb des fichiers de données.
-- créer une case à cocher pour bloquer l'envoi des emails. La décocher systématiquement au redémarrage de chronoHB.
 - variable "message dans le mail" : bravo pour ta participation !
 
 
@@ -74,10 +122,10 @@ Actuellement, on coupe en deux lignes les combobox. Il faudrait pouvoir faire pl
 la fenêtre parent en pixels.
 
 
-- vérifier que le classement s'effectue à l'intérieur d'une catégorie : un M2 n'est pas en concurrence avec un M3, etc... Surtout pour le Randon Trail.
+- (FAIT le 04/01) vérifier que le classement s'effectue à l'intérieur d'une catégorie : un M2 n'est pas en concurrence avec un M3, etc... Surtout pour le Randon Trail.
 
 Fonctionnalités :
-- Inscription en ligne avec case à cocher : trouver un moyen de cacher périodiquement les lignes "payées" 
+- (FAIT) Inscription en ligne avec case à cocher : trouver un moyen de cacher périodiquement les lignes "dossard distribué" 
 et de pouvoir "tout afficher" avec une case à cocher, qui restera toujours visible.
 Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
 - Inscription en ligne : envoi d'un email automatique aux inscrits avec leur numéro de dossard, la couleur et l'indication "Donner votre nom et indiquez que vous avez le dossard "23 vert".
@@ -85,9 +133,9 @@ Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
 Fonctionnalités :
 - Installation automatique de l'ensemble dont extensions installées localement.
 - Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
-Chaque smartphone sera considéré comme une pix différente. Le premier smartphone à envoyer des données sera la pic de base importée
+Chaque smartphone sera considéré comme une pique différente. Le premier smartphone à envoyer des données sera la pique de base importée
 ArriveesDossards sera complété par des propriétés et méthodes  :
-La documentation spécifiera que : le premier dossard scanné avec un smartphone "pic" (qui n'est pas celui de base) devra être :
+La documentation spécifiera que : le premier dossard scanné avec un smartphone "pique" (qui n'est pas celui de base) devra être :
 * un dossard (quelconque du smartphone principal)
 * ou le dernier dossard d'un autre smartphone "pic".
 Le dernier dossard d'un smartphone "pic" devra être :
@@ -96,16 +144,15 @@ Le dernier dossard d'un smartphone "pic" devra être :
 Ainsi, on pourra utiliser les pics pour intercaler au milieu des scans du smartphone principal 
 ou pour enchainer les smartphones (si panne de batterie ou autre)
 
-- Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
-Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
-La class Coureur() permet déjà le cumul, je pense...
+- (FAIT) Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
+(A VERIFIER) Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
+
 
 - changer les fichiers textes avec une extension comme .dbc (pour db de chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
 
 
-
 Fonctionnalités pour le cross UNSS :
-- créer une méthode pour récupérer le numéro d'AS de chaque coureur (à partir de son numéro de licence). 
+- (FAIT) créer une méthode pour récupérer le numéro d'AS de chaque coureur (à partir de son numéro de licence). 
 Cela devrait permettre un export (copier-coller) vers OPUSS de la forme (combien de qualifiés par catégorie ?):
 1	14771	1	6 pts (1+2+1+2+0)	Q
 2	14771	2	14 pts (3+4+3+4+0)	Q
@@ -115,7 +162,6 @@ Cela devrait permettre un export (copier-coller) vers OPUSS de la forme (combien
 ...
 Voir à quoi correspond le Q.
 - pour l'UNSS, export par établissement avec les catégories distinguées dans des tableaux divers du même pdf.
-- export vers OPUSS à créer à partir d'un modèle.
 - pour un cross UNSS, dans le tableau de l'affichage TV, la colonne "établissement" n'est pas assez large.
 
 
@@ -134,11 +180,6 @@ Retour suite au trail de Randon :
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
 A creuser pour obtenir une vitesse uniforme.
-
-
-Dernière idées en vrac :
-- créer un export html qui ne défile pas, à onglets
-- créer un export ftp pour des résultats en temps réel sur internet.
 
 
 Pour déploiement du logiciel sur d'autres ordinateurs et maintenance automatique :

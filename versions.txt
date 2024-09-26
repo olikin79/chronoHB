@@ -1,7 +1,117 @@
-Manque pour la branche trail-rieutort :
-- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
-- tester toute la suite : impression des dossards, déroulement des courses,...
+A venir :
+- fichier de sauvegarde contenant tout zippé.
+- en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
+- en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
+
+
+Travail du 08/01/24 :
+- ajout d'une décimale aux vitesses calculées.
+
+
+Travail du 05/01/24 :
+-correction bug exception non gérée quand on faisait reculer un dossard depuis l'interface GUI.
+- amélioration de la clarté du fichier log d'import de coureurs.
+
+
+Travail du 04/10/24 :
+- correctif import pour les courses manuelles : on fournit soit le champ "course" soit le champ "dossard" mais pas les deux. A documenter.
+- correctif nombre total de coureurs pour le diplome des courses manuelles (n'était pas implémenté).
+- correctif pour que les classes catégories d'âges ne tiennent plus en compte des catégories d'âge "inférieures".
+Un master qui battrait un senior ne déclasse plus le senior d'un rang dans sa catégorie.
+
+
+Travail du 20/11/23 :
+- export vers OPUSS des équipes UNSS qualifiées (créé et interfacé).
+
+
+Travail du 19/11/23 :
+- on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
+- mise en page des absents et dispensés sur 5 colonnes, compactée quand le nom est trop long...
+- suppression des éléments en trop dans les noms d'établissement (pour dossards corrects et affichage lisible) : général et technologique, etc... supprimés.
+
+Travail du 22/10/23 :
+- l'envoi individuel des diplômes est dans un thread. Création d'une barre de bouton pour envois individuels.
+
+
+Travail du 21/10/23 :
+- en cas de réinitialisation des données, efface les fichiers "donneesSmartphone-pique-*.txt"
+- Bonne gestion de l'erreur 601 : smartphone "pique" fonctionnel et documenté.
+
+
+
+Travail du 19/10/23 :
+- empêcher la mise en veille des smartphones, même si le délai de mise en veille est court.
+- chemin relatif vers les images exportées sur serveur www
+- première implémentation des PICS dans Arrivee.pyw et dans chronoHB.apk (création de la case à cocher, ajout de "&pique=true" ssi pique activée.
+
+
+Travail du 18/10/23 :
+- Correctif DecompteParCategorieDAge() + tri par temps des courses du cross.
+- Taille des caractères pour saisie des absents dispensés augmentée uniquement pour le cross du collège.
+- fonction categorieAthletisme() non utile pour le cross du collège. Provoque une sortie à l'écran quand on n'a pas la date de naissance alors que celle-ci est facultative. Corrigé
+
+
+Travail du 17/10/23 :
+- le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
+-Affichage correct du menu des résultats en ligne sur deux lignes.
+
+
+Travail du 16/10/23 :
+- checkbox pour absents dispensés, placées à la verticale + ajout d'un cadre autour de chaque frame afin de bien distinguer les cases pour chaque coureur.
+- correctif dans le combobox des diplômes. Le nom du diplome paramétré était celui du dossard. Méchant copier-coller... Corrigé.
+- création d'un menu "Auto-envoi d'un diplôme de test du coureur sélectionné".
+- Lors de la suppression d'un dossard avec l'interface, cela ne remettait pas à 0 les temps, rangs du coureur. Cela créait un décalage dans les rangs des autres coureurs. Corrigé
+
+
+Travail du 15/10/23 :
+- checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.
+- dépôt FTP automatisé.
+- sur le fichier des résultats en ligne : ne pas afficher le chronomètre quand la date est passée.
+- suppression de la boite de dialogue lors de l'impression d'un dossard individuel.
+- les classes importées sont des chaines de caractère (à Bourrillon) et non des float.
+- le dossard du cross du collège doit comporter le groupement.
+- correctif pdf de statistiques non fonctionnel
+- correctif chronomètre non fonctionnel si course en cours.
+- correctif affichage challenge collège sur la TV : calculait avec le score UNSS même en mode cross HB
+- correctif pdf généré pour le challenge du cross HB.
+- Vitesse finalement arrondie à l'entier le plus proche en km/h
+- correctif dans le pdf d'une classe, tri alphabétique restauré pour le cross HB.
+
+
+Travail du 14/10/23 :
+- ajout du pourcentage de VMA dans le diplôme, si pertinent.
+- correctif comptage du nombre d'emails envoyés vers email et vers email2.
+
+
+Travail du 13/10/23 :
+- checkbox implémentées pour les dispensés et absents. Il est désormais possible d'être dispensé et absent en même temps!
+Import fonctionnel, les statistiques considèreront avant tout le statut de dispensé.
+
+
+Travail du 12/10/23 :
+- correction bug delArriveeDossard : suppression impossible suite au passage aux dossards NG (le dossard "0" aurait dû être transformé en "0A" suite au nouveau formatage).
+- implémentation de l'envoi par plusieurs emails (pour dépasser la limite de 500 mails par jour).
+Gestion automatique des emails envoyés depuis une boite donnée dans la limite fixée. Fonctionnel.
+
+
+Travail du 08/10/23 :
+- document HTML généré pour affichage non défilant en ligne.
+
+
+Travail du 07/10/23 :
+- affichage des temps sur le diplome au format MM:SS si inférieur à 1H.
+
+
+Travail du 06/10/23 :
+- correctif bug si nom ou prénom ou sexe non présents.
+- correctif bug import si sexe="M" ("G" imposé en interne).
+- ajout du support de l'email2 (import, modification dans l'interface).
+- correctif interface de modification d'un coureur : les boutons n'apparaissaient plus en mode Parametre["CategorieDAge"]==0.
+
+
+Travail du 04/01/23 :
+- correctif bug import pour le cross du collège lié au fait que DictionnaireDeCoureurs traitait la catégorie d'âge 
+alors que la date de naissance n'est pas obligatoire lors de l'import pour le cross du collège.
 
 
 Travail du 16/09/23 :
