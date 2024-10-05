@@ -3,6 +3,23 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 06/10/24 : énorme mise à jour pour développer ce qui manque actuellement.
+- FAIT Théo et Alessio sont cités.
+- FAIT Faire en sorte que les inscriptions tardives soient automatiquement importées.
+- FAIT Les combobox permettant de modifier les groupements sont inactivés si le groupement a commencé.
+- FAIT ajout d'une case à cocher pour permettre l'import des saisies sur un formulaire google. Evite trop de téléchargements inutiles.
+Ce réglage est mémorisé à la fermeture pour réapplication à l'ouverture.
+- FAIT Faire en sorte que les inscriptions sur un formulaire google soient automatiquement téléchargées et imprimables :
+	* FAIT couleurs paramétrables par course, alignement à droite des frames de chaque course (plus joli)
+	* FAIT avertissement dans les messages d'avertissement de l'interface que un ou plusieurs dossards n'ont pas été imprimés.
+	* FAIT capacité à ne pas mélanger les dossards qui ne sont pas d'une même couleur sur latex
+	* FAIT capacité d'avertir l'opérateur des couleurs à insérer dans l'imprimante, dans l'ordre.
+- FAIT gain de place sur l'interface en supprimant les challenges de l'affichage possible sur la TV (inutile en pratique)
+- FAIT gain de place sur l'interface en plaçant les départs de courses sur deux colonnes au lieu d'une et en ajoutant un séparateur si besoin.
+- CORRIGE bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+- CORRIGE le bind sur la saisie de certains champs Entry ne s'exécutait qu'à la sortie de ce champ et non à chaque caractère saisi.
+Si on ne quittait pas le champ, la valeur n'était pas mémorisée. Exemple pour les noms de course personnalisés.
+
 
 Travail du 08/01/24 :
 - ajout d'une décimale aux vitesses calculées.

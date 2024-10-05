@@ -246,8 +246,8 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
                     html="""
                         <h1>Bravo pour ta participation !</h1>
                         <a href="https://marielleetolivier2.synology.me/index-en-ligne.html">Lien vers les résultats en temps réel</a>
-                        <p>Voici ton diplôme :</p>
-                        <img src="{{ my_image.src }}" width=100%>
+                        <p>Voici ton diplôme <i>(réalisé par Théo et Alessio)</i> :</p>
+                        <img src="{{ my_image.src }}" width=100%><br>
                     """, 
                     body_images={
                         "my_image": fichier

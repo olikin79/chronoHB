@@ -20,9 +20,13 @@ from threading import Thread
 import requests
 
 import xlsxwriter # pour les exports excels des résultats
+import math # pour math.ceil
 
 ### A décommenter plus tard pour la mise en place des imports NG.
 from openpyxl import load_workbook
+
+# afin de télécharger un fichier avec urllib
+import urllib.request
 
 from tkinter.messagebox import *
 
@@ -393,6 +397,13 @@ class DictionnaireDeCoureurs(dict) :
                     #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
                 i += 1
         return L
+    def listeParCouleurDeDossard(self) :
+        L = self.liste()
+        # tri de la liste de coureurs par couleur de dossard
+        # chaque coureur possède un attribut .course qui correspond au nomStandard du groupement dans lequel il coure. Ce groupement possède un attribut .couleur.
+        # on trie les coureurs par couleur de dossard.
+        L.sort(key=lambda x: groupementAPartirDeSonNom(x.course, nomStandard=True).getCouleur())
+        return L
     def effacerTout(self) :
         self.clear()
         for file in glob.glob("Coureurs?.txt") :
@@ -556,19 +567,23 @@ class ErreursATraiter():
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
 def naissanceValide(naissance) :
-    try:
-        #print("annee")
-        annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
-        #print("mois")
-        mois = naissance[3:5]
-        jour = naissance[0:2]
-        correctDate = None
-        newDate = datetime.datetime(int(annee),int(mois),int(jour))
+    resultat = convertir_nombre_en_date(naissance)
+    if resultat != naissance :
         correctDate = True
-        #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
-    except :
-        correctDate = False
-        #print("La date de naissance fournie est INVALIDE :",naissance)
+    else :
+        try:
+            #print("annee")
+            annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
+            #print("mois")
+            mois = naissance[3:5]
+            jour = naissance[0:2]
+            correctDate = None
+            newDate = datetime.datetime(int(annee),int(mois),int(jour))
+            correctDate = True
+            #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
+        except :
+            correctDate = False
+            #print("La date de naissance fournie est INVALIDE :",naissance)
     return correctDate
 
 def emailEstValide(email) :
@@ -578,17 +593,32 @@ def emailEstValide(email) :
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
         return re.fullmatch(regex, str(email))
 
+def convertir_nombre_en_date(chaine):
+    try:
+        # Convertir la chaîne en nombre flottant
+        nombre = float(chaine)
+        # La date de référence (30 décembre 1899)
+        date_reference = datetime.datetime(1899, 12, 30)
+        # Ajouter le nombre de jours à la date de référence
+        date_resultat = date_reference + datetime.timedelta(days=nombre)
+        # Retourner la date au format 'jour/mois/année'
+        return date_resultat.strftime('%d/%m/%Y')
+    except ValueError:
+        # Si la chaîne ne peut pas être convertie en nombre, retourner la chaîne inchangée
+        return chaine
+
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence="", email="", email2=""):
+                 commentaireArrivee="", VMA=0, aImprimer=True, scoreUNSS=1000000, course="", licence="", email="", email2=""):
         self.setDossard(dossard)
         self.nom = self.formateNomPrenom(nom)
         self.prenom = self.formateNomPrenom(prenom)
         self.setSexe(sexe)
         self.classe = str(classe)
         self.naissance = ""
-        self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
+        if naissance != "" :
+            self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
         self.etablissement = etablissement
         self.etablissementNature = etablissementNature
         self.absent = bool(absent)
@@ -829,20 +859,30 @@ class Coureur():#persistent.Persistent):
         except :
             self.VMA = 0
     def setNaissance(self, naissance) :
+        print("setNaissance", naissance,".")
         if naissance != "" :
-            chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
-            if naissanceValide(chNaissance) :
-                self.naissance = chNaissance
+            result = convertir_nombre_en_date(naissance)
+            if naissance != result :
+                print("modif date de naissance", result)
+                self.naissance = result
                 self.__private_categorie = None # réinit
-                # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
             else :
-                chNaissance = None
-##            if len(chNaissance) > 8 :
-##                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
-##            else :
-##                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
-##        else :
-##            self.naissance = None
+                print("date de naissance non modifiée", naissance, "autre tentative")
+                try :
+                    chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
+                    if naissanceValide(chNaissance) :
+                        self.naissance = chNaissance
+                        self.__private_categorie = None # réinit
+                        # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
+                    else :
+                        if len(chNaissance) > 8 :
+                            self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
+                        else :
+                            self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
+                        self.__private_categorie = None # réinit
+                except :
+                    self.naissance = ""
+
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = str(commentaire)
     def setClasse(self, classe) :
@@ -994,7 +1034,10 @@ class Course():#persistent.Persistent):
         if Parametres["CategorieDAge"] :
             self.label = categorie
         else :
-            self.label = categorie[0] + "ème " + categorie[2]
+            if len(categorie) > 2 :
+                self.label = categorie[0] + "ème " + categorie[2]
+            else :
+                self.label = categorie[0] + "ème "
         self.depart=depart
         self.temps=float(temps)
         self.description = categorie
@@ -1114,6 +1157,7 @@ class Groupement():
         self.actualiseNom()
         self.aRegenererPourImpression = False
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+        self.couleur = "white"
 ##        self.equipesClasses = []
     def initEffectifs(self):
         self.nombreDeCoureursGTotal = 0
@@ -1132,6 +1176,13 @@ class Groupement():
             incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
     def getTotalParCategorie(self,catFFA, sexe):
         return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA, self.nombreDeCoureursParCategorie, sexe)
+    def setCouleur(self, couleur) :
+        self.couleur = couleur
+    def getCouleur(self):
+        try :
+            return self.couleur
+        except :
+            return "white"
     def setARegenererPourImpression (self, val):
         self.aRegenererPourImpression = bool(val)
     def setNombreDeCoureursTotal(self, nbreG, nbreF) :
@@ -1425,7 +1476,8 @@ def chargerDonnees() :
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
+           URLGoogleSheetAImporter, telechargerDonnees
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1609,6 +1661,12 @@ def chargerDonnees() :
     if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
         Parametres["crossUNSScollegeLycee"] = True
     crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]
+    if not "URLGoogleSheetAImporter" in Parametres :
+        Parametres["URLGoogleSheetAImporter"] = ""
+    URLGoogleSheetAImporter=Parametres["URLGoogleSheetAImporter"]
+    if not "telechargerDonnees" in Parametres :
+        Parametres["telechargerDonnees"] = 0
+    telechargerDonnees=Parametres["telechargerDonnees"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -2450,7 +2508,7 @@ def listNomsGroupementsCommences(nomStandard = True):
     for groupement in Groupements :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -2463,9 +2521,11 @@ def listNomsGroupementsNonCommences(nomStandard = True):
     for groupement in Groupements :
         if groupement.listeDesCourses :
             #print("groupement.listeDesCourses",groupement.listeDesCourses)
+            #print(groupement)
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             #print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            #print("C:",Courses)
+            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -2546,6 +2606,7 @@ def generateListCoureursPourSmartphone() :
     fichierDonneesSmartphone = "Coureurs"
     print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
     fComplet = open(fichierDonneesSmartphoneAvecTousLesCoureurs, 'w')
+    print("Clés coureurs ", Coureurs.cles())
     for lettre in Coureurs.cles() :
         with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
             for coureur in Coureurs[lettre] :
@@ -2623,6 +2684,9 @@ def generateQRcodesCoursesManuelles() :
     print("Fin de la création des QR-codes.")
 
 def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True) :
+    """Retourne une chaine Latex permettant l'impression des dossards.
+    Retourne comme deuxième élément une liste de cette forme : [[3,"white"],[2,"yellow"],[1,"green"]]
+    pour indiquer que l'opérateur doit ajouter 3 pages de couleur "white" puis 2 pages de couleur "yellow" puis 1 page de couleur "green" etc..."""
     retour = ""
     # utilisation du modèle de dossard.
     modeleDosssard = "./modeles/dossards/" + dossardModele + ".tex"
@@ -2630,9 +2694,23 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
         modele = f.read()
     f.close()
     ## génération du code tex pour le(s) dossard(s)
-    for coureur in listeDeCoureurs :
+    premierParcours = True
+    couleurPrecedente = ""
+    totalCouleurActuelle = 0
+    listeRetour = []
+    for information in listeDeCoureurs :
+        coureur = information[0]
+        couleurActuelle = information[1]
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
             print("Création du dossard de ", coureur.nom, coureur.dossard, "pour la course" , coureur.course)
+            totalCouleurActuelle += 1
+            # on change de page à chaque changement de couleur.
+            if couleurActuelle != couleurPrecedente and not premierParcours :
+                print("Changement de couleur pour le dossard suivant.", couleurActuelle)
+                retour += "\\newpage\n" # le newpage est ignoré par latex en début de document. Chouette.
+                listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurPrecedente])
+                totalCouleurActuelle = 1
+            couleurPrecedente = couleurActuelle
             groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
             chaineComplete = replaceDansDossardEnFonctionDesParametres(modele, coureur)
             if completeFichierParCategorie :
@@ -2643,7 +2721,9 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
             retour += chaineComplete
-    return retour
+            premierParcours = False
+    listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurActuelle])
+    return retour, listeRetour
     
 def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
     # gestion des logos personnalisés
@@ -2726,7 +2806,8 @@ def generateDossardsNG() :
         f.close()
     ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
-        f.write(retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False))
+        codeLatex, listeCouleurs = retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False)
+        f.write(codeLatex)
     f.close()
     ### ajout du enddocument à la fin de tous les fichiers de dossards générés
     for file  in listeCategories :
@@ -2792,12 +2873,26 @@ def generateDossardsNG() :
         # compilateurComplete = compilateur.replace("@dossier@","dossards")
         # compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
 
+def CombienYATIlDossardsAImprimer() :
+    """ retourne True s'il y a des dossards à imprimer"""
+    retour = 0
+    for coureur in Coureurs.liste() :
+        if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+            retour += 1
+    if retour > 1 :
+        erreur = Erreur(190, "Il y a "+str(retour)+" dossards non encore imprimés. Cliquer ici pour les imprimer.")
+    elif retour == 1 :
+        erreur = Erreur(190, "Il y a un dossard non encore imprimé. Cliquer ici pour l'imprimer.")
+    else :
+        # print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
+        erreur = Erreur(0)
+    return retour, erreur
 
 def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    #print("Utilisation de generateDossardsAImprimer")
+    generateQRcodes()
     retour=[]
     entete = getEnTetePersonnalise()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
@@ -2813,23 +2908,22 @@ def generateDossardsAImprimer() :
 ##    f.close()
     ##  génère la liste des coureurs concernés par l'impression
     listeAImprimer = []
-    for coureur in Coureurs.liste() :
+    for coureur in Coureurs.listeParCouleurDeDossard() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
-            listeAImprimer.append(coureur)
+            listeAImprimer.append([coureur,groupementAPartirDeSonNom(coureur.course, nomStandard=True).getCouleur()])
             retour.append(coureur.dossard)
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     if listeAImprimer :
         with open(TEXDIR+"A-imprimer.tex", 'w',encoding="utf-8") as f :
             f.write(entete + "\n\n")
-            f.write(retourneDossardsNG(listeAImprimer, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=False))
+            codeLatex, listeCouleurs = retourneDossardsNG(listeAImprimer, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=False)
+            f.write(codeLatex)
             f.write("\\end{document}")
         f.close()
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         print(compilerDossards(compilateurComplete, ".", "A-imprimer.tex" , 1))
-    else :
-        print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
-    return retour
+    return retour, listeCouleurs
 
 def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
@@ -2849,7 +2943,8 @@ def generateDossard(coureur) :
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
     with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
         f.write(entete + "\n\n")
-        f.write(retourneDossardsNG([coureur], completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True)+ "\n\n")
+        codeLatex, ListeCouleurs = retourneDossardsNG([coureur], completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True)
+        f.write(codeLatex + "\n\n")
         f.write("\\end{document}")
     f.close()
     generateQRcode(coureur.dossard)
@@ -4579,9 +4674,9 @@ def coureurExists(nom, prenom) :
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
-    print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
-            "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
-    return nom and prenom and sexe and \
+    # print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
+    #        "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
+    retour = nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and not Parametres["CoursesManuelles"] and naissanceValide(naissance)) \
              or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and len(course)) \
@@ -4595,13 +4690,14 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
                     #       - soit on a la naissance et la course (fournie dans le fichier tableur importé)
                     #       - soit on a la naissance et le dossard (34B indique que le coureur courre la course B). On peut donc déduire la course du dossard fourni dans le tableur.
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+    return retour
 
 def dossardValide(dossard) :
     ### retourne True uniquement si la chaine dossard est constituée de chiffres suivis d'une lettre majuscule
     return dossard and dossard[-1].isalpha() and dossard[:-1].isdigit()
 
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0,\
-                commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", email2="",\
+                commentaireArrivee="", VMA="0", aImprimer = True, licence = "", course="", dossard="", email="", email2="",\
                 CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
         # print("addCoureur", nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
@@ -4619,8 +4715,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             if dossard == "" :
                 dossard = dossardTrouve
             # # on empêche de créer plusieurs fois le même coureur avec des dossards différents.
-            # if (dossard != "" and dossardTrouve == dossard) or  :
-            print("On met à jour les caractéristiques du coureur au dossard", dossard)            
+            # if (dossard != "" and dossardTrouve == dossard) or  :            
             ### on actualise des propriétés du coureur.
             auMoinsUnChangement = False
             coureur = Coureurs.recuperer(dossard)
@@ -4695,15 +4790,17 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 coureur.setVMA(vma)
                 print("VMA changée")
                 auMoinsUnChangement = True
+            naissance = convertir_nombre_en_date(naissance)
             if coureur.naissance != naissance :
+                print("naissance changée : ", coureur.naissance, "en", naissance,".")
                 coureur.setNaissance(naissance)
-                print("naissance changée")
                 auMoinsUnChangement = True
             if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
                 coureur.setEtablissement(etablissement,etablissementNature)
                 print("etablissement changé")
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
+                print("On a mis à jour les caractéristiques du coureur au dossard", dossard)
                 if not CoursesManuelles :
                     addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
                     # pour toutes les courses automatiques, on doit actualiser la course si besoin.
@@ -4826,7 +4923,7 @@ def addCourse(course, lettreCourse="") :
                 print("La lettre attribuée manuellement à la course est :",lettreCourse)
             #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
             if not lettreCourse in Courses :
-                print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
+                print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
                 Groupements.append(Groupement(lettreCourse,[lettreCourse]))
                 Groupements[-1].setNom(course)
                 c = Course(course)
@@ -4863,48 +4960,48 @@ def estDansGroupementsEnModeManuel(course):
     return retour
     
 
-def addCourse(course, lettreCourse="") :
-    """ addCourse prend en argument le nom personnalisé de la course (obligatoire)
-    En mode CoursesManuelles, la lettre que l'on veut attribuer à cette course peut être fourni (facultatif)
-    Comportement :
-    en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
-    en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
-    Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
-    et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
-##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
-##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
-##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
-    if CoursesManuelles :
-        if not lettreCourse :
-            lettreCourse = lettreCourseEnModeCoursesManuelles(course)
-            print("La lettre attribuée manuellement à la course est :",lettreCourse)
-        #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
-        if not lettreCourse in Courses :
-            print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
-            Groupements.append(Groupement(lettreCourse,[lettreCourse]))
-            Groupements[-1].setNom(course)
-            c = Course(course)
-            Courses.update({lettreCourse : c})
-        return lettreCourse
-    else :
-        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-        estPresent = False
-        for grpment in Groupements :
-            if course in grpment.listeDesCourses :
-                estPresent = True
-                break
-        if not estPresent:
-            print("Création du groupement ", course)
-            Groupements.append(Groupement(course,[course]))
-            #print("Groupements = ",[i.nom for i in Groupements])
-        # création de la course si elle n'existe pas.
-        #print(course, " est dans ", Courses,"?")
-        if course not in Courses :
-            print("Création de la course", course)
-            c = Course(course)
-            Courses.update({course : c})
-        return course
-        #print("cat",Courses[course].categorie)
+# def addCourse(course, lettreCourse="") :
+#     """ addCourse prend en argument le nom personnalisé de la course (obligatoire)
+#     En mode CoursesManuelles, la lettre que l'on veut attribuer à cette course peut être fourni (facultatif)
+#     Comportement :
+#     en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
+#     en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
+#     Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+#     et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
+# ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
+# ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
+# ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
+#     if CoursesManuelles :
+#         if not lettreCourse :
+#             lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+#             print("La lettre attribuée manuellement à la course est :",lettreCourse)
+#         #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+#         if not lettreCourse in Courses :
+#             print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
+#             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
+#             Groupements[-1].setNom(course)
+#             c = Course(course)
+#             Courses.update({lettreCourse : c})
+#         return lettreCourse
+#     else :
+#         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+#         estPresent = False
+#         for grpment in Groupements :
+#             if course in grpment.listeDesCourses :
+#                 estPresent = True
+#                 break
+#         if not estPresent:
+#             print("Création du groupement ", course)
+#             Groupements.append(Groupement(course,[course]))
+#             #print("Groupements = ",[i.nom for i in Groupements])
+#         # création de la course si elle n'existe pas.
+#         #print(course, " est dans ", Courses,"?")
+#         if course not in Courses :
+#             print("Création de la course", course)
+#             c = Course(course)
+#             Courses.update({course : c})
+#         return course
+#         #print("cat",Courses[course].categorie)
 
 def formateDossardNG(doss) :
     if doss :
@@ -5674,6 +5771,10 @@ def genereAffichageWWW(listeDesGroupements) :
     </script>
     </body></html>
     """
+    ## suppression de les fichiers "Affichage-tab*.html" du dossier www
+    for fichier in os.listdir("./www") :
+        if "Affichage-tab" in fichier :
+            os.remove("./www/" + fichier)
     ## création des contenus à partir des données de courses.
     onglets = ""
     heuresDeparts = []
@@ -5707,7 +5808,7 @@ def genereAffichageWWW(listeDesGroupements) :
         tableauComplet.replace("Chronomètre actuel","") # inutile ?
         tabActuel = tabModele.replace("@@heureDepartGroupement@@",str(hdep)).replace("@@indicePartantDe0@@",str(i))\
             .replace("@@tableauCourse@@", tableauComplet).replace("Chronomètre actuel","Pas de coureur arrivé.")
-        fichierTabActuel = "Affichage-tab" + str(i) + ".html"
+        fichierTabActuel = "./www/Affichage-tab" + str(i) + ".html"
         with open(fichierTabActuel,"w", encoding='utf8') as f :
             f.write(tabActuel)
         f.close()
@@ -5716,7 +5817,7 @@ def genereAffichageWWW(listeDesGroupements) :
     ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
     contenu = contenu.replace("@@onglets@@",onglets).replace("@@dureesActualisation@@", str(dureesActualisation))\
               .replace("@@heuresDeparts@@",str(heuresDeparts)).replace("@@timerID@@",str(timerID))
-    fichierIndex = "index-en-ligne.html"
+    fichierIndex = "./www/index-en-ligne.html"
     with open(fichierIndex,"w", encoding='utf8') as f :
         f.write(contenu)
     f.close()
@@ -5770,12 +5871,15 @@ def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else :
-        c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
-        #print("TEST HTML :",c.label, c.temps)
-        if c.temps :
-            retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
+        if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
+            c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
+            #print("TEST HTML :",c.label, c.temps)
+            if c.temps :
+                retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
+            else :
+                retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
         else :
-            retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
+            retour = [0,0,0,0,0,0] # Courses est vide.
     return retour
 
 
@@ -6302,6 +6406,8 @@ def traitementDesDonneesAImporter(donneesBrutes) :
                  if retourCreationModifErreur[i] :
                     BilanCreationModifErreur[i] += 1
         i+=1
+    # if not 'd' in locals():
+    #     d = ''
     return BilanCreationModifErreur, d
 
 
@@ -6310,12 +6416,15 @@ def recupImportNG(fichierSelectionne="") :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
     try :
         BilanCreationModifErreur = [0,0,0,0]
+        d = ""
         if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
             if fichierSelectionne[-4:].lower() == "xlsx" :
                 BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
             elif fichierSelectionne[-3:].lower() == "csv":
                 BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
     except : 
+        # cas où une erreur a été créée lors de la création d'un coureur.
+        BilanCreationModifErreur = [0,0,1,0]
         print("ATTENTION : Exception non gérée dans recupXLSX() ou recupCSV().")
     #if retour :
     print("IMPORT CSV ou XLSX TERMINE")
@@ -6327,6 +6436,36 @@ def recupImportNG(fichierSelectionne="") :
 ##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
     return BilanCreationModifErreur, d
 
+def remplacer_edit_par_export(url):
+    # Trouver la position de "/edit"
+    if "/edit" in url:
+        # Garder tout avant "/edit" et ajouter "/export?format=xlsx"
+        nouvelle_url = url.split("/edit")[0] + "/export?format=xlsx"
+        return nouvelle_url
+    else:
+        return url  # Retourner l'URL inchangée si "/edit" n'est pas trouvé
+
+def importGoogleSheetAutomatique() :
+    '''Fonction qui importe les données d'un google sheet automatiquement téléchargé si l'URL est renseignée dans les paramètres'''
+    if Parametres["URLGoogleSheetAImporter"] :
+        try :
+            print("Import du google sheet automatique...")
+            URLATelecharger = remplacer_edit_par_export(Parametres["URLGoogleSheetAImporter"])
+            print("URL à télécharger :", URLATelecharger)
+            # télécharge le fichier et le place dans un dossier "import" à la racine du projet
+            if not os.path.exists("import") :
+                os.makedirs("import")
+            fichierTelecharge = "import/fichierGoogleSheetImporte.xlsx"
+            urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
+            print("Fichier téléchargé :", fichierTelecharge)
+            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge)
+            print("Import du google sheet terminé.")
+        except :
+            print("Erreur lors de l'import du google sheet.")
+    else :
+        print("Pas d'URL de google sheet renseignée dans les paramètres.")
+    # en mode automatique, pas de retour à l'utilisateur sur les données importées
+    # return BilanCreationModifErreur, d
 
 def recupXLSX(fichierSelectionne=""):
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
@@ -6342,6 +6481,10 @@ def recupXLSX(fichierSelectionne=""):
                 ligne.append("")
             else :
                 valeur = str(cell.value)
+                ### prétraitement pour les documents google sheets téléchargés automatiquement
+                # print("valeur avant traitement google sheet",valeur)
+                valeur = traiter_chaine_si_import_google_sheet(valeur)
+                # print("valeur après traitement google sheet",valeur)
                 ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
                 if len(valeur)> 18 :
                     if valeur[:8] == "datetime" : # cas datetime.datetime(20,08,2008)
@@ -6357,15 +6500,35 @@ def recupXLSX(fichierSelectionne=""):
                             True # on ne fait rien si une date n'est pas reconnue.
                             #print("Probablement pas une date. Valeur conservée :", valeur)
                 ligne.append(valeur)
-
-        #print(chaine)
-        donneesBrutes.append(ligne)
+        # si tous les éléments de la ligne ne sont pas vides, on les traitera
+        if not all(elt == "" for elt in ligne) : 
+            donneesBrutes.append(ligne)
+    print("Données brutes récupérées du tableur", donneesBrutes)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
     BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
     wb_obj.close()
     #except :
     #    print("Erreur : probablement pas un fichier xlsx valide...")
     return BilanCreationModifErreur, d
+
+def traiter_chaine_si_import_google_sheet(chaine):
+    ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 
+    Filtre le contenu de la fonction IFERREUR de l'export google au cas où chaine ne soit pas la valeur attendue (celle visible dans le document google sheet)'''
+    # Vérifier si la chaîne commence par '=SIERREUR' ou '=IFERROR'
+    if chaine.startswith('=SIERREUR') or chaine.startswith('=IFERROR'):
+        # Essayer d'extraire la valeur entre guillemets après la virgule
+        match = re.search(r',\s*("[^"]*"|\d+(\.\d+)?)\)', chaine)
+        if match:
+            # Enlever les guillemets s'il s'agit d'une chaîne entre guillemets
+            valeur = match.group(1)
+            if valeur.startswith('"') and valeur.endswith('"'):
+                return valeur[1:-1]  # Retourner sans guillemets
+            return valeur  # Retourner la valeur telle quelle si c'est un nombre
+        else:
+            return chaine  # Si aucun match n'est trouvé
+    else:
+        # Retourner la chaîne originale si elle ne commence pas par '=SIERREUR' ou '=IFERROR'
+        return chaine
 
 
 def recupCSV(fichierSelectionne=""):
@@ -6597,7 +6760,7 @@ def creerCoureur(listePerso, informations) :
     if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
         # print("test 06102023", type(email), email, type(emailDeux))
         # on crée le coureur avec toutes les informations utiles.
-        print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
+        # print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',convertir_nombre_en_date(naiss), 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
         retourCreationModifErreur, d = addCoureur(nom, prenom, sexe , classe=clas, \
                                             naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                             temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \

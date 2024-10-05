@@ -9,7 +9,7 @@
 from tkinter import *
 from tkinter.filedialog import *
 from tkinter.messagebox import *
-from tkinter.ttk import Combobox,Treeview,Scrollbar
+from tkinter.ttk import Combobox,Treeview,Scrollbar,Separator
 import tkinter.font as font
 
 import time
@@ -44,7 +44,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -413,7 +413,7 @@ class MonTableau(Frame):
                 def dontsaveedit(event):
                     entryedit.destroy()
                     #okb.destroy()
-                entryedit.bind("<FocusOut>", saveeditEvent)
+                entryedit.bind("<KeyRelease>", saveeditEvent)
                 entryedit.bind("<Return>", saveeditEvent)
                 entryedit.bind("<Escape>", dontsaveedit)
                 #okb = ttk.Button(parent, text='OK', width=3, command=saveedit)
@@ -1162,7 +1162,7 @@ class EntryParam(Frame):
                     dontsaveedit(None)
             else :
                 setParam(self.param, ch)
-        self.entry.bind("<FocusOut>", memoriseValeurBind)
+        self.entry.bind("<KeyRelease>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
         nomAffiche = intitule + " : "
@@ -1179,14 +1179,43 @@ class EntryParam(Frame):
         else :
             self.entry.insert(0,str(self.valeur))
 
+class ColorSelector(Frame):
+    def __init__(self, parent, colors, groupement, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self.colors = colors
+        self.groupement = groupement
+        self.selected_color = None
+    
+        # Étiquette pour afficher la couleur sélectionnée
+        self.label_selected_color = Label(self, text="Dossard choisi", bg=groupement.getCouleur(), width=13) #, height=2)
+        self.label_selected_color.pack(side=LEFT)# pady=10)
+
+        # Cadre pour contenir les boutons de couleur
+        self.frame_colors = Frame(self)
+        self.frame_colors.pack()
+
+        # Création des boutons carrés pour chaque couleur
+        for color in self.colors:
+            button = Button(self.frame_colors, bg=color, width=2, height=1, command=lambda c=color: self.select_color(c))
+            button.pack(side=LEFT, padx=0)
+
+    def select_color(self, color):
+        """Met à jour l'étiquette avec la couleur sélectionnée"""
+        self.selected_color = color
+        self.label_selected_color.config(text="Dossard choisi", bg=color)
+        groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setCouleur(color)
+
 class EntryCourse(Frame):
     def __init__(self, groupement, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
+        # Liste des couleurs
+        colors = ['white', 'yellow', 'light green', 'pink', 'light blue', 'orange']
         self.groupement = groupement
         self.nomCourse = groupement.nom
         self.distance = self.groupement.distance
         self.entryNom = Entry(self, width=20, justify=CENTER)
         self.entry = Entry(self, width=7, justify=CENTER)
+        self.color_selector = ColorSelector(self, colors, self.groupement)
         self.formateValeur()
         def dontsaveedit(event) :
             #self.entry.delete(0, END)
@@ -1214,10 +1243,10 @@ class EntryCourse(Frame):
             construireMenuAnnulDepart()            
             actualiseToutLAffichage()
             #self.entry.configure(text=newVal)
-        self.entry.bind("<FocusOut>", memoriseValeurBind)
+        self.entry.bind("<KeyRelease>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
-        self.entryNom.bind("<FocusOut>", memoriseValeurNomBind)
+        self.entryNom.bind("<KeyRelease>", memoriseValeurNomBind)
         self.entryNom.bind("<Return>", memoriseValeurNomBind)
         self.entryNom.bind("<Escape>", dontsaveeditNom)
         if len(self.groupement.listeDesCourses) == 1 :
@@ -1238,6 +1267,7 @@ class EntryCourse(Frame):
         self.lbl2.pack(side=LEFT)
         self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
+        self.color_selector.pack(side=LEFT)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
         #self.actualiseEtat()
         
@@ -1339,15 +1369,20 @@ class EntryGroupement(Frame):
         i = 1
         valeursPossibles = list(range(1,self.max+1))
         ## tentative pour éliminer les valeurs des courses déjà commencées.
-        if not Courses[self.course].depart :
+        if self.course in Courses.keys() and not Courses[self.course].depart :
             for grpment in groupements :
-                if grpment.listeDesCourses and Courses[grpment.listeDesCourses[0]].depart :
+                if grpment.listeDesCourses and grpment.listeDesCourses[0] in Courses.keys() and Courses[grpment.listeDesCourses[0]].depart :
                     valeursPossibles.remove(i)
                 i += 1
         valeurs=tuple(valeursPossibles)
         #print(course,valeurs)
         self.combobox = Combobox(self, width=5, state="readonly", justify=CENTER, values=valeurs)
         #self.combobox.current(self.numero-1)
+        # active ou désactive la combobox en fonction du fait que la course a commencé ou non.
+        if Courses[course].depart :
+            self.combobox.configure(state="disabled")
+        # else :
+        #     self.combobox.configure(state="normal")
         self.combobox.set(self.numero)
         def memoriseValeurBind(event) :
             updateGroupements(self.course, self.numero,int(self.combobox.get()))
@@ -1871,14 +1906,15 @@ zoneAffichageErreurs = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
 
+# print("groupements et challange", listeDeGroupementsEtChallenge)
 
-
-
+listeDeGroupements = listNomsGroupements()
 
 zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)
 
+# print("GROUPEMENTS:",listNomsGroupements() )
 
-checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupementsEtChallenge, vertical=False, listeAffichageTV=listeAffichageTV)
+checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupements , vertical=False, listeAffichageTV=listeAffichageTV)
 
 # restauration de l'état à la fermeture de l'application.
 #checkBoxBarAffichage.resetState(listeAffichageTV)
@@ -2211,14 +2247,15 @@ checkBoxBarAffichage.pack(side=TOP,  fill=X)
 ##    topDepart(listeCochee)
 
 def ActualiseAffichageTV():
-    global listeDeGroupementsEtChallenge
-    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges() 
+    global listeDeGroupements
+    listeDeGroupements = listNomsGroupements()
+    # suppression des challenges de l'affichage TV car pas utile : listNomsGroupementsEtChallenges() 
     listeCochee = []
     #print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
         if val :
-            listeCochee.append(listeDeGroupementsEtChallenge[i])
+            listeCochee.append(listeDeGroupements[i])
     i = 0
     for el in listeCochee : # on remplace chaque nom personnalisé par son nom standard
         nomActuel = listeCochee[i]
@@ -2274,7 +2311,10 @@ def parametreTableau() :
 def parametreEMailAuto():
     print("Réglage de l'envoi automatique des diplômes au démarrage :", envoiAutoDesEMails.get())
     Parametres["diplomeDiffusionAutomatique"] = envoiAutoDesEMails.get()
-    
+
+def parametreTelechargerAuto():
+    print("Réglage du téléchargement automatique des données au démarrage :", telechargerDonnees.get())
+    Parametres["telechargerDonnees"] = telechargerDonnees.get()    
 
 def activerDesactiverLEnregistrement():
     global time_counter, enregistrementVideo
@@ -2326,33 +2366,46 @@ defilementEtHeureFrame.pack(side=TOP)#, fill='both', expand=True)
 defilementFrame = Frame(defilementEtHeureFrame)
 heureFrame = Frame(defilementEtHeureFrame)
 
+defilementFrameHaut = Frame(defilementFrame)
+defilementFrameBas = Frame(defilementFrame)
+
 defilement = IntVar()
-defilementAutoCB  = Checkbutton(defilementFrame, text='Défilement auto',
+defilementAutoCB  = Checkbutton(defilementFrameHaut, text='Défilement auto',
     variable=defilement, command=parametreTableau)
 defilementAutoCB.pack(side=LEFT)
-
-# on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
-Parametres["diplomeDiffusionAutomatique"] = 0
-envoiAutoDesEMails = IntVar()
-envoiAutoDesEMailsCB  = Checkbutton(defilementFrame, text='Envoi auto diplômes',
-    variable=envoiAutoDesEMails, command=parametreEMailAuto)
-envoiAutoDesEMailsCB.pack(side=LEFT)
 
 time_counter = 0
 
 enregistrementVideo = IntVar()
-enregistrementVideoCB  = Checkbutton(defilementFrame, text='Enregistrement webcam',
+enregistrementVideoCB  = Checkbutton(defilementFrameHaut, text='Enregistrement webcam',
     variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
 enregistrementVideoCB.pack(side=LEFT)
 
 voirVideo = IntVar()
-voirVideoCB  = Checkbutton(defilementFrame, text='Voir webcam',
+voirVideoCB  = Checkbutton(defilementFrameHaut, text='Voir webcam',
     variable=voirVideo, command=voirLaVideo)
 voirVideoCB.pack(side=LEFT)
 
 lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
 lblHeureActuelle.pack(side=RIGHT)
 
+# on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
+Parametres["diplomeDiffusionAutomatique"] = 0
+envoiAutoDesEMails = IntVar()
+envoiAutoDesEMailsCB  = Checkbutton(defilementFrameBas, text='Envoi auto diplômes',
+    variable=envoiAutoDesEMails, command=parametreEMailAuto)
+envoiAutoDesEMailsCB.pack(side=LEFT)
+
+# case à cocher pour télécharger les données depuis un googlesheet.
+telechargerDonnees = IntVar()
+telechargerDonnees.set(Parametres["telechargerDonnees"])
+telechargerDonneesCB  = Checkbutton(defilementFrameBas, text='Télécharger les inscriptions en temps réel.',
+    variable=telechargerDonnees, command=parametreTelechargerAuto)
+telechargerDonneesCB.pack(side=LEFT)
+
+
+defilementFrameHaut.pack(side=TOP)
+defilementFrameBas.pack(side=TOP)
 defilementFrame.pack(side=LEFT)
 heureFrame.pack(side=RIGHT)
 
@@ -2430,7 +2483,10 @@ def onClickE(err):
     #inputDialog = departDialog(groupement ,root)
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
-    if err.numero == 421 :
+    if err.numero == 190 :
+        print("on bascule vers le menu d'impression des dossards non encore imprimés.")
+        imprimerDossardsNonImprimes()
+    elif err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
               Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
         if CategorieDAge ==2 :
@@ -2685,11 +2741,17 @@ def actualiseAffichageDeparts():
     listGroupementsCommences = listNomsGroupementsCommences(nomStandard=False)
     listGroupementsCommencesNomsStandards = listNomsGroupementsCommences(nomStandard=True)
     if listGroupementsCommences :
+        FrCentree = Frame(fr)
+        FrGauche = Frame(FrCentree)
+        FrDroite = Frame(FrCentree)
         i = 0
         while i < len(listGroupementsCommences):# for grp in listGroupementsCommences :
             grp = listGroupementsCommencesNomsStandards[i]
-            grpNomAffiche = listGroupementsCommences[i]
-            lblFr = Frame(fr)
+            grpNomAffiche = listGroupementsCommences[i]            
+            if i % 2 == 0 :
+                lblFr = Frame(FrGauche)
+            else :
+                lblFr = Frame(FrDroite)
             lblLegende = Label(lblFr, text= grpNomAffiche + " : ")
             #print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
             lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
@@ -2698,6 +2760,13 @@ def actualiseAffichageDeparts():
             lblFr.pack(side=TOP)
             lblDict[grp] = [lblLegende,lblTemps,lblFr]
             i += 1
+        FrGauche.pack(side=LEFT)
+        if i > 1 :
+            # Création d'un séparateur vertical
+            separateur = Separator(FrCentree, orient='vertical')
+            separateur.pack(side=LEFT, fill='y', padx=5)
+            FrDroite.pack(side=LEFT, padx=5)
+        FrCentree.pack()
     else :
         zoneAffichageDeparts.forget()
     if not tagActualiseTemps :
@@ -2849,6 +2918,7 @@ class Clock():
         self.premiereExecution = True
         #self.enPause = False
         self.compteurSauvegarde = 1
+        self.compteurTelechargementURLGoogleSheet = 0
         self.auMoinsUnImport = False
         self.delaiActualisation = 3 # en secondes
         self.affichageDeDroiteAActualiser = True
@@ -2858,6 +2928,7 @@ class Clock():
         self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
         self.dejaDesErreurs = False
+        # self.nbreAImprimerPrecedent = -1
         self.update_clock()
 
     def setPremiereExecution(self,valeur):
@@ -2872,6 +2943,16 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
         
+        # print("Courses",Courses)
+        # debug pour afficher les coureurs qui n'ont pas une lettre de dossard correspondant au nomStandard de la course dans laquelle ils ont couru
+        # for c in Coureurs.liste() :
+        #     # print(c.nom, c.prenom, c.course, c.dossard)
+        #     if not c.course in c.dossard :
+        #     #     print("RAS")
+        #     # else :
+        #         print(c.nom, c.prenom, "inscrit dans", c.course, "a le dossard", c.dossard)
+        # print("-------------------------------")
+
         # debug afficher les paramètres du coureur 576A
         # c= Coureurs.recuperer("576A")
         # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
@@ -2900,9 +2981,28 @@ class Clock():
         eval(self.MAJfunction + "(tableauGUI)")
         tableau.makeDefilementAuto()
 
+        # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
+        if telechargerDonnees.get() == 1 and self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation  : # 12 x 5 s  = 1 minute
+            # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
+            # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
+            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
+            DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+            DownloadDaemon.start()
+            self.compteurTelechargementURLGoogleSheet = 0
+        self.compteurTelechargementURLGoogleSheet += 1
+        # si des dossards de certains coureurs n'ont pas encore été imprimés, proposer l'impression via une erreur spcifique à ajouter dans listeNouvellesErreursATraiter
+        # print("Dossards à imprimer à signaler dans l'interface : ", listeDesDossardsAImprimer)
+        nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
+        listeNouvellesErreursATraiter.append(erreur)
+
+        # DEVENU INUTILE : c'est le clic sur le bouton de l'interface qui provoque la compilation. Inutile de compiler à l'avance ni deux fois.
+        # compilation des dossards à imprimer si changement récent.
+        # if self.nbreAImprimerPrecedent != nbreAImprimerActuel :
+        #     listeDesDossardsAImprimer, listeCouleurs = generateDossardsAImprimer()
+        #     self.nbreAImprimerPrecedent = nbreAImprimerActuel
+
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
-
 
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -2917,12 +3017,13 @@ class Clock():
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
             self.compteurSauvegarde = 1
+        self.compteurSauvegarde += 1
+
 
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["diplomeDiffusionAutomatique"] :
             # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
             envoiDiplomes(avecQuestion = False)
-        self.compteurSauvegarde += 1
         # fin sauvegarde des données
 
 ##        # actualisation de l'affichage après les départs ou si départ annulé récemment.
@@ -2967,10 +3068,19 @@ class Clock():
         # 601 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone pique.
         # on procède de même par un ménage.
         i = len(self.erreursEnCoursNumeros) - 1
-        while i >= 0 : # on supprime l'erreur 331 des erreurs précédentes
-            if self.erreursEnCoursNumeros[i] in [331, 601] :
+        erreur190DejaRencontree = False
+        while i >= 0 :
+            # on supprime l'erreur 331 des erreurs précédentes
+            if self.erreursEnCoursNumeros[i] in [331, 601, 190] :
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
+            # # on supprime l'erreur 190 uniquement si on l'a actualisée (càd qu'on l'a déjà rencontrée lors du parcours à rebours)
+            # elif self.erreursEnCoursNumeros[i] == 190 :
+            #     if erreur190DejaRencontree :
+            #         del self.erreursEnCoursNumeros[i]
+            #         del self.erreursEnCours[i]
+            #     else :
+            #         erreur190DejaRencontree = True
             i -= 1
 
         for erreur in listeNouvellesErreursATraiter :
@@ -2979,7 +3089,7 @@ class Clock():
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
-            ### Le traitement strictement chronologique des fichiers de donnéesimpose ce post-traitement dans ce seul cas.
+            ### Le traitement strictement chronologique des fichiers de données impose ce post-traitement dans ce seul cas.
                 #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
             elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
                 ajout = True
@@ -3180,8 +3290,8 @@ def actualiseToutLAffichage() :
 
 
 def actualiseZoneAffichageTV() :
-    listeDeGroupementsEtChallenge = listNomsGroupementsEtChallenges()
-    checkBoxBarAffichage.actualise(listeDeGroupementsEtChallenge)
+    listeDeGroupements = listNomsGroupements()
+    checkBoxBarAffichage.actualise(listeDeGroupements)
 ##    if Courses :
 ##        zoneAffichageTV.pack()
 ##    else :
@@ -3526,7 +3636,7 @@ def actualiserDistanceDesCourses():
             listeDesEntryGroupements.append(EntryCourse(groupement, parent=affectationDesDistancesFrame))
         #print(listeDesEntryGroupements[-1:])
     for entry in listeDesEntryGroupements :
-        entry.pack(side=TOP)
+        entry.pack(side=TOP, anchor='e')
     
 
 def actionBoutonRecopie() :
@@ -3576,27 +3686,71 @@ def affecterParametres() :
 def noVersion():
     showinfo("A propos de ChronoHB","Version " + version + " de l'application chronoHB.\nDéveloppeur : Olivier Lacroix, olacroix@ac-montpellier.fr")
 
-def imprimerDossardsNonImprimes() :
+def lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres):
+    print("Impression lancée !")
+    popup.destroy()  # Ferme la popup et lance l'impression
+    if windows() :
+        if imprimePDF(nomFichierGenere) :
+            reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
+        else :
+            reponse = False
+    else :
+        print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
+        subprocess.Popen([nomFichierGenere],shell=True)
+        reponse = True
+    if reponse :
+        # print(listeDesDossardsGeneres)
+        for n in listeDesDossardsGeneres :
+            print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+            Coureurs.recuperer(n).setAImprimer(False)
+
+def annuler_couleurs():
+    print("Opération annulée.")
+    popup.destroy()  # Ferme la popup sans lancer l'impression
+
+def afficher_popup_couleurs(listeCouleur, nomFichierGenere, listeDesDossardsGeneres):
+    global popup
+    # Création d'une nouvelle fenêtre popup
+    popup = Toplevel()
+    popup.title("Insertion des feuilles dans l'imprimante")
+    
+    labelConsigne = Label(popup, text="Placer ces couleurs de \nfeuilles dans l'imprimante\n dans cet ordre,\nde haut en bas :", width=20, height=2)
+    labelConsigne.pack(side=TOP, pady=5)
+    # Ajout des labels pour chaque couleur
+    print("Liste des couleurs à imprimer :", listeCouleur)
+    for pages, couleur in listeCouleur:
+        # Création d'un label avec la couleur de fond et le nombre de feuilles
+        print(f"{pages} feuilles de couleur {couleur}")
+        if pages == 1 :
+            label = Label(popup, text=f"{pages} feuille", bg=couleur, width=20, height=2)
+        else :
+            label = Label(popup, text=f"{pages} feuilles", bg=couleur, width=20, height=2)
+        label.pack(pady=5)
+
+    # Cadre pour contenir les boutons
+    frame_buttons = Frame(popup)
+    frame_buttons.pack(pady=10)
+
+    # Bouton "Lancer l'impression"
+    btn_imprimer = Button(frame_buttons, text="Lancer l'impression", command=lambda : lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres))
+    btn_imprimer.pack(side=LEFT, padx=10)
+
+    # Bouton "Annuler"
+    btn_annuler = Button(frame_buttons, text="Annuler", command=annuler_couleurs)
+    btn_annuler.pack(side=RIGHT, padx=10)
+
+def imprimerDossardsNonImprimes(listeDesDossardsGeneres = []) :
     print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
-    listeDesDossardsGeneres = generateDossardsAImprimer()
+    if not listeDesDossardsGeneres :
+        listeDesDossardsGeneres, listeCouleurs = generateDossardsAImprimer()
     if listeDesDossardsGeneres :
         print("listeDesDossardsGeneres =",listeDesDossardsGeneres)
         nomFichierGenere = "dossards"+os.sep+"A-imprimer.pdf"
         if os.path.exists(nomFichierGenere):
-            if windows() :
-                if imprimePDF(nomFichierGenere) :
-                    reponse = askokcancel("IMPRESSION REALISEE ?", "L'impression a été lancée vers l'imprimante par défaut. Est ce que les feuilles sont bien imprimées ?")
-                else :
-                    reponse = False
-            else :
-                print("OS unix : on ouvre le pdf et on considère que l'opérateur l'imprime sans faute...")
-                subprocess.Popen([nomFichierGenere],shell=True)
-                reponse = True
-            if reponse :
-                print(listeDesDossardsGeneres)
-                for n in listeDesDossardsGeneres :
-                    print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-                    Coureurs.recuperer(n).setAImprimer(False)
+            # une listeCouleur de cette forme : [[3,"white"],[2,"yellow"],[1,"green"]]
+            # indique que l'opérateur doit ajouter 3 pages de couleur "white" puis 2 pages de couleur "yellow" puis 1 page de couleur "green" etc...
+            # il faudra générer une telle indication dans le message sur l'interface.
+            afficher_popup_couleurs(listeCouleurs, nomFichierGenere, listeDesDossardsGeneres)
         else :
             print("Fichier aImprimer.pdf non généré : BUG A RESOUDRE.")
     else :
@@ -4171,6 +4325,7 @@ def packAutresWidgets():
     webcamComboFVide.pack(side=LEFT)
     webcamScale.pack(side=LEFT)
     webcamF.pack(side=TOP,anchor="w")
+    URLGoogleSheetAImporterEntry.pack(side=LEFT,anchor="w")
     setParametres()
     
 def forgetAutresWidgets():
@@ -4186,6 +4341,7 @@ def forgetAutresWidgets():
     lblCommentaire.pack_forget()
     #ModeleDeDossardsFrame.pack_forget()
     webcamF.pack_forget()
+    URLGoogleSheetAImporterEntry.forget()
 
 def packMenuParametresDossardsDiplomes() :
     ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
@@ -4201,6 +4357,7 @@ def packMenuParametresDossardsDiplomes() :
 titresCourseF = Frame(GaucheFrameParametresCourses)
 #IntituleFrameL = Frame(GaucheFrameParametresCourses)
 IntituleEntry = EntryParam( "intituleCross", "Intitulé du cross", largeur=30, parent=titresCourseF)
+
 #LieuFrameL = Frame(GaucheFrameParametresCourses)
 LieuEntry = EntryParam("lieu", "Lieu", largeur=30, parent=titresCourseF)
 
@@ -4321,6 +4478,8 @@ webcamScale = Scale(webcamF, orient='horizontal', from_=0, to=100000,
 webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
 webcamScale.set(Parametres['webcamSensibility'])
 
+URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL GoogleSheet à importer automatiquement", largeur=100, parent=GaucheFrameParametresCourses)
+
 def actualiseCanvasModeleDossards(event):
     global canvas_image,ModeleDeDossardsCanvas
     fichierChoisi = ModeleDeDossardsCombo.get()
@@ -4408,6 +4567,8 @@ rbCM2.pack(side=LEFT,anchor="w")
 
 
 packMenuParametresDossardsDiplomes()
+
+
 ##if CoursesManuelles :
 ##    cbCMgenerer.set(1)
 ##    choixCMQRCodes()
