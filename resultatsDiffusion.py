@@ -1,7 +1,7 @@
 from redmail import EmailSender, gmail
 #from smtplib import SMTP_SSL
 
-from resultatsDiffusionIdentifiants import *
+# fin des données en dur dans le code : from resultatsDiffusionIdentifiants import *
 import os
 from copy import deepcopy
 
@@ -234,23 +234,29 @@ def choixDuMailAUtiliser() :
     # on retourne "", """ pour indiquer qu'il n'y a plus de mail disponible.
     return "", ""
 
+def formater_chemin(chemin):
+    # Vérifie et ajoute un "/" au début si nécessaire
+    if not chemin.startswith("/"):
+        chemin = "/" + chemin
+    # Vérifie et ajoute un "/" à la fin si nécessaire
+    if not chemin.endswith("/"):
+        chemin = chemin + "/"
+    return chemin
+
+
 def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     global diplomeEmailQuotaDepasse
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
-        print("Envoi du diplome pour le coureur sur le mail", gmail.username)
+        print("Envoi du diplome pour le coureur avec le mail expéditeur", gmail.username)
+        URLLienDirectVersResultats = "https://" + Parametres["FTPserveur"].replace("ftp://","").replace("/","") + formater_chemin(Parametres["FTPdir"]) + "index-en-ligne.html"
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],
-                    subject= AjoutObjet + "Résultats du " + Parametres["intituleCross"],
-                    html="""
-                        <h1>Bravo pour ta participation !</h1>
-                        <a href="https://marielleetolivier2.synology.me/index-en-ligne.html">Lien vers les résultats en temps réel</a>
-                        <p>Voici ton diplôme <i>(réalisé par Théo et Alessio)</i> :</p>
-                        <img src="{{ my_image.src }}" width=100%><br>
-                    """, 
+                    subject= AjoutObjet + Parametres["emailMessageObjet"], # "Résultats du " + Parametres["intituleCross"],
+                    html=Parametres["emailMessage"].replace("<urlresultats>", URLLienDirectVersResultats).replace("<diplome>","{{ diplome.src }}"), 
                     body_images={
-                        "my_image": fichier
+                        "diplome": fichier
                     }
                 )
     else :
@@ -259,14 +265,14 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
         retour = False
     return retour
             
-def envoiDiplomeParMail(coureur):
+def envoiDiplomeParMail(coureur, envoiManuel = False) :
     fichier = "resultats/" + coureur.dossard + ".png"
     try :
         if os.path.exists(fichier) :
             print(coureur.nom, coureur.prenom, "a passé la ligne, nombre d'envois sur email", coureur.emailNombreDEnvois, "et sur email2", coureur.emailNombreDEnvois2)
             retour = True
             retour2 = True # par défaut, il n'y a pas d'erreur générée.
-            if coureur.email and coureur.emailEnvoiEffectue == False :
+            if (coureur.email and coureur.emailEnvoiEffectue == False) or envoiManuel :
                 print("Envoi par email du fichier", fichier,  "à l'adresse", coureur.email)
                 if coureur.emailNombreDEnvois :
                     AjoutObjet = "Correctif : "

@@ -3,6 +3,13 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 07/10/24 :
+- CORRECTIF Envoi du diplome manuel pour un coureur n'était pas effectué si l'envoi auto avait déjà été effectué. L'envoi manuel s'effectue dans tous les cas.
+- CORRECTIF Le paramètre telechargerDonnees n'était pas pris en compte (parenthèses oubliée dans une combinaison de conditions.
+- FAIT les nouveaux paramètres de connectivité sont ajoutés dans l'interface : FTP, diplômes, etc...
+- Captures d'écran dans la documentation pour tenir compte de ces nouveautés.
+
+
 Travail du 06/10/24 : énorme mise à jour pour développer ce qui manque actuellement.
 - FAIT Théo et Alessio sont cités.
 - FAIT Faire en sorte que les inscriptions tardives soient automatiquement importées.

@@ -1635,29 +1635,38 @@ def chargerDonnees() :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     if not "FTPlogin" in Parametres :
-        Parametres["FTPlogin"] = "olivier.lax@free.fr"
+        Parametres["FTPlogin"] = "chronohb"
     FTPlogin=Parametres["FTPlogin"]
     if not "FTPmdp" in Parametres :
         Parametres["FTPmdp"] = "mdp"
     FTPmdp=Parametres["FTPmdp"]
     if not "FTPserveur" in Parametres :
-        Parametres["FTPserveur"] = "ftp://mathlacroix.free.fr"
+        Parametres["FTPserveur"] = "marielleetolivier2.synology.me"
     FTPserveur=Parametres["FTPserveur"]
     if not "FTPdir" in Parametres :
-        Parametres["FTPdir"] = "/public_html/chronoHB"
+        Parametres["FTPdir"] = "/"
     FTPdir=Parametres["FTPdir"]
     if not "email" in Parametres :
-        Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com"
+        Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com;chronoHB3@gmail.com"
     email=Parametres["email"]
     if not "emailMDP" in Parametres :
         Parametres["emailMDP"] = "mdp"
     emailMDP=Parametres["emailMDP"]
     if not "emailNombreDEnvoisMax" in Parametres :
-        Parametres["emailNombreDEnvoisMax"] = "2"
+        Parametres["emailNombreDEnvoisMax"] = "500;500;500"
     emailNombreDEnvoisMax=Parametres["emailNombreDEnvoisMax"]
     if not "emailNombreDEnvoisDuJour" in Parametres :
         Parametres["emailNombreDEnvoisDuJour"] = {}
     emailNombreDEnvoisDuJour=Parametres["emailNombreDEnvoisDuJour"]
+    if not "emailMessage" in Parametres :
+        Parametres["emailMessage"] = """<h1>Bravo pour ta participation !</h1>
+<a href="<urlresultats>">Lien vers tous les résultats.</a>
+<p>Voici ton diplôme <i>(réalisé par Théo et Alessio)</i> :</p>
+<img src="<diplome>" width=100%><br>"""
+    emailMessage=Parametres["emailMessage"]
+    if not "emailMessageObjet" in Parametres :
+        Parametres["emailMessageObjet"] = "Résultats du Cross du collège H. Bourrillon"
+    emailMessageObjet=Parametres["emailMessageObjet"]
     if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
         Parametres["crossUNSScollegeLycee"] = True
     crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]

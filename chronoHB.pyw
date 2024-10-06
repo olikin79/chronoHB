@@ -1078,7 +1078,7 @@ class ButtonBoxDiplomes(Frame):
             f.close()
             print("Envoi du diplome pour le coureur : ", self.coureur.nom, self.coureur.prenom)
             genereDiplome(modele, coureur, nomModele)
-            envoiDiplomeParMail(coureur)
+            envoiDiplomeParMail(coureur, envoiManuel = True)
         nomAffiche = coureur.nom + " " + coureur.prenom
         self.combobox = Button(self, text= nomAffiche, command=envoyerDiplome, width = 20)
         self.combobox.pack(side=TOP, expand=YES) # à la verticale
@@ -1126,8 +1126,31 @@ class ButtonBoxDossards(Frame):
         self.combobox.pack(side=TOP, expand=YES) # à la verticale
         #self.lbl.pack(side=LEFT)
 
+class PasswordEntry(Entry):
+    def __init__(self, master=None, **kwargs):
+        # Initialiser la classe parente (tk.Entry)
+        super().__init__(master, **kwargs)
+
+        # Définir le paramètre par défaut pour masquer le texte (show='*')
+        self.show_password = False  # Par défaut, le mot de passe est caché
+        self.config(show='*')
+
+        # Créer le bouton pour afficher/masquer le mot de passe
+        self.toggle_button = Button(master, text="Montrer", command=self.toggle_password)
+        self.toggle_button.pack(side=RIGHT, padx=5)
+
+    def toggle_password(self):
+        """Fonction pour basculer entre affichage et masquage du mot de passe."""
+        if self.show_password:
+            self.config(show='*')
+            self.toggle_button.config(text="Montrer")
+        else:
+            self.config(show='')
+            self.toggle_button.config(text="Cacher")
+        self.show_password = not self.show_password  # Inverser l'état
+
 class EntryParam(Frame):
-    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         self.param = param
         self.intitule = intitule
@@ -1137,19 +1160,37 @@ class EntryParam(Frame):
         else :
             self.valeur = "" # n'existe pas dans la base de données. Ne devrait pas arriver.
         self.nombre = nombre
-        self.entry = Entry(self, width=self.largeur)
+        self.password = password
+        self.multiLignes = multiLignes
+        self.hauteur = hauteur
+        if multiLignes :
+            self.entry = Text(self, width=self.largeur, height=self.hauteur)
+        else :
+            if self.password :
+                self.entry = PasswordEntry(self, width=self.largeur)
+            else :
+                self.entry = Entry(self, width=self.largeur)
         if self.nombre :
             self.entry.insert(0,str(self.valeur).replace(".",","))
         else :
-            self.entry.insert(0,str(self.valeur))
+            if self.multiLignes :
+                self.entry.insert(1.0,str(self.valeur))
+            else :
+                self.entry.insert(0,str(self.valeur))
         def dontsaveedit(event) :
             self.entry.delete(0, END)
             if self.nombre :
                 self.entry.insert(0,str(self.valeur).replace(".",","))
             else :
-                self.entry.insert(0,str(self.valeur))
+                if self.multiLignes :
+                    self.entry.insert(1.0,str(self.valeur))
+                else :
+                    self.entry.insert(0,str(self.valeur))
         def memoriseValeurBind(event) :
-            ch = self.entry.get()
+            if self.multiLignes :
+                ch = self.entry.get(1.0,END)
+            else :
+                ch = self.entry.get()
             if self.nombre :
                 try :
                     ch = ch.replace(",",".")
@@ -1177,7 +1218,10 @@ class EntryParam(Frame):
         if self.nombre :
             self.entry.insert(0,str(self.valeur).replace(".",","))
         else :
-            self.entry.insert(0,str(self.valeur))
+            if self.multiLignes :
+                self.entry.insert(1.0,str(self.valeur))
+            else :
+                self.entry.insert(0,str(self.valeur))
 
 class ColorSelector(Frame):
     def __init__(self, parent, colors, groupement, *args, **kwargs):
@@ -2982,7 +3026,7 @@ class Clock():
         tableau.makeDefilementAuto()
 
         # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
-        if telechargerDonnees.get() == 1 and self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation  : # 12 x 5 s  = 1 minute
+        if telechargerDonnees.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
             DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
@@ -4326,6 +4370,18 @@ def packAutresWidgets():
     webcamScale.pack(side=LEFT)
     webcamF.pack(side=TOP,anchor="w")
     URLGoogleSheetAImporterEntry.pack(side=LEFT,anchor="w")
+    emailEntry.pack(side=TOP,anchor="w")
+    emailMDPEntry.pack(side=TOP,anchor="w")
+    emailNombreDEnvoisMaxEntry.pack(side=LEFT,anchor="w")
+    diplomeDiffusionApresNMinEntry.pack(side=LEFT,anchor="w")
+    emailMessageObjetEntry.pack(side=TOP,anchor="w")
+    emailMessageEntry.pack(side=TOP,anchor="w")
+    FTPserveurEntry.pack(side=TOP,anchor="w")
+    FTPloginEntry.pack(side=LEFT,anchor="w")
+    FTPmdpEntry.pack(side=LEFT,anchor="w")
+    FTPdirEntry.pack(side=TOP,anchor="w")
+    FTPidentifiantsFrame.pack(side=LEFT)
+    EmailParametresFrame.pack(side=LEFT)
     setParametres()
     
 def forgetAutresWidgets():
@@ -4342,6 +4398,18 @@ def forgetAutresWidgets():
     #ModeleDeDossardsFrame.pack_forget()
     webcamF.pack_forget()
     URLGoogleSheetAImporterEntry.forget()
+    emailEntry.forget()
+    emailMDPEntry.forget()
+    emailNombreDEnvoisMaxEntry.forget()
+    diplomeDiffusionApresNMinEntry.forget()
+    emailMessageObjetEntry.forget()
+    emailMessageEntry.forget()
+    FTPserveurEntry.forget()
+    FTPloginEntry.forget()
+    FTPmdpEntry.forget()
+    FTPdirEntry.forget()
+    FTPidentifiantsFrame.forget()
+    EmailParametresFrame.forget()
 
 def packMenuParametresDossardsDiplomes() :
     ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
@@ -4478,7 +4546,38 @@ webcamScale = Scale(webcamF, orient='horizontal', from_=0, to=100000,
 webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
 webcamScale.set(Parametres['webcamSensibility'])
 
-URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL GoogleSheet à importer automatiquement", largeur=100, parent=GaucheFrameParametresCourses)
+# FRame avec les options de connectivité
+ConnectiviteFrame = Frame(GaucheFrameParametresCourses, relief=GROOVE, borderwidth=2)
+Label(ConnectiviteFrame, text="OPTION DE CONNECTIVITE :").pack(side=TOP,anchor="w")
+
+ImportTempsReelFrame = Frame(ConnectiviteFrame, relief=GROOVE, borderwidth=2)
+Label(ImportTempsReelFrame, text="IMPORT DE DONNEES AUTOMATIQUE :").pack(side=TOP,anchor="w")
+ImportTempsReelFrame.pack(side=TOP,anchor="w",fill=X)
+
+EnvoiDiplomeFrame = Frame(ConnectiviteFrame, relief=GROOVE, borderwidth=2)
+Label(EnvoiDiplomeFrame, text="PARAMETRES ENVOI DE DIPLOMES :").pack(side=TOP,anchor="w")
+EnvoiDiplomeFrame.pack(side=TOP,anchor="w",fill=X)
+
+FTPFrame = Frame(ConnectiviteFrame, relief=GROOVE, borderwidth=2)
+Label(FTPFrame, text="PARAMETRES EXPORT DES RESULTATS EN TEMPS REEL :").pack(side=TOP,anchor="w")
+FTPFrame.pack(side=TOP,anchor="w",fill=X)
+
+URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur xlsx", largeur=120, parent=ImportTempsReelFrame)
+
+emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparés par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
+emailMDPEntry = EntryParam( "emailMDP", "Mot(s) de passe d'application email (séparés par un point virgule)", largeur=60, parent=EnvoiDiplomeFrame, password=True)
+EmailParametresFrame = Frame(EnvoiDiplomeFrame)
+emailNombreDEnvoisMaxEntry = EntryParam( "emailNombreDEnvoisMax", "Nombre maximum d'envois quotidiens par adresse", largeur=20, parent=EmailParametresFrame)
+diplomeDiffusionApresNMinEntry = EntryParam( "diplomeDiffusionApresNMin", "Diffusion des diplômes après N minutes. N vaut", largeur=10, parent=EmailParametresFrame)
+emailMessageObjetEntry = EntryParam( "emailMessageObjet", "Objet du message à envoyer avec les diplômes", largeur=100, parent=EnvoiDiplomeFrame)
+emailMessageEntry = EntryParam( "emailMessage", "Message à envoyer avec les diplômes", largeur=100, parent=EnvoiDiplomeFrame, multiLignes=True)
+
+
+FTPserveurEntry = EntryParam( "FTPserveur", "Serveur FTP", largeur=50, parent=FTPFrame)
+FTPdirEntry = EntryParam( "FTPdir", "Répertoire FTP", largeur=20, parent=FTPFrame)
+FTPidentifiantsFrame = Frame(FTPFrame)
+FTPloginEntry = EntryParam( "FTPlogin", "Login FTP", largeur=20, parent=FTPidentifiantsFrame)
+FTPmdpEntry = EntryParam( "FTPmdp", "Mot de passe FTP", largeur=20, parent=FTPidentifiantsFrame, password=True)
 
 def actualiseCanvasModeleDossards(event):
     global canvas_image,ModeleDeDossardsCanvas
@@ -4772,6 +4871,7 @@ actualiseToutLAffichage()
 GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
 DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 
+ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 
 #actualiseAffichageZoneDeDroite()
 
