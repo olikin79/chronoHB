@@ -33,7 +33,7 @@ from tkinter.messagebox import *
 #### DEBUG
 DEBUG = False
 
-version = "1.9"
+version = "2.0"
 
 LOGDIR="logs"
 
@@ -2708,8 +2708,14 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     totalCouleurActuelle = 0
     listeRetour = []
     for information in listeDeCoureurs :
-        coureur = information[0]
-        couleurActuelle = information[1]
+        # listeDeCoureurs peut être vraiment une liste de coureurs ou une liste de [coureur, couleurActuelle]
+        # conservation de la compatibilité ascendante.
+        if isinstance(information, Coureur) :
+            coureur = information
+            couleurActuelle = "white"
+        else :
+            coureur = information[0]
+            couleurActuelle = information[1]
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
             print("Création du dossard de ", coureur.nom, coureur.dossard, "pour la course" , coureur.course)
             totalCouleurActuelle += 1

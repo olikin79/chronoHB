@@ -34,7 +34,7 @@ from maj import *
 #import git
 
 
-version="1.9"
+version="2.0"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -1290,7 +1290,7 @@ class EntryCourse(Frame):
         self.entry.bind("<KeyRelease>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
-        self.entryNom.bind("<KeyRelease>", memoriseValeurNomBind)
+        self.entryNom.bind("<FocusOut>", memoriseValeurNomBind)
         self.entryNom.bind("<Return>", memoriseValeurNomBind)
         self.entryNom.bind("<Escape>", dontsaveeditNom)
         if len(self.groupement.listeDesCourses) == 1 :
@@ -3754,11 +3754,11 @@ def annuler_couleurs():
 
 def afficher_popup_couleurs(listeCouleur, nomFichierGenere, listeDesDossardsGeneres):
     global popup
-    # Création d'une nouvelle fenêtre popup
+    # Création d'une nouvelle fenêtre popup dans tous les cas.
     popup = Toplevel()
     popup.title("Insertion des feuilles dans l'imprimante")
     
-    labelConsigne = Label(popup, text="Placer ces couleurs de \nfeuilles dans l'imprimante\n dans cet ordre,\nde haut en bas :", width=20, height=2)
+    labelConsigne = Label(popup, text="Placer ces couleurs de \nfeuilles dans l'imprimante\n dans cet ordre,\nde haut en bas :", width=20, height=5)
     labelConsigne.pack(side=TOP, pady=5)
     # Ajout des labels pour chaque couleur
     print("Liste des couleurs à imprimer :", listeCouleur)
