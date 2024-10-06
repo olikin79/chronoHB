@@ -1766,3 +1766,5 @@ www/Affichage-tab11.html
 *.fdb_latexmk
 *.fls
 *.odt#
+/dossards
+/resultats
