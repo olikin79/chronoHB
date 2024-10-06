@@ -1765,3 +1765,4 @@ www/Affichage-tab10.html
 www/Affichage-tab11.html
 *.fdb_latexmk
 *.fls
+*.odt#
