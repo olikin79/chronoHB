@@ -2821,7 +2821,11 @@ def generateDossardsNG() :
         f.close()
     ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
-        codeLatex, listeCouleurs = retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False)
+        listeDeCoureurs = Coureurs.liste()
+        codeLatex, listeCouleurs = retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False)
+        # la génération globale de tous les dossards implique son impression par l'opérateur. On suppose que cela sera effectué.
+        for c in listeDeCoureurs :
+            c.setAImprimer(False)
         f.write(codeLatex)
     f.close()
     ### ajout du enddocument à la fin de tous les fichiers de dossards générés

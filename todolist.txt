@@ -12,7 +12,6 @@ TodoListe pour le cross Bourrillon 2024 :
 - un seul fichier de sauvegarde .chb contenant les trois fichiers utiles zippés.
 Possibilité de restaurer de vieilles sauvegardes implémentée ou non ?
 - deplacer les fichiers du serveur web dans www
-- FAIT nouveaux paramètres à ajouter dans l'interface : FTP, diplômes, etc...
 - lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
 
 
