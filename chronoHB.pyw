@@ -2776,8 +2776,12 @@ def onClick(grpe):
 
 tagActualiseTemps = False
 
+elementsADetruire = {}
+
 def actualiseAffichageDeparts():
-    global listGroupementsCommences, lblDict, tagActualiseTemps
+    global listGroupementsCommences, lblDict, tagActualiseTemps, elementsADetruire
+    for el in elementsADetruire.keys() :
+        elementsADetruire[el].destroy()
     for grp in lblDict.keys() :
         lblDict[grp][2].destroy()
         #lblDict[grp][1].destroy()
@@ -2796,6 +2800,8 @@ def actualiseAffichageDeparts():
                 lblFr = Frame(FrGauche)
             else :
                 lblFr = Frame(FrDroite)
+            if i < 2 :
+                elementsADetruire[grp] = lblFr
             lblLegende = Label(lblFr, text= grpNomAffiche + " : ")
             #print("bouton " + grpNomAffiche + " avec commande : onClick(",grp,")")
             lblTemps = Button(lblFr, text= "00:00:00", command=partial(onClick,grp), bd=0, relief='flat')
@@ -2809,6 +2815,7 @@ def actualiseAffichageDeparts():
             # Création d'un séparateur vertical
             separateur = Separator(FrCentree, orient='vertical')
             separateur.pack(side=LEFT, fill='y', padx=5)
+            elementsADetruire["separateur"] = separateur
             FrDroite.pack(side=LEFT, padx=5)
         FrCentree.pack()
     else :

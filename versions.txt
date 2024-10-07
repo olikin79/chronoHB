@@ -5,6 +5,8 @@ A venir :
 
 Travail du 08/10/24 :
 - FAIT Popup "Veuillez patienter" quand on génère des dossards non encore imprimés. Cela permet de comprendre le délai de réaction.
+- CORRECTIF Nom-Prénom qui débordent dans le diplôme si trop longs.
+- CORRECTIF barres verticales multiples dans la zone des départs lors de plusieurs changements de menus.
 
 
 Travail du 07/10/24 :
