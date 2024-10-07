@@ -1285,12 +1285,12 @@ class EntryCourse(Frame):
             self.nomCourse = ch
             updateNomGroupement(self.groupement.nomStandard,ch)
             construireMenuAnnulDepart()            
-            actualiseToutLAffichage()
+            actualiseToutLAffichage(toutSaufParametresCourses=True)
             #self.entry.configure(text=newVal)
         self.entry.bind("<KeyRelease>", memoriseValeurBind)
         self.entry.bind("<Return>", memoriseValeurBind)
         self.entry.bind("<Escape>", dontsaveedit)
-        self.entryNom.bind("<FocusOut>", memoriseValeurNomBind)
+        self.entryNom.bind("<KeyRelease>", memoriseValeurNomBind)
         self.entryNom.bind("<Return>", memoriseValeurNomBind)
         self.entryNom.bind("<Escape>", dontsaveeditNom)
         if len(self.groupement.listeDesCourses) == 1 :
@@ -2747,12 +2747,13 @@ au(x) précédent(s) import(s).")
                     os.startfile(filePath)
                 
 
-def actualiseToutLAffichage() :
+def actualiseToutLAffichage(toutSaufParametresCourses=False) :
     print("Actualise tout l'affichage")
     # se fait dans le timer proprement : actualiseAffichageZoneDeDroite(timer.erreursEnCours)
     zoneTopDepart.actualise()
-    actualiseAffichageDeparts()  
-    actualiserDistanceDesCourses()
+    actualiseAffichageDeparts()
+    if toutSaufParametresCourses :  
+        actualiserDistanceDesCourses()
     #listeDeCourses = listCourses() # encore utile ?
     actualiseZoneAffichageTV()
     absDispZone.actualiseListeDesClasses()
@@ -2790,6 +2791,7 @@ def actualiseAffichageDeparts():
     listGroupementsCommencesNomsStandards = listNomsGroupementsCommences(nomStandard=True)
     if listGroupementsCommences :
         FrCentree = Frame(fr)
+        elementsADetruire["frame principale"] = FrCentree
         FrGauche = Frame(FrCentree)
         FrDroite = Frame(FrCentree)
         i = 0
