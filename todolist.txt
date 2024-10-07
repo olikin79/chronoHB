@@ -9,6 +9,9 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 
 TodoListe pour le cross Bourrillon 2024 :
+- correctif barres verticales multiples dans la zone des départs.
+- correctif Nom-Prénom qui débordent dans le diplôme si trop longs.
+
 - un seul fichier de sauvegarde .chb contenant les trois fichiers utiles zippés.
 Possibilité de restaurer de vieilles sauvegardes implémentée ou non ?
 - deplacer les fichiers du serveur web dans www

@@ -2529,7 +2529,7 @@ def onClickE(err):
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 190 :
         print("on bascule vers le menu d'impression des dossards non encore imprimés.")
-        imprimerDossardsNonImprimes()
+        ouvrir_popup_patienter(imprimerDossardsNonImprimes)
     elif err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
               Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
@@ -2951,6 +2951,30 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
             print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
     ## on demande à l'objet d'appliquer les modifications calculées
     checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
+
+# Fonction pour créer la fenêtre "Veuillez patienter" et lancer la tâche donnée
+def ouvrir_popup_patienter(tache):
+    popup = Toplevel(root)
+    popup.title("Veuillez patienter...")
+    popup.geometry("300x100")
+    
+    label = Label(popup, text="Veuillez patienter...", font=("Arial", 12))
+    label.pack(pady=20)
+    
+    # Lancer la tâche dans un thread
+    thread = threading.Thread(target=tache)
+    thread.start()
+
+    # Fonction pour vérifier l'état du thread
+    def verifier_si_termine():
+        if thread.is_alive():
+            root.after(100, verifier_si_termine)  # Vérifier encore après 100ms
+        else:
+            popup.destroy()  # Fermer le popup lorsque le thread est terminé
+            print("Popup fermé")
+
+    # Lancer la vérification périodique
+    verifier_si_termine()
 
 # timer 
 class Clock():
