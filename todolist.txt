@@ -16,7 +16,6 @@ Possibilité de restaurer de vieilles sauvegardes implémentée ou non ?
 
 
 
-
 Todolist pour le cross HB 2023 :
 - FAIT : le temps sur le diplome s'affichera en min:sec et non en HH:MM:SS.
 - FAIT envoi programmé pour les deux adresses si présentes.
