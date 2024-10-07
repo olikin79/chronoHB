@@ -29,7 +29,9 @@ def deposePagesHTMLInternet(liste) :
                 #     ftp.mkd(dossierWWW)
                 ftp.cwd(dossierWWW)
                 for file in liste :
-                    ftp.storbinary('STOR '+file, open(file, 'rb'))
+                    # on stocke dans la variable fichier le nom du fichier à déposer en le séparant du chemin contenu dans file
+                    fichier = file.split("/")[-1]
+                    ftp.storbinary('STOR '+fichier, open(file, 'rb'))
                     # if DEBUG :
                     #     print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
                 ftp.close()
@@ -57,4 +59,4 @@ def generePagesHTMLInternet() :
 
 
 if __name__ == '__main__':
-    deposePagesHTMLInternet(["Affichage-Contenu.html"])
+    deposePagesHTMLInternet(["./www/Affichage-Contenu.html"])
