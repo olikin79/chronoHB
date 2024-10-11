@@ -9,10 +9,11 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 
 TodoListe pour le cross Bourrillon 2024 :
+- maj à distance à rendre fonctionnelles.
 - un seul fichier de sauvegarde .chb contenant les trois fichiers utiles zippés.
 Possibilité de restaurer de vieilles sauvegardes implémentée ou non ?
 - deplacer les fichiers du serveur web dans www
-- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles)
+- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
 
 
 

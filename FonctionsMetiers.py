@@ -1392,19 +1392,29 @@ def formaterDuree(tps, HMS=True) :
 ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
+def enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(rang, rangsDSDENFG) :
+    """On compte combien de rangs de la liste rangsDSDENFG, ordonnée par ordre croissant de rang, sont inférieurs à rang. On retourne ce nombre """
+    i = 0
+    while i < len(rangsDSDENFG) and rangsDSDENFG[i] < rang :
+        i += 1
+    return i
+
 class EquipeClasse():
     """Un objet permettant de contenir les informations pour le challenge par classe"""
-    def __init__(self, nom, listeCG, listeCF, ponderation=False):
+    def __init__(self, nom, listeCG, listeCF, ponderation=False, dictrangsDSDEN={}):
         self.nom = nom
         self.listeCG = listeCG
         self.listeCF = listeCF
         self.score = 0
-        for c in listeCG + listeCF :
+        # ajout des scores des garçons
+        for c in listeCG + listeCF:
             if Parametres["CategorieDAge"] == 0 :
-                self.score += c.rang
+                # print("enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(",c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement],")=",enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement]))
+                self.score += c.rang - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement])
             else:
                 self.score += c.scoreUNSS
         self.ponderation = ponderation
+        self.dictrangsDSDEN = dictrangsDSDEN
         if ponderation :
             self.score = self.score * Parametres["nbreDeCoureursPrisEnCompte"]*2/(len(listeCG) + len(listeCF))
         #self.scoreNonPondere = score
@@ -2028,7 +2038,8 @@ def traiterDonneesSmartphonePiques():
                     if codeErreur.numero :
                         print("Code erreur :", codeErreur.numero)
                         print(nouvelle_ligne)
-                        retour.append(codeErreur)
+                    # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
+                    retour.append(codeErreur)
                     dossardPrecedent = ligneT[2]
                 Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
             else :
@@ -3945,8 +3956,8 @@ def formateTemps(temps):
 
 #print(formateTemps(124.715563659667969))
 
-def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nbreDeCoureursPrisEnCompte):
-    score = 0
+def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nbreDeCoureursPrisEnCompte, dictrangsDSDEN={}):
+    # score = 0
     nf = 0
     ng = 0
     i = 0
@@ -3954,22 +3965,24 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     listeCF = []
     #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
-    while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
-        doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
-        coureur = Coureurs.recuperer(doss)
-        if coureur.temps != 0 :
-            if ng < nbreDeCoureursPrisEnCompte and coureur.sexe == "G" :
-                #print("le coureur",coureur.prenom,"est en rang",coureur.rang," ng=",ng)
-                listeCG.append(coureur)
-                score += coureur.rang
-                ng += 1
-            if nf < nbreDeCoureursPrisEnCompte and coureur.sexe == "F" :
-                #print("le coureur",coureur.prenom,"est en rang",coureur.rang," nf=",nf)
-                listeCF.append(coureur)
-                score += coureur.rang
-                nf += 1
-            #listeDesRangs.append(coureur.rang)
-        i+=1
+    # on ne classe pas l'équipe de la DSDEN dans les résultats.
+    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe != "DSDEN" :
+        while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
+            doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
+            coureur = Coureurs.recuperer(doss)
+            if coureur.temps != 0 :
+                if ng < nbreDeCoureursPrisEnCompte and coureur.sexe == "G" :
+                    #print("le coureur",coureur.prenom,"est en rang",coureur.rang," ng=",ng)
+                    listeCG.append(coureur)
+                    # score += coureur.rang
+                    ng += 1
+                if nf < nbreDeCoureursPrisEnCompte and coureur.sexe == "F" :
+                    #print("le coureur",coureur.prenom,"est en rang",coureur.rang," nf=",nf)
+                    listeCF.append(coureur)
+                    # score += coureur.rang
+                    nf += 1
+                #listeDesRangs.append(coureur.rang)
+            i+=1
 ##    scoreNonPondere = score
 ##    if ng + nf < 2*nbreDeCoureursPrisEnCompte :
 ##        # correctif si le nombre nbreDeCoureursPrisEnCompte n'est pas atteint à l'arrivée.
@@ -3980,7 +3993,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
 ##    else :
 ##        complet = True
     #print(nom, score, listeCG, listeCF)
-    return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
+    return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"], dictrangsDSDEN=dictrangsDSDEN)
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
     #print("nom cat-etab",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
@@ -4212,7 +4225,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
     ### on traite les rangs dans les Groupements
     #keyList = []
+    root["dictrangsDSDEN"] = {}
+    dictRangsDSDEN = root["dictrangsDSDEN"]
     for nom in ResultatsGroupements :
+        # print("Groupement",nom,":")
         groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
         # on considère que la meilleure catégorie est SENIOR.
         L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
@@ -4220,6 +4236,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         DecompteParCategoriesDAge = [L1, L2]
         # rang par sexes
         RangSexe = [0,0]
+        dictRangsDSDEN[nom] = []
         #keyList.append(nom)
         ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
         # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
@@ -4249,6 +4266,12 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                     catFFA = coureur.categorieFFA()
                     coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
                     coureur.setRangSexe(RangSexe[iSexe])
+                else :
+                    ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
+                    # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
+                    if coureur.classe == "DSDEN" :
+                        # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
+                        dictRangsDSDEN[nom].append(i+1)
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
             # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
                 coureur.setRang(0)
@@ -4264,7 +4287,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
         # # on affecte son rang à chaque coureur dans sa Course.
-        # #print("course ",nom,":",Resultats[nom])
+        # print("course ",nom,":",Resultats[nom])
         # ### inutile car obligatoire vu ce qui précède : if estUneCourse(nom) :
         # i = 0
         # while i < len(Resultats[nom]) :
@@ -4301,7 +4324,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             # cas du cross du collège
             if Parametres["CategorieDAge"] == 0 :
                 # on alimente le challenge avec une EquipeClasse
-                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+                # print("Création de l'équipe pour le challenge",challenge,"avec",nom,Resultats[nom])
+                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"], dictRangsDSDEN)
                 if Parametres["ponderationAcceptee"] :
                     ResultatsGroupements[challenge].append(equ)
                 elif equ.complet() :
@@ -6263,7 +6287,7 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
             retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
         else :
-            retour += str(coureur.rang)
+            retour += str(coureur.rang  - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(coureur.rang, root["dictrangsDSDEN"][Courses[coureur.course].nomGroupement]))
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
         retour += "), "
         i += 1
@@ -6522,7 +6546,7 @@ def recupXLSX(fichierSelectionne=""):
         # si tous les éléments de la ligne ne sont pas vides, on les traitera
         if not all(elt == "" for elt in ligne) : 
             donneesBrutes.append(ligne)
-    print("Données brutes récupérées du tableur", donneesBrutes)
+    # print("Données brutes récupérées du tableur", donneesBrutes)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
     BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
     wb_obj.close()
