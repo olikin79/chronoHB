@@ -9,13 +9,10 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 
 TodoListe pour le cross Bourrillon 2024 :
-- un seul fichier de sauvegarde .chb contenant les trois fichiers utiles zippés.
-Possibilité de restaurer de vieilles sauvegardes implémentée ou non ?
 - refaire la capture d'écran de la page principale sur la dicumentation p 15.
 - maj à distance à rendre fonctionnelles.
 - deplacer les fichiers du serveur web dans www
 - lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
-- possibilité d'imprimer les résultats (popup avec cases à cocher à prévoir) directement depuis le logiciel.
 
 
 Todolist pour le cross HB 2023 :
