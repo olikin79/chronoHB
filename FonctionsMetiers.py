@@ -1487,7 +1487,7 @@ def chargerDonnees() :
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1686,6 +1686,9 @@ def chargerDonnees() :
     if not "telechargerDonnees" in Parametres :
         Parametres["telechargerDonnees"] = 0
     telechargerDonnees=Parametres["telechargerDonnees"]
+    if not "classeIgnoreesPourChallenge" in Parametres :
+        Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
+    classeIgnoreesPourChallenge=Parametres["classeIgnoreesPourChallenge"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -3561,10 +3564,10 @@ def generateImpressions() :
     ### générer les tex pour chaque challenge
     if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
         listeChallenges = listChallenges()
-        #print("liste des challenges", listeChallenges)
+        print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
-            print(ResultatsGroupements[challenge])
             try :
+                print(ResultatsGroupements[challenge])
                 if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
                     print("Création du fichier du challenge", challenge)
                     with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
@@ -3966,7 +3969,8 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     # on ne classe pas l'équipe de la DSDEN dans les résultats.
-    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe != "DSDEN" :
+    print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
+    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in classeIgnoreesPourChallenge.split(";") :
         while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
             doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
             coureur = Coureurs.recuperer(doss)
@@ -4269,7 +4273,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 else :
                     ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
                     # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
-                    if coureur.classe == "DSDEN" :
+                    if coureur.classe in classeIgnoreesPourChallenge.split(";") :
                         # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
                         dictRangsDSDEN[nom].append(i+1)
             else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
@@ -5126,9 +5130,19 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         retour=Erreur(411,message, elementConcerne=doss)
     return retour
 
+
 def imprimePDF(pdf_file_name) :
-    if os.path.exists(pdf_file_name) :
-        win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+    if os.path.exists(pdf_file_name) and os.sep=="\\" :
+        # try:
+        #     # Utiliser la commande Windows 'print' pour imprimer sur l'imprimante par défaut
+        #     # /d:lpt1 peut être remplacé par une autre imprimante si besoin
+        #     subprocess.run(['print', '/d:', pdf_file_name], check=True, shell=True)
+        # except subprocess.CalledProcessError as e:
+        #     print(f"Erreur lors de l'impression : {e}")
+        # win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+        cmd = '.\\gsview\\gsprint.exe -ghostscript ".\\gs\\App\\bin\\gswin32c.exe" ' + pdf_file_name.replace("/","\\")
+        # print(cmd)
+        syscmd(cmd)
 ##        INCH = 1440
 ##        hDC = win32ui.CreateDC ()
 ##        hDC.CreatePrinterDC (win32print.GetDefaultPrinter ())
@@ -5140,7 +5154,7 @@ def imprimePDF(pdf_file_name) :
 ##        hDC.EndDoc ()
         return True
     else :
-        print("Le fichier", pdf_file_name, "n'existe pas.")
+        print("Le fichier", pdf_file_name, "n'existe pas ou nous ne sommes pas sous windows. Impression directe non implémentée.")
         return False
 
 def calculeTousLesTemps(reinitialise = False):
@@ -6995,33 +7009,35 @@ def supprLF(ch) :
 ##    #db.close()
 ##
 if __name__=="__main__":
-    print("création du dictionnaire")
-    C = DictionnaireDeCoureurs()
-    C.effacerTout()
-    print("ajout de coureurs")
-    #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
-    print("ArriveeDossards",ArriveeDossards)
-    print("ArriveeTempsAffectes",ArriveeTempsAffectes)
-    C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
-    Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
-    C.ajouter(Cmath,"B")
-    C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
-    C.afficher()
-    print(C.recuperer("2B").prenom)
-    C.effacer(Cmath)
-    C.effacer("1B")
-    C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
-    #print(C.liste())
-    C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
-    #C.effacer("1D")
-    C.afficher()
-    print(C.recuperer("3B").prenom)
-    print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
-    print(C.existe(3))
-    print(C.existe(7))
+    pdf_path = "./resultats/3A.pdf"
+    imprimePDF(pdf_path)
+    # print("création du dictionnaire")
+    # C = DictionnaireDeCoureurs()
+    # C.effacerTout()
+    # print("ajout de coureurs")
+    # #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
+    # print("ArriveeDossards",ArriveeDossards)
+    # print("ArriveeTempsAffectes",ArriveeTempsAffectes)
+    # C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
+    # Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
+    # C.ajouter(Cmath,"B")
+    # C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
+    # C.afficher()
+    # print(C.recuperer("2B").prenom)
+    # C.effacer(Cmath)
+    # C.effacer("1B")
+    # C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
+    # #print(C.liste())
+    # C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
+    # #C.effacer("1D")
+    # C.afficher()
+    # print(C.recuperer("3B").prenom)
+    # print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
+    # print(C.existe(3))
+    # print(C.existe(7))
 

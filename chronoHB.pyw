@@ -2431,7 +2431,10 @@ voirVideoCB  = Checkbutton(defilementFrameHaut, text='Voir webcam',
 voirVideoCB.pack(side=LEFT)
 
 lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
-lblHeureActuelle.pack(side=RIGHT)
+lblHeureActuelle.pack(side=TOP)
+
+lblIPActuelle = Label(heureFrame, text= "Adr. IP : 0.0.0.0", fg="red", font=("Time", 12))
+lblIPActuelle.pack(side=TOP)
 
 # on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
 Parametres["diplomeDiffusionAutomatique"] = 0
@@ -2457,10 +2460,15 @@ def actualiseHeureActuelle():
     lblHeureActuelle.configure(text="   Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
     defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
 
+def actualiseIPActuelle():
+    lblIPActuelle.configure(text="Adr. IP : " + extract_ip())
+    # actualisation de l'IP toutes les minutes
+    defilementEtHeureFrame.after(60000, actualiseIPActuelle)
+
 ##print(time.localtime())
 ##print(time.strftime("%H:%M:%S", time.localtime()))
 actualiseHeureActuelle()
-    
+actualiseIPActuelle()   
 ##Log["text"] = ""#calculeTousLesTemps(True)
 ##Log.pack(side=LEFT,fill=BOTH, expand=1 )
 ##LogFrame.pack(side=LEFT,fill=BOTH, expand=1 )
@@ -3848,6 +3856,7 @@ def actualiseEntryParams():
     SauvegardeUSBFrame.actualise()
     MessageParDefautFrame.actualise()
     NbreCoureursChallengeFrame.actualise()
+    classeIgnoreesPourChallengeFrame.actualise()
     LieuEntry.actualise()
     IntituleEntry.actualise()
     TempsPauseFrame.actualise()
@@ -4371,6 +4380,7 @@ def choixCC():		# Fonction associée à Catégories par Classes
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
+    classeIgnoreesPourChallengeFrame.pack(side=LEFT,anchor="w")
     packAutresWidgets()
     
 def choixCA():		# Fonction associée à catégories par Age
@@ -4379,6 +4389,7 @@ def choixCA():		# Fonction associée à catégories par Age
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
+    classeIgnoreesPourChallengeFrame.pack_forget()
     packAutresWidgets()
 
 def choixUNSS():		# Fonction associée à catégories par Age
@@ -4387,6 +4398,7 @@ def choixUNSS():		# Fonction associée à catégories par Age
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
+    classeIgnoreesPourChallengeFrame.pack_forget()
     packAutresWidgets()
 
 def packAutresWidgets():
@@ -4491,7 +4503,7 @@ rbLbl = Label(rbGF, text='Des coureurs sont présents dans la base. "Réinitiali
 
 NbreCoureursChallengeFrameL = Frame(GaucheFrameParametresCourses)
 NbreCoureursChallengeFrame = EntryParam("nbreDeCoureursPrisEnCompte", "Nombre de coureurs garçons-filles pris en compte pour le challenge", largeur=3, parent=NbreCoureursChallengeFrameL, nombre=True)
-
+classeIgnoreesPourChallengeFrame = EntryParam("classeIgnoreesPourChallenge", "Classes ignorées pour le challenge", largeur=50, parent=NbreCoureursChallengeFrameL)
 
 def choixCNM():		# Fonction associée à catégorie non manuelle
     #print('Case à cocher : ',str(svRadioCM.get()))

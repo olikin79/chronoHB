@@ -3,6 +3,12 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 11/10/24 :
+- exclusion de certains groupes du challenge par classe paramétrable depuis l'interface.
+- ajout de gsprint pour imprimer en arrière plan les pdf. :-D
+- ajout de l'adresse IP du serveur sur l'écran principal.
+
+
 Travail du 08/10/24 :
 - FAIT Popup "Veuillez patienter" quand on génère des dossards non encore imprimés. Cela permet de comprendre le délai de réaction.
 - CORRECTIF Nom-Prénom qui débordent dans le diplôme si trop longs.
