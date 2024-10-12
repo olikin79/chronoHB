@@ -30,6 +30,11 @@ import urllib.request
 
 from tkinter.messagebox import *
 
+# pour créer des sauvegardes et les décompresser. v2.0
+import zipfile
+# utile pour sauvegarder et importer des variables intvar.
+from tkinter import *
+
 #### DEBUG
 DEBUG = False
 
@@ -231,6 +236,64 @@ def recupere_sauvegarde(sauvegardeChoisie) :
     retour = chargerDonnees()
     setParametres() # fichier à destination du smartphone à regéréner.
     return retour
+
+def recupere_sauvegardeNG(sauvegardeChoisie):
+    global sauvegarde
+
+    # Si le fichier sélectionné est un fichier .chb (zip)
+    if sauvegardeChoisie.endswith('.chb'):
+        # Chemin temporaire pour extraire le fichier zip
+        temp_dir = os.path.join(os.path.dirname(sauvegardeChoisie), 'temp_sauvegarde')
+
+        # Créer le dossier temporaire
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+
+        # Extraire le contenu du fichier .chb
+        with zipfile.ZipFile(sauvegardeChoisie, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        # Mettre à jour les chemins des fichiers à récupérer
+        fichierDB = os.path.join(temp_dir, "Courses.db")
+        fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
+        fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+    else:
+        # Si c'est un fichier .db classique, on utilise les noms habituels
+        fichierDB = sauvegardeChoisie
+        fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+        fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+
+    # Tester si les trois fichiers existent
+    tousPresents = True
+    for fichier in [fichierDB, fichierML, fichierDS]:
+        if not os.path.exists(fichier):
+            tousPresents = False
+            message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
+            print(message)
+            showinfo("ERREUR", message)
+            break
+
+    if tousPresents:
+        # Sauvegarder les données actuelles de façon automatique
+        ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees", surCle=False)
+
+        # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
+        shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
+        shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
+        shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+
+        # Charger les données restaurées
+        retour = chargerDonnees()
+        setParametres()  # fichier à destination du smartphone à régénérer
+
+        # Nettoyer le dossier temporaire si un fichier .chb a été extrait
+        if sauvegardeChoisie.endswith('.chb'):
+            shutil.rmtree(temp_dir)
+
+        return retour
+    else:
+        return None
+
 
 
 ##    d = open(sauvegarde+".db","wb")
@@ -1684,7 +1747,8 @@ def chargerDonnees() :
         Parametres["URLGoogleSheetAImporter"] = ""
     URLGoogleSheetAImporter=Parametres["URLGoogleSheetAImporter"]
     if not "telechargerDonnees" in Parametres :
-        Parametres["telechargerDonnees"] = 0
+        Parametres["telechargerDonnees"] = IntVar()
+        Parametres["telechargerDonnees"].set(0)
     telechargerDonnees=Parametres["telechargerDonnees"]
     if not "classeIgnoreesPourChallenge" in Parametres :
         Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
