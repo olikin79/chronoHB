@@ -3969,7 +3969,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     # on ne classe pas l'équipe de la DSDEN dans les résultats.
-    print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
+    # print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
     if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in classeIgnoreesPourChallenge.split(";") :
         while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
             doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
