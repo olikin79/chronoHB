@@ -12,6 +12,7 @@ import os, sys, glob, subprocess
 import shutil
 import random
 import csv, re
+from pathlib import Path
 
 #import http.server
 from server import *
@@ -32,8 +33,6 @@ from tkinter.messagebox import *
 
 # pour créer des sauvegardes et les décompresser. v2.0
 import zipfile
-# utile pour sauvegarder et importer des variables intvar.
-from tkinter import *
 
 #### DEBUG
 DEBUG = False
@@ -90,72 +89,159 @@ def dump_sauvegarde() :
     pickle.dump(root, d)
     d.close()
 
-# récupère les données de sauvegarde
-def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
-    #global noSauvegarde
-    #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
-    #d = shelve.open(sauvegarde)
-    #creerDir(sauvegarde)
-    if avecVideos :
-        destination = sauvegarde
-        sauvegarde = os.path.basename(sauvegarde) # dans ce cas sauvegarde est un dossier et non un fichier. La flemme de refaire plus propre.
-    else :
-        if surCle :
-            # ajout d'une sauvegarde sur clé très régulière
-            destination = Parametres["cheminSauvegardeUSB"]
-            try :
-                creerDir(destination)
-            except :
-                if os.sep == "/" :
-                    print("Impossible de créer le dossier fixé en paramètre ", destination)
-                else :
-                    print("Le lecteur", destination[:3] ,"n'existe pas")
-        else :
-            destination = "db"
-    date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-    nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
-    dump_sauvegarde()
-    if os.path.exists("Courses.db") :
-        if destination != "" and creerDir(destination) :
-            print("Création de la sauvegarde", nomFichierCopie)
-            if os.path.exists("Courses.db") :
-                shutil.copy2("Courses.db",  nomFichierCopie + ".db")
+# # récupère les données de sauvegarde
+# def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
+#     #global noSauvegarde
+#     #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
+#     #d = shelve.open(sauvegarde)
+#     #creerDir(sauvegarde)
+#     if avecVideos :
+#         destination = sauvegarde
+#         sauvegarde = os.path.basename(sauvegarde) # dans ce cas sauvegarde est un dossier et non un fichier. La flemme de refaire plus propre.
+#     else :
+#         if surCle :
+#             # ajout d'une sauvegarde sur clé très régulière
+#             destination = Parametres["cheminSauvegardeUSB"]
+#             try :
+#                 creerDir(destination)
+#             except :
+#                 if os.sep == "/" :
+#                     print("Impossible de créer le dossier fixé en paramètre ", destination)
+#                 else :
+#                     print("Le lecteur", destination[:3] ,"n'existe pas")
+#         else :
+#             destination = "db"
+#     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+#     nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
+#     dump_sauvegarde()
+#     if os.path.exists("Courses.db") :
+#         if destination != "" and creerDir(destination) :
+#             print("Création de la sauvegarde", nomFichierCopie)
+#             if os.path.exists("Courses.db") :
+#                 shutil.copy2("Courses.db",  nomFichierCopie + ".db")
+#             if os.path.exists("donneesModifLocale.txt"):
+#                 shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
+#             else :
+#                 print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+#                 open("donneesModifLocale.txt", 'a').close()
+#             if os.path.exists("donneesSmartphone.txt"):
+#                 shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
+#             else :
+#                 print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+#                 open("donneesSmartphone.txt", 'a').close()
+#             creerDir("videos")
+#             if avecVideos or surCle :
+#                 creerDir(destination + os.sep + "chronoHBvideos")
+#                 files = glob.glob("videos/*.avi")
+#                 for file in files :
+#                     dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
+#                     if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
+#                         # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
+#                         shutil.copy2(file, dest)
+#             listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+#             for fichier in listeFichiersPiques :
+#                 numeroPique = fichier[24:-4]
+#                 shutil.copy2(fichier, destination + os.sep + os.path.basename(fichier)+"_"+ date + commentaire + "-"+ numeroPique + ".txt")
+#             #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
+#             # désormais, on sauvegarde snas overwrite pour limiter les les flux
+#                 #shutil.copytree("videos", "chronoHBvideos")
+#         elif destination != "" :
+#             print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
+#             nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
+#         else :
+#             nomFichierCopie = "Pas de SAUVEGARDE CREEE : paramètre spécifié vide"
+# ##        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
+# ##            noSauvegarde += 1
+# ##        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
+# ##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
+#         return nomFichierCopie
+
+def creer_dossier_si_inexistant(chemin):
+    # Créer un objet Path pour gérer les chemins de manière indépendante du système
+    chemin_obj = Path(chemin)
+    
+    # Vérifier si le lecteur (ou la première partie du chemin) existe
+    if chemin_obj.drive:
+        # Pour Windows, vérifier le lecteur
+        lecteur = chemin_obj.drive
+        if not os.path.exists(lecteur):
+            print(f"Le lecteur {lecteur} n'existe pas.")
+            return False
+    
+    # Vérifier si le dossier (ou le chemin complet) existe
+    if chemin_obj.exists():
+        print(f"Le chemin {chemin} existe déjà.")
+        return True
+    
+    # Créer le dossier (et les parents si nécessaire)
+    try:
+        chemin_obj.mkdir(parents=True, exist_ok=True)
+        print(f"Le dossier {chemin} a été créé avec succès.")
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la création du dossier : {e}")
+        return False
+
+def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False):
+    print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
+    # Extraire le nom de dossier et le nom de fichier à partir du chemin complet
+    dossier, nomFichier = os.path.split(cheminFichier)
+    
+    # Vérifier si le dossier existe, sinon le créer
+    creer_dossier_si_inexistant(dossier)
+
+    # Ajouter l'extension .chb si elle n'est pas déjà présente
+    if not nomFichier.endswith(".chb"):
+        cheminFichier += ".chb"
+    if os.path.exists(dossier):
+        # Créer le fichier zip (extension .chb)
+        with zipfile.ZipFile(cheminFichier, 'w', zipfile.ZIP_DEFLATED) as sauvegardeZip:
+            # Ajouter Courses.db au fichier zip
+            if os.path.exists("Courses.db"):
+                sauvegardeZip.write("Courses.db", "Courses.db")
+            else:
+                print("Le fichier Courses.db est absent.")
+
+            # Ajouter donneesModifLocale.txt au fichier zip
             if os.path.exists("donneesModifLocale.txt"):
-                shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
-            else :
-                print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                sauvegardeZip.write("donneesModifLocale.txt", "donneesModifLocale.txt")
+            else:
+                print("Pas de fichier de modifications locales, création d'un fichier vide.")
                 open("donneesModifLocale.txt", 'a').close()
+                sauvegardeZip.write("donneesModifLocale.txt", "donneesModifLocale.txt")
+
+            # Ajouter donneesSmartphone.txt au fichier zip
             if os.path.exists("donneesSmartphone.txt"):
-                shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
-            else :
-                print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+                sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            else:
+                print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
                 open("donneesSmartphone.txt", 'a').close()
-            creerDir("videos")
-            if avecVideos or surCle :
-                creerDir(destination + os.sep + "chronoHBvideos")
-                files = glob.glob("videos/*.avi")
-                for file in files :
-                    dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
-                    if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
-                        # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
-                        shutil.copy2(file, dest)
+                sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+
+            # Si avecVideos est True, ajouter les fichiers .avi du dossier videos/
+            if avecVideos:
+                if os.path.exists("videos"):
+                    extensions_video = ["*.avi", "*.mkv"]
+                    fichiers_videos = []
+                    for ext in extensions_video:
+                        fichiers_videos.extend(glob.glob(os.path.join("videos", ext)))
+                    # fichiers_videos = glob.glob("videos/*.mkv")
+                    for fichier in fichiers_videos:
+                        sauvegardeZip.write(fichier, os.path.join("videos", os.path.basename(fichier)))
+                else:
+                    print("Aucune vidéo à sauvegarder.")
+
+            # Sauvegarde des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
             listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
-            for fichier in listeFichiersPiques :
-                numeroPique = fichier[24:-4]
-                shutil.copy2(fichier, destination + os.sep + os.path.basename(fichier)+"_"+ date + commentaire + "-"+ numeroPique + ".txt")
-            #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
-            # désormais, on sauvegarde snas overwrite pour limiter les les flux
-                #shutil.copytree("videos", "chronoHBvideos")
-        elif destination != "" :
-            print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
-            nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
-        else :
-            nomFichierCopie = "Pas de SAUVEGARDE CREEE : paramètre spécifié vide"
-##        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
-##            noSauvegarde += 1
-##        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
-##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
-        return nomFichierCopie
+            for fichier in listeFichiersPiques:
+                sauvegardeZip.write(fichier, os.path.basename(fichier))
+
+        print(f"Sauvegarde créée avec succès: {cheminFichier}")
+    else :
+        print(f"Le dossier {dossier} n'existe pas.")
+    return cheminFichier
+
+
 
 #### catégories d'athlétisme
 
@@ -198,44 +284,44 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "") :
 
 # enregistre les données de sauvegarde
 # récupère les données de sauvegarde
-def recupere_sauvegarde(sauvegardeChoisie) :
-    global sauvegarde
-    #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
-    #rep = os.path.dirname(sauvegardeChoisie)
-    #fichierDonnees = sauvegardeChoisie
-    #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
-    fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
-    fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
-    listeFichiersPiques = glob.glob(sauvegardeChoisie[:-3] + "-*.txt")
-    dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
-    tousPresents = True
-    ### tester si les trois fichiers existent.
-    for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
-        if not os.path.exists(fichier) :
-            #print("Fichier",fichier,"absent")
-            tousPresents = False
-            break
-    ### avertir sinon
-    if not tousPresents :
-        message = "Le fichier " + fichier + " est absent. La sauvegarde est incomplète. Import annulé."
-        print(message)
-        showinfo("ERREUR",message)
-    else :
-        ### sauvegarder les données actuelles de façon automatique avec ecrire_sauvegarde(...)
-        ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees",surCle=False)
-        ### copier les trois fichiers : celui db à la place de l'ancien + 2 fichiers textes finissant par ML et DS
-        shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
-        shutil.copy2(fichierML, "donneesModifLocale.txt")
-        shutil.copy2(fichierDS, "donneesSmartphone.txt")
-        # restauration des vidéos sauvegardées
-        if os.path.exists("videos") :
-            shutil.rmtree("videos")
-        if os.path.exists(dossierVideos) :
-            shutil.copytree(dossierVideos,"videos")
-        ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
-    retour = chargerDonnees()
-    setParametres() # fichier à destination du smartphone à regéréner.
-    return retour
+# def recupere_sauvegarde(sauvegardeChoisie) :
+#     global sauvegarde
+#     #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
+#     #rep = os.path.dirname(sauvegardeChoisie)
+#     #fichierDonnees = sauvegardeChoisie
+#     #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
+#     fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+#     fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+#     listeFichiersPiques = glob.glob(sauvegardeChoisie[:-3] + "-*.txt")
+#     dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
+#     tousPresents = True
+#     ### tester si les trois fichiers existent.
+#     for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
+#         if not os.path.exists(fichier) :
+#             #print("Fichier",fichier,"absent")
+#             tousPresents = False
+#             break
+#     ### avertir sinon
+#     if not tousPresents :
+#         message = "Le fichier " + fichier + " est absent. La sauvegarde est incomplète. Import annulé."
+#         print(message)
+#         showinfo("ERREUR",message)
+#     else :
+#         ### sauvegarder les données actuelles de façon automatique avec ecrire_sauvegarde(...)
+#         ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees",surCle=False)
+#         ### copier les trois fichiers : celui db à la place de l'ancien + 2 fichiers textes finissant par ML et DS
+#         shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
+#         shutil.copy2(fichierML, "donneesModifLocale.txt")
+#         shutil.copy2(fichierDS, "donneesSmartphone.txt")
+#         # restauration des vidéos sauvegardées
+#         if os.path.exists("videos") :
+#             shutil.rmtree("videos")
+#         if os.path.exists(dossierVideos) :
+#             shutil.copytree(dossierVideos,"videos")
+#         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
+#     retour = chargerDonnees()
+#     setParametres() # fichier à destination du smartphone à regéréner.
+#     return retour
 
 def recupere_sauvegardeNG(sauvegardeChoisie):
     global sauvegarde
@@ -275,12 +361,31 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
 
     if tousPresents:
         # Sauvegarder les données actuelles de façon automatique
-        ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees", surCle=False)
+        date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
+        ecrire_sauvegardeNG(nomFichierCopie, surCle=False, avecVideos=True)
 
         # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
         shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
         shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+
+        # Si un fichier .chb a été traité, récupérer les vidéos
+        if sauvegardeChoisie.endswith('.chb'):
+            # Extraire les vidéos si elles sont présentes
+            extensions_video = ["*.avi", "*.mkv"]
+            videos_dans_temp = []
+            for ext in extensions_video:
+                videos_dans_temp.extend(glob.glob(os.path.join(temp_dir, "videos", ext)))
+            if videos_dans_temp:
+                # Créer le dossier vidéos s'il n'existe pas
+                if not os.path.exists("videos"):
+                    os.makedirs("videos")
+
+                # Copier les vidéos dans le dossier racine du projet
+                for video in videos_dans_temp:
+                    shutil.copy2(video, os.path.join("videos", os.path.basename(video)))
+                    print(f"Vidéo {os.path.basename(video)} extraite vers le dossier 'videos'.")
 
         # Charger les données restaurées
         retour = chargerDonnees()
@@ -293,6 +398,65 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
         return retour
     else:
         return None
+
+
+# def recupere_sauvegardeNG(sauvegardeChoisie):
+#     global sauvegarde
+
+#     # Si le fichier sélectionné est un fichier .chb (zip)
+#     if sauvegardeChoisie.endswith('.chb'):
+#         # Chemin temporaire pour extraire le fichier zip
+#         temp_dir = os.path.join(os.path.dirname(sauvegardeChoisie), 'temp_sauvegarde')
+
+#         # Créer le dossier temporaire
+#         if not os.path.exists(temp_dir):
+#             os.makedirs(temp_dir)
+
+#         # Extraire le contenu du fichier .chb
+#         with zipfile.ZipFile(sauvegardeChoisie, 'r') as zip_ref:
+#             zip_ref.extractall(temp_dir)
+
+#         # Mettre à jour les chemins des fichiers à récupérer
+#         fichierDB = os.path.join(temp_dir, "Courses.db")
+#         fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
+#         fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+#     else:
+#         # Si c'est un fichier .db classique, on utilise les noms habituels
+#         fichierDB = sauvegardeChoisie
+#         fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+#         fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+
+#     # Tester si les trois fichiers existent
+#     tousPresents = True
+#     for fichier in [fichierDB, fichierML, fichierDS]:
+#         if not os.path.exists(fichier):
+#             tousPresents = False
+#             message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
+#             print(message)
+#             showinfo("ERREUR", message)
+#             break
+
+#     if tousPresents:
+#         # Sauvegarder les données actuelles de façon automatique
+#         ecrire_sauvegardeNG(sauvegarde, "-avant-import-autres-donnees", surCle=False)
+
+#         # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
+#         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
+#         shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
+#         shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+
+#         # Charger les données restaurées
+#         retour = chargerDonnees()
+#         setParametres()  # fichier à destination du smartphone à régénérer
+
+#         # Nettoyer le dossier temporaire si un fichier .chb a été extrait
+#         if sauvegardeChoisie.endswith('.chb'):
+#             shutil.rmtree(temp_dir)
+
+#         return retour
+#     else:
+#         return None
+
 
 
 
@@ -1526,7 +1690,7 @@ class EquipeClasse():
             else :
                 return False
         else : # cas Parametres["CategorieDAge"] == 0 (cross du collège)
-            if len(self.listeCG) + len(self.listeCF) >= Parametres["nbreDeCoureursPrisEnCompte"]*2 :
+            if len(self.listeCG) + len(self.listeCF) >= int(Parametres["nbreDeCoureursPrisEnCompte"])*2 :
                 return True
             else :
                 return False
@@ -1747,8 +1911,7 @@ def chargerDonnees() :
         Parametres["URLGoogleSheetAImporter"] = ""
     URLGoogleSheetAImporter=Parametres["URLGoogleSheetAImporter"]
     if not "telechargerDonnees" in Parametres :
-        Parametres["telechargerDonnees"] = IntVar()
-        Parametres["telechargerDonnees"].set(0)
+        Parametres["telechargerDonnees"] = 0
     telechargerDonnees=Parametres["telechargerDonnees"]
     if not "classeIgnoreesPourChallenge" in Parametres :
         Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
@@ -6552,7 +6715,7 @@ def recupImportNG(fichierSelectionne="") :
     generateListCoureursPourSmartphone()
     CoureursParClasseUpdate()
     print("Liste des coureurs pour smartphone actualisée.")
-        # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
+        # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegardeNG(sauvegarde, "-apres-IMPORT-DONNEES")
 ##    else :
 ##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
     return BilanCreationModifErreur, d
@@ -6714,7 +6877,7 @@ def recupCSV(fichierSelectionne=""):
 ##        print("Pas de fichier CSV trouvé. N'arrivera jamais avec l'interface graphique normalement.")
 ##        retour = False
 ##    print("IMPORT CSV SIECLE TERMINE")
-##    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-SIECLE")
+##    ecrire_sauvegardeNG(sauvegarde, "-apres-IMPORT-SIECLE")
 ##    if retour : # import effectué : on regénère la liste pour l'application smartphone.
 ##        generateListCoureursPourSmartphone()
 ##        CoureursParClasseUpdate()
@@ -7066,7 +7229,7 @@ def supprLF(ch) :
 ##            root["LignesIgnoreesLocal"] = []
 ##        elif choice == "teststats" :
 ##            testTMPStats()
-##    ecrire_sauvegarde(sauvegarde)
+##    ecrire_sauvegardeNG(sauvegarde)
 ##    ##transaction.commit()
 ##    # close database
 ##    #connection.close()

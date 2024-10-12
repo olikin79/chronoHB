@@ -1554,12 +1554,13 @@ class Buttonbar(ScrollFrame):
         for pick in picks:
             var = StringVar()
             frm = Frame(self.fr[-1])
-            if Parametres["buttonBarMode"] == 0 :
-                self.combos.append(ButtonBoxDossards(pick, frm))
-            else :
-                self.combos.append(ButtonBoxDiplomes(pick, frm))
-            chk = self.combos[-1]
-            chk.pack()
+            if "buttonBarMode" in Parametres :
+                if Parametres["buttonBarMode"] == 0 :
+                    self.combos.append(ButtonBoxDossards(pick, frm))
+                else :
+                    self.combos.append(ButtonBoxDiplomes(pick, frm))
+                chk = self.combos[-1]
+                chk.pack()
             frm.pack(side=TOP, anchor=W, padx=3, pady=3, expand=YES)
             if i in IndicesDesChangementsDeColonne :
                 self.fr.append(Frame(self))
@@ -2357,8 +2358,8 @@ def parametreEMailAuto():
     Parametres["diplomeDiffusionAutomatique"] = envoiAutoDesEMails.get()
 
 def parametreTelechargerAuto():
-    print("Réglage du téléchargement automatique des données au démarrage :", telechargerDonnees.get())
-    Parametres["telechargerDonnees"] = telechargerDonnees.get()    
+    print("Réglage du téléchargement automatique des données au démarrage :", telechargerDonneesVar.get())
+    Parametres["telechargerDonnees"] = telechargerDonneesVar.get()    
 
 def activerDesactiverLEnregistrement():
     global time_counter, enregistrementVideo
@@ -2444,10 +2445,10 @@ envoiAutoDesEMailsCB  = Checkbutton(defilementFrameBas, text='Envoi auto diplôm
 envoiAutoDesEMailsCB.pack(side=LEFT)
 
 # case à cocher pour télécharger les données depuis un googlesheet.
-telechargerDonnees = IntVar()
-telechargerDonnees.set(Parametres["telechargerDonnees"])
+telechargerDonneesVar = IntVar()
+telechargerDonneesVar.set(Parametres["telechargerDonnees"])
 telechargerDonneesCB  = Checkbutton(defilementFrameBas, text='Télécharger les inscriptions en temps réel.',
-    variable=telechargerDonnees, command=parametreTelechargerAuto)
+    variable=telechargerDonneesVar, command=parametreTelechargerAuto)
 telechargerDonneesCB.pack(side=LEFT)
 
 
@@ -2697,7 +2698,9 @@ def importSIECLEAction() :
 Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
 Cela peut figer momentanément l'interface...")
         if reponse :
-            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+            date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-tableur.chb"
+            fichier = ecrire_sauvegardeNG(nomFichierCopie)
             # redirection temporaire pour les messages liés à l'import
             filePath = LOGDIR + os.sep + "dernierImport.txt"
             if os.path.exists(filePath) :
@@ -2841,14 +2844,16 @@ def actualiseTempsAffichageDeparts():
     global listGroupementsCommences, lblDict, tagActualiseTemps
     tagActualiseTemps = True
     for grp in lblDict.keys() :
-        nomCourse = groupementAPartirDeSonNom(grp, nomStandard=True).listeDesCourses[0]
-        ##print("-"+nomCourse+"-", "est dans ?", Courses)
-        ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
-        ### addCourse(nomCourse)
-        #print(listCoursesEtChallenges())
-        tps = Courses[nomCourse].dureeFormatee()
-        #print("course",nomCourse,tps)
-        lblDict[grp][1].configure(text=tps)
+        groupement = groupementAPartirDeSonNom(grp, nomStandard=True)
+        if groupement != None :
+            nomCourse = groupement.listeDesCourses[0]
+            ##print("-"+nomCourse+"-", "est dans ?", Courses)
+            ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
+            ### addCourse(nomCourse)
+            #print(listCoursesEtChallenges())
+            tps = Courses[nomCourse].dureeFormatee()
+            #print("course",nomCourse,tps)
+            lblDict[grp][1].configure(text=tps)
     zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
         
 def annulUnDepart(nomGroupement) :
@@ -3076,7 +3081,7 @@ class Clock():
         tableau.makeDefilementAuto()
 
         # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
-        if telechargerDonnees.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
+        if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
             DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
@@ -3109,7 +3114,17 @@ class Clock():
         #print("TEst sauvegarde:",self.auMoinsUnImport)
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
-            ecrire_sauvegarde(sauvegarde, "-auto",surCle=True)
+            destination = Parametres["cheminSauvegardeUSB"]
+            try :
+                creerDir(destination)
+            except :
+                if os.sep == "/" :
+                    print("Impossible de créer le dossier fixé en paramètre ", destination)
+                else :
+                    print("Le lecteur", destination[:3] ,"n'existe pas")
+            date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            nomFichierCopie = destination + os.sep + "Course_"+ date + "-auto.chb"
+            ecrire_sauvegardeNG(nomFichierCopie,surCle=True)
             self.compteurSauvegarde = 1
         self.compteurSauvegarde += 1
 
@@ -3248,7 +3263,7 @@ rejouerToutesLesActionsMemorisees()
 ##Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les données AVANT un quelconque import.\n\
 ##Cela peut figer momentanément l'interface...")
 ##        if reponse :
-##            fichier = ecrire_sauvegarde(sauvegarde, "-avant-import-tableur")
+##            fichier = ecrire_sauvegardeNG(sauvegarde, "-avant-import-tableur")
 ##            # redirection temporaire pour les messages liés à l'import
 ##            filePath = LOGDIR + os.sep + "dernierImport.txt"
 ##            if os.path.exists(filePath) :
@@ -3397,7 +3412,9 @@ def effaceDonneesCoursesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs, vidéos enregistrées) ?")
     if reponse :
-        fichier = ecrire_sauvegarde(sauvegarde, "-avant-donnees-courses-effacees")
+        date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-donnees-courses-effacees.chb"
+        fichier = ecrire_sauvegardeNG(nomFichierCopie)
         delDossardsEtTemps()
         tableau.reinit()
         actualiseToutLAffichage()
@@ -3417,7 +3434,9 @@ def effaceDonneesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données (coureurs, données de courses,...) ?")
     if reponse :
-        fichier = ecrire_sauvegarde(sauvegarde, "-Avant-effacement-toutes-donnees")
+        date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-Avant-effacement-toutes-donnees.chb"
+        fichier = ecrire_sauvegardeNG(nomFichierCopie)
         effaceToutesDonnees()
         reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
@@ -3868,13 +3887,13 @@ def recupererSauvegardeGUI() :
     options = {
                 'initialdir': CURRENT_DIRECTORY,
                 'title': 'Choisir la sauvegarde à récupérer',
-                'filetypes': (("Sauvegarde chronoHB","*.db"),)
+                'filetypes': (("Sauvegarde chronoHB","*.db *.chb"),)
               }
     name_file = askopenfilename(**options)
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         effaceToutesDonnees()
-        recupere_sauvegarde(name_file)
+        recupere_sauvegardeNG(name_file)
         dictionnaire = chargerDonnees()
         if dictionnaire :
             globals().update(dictionnaire)
@@ -4735,15 +4754,27 @@ else :
     choixCC()
 
 
-
 def exportCourse():
-    # selectionner un dossier contenant
-    dossierChoisi = askdirectory()
-    if dossierChoisi :
-        ecrire_sauvegarde(dossierChoisi, commentaire="", surCle=False, avecVideos=True)
-        reponse = showinfo("INFORMATION","Sauvegarde effectuée dans le dossier " + dossierChoisi)
-    else :
-        reponse = showinfo("ATTENTION","Pas de sauvegarde effectuée. Sélectionner un dossier pour archivage de la course.")
+    # Ouvrir une boîte de dialogue pour choisir le nom et le dossier du fichier de sauvegarde
+    fichierChoisi = asksaveasfilename(
+        defaultextension=".chb",  # Extension par défaut
+        filetypes=[("Sauvegarde chronoHB", "*.chb")],  # Filtrer pour .chb
+        title="Choisir un nom pour la sauvegarde"
+    )
+    
+    if fichierChoisi:
+        try :
+            # Appeler la fonction ecrire_sauvegardeNG avec le fichier choisi
+            ecrire_sauvegardeNG(fichierChoisi, commentaire="", surCle=False, avecVideos=True)
+            
+            # Informer l'utilisateur de la réussite de l'opération
+            # showinfo("INFORMATION", "Sauvegarde effectuée : " + fichierChoisi)
+        except :
+            # Informer l'utilisateur de l'échec de l'opération
+            showinfo("ERREUR", "La sauvegarde a échoué.")
+    else:
+        # Avertir l'utilisateur s'il n'a pas choisi de fichier
+        showinfo("ATTENTION", "Pas de sauvegarde effectuée. Veuillez choisir un fichier pour la sauvegarde.")
 
 def lireFichierTexte(nom) :
     if os.path.exists(nom) :
@@ -4942,8 +4973,11 @@ Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 
 print("Fermeture de la BDD")
 
+
 # suppression de la sauvegarde automatique vers db à la fermeture
-ecrire_sauvegarde(sauvegarde, "-lors-fermeture-application")
+date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+nomFichierCopie = "db" + os.sep + "Course_"+ date + "-lors-fermeture-application.chb"
+ecrire_sauvegardeNG(nomFichierCopie)
 dump_sauvegarde()
 
 try :

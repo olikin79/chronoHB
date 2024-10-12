@@ -3,6 +3,12 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 12/10/24 :
+- création et récupération de sauvegardes chb (tous fichiers zippés dans un seul) implémentée.
+Conservation de la récupération d'anciennes sauvegardes testée : ok.
+Sauvegarde des vidéos dans le fichier de données exporté : ok (sauf pour les sauvegardes auto en cours de course).
+
+
 Travail du 11/10/24 :
 - exclusion de certains groupes du challenge par classe paramétrable depuis l'interface.
 - ajout de gsprint pour imprimer en arrière plan les pdf. :-D
