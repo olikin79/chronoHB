@@ -3018,6 +3018,7 @@ class Clock():
         self.erreursEnCoursNumeros = []
         self.ipActuelle = ""
         self.dejaDesErreurs = False
+        self.auMoinsUnImportPourSauvegarde = False
         # self.nbreAImprimerPrecedent = -1
         self.update_clock()
 
@@ -3111,21 +3112,18 @@ class Clock():
        
         ## Sauvegarde toutes les 1 minutes s'il y a au moins un évènement à traiter. Sinon, rien.
         # A régler plus tard pour ne pas trop charger la clé USB. 120 sauvegardes (2H) représentent 10Mo environ : c'est raisonnable et permet de repasser sur un autre ordinateur en cas de crash soudain sans presque aucune perte.
-        #print("TEst sauvegarde:",self.auMoinsUnImport)
-        if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImport : # 12 x 5 s  = 1 minute
+        # print(self.compteurSauvegarde, "Test sauvegarde:",self.auMoinsUnImport)
+        if self.auMoinsUnImport :
+            self.auMoinsUnImportPourSauvegarde = True
+            # permet d'effectuer une sauvegarde après toute modif, au plus tard 1 min plus tard. Du coup, dans tous les cas, la dernière sauvegarde contient toutes les données nouvelles...
+        if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImportPourSauvegarde : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
-            destination = Parametres["cheminSauvegardeUSB"]
-            try :
-                creerDir(destination)
-            except :
-                if os.sep == "/" :
-                    print("Impossible de créer le dossier fixé en paramètre ", destination)
-                else :
-                    print("Le lecteur", destination[:3] ,"n'existe pas")
+            destination = "db"
             date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
             nomFichierCopie = destination + os.sep + "Course_"+ date + "-auto.chb"
             ecrire_sauvegardeNG(nomFichierCopie,surCle=True)
             self.compteurSauvegarde = 1
+            self.auMoinsUnImportPourSauvegarde = False
         self.compteurSauvegarde += 1
 
 
@@ -3892,7 +3890,7 @@ def recupererSauvegardeGUI() :
     name_file = askopenfilename(**options)
     if name_file :
         #print("Sauvegarde choisie :",name_file)
-        effaceToutesDonnees()
+        # effaceToutesDonnees()
         recupere_sauvegardeNG(name_file)
         dictionnaire = chargerDonnees()
         if dictionnaire :

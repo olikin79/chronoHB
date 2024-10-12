@@ -7,6 +7,7 @@ Travail du 12/10/24 :
 - création et récupération de sauvegardes chb (tous fichiers zippés dans un seul) implémentée.
 Conservation de la récupération d'anciennes sauvegardes testée : ok.
 Sauvegarde des vidéos dans le fichier de données exporté : ok (sauf pour les sauvegardes auto en cours de course).
+- Lors du réimport d'une sauvegarde, on sauve les vidéos actuellement présentes pour ne pas les perdre. Avant, elles étaient détruites.
 
 
 Travail du 11/10/24 :

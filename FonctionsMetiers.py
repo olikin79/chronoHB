@@ -183,7 +183,7 @@ def creer_dossier_si_inexistant(chemin):
         return False
 
 def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False):
-    print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
+    # print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
     # Extraire le nom de dossier et le nom de fichier à partir du chemin complet
     dossier, nomFichier = os.path.split(cheminFichier)
     
@@ -228,6 +228,7 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                     # fichiers_videos = glob.glob("videos/*.mkv")
                     for fichier in fichiers_videos:
                         sauvegardeZip.write(fichier, os.path.join("videos", os.path.basename(fichier)))
+                        print("Sauvegarde de la vidéo",fichier, os.path.join("videos", os.path.basename(fichier)))
                 else:
                     print("Aucune vidéo à sauvegarder.")
 
@@ -235,8 +236,22 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
             listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
             for fichier in listeFichiersPiques:
                 sauvegardeZip.write(fichier, os.path.basename(fichier))
-
-        print(f"Sauvegarde créée avec succès: {cheminFichier}")
+        # copie du fichier créé localement vers la clé USB paramétrée
+        if surCle :
+            destination = Parametres["cheminSauvegardeUSB"]
+            try :
+                creer_dossier_si_inexistant(destination)
+            except :
+                if os.sep == "/" :
+                    print("Impossible de créer le dossier fixé en paramètre ", destination)
+                else :
+                    print("Le lecteur", destination[:3] ,"n'existe pas")
+            if os.path.exists(destination):
+                shutil.copy2(cheminFichier, destination)
+                print(f"Sauvegarde créée avec succès sur la clé USB: {cheminFichier}")
+            else:
+                print("Le dossier de destination", destination, "n'existe pas.")
+        print(f"Sauvegarde locale créée avec succès: {cheminFichier}")
     else :
         print(f"Le dossier {dossier} n'existe pas.")
     return cheminFichier
@@ -364,6 +379,7 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
         ecrire_sauvegardeNG(nomFichierCopie, surCle=False, avecVideos=True)
+        nettoyerTousLesFichiersGeneres()
 
         # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
@@ -3474,7 +3490,7 @@ def nettoyerTousLesFichiersGeneres():
         shutil.rmtree("videos")
     ## effacer les bases de donnees superflues : toutes sauf la dernière.
     L = []
-    for schema in ["*.db","*_DS.txt","*_ML.txt"] :
+    for schema in ["*.db","*_DS.txt","*_ML.txt","*.chb"] :
         fichierRecent = selectPlusRecent("db",schema)
         if fichierRecent :
             L.append(fichierRecent)
@@ -3483,12 +3499,43 @@ def nettoyerTousLesFichiersGeneres():
     L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
     L7 =glob.glob('logs'+os.sep+'*.txt',recursive = False)
     for file in L5 + L6 :
-        if not file in L :
+        if not file in L and not fichier_cree_aujourdhui(file) :
+            try :
+                supprimerFichier(file)
+            except :
+                print("Impossible de supprimer:", file)
+    # les fichiers de log sont conservés 7 jours.
+    for file in L7 :
+        if not file in L and not fichier_cree_moins_dune_semaine(file) :
             try :
                 supprimerFichier(file)
             except :
                 print("Impossible de supprimer:", file)
 
+def fichier_cree_moins_dune_semaine(filepath):
+    # Récupérer la date de dernière modification
+    timestamp_modification = os.path.getmtime(filepath)
+    date_modification = datetime.date.fromtimestamp(timestamp_modification)
+    
+    # Récupérer la date d'aujourd'hui
+    date_aujourdhui = datetime.date.today()
+
+    # Calculer la date il y a une semaine
+    date_une_semaine_avant = date_aujourdhui - datetime.timedelta(days=7)
+
+    # Retourne True si la date de modification est dans les 7 derniers jours
+    return date_modification >= date_une_semaine_avant
+
+def fichier_cree_aujourdhui(filepath):
+    # Récupérer la date de dernière modification
+    timestamp_modification = os.path.getmtime(filepath)
+    date_modification = datetime.date.fromtimestamp(timestamp_modification)
+    
+    # Récupérer la date d'aujourd'hui
+    date_aujourdhui = datetime.date.today()
+
+    # Retourne True si la date de modification est aujourd'hui, sinon False
+    return date_modification == date_aujourdhui
 
 def generateImpressions() :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
