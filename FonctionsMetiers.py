@@ -246,7 +246,7 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                     print("Impossible de créer le dossier fixé en paramètre ", destination)
                 else :
                     print("Le lecteur", destination[:3] ,"n'existe pas")
-            if os.path.exists(destination):
+            if os.path.exists(destination) and os.path.exists(cheminFichier):
                 shutil.copy2(cheminFichier, destination)
                 print(f"Sauvegarde créée avec succès sur la clé USB: {cheminFichier}")
             else:

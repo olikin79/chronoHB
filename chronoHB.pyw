@@ -2974,13 +2974,72 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
     ## on demande à l'objet d'appliquer les modifications calculées
     checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
-# Fonction pour créer la fenêtre "Veuillez patienter" et lancer la tâche donnée
+# Fonction pour créer un popup permettant une sélection des fichiers à imprimer 
+
+def selectionner_fichiers_popup(root, debuts, dossier="impressions"):
+    # Créer une nouvelle fenêtre popup
+    popup = Toplevel(root)
+    popup.title("Sélection des fichiers à imprimer")
+    
+    # Variables pour stocker les cases à cocher et leur état
+    cases_a_cocher = []
+    etats_cases = []
+    
+    # Fonction pour tout sélectionner
+    def tout_selectionner():
+        for etat in etats_cases:
+            etat.set(1)
+    
+    # Fonction pour tout désélectionner
+    def tout_deselectionner():
+        for etat in etats_cases:
+            etat.set(0)
+    
+    # Fonction pour récupérer la sélection
+    def recuperer_selection():
+        fichiers_selectionnes = [
+            fichier for fichier, etat in zip(fichiers, etats_cases) if etat.get() == 1
+        ]
+        # Fermer le popup après validation
+        popup.quit()
+        popup.destroy()
+        print("Fichiers sélectionnés :", fichiers_selectionnes)
+        imprimerArrierePlan(fichiers_selectionnes)
+        return fichiers_selectionnes
+    
+    # Obtenir la liste des fichiers dans le dossier qui commencent par "debut"
+    #fichiers = [f for f in os.listdir(dossier) if f.startswith(debut)]
+    fichiers = [f for f in os.listdir(dossier) if any(f.startswith(debut) for debut in debuts)]
+
+    # Créer les boutons de tout sélectionner/désélectionner
+    bouton_tout_selectionner = Button(popup, text="Tout sélectionner", command=tout_selectionner)
+    bouton_tout_selectionner.pack()
+    
+    bouton_tout_deselectionner = Button(popup, text="Tout désélectionner", command=tout_deselectionner)
+    bouton_tout_deselectionner.pack()
+    
+    # Ajouter des cases à cocher pour chaque fichier
+    for fichier in fichiers:
+        var = IntVar()
+        case = Checkbutton(popup, text=fichier, variable=var)
+        case.pack(anchor="w")
+        cases_a_cocher.append(case)
+        etats_cases.append(var)
+    
+    # Bouton de validation
+    bouton_valider = Button(popup, text="Valider", command=recuperer_selection)
+    bouton_valider.pack()
+
+    # Lancer la fenêtre popup
+    popup.mainloop()
+
+# Fonction pour créer le popup "Veuillez patienter" et lancer la tâche donnée
 def ouvrir_popup_patienter(tache):
     popup = Toplevel(root)
     popup.title("Veuillez patienter...")
-    popup.geometry("300x100")
+    popup.geometry("400x200")
     
-    label = Label(popup, text="Veuillez patienter...", font=("Arial", 12))
+    label = Label(popup, text="Veuillez patienter...\nVous pouvez fermer cette fenêtre sans risque si besoin.\nLe traitement se poursuivra en arrière plan.", font=("Arial", 12))
     label.pack(pady=20)
     
     # Lancer la tâche dans un thread
@@ -2997,6 +3056,7 @@ def ouvrir_popup_patienter(tache):
 
     # Lancer la vérification périodique
     verifier_si_termine()
+    return popup
 
 # timer 
 class Clock():
@@ -3472,18 +3532,47 @@ def generateDossardsMessageNG() :
     subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
 
 
-def generateImpressionsArrierePlan():
-    reponse = askokcancel("OPERATION LONGUE", "La génération des résultats est une opération longue. Vous devez attendre un message de fin de compilation...")
-    if reponse :
-        mon_threadbis = Thread(target=generateImpressionsMessage)
-        mon_threadbis.start()
+def generateResultatsArrierePlan():
+    # reponse = askokcancel("OPERATION LONGUE", "La génération des résultats est une opération longue. Vous devez attendre un message de fin de compilation...")
+    # if reponse :
+    #     mon_threadbis = Thread(target=generateImpressionsMessage)
+    #     mon_threadbis.start()
+    ouvrir_popup_patienter(generateResultatsMessage)
 
-def generateImpressionsMessage() :
+def generateImpressionsArrierePlan():
+    # creation des fichiers à imprimer
+    popup = ouvrir_popup_patienter(generateImpressions)
+    root.wait_window(popup)
+    affichagePopupPourImpressionRapide()
+
+
+def affichagePopupPourImpressionRapide() : 
+    # création du popup pour sélectionner les fichier sà imprimer.
+    selectionner_fichiers_popup(root, ["Challenge","Course"])
+
+def imprimerArrierePlan(fichiers) :
+    for fichier in fichiers :
+        arg = "impressions" + os.sep + fichier
+        mon_threadImpressions = Thread(target=imprimePDF, args=(arg,))
+        mon_threadImpressions.start()
+        # pause d'une seconde pour éviter tout problème.
+        time.sleep(1)
+
+# def imprimerFichiers(fichiers) :
+#     for fichier in fichiers :
+#         print("Impression du fichier", fichier)
+#         imprimePDF(fichier)
+
+def generateResultatsMessage() :
     generateImpressions()
-    reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
-    path = os.getcwd()
     #print('explorer /select,"' + path + os.sep + 'impressions"')
-    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'impressions' + os.sep +'_statistiques.pdf"')
+    # si c'est un OS windows 
+    if os.name == 'nt':
+        # reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
+        path = os.getcwd()
+        subprocess.Popen(r'explorer /select,"' + path + os.sep +  'impressions' + os.sep +'_statistiques.pdf"')
+    else :
+        reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + path + os.sep + "'impressions'.")
 
 
 ### Thread
@@ -4918,7 +5007,8 @@ postcoursemenu = Menu(menubar, tearoff=0)
 postcoursemenu.add_command(label="Auto-envoi d'un diplôme de test du coureur sélectionné", command=envoiEmailDeTestLanceur)
 postcoursemenu.add_command(label="Envois individuels des diplômes", command=envoiDiplomeIndividuelsLanceur)
 postcoursemenu.add_command(label="Diffuser les diplômes non encore envoyés", command=envoiDiplomes)
-postcoursemenu.add_command(label="Générer PDF des résultats", command=generateImpressionsArrierePlan)
+postcoursemenu.add_command(label="Générer PDF des résultats", command=generateResultatsArrierePlan)
+postcoursemenu.add_command(label="Impression rapide des résultats", command=generateImpressionsArrierePlan)
 postcoursemenu.add_command(label="Générer un fichier tableur des résultats", command=exportXLSX)
 postcoursemenu.add_command(label="Archiver la course (données, vidéos,...)", command=exportCourse)
 postcoursemenu.add_command(label="Export vers OPUSS", command=exportOPUSS)
