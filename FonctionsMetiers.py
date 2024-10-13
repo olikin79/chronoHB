@@ -1730,7 +1730,7 @@ def chargerDonnees() :
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1932,6 +1932,11 @@ def chargerDonnees() :
     if not "classeIgnoreesPourChallenge" in Parametres :
         Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
     classeIgnoreesPourChallenge=Parametres["classeIgnoreesPourChallenge"]
+    if not "urlMiseAJour" in Parametres :
+        Parametres["urlMiseAJour"] = "http://mathlacroix.free.fr/chronoHB/maj"
+    urlMiseAJour=Parametres["urlMiseAJour"]
+    if not "urlMiseAJourPrefixeZip" in Parametres :
+        Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()

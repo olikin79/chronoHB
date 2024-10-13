@@ -2,6 +2,8 @@
 import requests,os
 
 
+print("mise à jour réussie. oups")
+
 
 def majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee) :
     ''' retourne la liste des fichiers nécessaires pour passer de la version x à la version y.

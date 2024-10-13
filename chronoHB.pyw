@@ -33,6 +33,8 @@ sys.path.append('maj')
 from maj import *
 #import git
 
+# pour les hash de mise à jour. Exécution unique de update.py
+import hashlib
 
 version="2.0"
 
@@ -3884,6 +3886,12 @@ def affecterParametres() :
 
 # zone saisie coureur
 def noVersion():
+    # on récupère plutôt la version dans le fichier maj/version.txt
+    if os.path.exists("maj/version.txt") :
+        with open("maj/version.txt","r") as f :
+            version = f.read()
+    else :
+        version = "1.0"
     showinfo("A propos de ChronoHB","Version " + version + " de l'application chronoHB.\nDéveloppeur : Olivier Lacroix, olacroix@ac-montpellier.fr")
 
 def lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres):
@@ -4985,6 +4993,166 @@ def exportOPUSS():
         showinfo("FONCTION DESACTIVEE","Ce menu 'export vers OPUSS' n'est disponible que pour les courses UNSS.")
 
 
+##################### MISE A JOUR NG ########################
+
+def check_for_updates():
+    # Version locale
+    with open("maj/version.txt", "r") as f:
+        local_version = f.read().strip()
+
+    # Version disponible sur le serveur
+    remote_version_url = Parametres["urlMiseAJour"] + "/version.txt"
+    response = requests.get(remote_version_url)
+    if response.status_code == 200:
+        remote_version = response.text.strip()
+
+        if local_version != remote_version:
+            rep = boiteDialogueInfo(f"Nouvelle version disponible : {remote_version}.\nVoulez vous la télécharger ?", askYesNo = True)
+            if rep :
+                return remote_version
+            else :
+                return None
+        else:
+            boiteDialogueInfo("Votre programme est à jour.")
+            return None
+    else:
+        boiteDialogueInfo("Impossible de vérifier les mises à jour.")
+        return None
+
+def boiteDialogueInfo(info, askYesNo = False):
+    # boite de dialogue d'information
+    if askYesNo :
+        rep = askyesno("INFORMATION", info)
+    else :
+        rep = "ok"
+        showinfo("INFORMATION", info)
+    print(info, rep)
+
+
+def download_update(remote_version):
+    update_url = Parametres["urlMiseAJourPrefixeZip"]
+    update_url += f"{remote_version}.zip"
+    response = requests.get(update_url)
+    
+    if response.status_code == 200:
+        with open("maj/update.zip", "wb") as f:
+            f.write(response.content)
+        boiteDialogueInfo("Mise à jour téléchargée.")
+        
+        # Extraire le fichier zip
+        with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
+            zip_ref.extractall(os.getcwd())
+        boiteDialogueInfo("Fichiers mis à jour.")
+        
+        # Mettre à jour le fichier de version
+        with open("maj/version.txt", "w") as f:
+            f.write(remote_version)
+        return True
+    else:
+        boiteDialogueInfo("Erreur lors du téléchargement.")
+        return False
+
+
+def restart_program():
+    boiteDialogueInfo("Redémarrage du programme pour appliquer les mises à jour...")
+    # Fermer l'application tkinter
+    root.destroy()
+    
+    # Redémarrer le programme
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
+
+def calculate_hash(file_path):
+    """Calcule l'empreinte SHA-256 d'un fichier"""
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
+
+def download_update_script():
+    script_url = Parametres["urlMiseAJour"] + "/update.py"
+    response = requests.get(script_url)
+    
+    if response.status_code == 200:
+        with open("maj/update.py", "wb") as f:
+            f.write(response.content)
+        boiteDialogueInfo("Script de mise à jour téléchargé.")
+        return True
+    else:
+        boiteDialogueInfo("Erreur lors du téléchargement du script.")
+        return False
+
+
+def check_and_execute_update_script():
+    # Chemin du fichier update.py et du fichier de hash stocké
+    script_path = "maj/update.py"
+    hash_file_path = "maj/update_hash.txt"
+    
+    # Si le fichier update.py n'existe pas encore, le télécharger et l'exécuter
+    if not os.path.exists(script_path):
+        if download_update_script():
+            execute_update_script()
+            save_hash(script_path, hash_file_path)
+    else:
+        # Calculer le hash actuel du fichier update.py
+        current_hash = calculate_hash(script_path)
+        
+        # Lire le hash précédemment enregistré
+        if os.path.exists(hash_file_path):
+            with open(hash_file_path, "r") as f:
+                saved_hash = f.read().strip()
+        else:
+            saved_hash = None
+        
+        # Comparer les deux hash
+        if current_hash != saved_hash:
+            # Si les hash sont différents, exécuter le script
+            execute_update_script()
+            # Mettre à jour le hash enregistré
+            save_hash(script_path, hash_file_path)
+        else:
+            boiteDialogueInfo("Le script update.py est déjà à jour.")
+
+def save_hash(file_path, hash_file_path):
+    """Enregistre le hash du fichier après exécution"""
+    current_hash = calculate_hash(file_path)
+    with open(hash_file_path, "w") as f:
+        f.write(current_hash)
+    print("Hash mis à jour.")
+
+
+def execute_update_script():
+    """Exécute le script update.py une fois"""
+    print("Exécution du script update.py...")
+    try:
+        subprocess.run(["python", "maj/update.py"], check=True)
+        boiteDialogueInfo("Script update.py exécuté avec succès.")
+    except subprocess.CalledProcessError as e:
+        boiteDialogueInfo(f"Erreur lors de l'exécution de update.py : {e}")
+
+
+def update_application():
+    # Vérifier s'il y a une nouvelle version
+    remote_version = check_for_updates()
+    if remote_version:
+        # Télécharger et appliquer la mise à jour
+        if download_update(remote_version):
+            # Télécharger update.py à chaque mise à jour forcée
+            if download_update_script():
+                # Redémarrer après mise à jour
+                restart_program()
+        else:
+            boiteDialogueInfo("Erreur lors de la mise à jour.")
+    else:
+        # Si aucune mise à jour, forcer le téléchargement de update.py
+        if download_update_script():
+            # Comparer et exécuter update.py si nécessaire
+            check_and_execute_update_script()
+
+
+
 ####################### MENUS ################################
 
 #annulDepart = Menu(editmenu, tearoff=0)
@@ -5018,7 +5186,7 @@ menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 # help menu
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Documentation", command=documentation)
-helpmenu.add_command(label="Mise à jour", command=MAJChronoHB)
+helpmenu.add_command(label="Mise à jour", command=update_application)
 helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 
