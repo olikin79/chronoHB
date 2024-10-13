@@ -5027,29 +5027,31 @@ def boiteDialogueInfo(info, askYesNo = False):
         rep = "ok"
         showinfo("INFORMATION", info)
     print(info, rep)
+    return rep
 
 
 def download_update(remote_version):
     update_url = Parametres["urlMiseAJourPrefixeZip"]
     update_url += f"{remote_version}.zip"
+    print("URL téléchargée",update_url)
     response = requests.get(update_url)
     
     if response.status_code == 200:
         with open("maj/update.zip", "wb") as f:
             f.write(response.content)
-        print("Mise à jour téléchargée.")
+        print("Mise à jour téléchargée :",remote_version)
         
         # Extraire le fichier zip
         with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
             zip_ref.extractall(os.getcwd())
-        print("Fichiers mis à jour.")
+        print("Fichiers mis à jour:",remote_version)
         
         # Mettre à jour le fichier de version
         with open("maj/version.txt", "w") as f:
             f.write(remote_version)
         return True
     else:
-        boiteDialogueInfo("Erreur lors du téléchargement.")
+        print("Erreur lors du téléchargement de la version " + remote_version)
         return False
 
 
@@ -5060,7 +5062,8 @@ def restart_program():
     
     # Redémarrer le programme
     python = sys.executable
-    os.execl(python, python, *sys.argv)
+    subprocess.run([python, *sys.argv])
+    # os.execl(python, python, *sys.argv)
 
 def calculate_hash(file_path):
     """Calcule l'empreinte SHA-256 d'un fichier"""
@@ -5081,7 +5084,7 @@ def download_update_script():
         print("Script de mise à jour téléchargé.")
         return True
     else:
-        boiteDialogueInfo("Erreur lors du téléchargement du script.")
+        boiteDialogueInfo("Erreur lors du téléchargement du script update.py.")
         return False
 
 
@@ -5113,7 +5116,7 @@ def check_and_execute_update_script():
             # Mettre à jour le hash enregistré
             save_hash(script_path, hash_file_path)
         else:
-            boiteDialogueInfo("Le script update.py est déjà à jour.")
+            print("Le script update.py est déjà à jour.")
 
 def save_hash(file_path, hash_file_path):
     """Enregistre le hash du fichier après exécution"""
@@ -5128,7 +5131,7 @@ def execute_update_script():
     print("Exécution du script update.py...")
     try:
         subprocess.run(["python", "maj/update.py"], check=True)
-        boiteDialogueInfo("Script update.py exécuté avec succès.")
+        print("Script update.py exécuté avec succès.")
     except subprocess.CalledProcessError as e:
         boiteDialogueInfo(f"Erreur lors de l'exécution de update.py : {e}")
 
@@ -5141,15 +5144,17 @@ def update_application():
         if download_update(remote_version):
             # Télécharger update.py à chaque mise à jour forcée
             if download_update_script():
+                check_and_execute_update_script()
                 # Redémarrer après mise à jour
                 restart_program()
         else:
-            boiteDialogueInfo("Erreur lors de la mise à jour.")
-    else:
-        # Si aucune mise à jour, forcer le téléchargement de update.py
-        if download_update_script():
-            # Comparer et exécuter update.py si nécessaire
-            check_and_execute_update_script()
+            boiteDialogueInfo("Erreur lors de la mise à jour " + remote_version + ".")
+    # si l'utilisateur ne veut pas mettre à jour, on ne force pas.
+    # else:
+    #     # Si aucune mise à jour, forcer le téléchargement de update.py
+    #     if download_update_script():
+    #         # Comparer et exécuter update.py si nécessaire
+    #         check_and_execute_update_script()
 
 
 

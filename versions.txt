@@ -3,6 +3,12 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+
+Travail du 13/10/24 : 
+- implémentation du système de mise à jour à distance via l'interface.
+- 
+
+
 Travail du 12/10/24 :
 - création et récupération de sauvegardes chb (tous fichiers zippés dans un seul) implémentée.
 Conservation de la récupération d'anciennes sauvegardes testée : ok.

@@ -10,7 +10,6 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 TodoListe pour le cross Bourrillon 2024 :
 - refaire la capture d'écran de la page principale sur la dicumentation p 15.
-- maj à distance à rendre fonctionnelles.
 - deplacer les fichiers du serveur web dans www
 - lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
 

@@ -2,7 +2,7 @@
 import requests,os
 
 
-print("mise à jour réussie. oups")
+print("mise à jour réussie")
 
 
 def majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee) :
