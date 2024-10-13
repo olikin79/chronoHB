@@ -6,7 +6,8 @@ A venir :
 
 Travail du 13/10/24 : 
 - implémentation du système de mise à jour à distance via l'interface.
-- 
+- implémentation d'un système d'assistance par email.
+- ajout des logs dans la sauvegarde, si présents.
 
 
 Travail du 12/10/24 :

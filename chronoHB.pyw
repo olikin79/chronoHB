@@ -31,12 +31,13 @@ import requests,importlib
 sys.path.append('maj')
 #importlib.import_module('maj')
 from maj import *
+from FonctionsAssistance import *
 #import git
 
 # pour les hash de mise à jour. Exécution unique de update.py
 import hashlib
 
-version="2.0"
+version="2.0.0"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -46,7 +47,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -5157,6 +5158,26 @@ def update_application():
     #         check_and_execute_update_script()
 
 
+####################### DEMANDES D'ASSISTANCE ################
+
+def envoi_demande_assistance():
+    ''' Fonction pour envoyer une demande d'assistance par email dans lequel sera jointe la dernière sauvegarde de la course, sans les vidéos, forcée dans cette fonction '''
+    # Ouvrir une boîte de dialogue pour demander confirmation
+    rep = askyesno("DEMANDE D'ASSISTANCE", "Voulez-vous envoyer une demande d'assistance à chronoHB@gmail.com ?\nSeront joints les rapports du programme\
+ et la dernière sauvegarde de la course.\nCeux-ci seront détruits dès le diagnostic effectué et la correction effective.")
+    if rep:
+        # Créer un fichier zip de la dernière sauvegarde de la course
+        date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-lors-demande-assistance.chb"
+        ecrire_sauvegardeNG(nomFichierCopie, avecVideos=False, avecLogs=True)
+        # Appel de la fonction pour envoyer l'e-mail avec la pièce jointe
+        envoi_email_assistance(nomFichierCopie)
+        # Supprimer le fichier zip
+        os.remove(nomFichierCopie)
+        # Informer l'utilisateur de l'envoi
+        showinfo("DEMANDE D'ASSISTANCE", "Votre demande d'assistance a bien été envoyée au développeur.")
+
+
 
 ####################### MENUS ################################
 
@@ -5192,6 +5213,7 @@ menubar.add_cascade(label="Gestion d'après course", menu=postcoursemenu)
 helpmenu = Menu(menubar, tearoff=0)
 helpmenu.add_command(label="Documentation", command=documentation)
 helpmenu.add_command(label="Mise à jour", command=update_application)
+helpmenu.add_command(label="Demande d'assistance", command=envoi_demande_assistance)
 helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 

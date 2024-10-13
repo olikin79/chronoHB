@@ -1,4 +1,5 @@
 from redmail import EmailSender, gmail
+from cryptography.fernet import Fernet
 #from smtplib import SMTP_SSL
 
 # fin des données en dur dans le code : from resultatsDiffusionIdentifiants import *
@@ -242,6 +243,50 @@ def formater_chemin(chemin):
     if not chemin.endswith("/"):
         chemin = chemin + "/"
     return chemin
+
+def recupererMDP() :
+    # Lire la clé et le mot de passe chiffré
+    if os.path.exists("secret/secret.key") :
+        with open("secret/secret.key", "rb") as key_file:
+            key = key_file.read()
+
+        with open("secret/encrypted_password.txt", "rb") as file:
+            encrypted_password = file.read()
+
+        # Déchiffrer le mot de passe
+        cipher_suite = Fernet(key)
+        password = cipher_suite.decrypt(encrypted_password).decode()
+    else :
+        password = ""
+    return password
+
+
+def envoi_email_assistance(fichier_joint):
+    ''' Fonction pour envoyer un email d'assistance avec le fichier joint '''
+    # Paramètres de l'envoi
+    destinataire = "lax.olivier@gmail.com"
+    sujet = "Demande d'assistance chronoHB"
+    message = "Bonjour,\n\nJe rencontre un problème avec le logiciel chronoHB.\
+                \nCi-joint, vous trouverez la dernière sauvegarde de ma course.\n\nMerci de m'apporter votre aide."
+    gmail.username = "chronoHB3@gmail.com"
+    password = recupererMDP()
+    gmail.password = password
+    # print("password", password)
+    if gmail.password :
+        # # Envoi de l'email
+        # try:
+        gmail.send(
+            sender=gmail.username,
+            receivers=[destinataire],
+            subject=sujet,
+            html=message,
+            attachments=[fichier_joint]
+            )
+        #     print("Email d'assistance envoyé avec succès.")
+        # except:
+        #     print("Erreur lors de l'envoi de l'email d'assistance.")
+    else :
+        print("Le mot de passe de l'adresse email expéditeur n'a pas été trouvé.")
 
 
 def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :

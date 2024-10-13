@@ -37,7 +37,7 @@ import zipfile
 #### DEBUG
 DEBUG = False
 
-version = "2.0"
+version = "2.0.0"
 
 LOGDIR="logs"
 
@@ -182,7 +182,7 @@ def creer_dossier_si_inexistant(chemin):
         print(f"Erreur lors de la création du dossier : {e}")
         return False
 
-def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False):
+def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False, avecLogs = False):
     # print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
     # Extraire le nom de dossier et le nom de fichier à partir du chemin complet
     dossier, nomFichier = os.path.split(cheminFichier)
@@ -217,6 +217,22 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                 print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
                 open("donneesSmartphone.txt", 'a').close()
                 sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            
+            # Ajouter les fichiers logs au fichier zip
+            if avecLogs:
+                # LOGDIR = "logs"
+                if os.path.exists(LOGDIR):
+                    logs = glob.glob(os.path.join(LOGDIR, "*.log"))
+                    for log in logs:
+                        sauvegardeZip.write(log, os.path.join(LOGDIR, os.path.basename(log)))
+                else:
+                    print("Pas de fichiers de logs à sauvegarder.")
+            # if os.path.exists("donneesSmartphone.txt"):
+            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            # else:
+            #     print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
+            #     open("donneesSmartphone.txt", 'a').close()
+            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
 
             # Si avecVideos est True, ajouter les fichiers .avi du dossier videos/
             if avecVideos:
