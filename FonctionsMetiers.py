@@ -170,7 +170,7 @@ def creer_dossier_si_inexistant(chemin):
     
     # Vérifier si le dossier (ou le chemin complet) existe
     if chemin_obj.exists():
-        print(f"Le chemin {chemin} existe déjà.")
+        # print(f"Le chemin {chemin} existe déjà.")
         return True
     
     # Créer le dossier (et les parents si nécessaire)
