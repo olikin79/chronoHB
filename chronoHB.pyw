@@ -5037,12 +5037,12 @@ def download_update(remote_version):
     if response.status_code == 200:
         with open("maj/update.zip", "wb") as f:
             f.write(response.content)
-        boiteDialogueInfo("Mise à jour téléchargée.")
+        print("Mise à jour téléchargée.")
         
         # Extraire le fichier zip
         with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
             zip_ref.extractall(os.getcwd())
-        boiteDialogueInfo("Fichiers mis à jour.")
+        print("Fichiers mis à jour.")
         
         # Mettre à jour le fichier de version
         with open("maj/version.txt", "w") as f:
@@ -5078,7 +5078,7 @@ def download_update_script():
     if response.status_code == 200:
         with open("maj/update.py", "wb") as f:
             f.write(response.content)
-        boiteDialogueInfo("Script de mise à jour téléchargé.")
+        print("Script de mise à jour téléchargé.")
         return True
     else:
         boiteDialogueInfo("Erreur lors du téléchargement du script.")
