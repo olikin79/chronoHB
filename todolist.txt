@@ -9,8 +9,8 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 
 Todoliste post cross HB 2024 :
-- application android : régler la veille.
-
+- application android : vérifier pourquoi l'IP trouvée par Aurélie était un de plus que l'IP de mon serveur. Est ce explicable ?
+- 
 
 
 TodoListe pour le cross Bourrillon 2024 :

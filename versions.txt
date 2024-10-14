@@ -5,7 +5,9 @@ A venir :
 
 Travail du 14/10/24 :
 - ajout d'un avertissement en cas de départ annulé.
-- 
+- ajout du recalcul lorsque l'on réinitialise les données.
+- application android : régler l'empêchement de la veille sur moins de 9 secondes.
+- on enlève le gras dans les absents-dispensés : cela n'a pas d'intérêt et c'est moche.
 
 
 Travail du 13/10/24 : 
