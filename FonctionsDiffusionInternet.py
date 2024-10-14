@@ -5,7 +5,7 @@ from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 # import pysftp
 from ftplib import FTP
 
-from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
+# from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
 
 def ActualiseAffichageInternet():
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
@@ -16,7 +16,7 @@ def ActualiseAffichageInternet():
 
 def deposePagesHTMLInternet(liste) :
     '''Dépose via le protocole FTP ou SFTP les pages générées dont les noms de fichiers sont dans la variable liste.'''
-    print("Dépôt des pages générées sur internet :", liste)
+    print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
     try :
         # print("dossierWWW",dossierWWW)
         if Parametres["FTPserveur"] and Parametres["FTPlogin"] and Parametres["FTPmdp"] :
@@ -24,6 +24,7 @@ def deposePagesHTMLInternet(liste) :
             if not dossierWWW.endswith("/") :
                 dossierWWW += "/"
             with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp :
+                ftp.set_pasv(True)  # Forcer le mode passif pour FTP
                 # Change directory to the remote directory where the file is located
                 # if not dossierWWW in ftp.dir() :
                 #     ftp.mkd(dossierWWW)
@@ -33,7 +34,7 @@ def deposePagesHTMLInternet(liste) :
                     fichier = file.split("/")[-1]
                     ftp.storbinary('STOR '+fichier, open(file, 'rb'))
                     # if DEBUG :
-                    #     print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
+                    print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectué")
                 ftp.close()
                 # cnopts = pysftp.CnOpts()
                 # cnopts.hostkeys = None
@@ -44,8 +45,8 @@ def deposePagesHTMLInternet(liste) :
                 #     sftp.cd(dossierWWW)
                 #     sftp.put(file, preserve_mtime=True)
                 #     print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectuée")
-    except :
-        print("Erreur lors du dépôt des pages générées sur internet.")
+    except Exception as e :
+        print(f"Erreur lors du dépôt des pages générées sur internet : {e}")
         return False
 
 
