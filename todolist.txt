@@ -8,6 +8,11 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 - FAIT export vers OPUSS
 
 
+Todoliste post cross HB 2024 :
+- application android : régler la veille.
+
+
+
 TodoListe pour le cross Bourrillon 2024 :
 - refaire la capture d'écran de la page principale sur la dicumentation p 15.
 - deplacer les fichiers du serveur web dans www

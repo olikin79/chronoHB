@@ -3,6 +3,10 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 14/10/24 :
+- ajout d'un avertissement en cas de départ annulé.
+- 
+
 
 Travail du 13/10/24 : 
 - implémentation du système de mise à jour à distance via l'interface.

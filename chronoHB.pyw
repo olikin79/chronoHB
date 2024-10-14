@@ -416,7 +416,7 @@ class MonTableau(Frame):
                 def dontsaveedit(event):
                     entryedit.destroy()
                     #okb.destroy()
-                entryedit.bind("<KeyRelease>", saveeditEvent)
+                entryedit.bind("<FocusOut>", saveeditEvent)
                 entryedit.bind("<Return>", saveeditEvent)
                 entryedit.bind("<Escape>", dontsaveedit)
                 #okb = ttk.Button(parent, text='OK', width=3, command=saveedit)
@@ -2861,12 +2861,14 @@ def actualiseTempsAffichageDeparts():
         
 def annulUnDepart(nomGroupement) :
     global annulDepart
-    groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=True)
-    for course in groupement.listeDesCourses :
-        Courses[course].reset()
-    annulDepart.delete(groupement.nom)
-    rejouerToutesLesActionsMemorisees()
-    actualiseToutLAffichage()
+    if askyesno("ATTENTION","Etes vous sûr de vouloir annuler le départ de la course "+groupementAPartirDeSonNom(nomGroupement, nomStandard=True).nom+" qui est partie à " + Courses[nomGroupement].departFormate(tempsAuto=False) + "?\nCette information sera perdue... Veuillez la noter si vous avez le moindre doute.") :
+        print("On annule le départ de la course",nomGroupement, "dont l'heure était", Courses[nomGroupement].dureeFormatee())
+        groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=True)
+        for course in groupement.listeDesCourses :
+            Courses[course].reset()
+        annulDepart.delete(groupement.nom)
+        rejouerToutesLesActionsMemorisees()
+        actualiseToutLAffichage()
     
 
 def construireMenuAnnulDepart():
@@ -3478,6 +3480,7 @@ def effaceDonneesCoursesGUI ():
         fichier = ecrire_sauvegardeNG(nomFichierCopie)
         delDossardsEtTemps()
         tableau.reinit()
+        genereResultatsCoursesEtClasses(True)
         actualiseToutLAffichage()
         #actualiseEtatBoutonsRadioConfig()
         reponse = showinfo("DONNEES EFFACEES","Les données de courses ont été effacées, il reste celles sur les coureurs.\nLes données précédentes ont été sauvegardées dans le fichier "+fichier+".")
@@ -3486,6 +3489,7 @@ def effaceDonneesCoursesGUI ():
 
 def effaceToutesDonnees() :
         delCoureurs()
+        genereResultatsCoursesEtClasses(True)
         tableau.reinit()
         actualiseToutLAffichage()
         nettoyerTousLesFichiersGeneres()
