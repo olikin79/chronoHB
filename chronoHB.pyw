@@ -1026,7 +1026,7 @@ class CheckboxAbsDisp(Frame):
         if Parametres["CategorieDAge"] :
             f = font.Font(size=10)
         else :
-            f = font.Font(weight="bold",size=14)
+            f = font.Font(size=14)
         self.lbl = Label(self, text=nomAffiche)
         self.lbl['font'] = f
         self.checkbuttonAbs['font'] = f
