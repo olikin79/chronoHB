@@ -1749,7 +1749,7 @@ def chargerDonnees() :
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour
     noSauvegarde = 1
     sauvegarde="Courses"
@@ -1913,6 +1913,9 @@ def chargerDonnees() :
     if not "FTPmdp" in Parametres :
         Parametres["FTPmdp"] = "mdp"
     FTPmdp=Parametres["FTPmdp"]
+    if not "HTTPSserveur" in Parametres :
+        Parametres["HTTPSserveur"] = "marielleetolivier2.synology.me"
+    HTTPSserveur=Parametres["HTTPSserveur"]
     if not "FTPserveur" in Parametres :
         Parametres["FTPserveur"] = "marielleetolivier2.synology.me"
     FTPserveur=Parametres["FTPserveur"]
