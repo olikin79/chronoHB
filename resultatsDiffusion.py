@@ -237,8 +237,8 @@ def choixDuMailAUtiliser() :
 
 def formater_chemin(chemin):
     # Vérifie et ajoute un "/" au début si nécessaire
-    if not chemin.startswith("/"):
-        chemin = "/" + chemin
+    # if not chemin.startswith("/"):
+    #     chemin = "/" + chemin
     # Vérifie et ajoute un "/" à la fin si nécessaire
     if not chemin.endswith("/"):
         chemin = chemin + "/"
@@ -294,7 +294,7 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
         print("Envoi du diplome pour le coureur avec le mail expéditeur", gmail.username)
-        URLLienDirectVersResultats = "https://" + Parametres["FTPserveur"].replace("ftp://","").replace("/","") + formater_chemin(Parametres["FTPdir"]) + "index-en-ligne.html"
+        URLLienDirectVersResultats =  formater_chemin(Parametres["HTTPSserveur"]) + "index-en-ligne.html"
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],
