@@ -880,7 +880,11 @@ class Coureur():#persistent.Persistent):
             self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
         self.etablissement = etablissement
         self.etablissementNature = etablissementNature
-        self.absent = bool(absent)
+        # pour gérer les actualisations des coureurs sans modification des absences si non souhaité.
+        if absent == None :
+            self.absent = False
+        else :
+            self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
         self.VMA = float(VMA)
@@ -7000,7 +7004,7 @@ def creerCoureur(listePerso, informations) :
     etab = ""
     nature = ""
     disp=False
-    abse=False
+    abse=None
     vma = 0
     comment = ""
     lic = ""
