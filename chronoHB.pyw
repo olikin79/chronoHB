@@ -47,7 +47,7 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = False
+DEBUG = True
 
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
@@ -4549,11 +4549,13 @@ def packAutresWidgets():
     diplomeDiffusionApresNMinEntry.pack(side=LEFT,anchor="w")
     emailMessageObjetEntry.pack(side=TOP,anchor="w")
     emailMessageEntry.pack(side=TOP,anchor="w")
-    FTPserveurEntry.pack(side=TOP,anchor="w")
+    HTTPSserveurEntry.pack(side=TOP,anchor="w")
+    FTPserveurEntry.pack(side=LEFT,anchor="w")
     FTPloginEntry.pack(side=LEFT,anchor="w")
     FTPmdpEntry.pack(side=LEFT,anchor="w")
-    FTPdirEntry.pack(side=TOP,anchor="w")
-    FTPidentifiantsFrame.pack(side=LEFT)
+    FTPdirEntry.pack(side=LEFT,anchor="w")
+    FTPserveurFrame.pack(side=TOP,anchor="w")
+    FTPidentifiantsFrame.pack(side=TOP,anchor="w")
     EmailParametresFrame.pack(side=LEFT)
     setParametres()
     
@@ -4577,10 +4579,12 @@ def forgetAutresWidgets():
     diplomeDiffusionApresNMinEntry.forget()
     emailMessageObjetEntry.forget()
     emailMessageEntry.forget()
+    HTTPSserveurEntry.forget()
     FTPserveurEntry.forget()
     FTPloginEntry.forget()
     FTPmdpEntry.forget()
     FTPdirEntry.forget()
+    FTPserveurFrame.forget()
     FTPidentifiantsFrame.forget()
     EmailParametresFrame.forget()
 
@@ -4746,8 +4750,10 @@ emailMessageObjetEntry = EntryParam( "emailMessageObjet", "Objet du message à e
 emailMessageEntry = EntryParam( "emailMessage", "Message à envoyer avec les diplômes", largeur=100, parent=EnvoiDiplomeFrame, multiLignes=True)
 
 
-FTPserveurEntry = EntryParam( "FTPserveur", "Serveur FTP", largeur=50, parent=FTPFrame)
-FTPdirEntry = EntryParam( "FTPdir", "Répertoire FTP", largeur=20, parent=FTPFrame)
+HTTPSserveurEntry = EntryParam( "HTTPSserveur", "Serveur HTTPS", largeur=50, parent=FTPFrame)
+FTPserveurFrame= Frame(FTPFrame)
+FTPserveurEntry = EntryParam( "FTPserveur", "Serveur FTP", largeur=50, parent=FTPserveurFrame)
+FTPdirEntry = EntryParam( "FTPdir", "Répertoire FTP", largeur=20, parent=FTPserveurFrame)
 FTPidentifiantsFrame = Frame(FTPFrame)
 FTPloginEntry = EntryParam( "FTPlogin", "Login FTP", largeur=20, parent=FTPidentifiantsFrame)
 FTPmdpEntry = EntryParam( "FTPmdp", "Mot de passe FTP", largeur=20, parent=FTPidentifiantsFrame, password=True)
