@@ -33,8 +33,8 @@ def deposePagesHTMLInternet(liste) :
                     # on stocke dans la variable fichier le nom du fichier à déposer en le séparant du chemin contenu dans file
                     fichier = file.split("/")[-1]
                     ftp.storbinary('STOR '+fichier, open(file, 'rb'))
-                    # if DEBUG :
-                    print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectué")
+                    if DEBUG :
+                        print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectué")
                 ftp.close()
                 # cnopts = pysftp.CnOpts()
                 # cnopts.hostkeys = None
