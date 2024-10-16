@@ -11,6 +11,9 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 Todoliste post cross HB 2024 :
 - application android : vérifier pourquoi l'IP trouvée par Aurélie était un de plus que l'IP de mon serveur. Est ce explicable ?
 - implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
+- installeur à terminer
+- possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
+- horodater les logs. Cela pourra être utile en cas de souci.
 
 
 TodoListe pour le cross Bourrillon 2024 :

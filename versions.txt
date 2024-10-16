@@ -3,9 +3,12 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Travail du 16/10/24 :
+- correctif pour import le matin des absents et des dispensés depuis un tableur modifié depuis un autre ordinateur.
+
+
 Travail du 15/10/24 :
 - modification de l'extension de la page index.html -> htm à cause de chrome qui ne le prend plus en compte
-
 
 
 Travail du 14/10/24 :

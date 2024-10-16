@@ -7006,7 +7006,9 @@ def creerCoureur(listePerso, informations) :
     naiss = ""
     etab = ""
     nature = ""
-    disp=False
+    # ces valeurs restent à None si l'information n'est pas dans le tableur.
+    # Ainsi, ces caractéristiques ne sont pas actualisées lors des imports (si elles restent à None)
+    disp=None
     abse=None
     vma = 0
     comment = ""
@@ -7034,9 +7036,15 @@ def creerCoureur(listePerso, informations) :
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
+        else :
+            # le tableur contient une colonne dispensé et le coureur est décoché donc on doit le modifier dans la base.
+            disp = False
     if "absent" in informations :
         if infos["absent"] != "" :
             abse = True
+        else :
+            # le tableur contient une colonne absent et le coureur est décoché. On doit rectifier la base en ce sens.
+            abse = False
     if "classe" in informations :
         try :
             clas = supprLF(infos["classe"])
