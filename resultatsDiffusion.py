@@ -160,20 +160,23 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         ##            c.setEmail("lax.olivier@gmail.com")
                     #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
                     #c.setEmailEnvoiEffectue(False)
-                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
+                print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
+                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(diplomeDiffusionApresNMin) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
                     genereDiplome(modele, c, nomModele)
                     if envoiDiplomeParMail(c) :
                         # c.setEmailEnvoiEffectue(True)
                         if DEBUG : 
-                            print("Envoi du diplome pour le coureur sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
-        
+                            print("Envoi du diplome pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
+                # else :
+                #     print("Mail déjà envoyé pour le coureur :", c.nom, c.prenom, "classe :", c.classe)
+                
                 # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
                 #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
                 #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
 
                 ### pour les tests !
-                elif __name__ == '__main__' and c.dossard == "1A" :
-                    genereDiplome(modele, c, nomModele)
+                # elif __name__ == '__main__' and c.dossard == "1A" :
+                #     genereDiplome(modele, c, nomModele)
                 # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
                 #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
                 #else : #if c.dossard == "1A" :
@@ -294,7 +297,7 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
         print("Envoi du diplome pour le coureur avec le mail expéditeur", gmail.username)
-        URLLienDirectVersResultats =  formater_chemin(Parametres["HTTPSserveur"]) + "index-en-ligne.html"
+        URLLienDirectVersResultats = Parametres["HTTPSserveur"] # formater_chemin(Parametres["HTTPSserveur"]) # + "index-en-ligne.html"
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],

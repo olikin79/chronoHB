@@ -3,9 +3,20 @@ A venir :
 - en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Après cross :
+- faire une sauvegarde régulière de Cours.db (pas seulement à la fermeture).
+- vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
+
+
+Travail du 18/11/24 :
+- limitation du nombre d'erreurs en cours affichées : 10 maximum (même pour un grand écran).
+
+Travail du 06/11/24 :
+- correctif bug envoi des diplômes (type de variable incorrect dans une comparaison).
+- correctif : tri possible dans l'interface (cela se remettait tout seul dans l'ordre des temps d'arrivée).
+
 Travail du 16/10/24 :
 - correctif pour import le matin des absents et des dispensés depuis un tableur modifié depuis un autre ordinateur.
-
 
 Travail du 15/10/24 :
 - modification de l'extension de la page index.html -> htm à cause de chrome qui ne le prend plus en compte

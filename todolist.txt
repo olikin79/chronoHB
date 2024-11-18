@@ -10,6 +10,9 @@ Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprim
 
 Todoliste post cross HB 2024 :
 - application android : vérifier pourquoi l'IP trouvée par Aurélie était un de plus que l'IP de mon serveur. Est ce explicable ?
+Pas vraiment : ce sont deux threads qui se sont exécutés concomitamment.
+Extrêmement peu probable vu le positionnement du test de réception et le fait de passer à l'IP n+1 juste derrière.
+
 - implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
 - installeur à terminer
 - possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
@@ -17,6 +20,8 @@ Todoliste post cross HB 2024 :
 
 
 TodoListe pour le cross Bourrillon 2024 :
+- déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
+- trouver une distribution latex légère.
 - refaire la capture d'écran de la page principale sur la dicumentation p 15.
 - deplacer les fichiers du serveur web dans www
 - lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
