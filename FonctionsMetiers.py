@@ -35,9 +35,9 @@ from tkinter.messagebox import *
 import zipfile
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
 
-version = "2.0.0"
+version = "2.1.0"
 
 LOGDIR="logs"
 
