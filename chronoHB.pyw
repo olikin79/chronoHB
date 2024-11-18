@@ -37,7 +37,7 @@ from FonctionsAssistance import *
 # pour les hash de mise à jour. Exécution unique de update.py
 import hashlib
 
-version="2.0.0"
+version="2.0.1"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -80,7 +80,6 @@ from FonctionsDiffusionInternet import *
 ##    def write(self, message):
 ##        self.terminal.write(message)
 ##        self.log.write(message)
-
 
 generateListCoureursPourSmartphone()
 
@@ -3978,15 +3977,16 @@ def actualiseEntryParams():
     TempsPauseFrame.actualise()
     VitesseDefilementFrame.actualise()
 
-def recupererSauvegardeGUI() :
+def recupererSauvegardeGUI(name_file="") :
     #global root,Courses
-    CURRENT_DIRECTORY = os.getcwd()
-    options = {
-                'initialdir': CURRENT_DIRECTORY,
-                'title': 'Choisir la sauvegarde à récupérer',
-                'filetypes': (("Sauvegarde chronoHB","*.db *.chb"),)
-              }
-    name_file = askopenfilename(**options)
+    if not name_file :
+        CURRENT_DIRECTORY = os.getcwd()
+        options = {
+                    'initialdir': CURRENT_DIRECTORY,
+                    'title': 'Choisir la sauvegarde à récupérer',
+                    'filetypes': (("Sauvegarde chronoHB","*.db *.chb"),)
+                }
+        name_file = askopenfilename(**options)
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         # effaceToutesDonnees()
@@ -4921,6 +4921,13 @@ def MAJChronoHB():
 ##    if reboot :
 ##        relancer()
 
+def relancer():
+##    sys.stdout.flush()
+##    print(sys.argv[0], sys.argv)
+##    os.execv(sys.argv[0],sys.argv)
+    root.destroy()
+    os.startfile("chronoHB.pyw")
+
 # exécution éventuelle de la mise à jour programmée.
 nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
 nomFichierVersionActuelle = "maj/version.txt"
@@ -4934,13 +4941,6 @@ if os.path.exists(nomFichierVersionDeployee) :
     if reboot :
         relancer()
     
-
-def relancer():
-##    sys.stdout.flush()
-##    print(sys.argv[0], sys.argv)
-##    os.execv(sys.argv[0],sys.argv)
-    root.destroy()
-    os.startfile("chronoHB.pyw")
 
 ### UNSS ####
 
@@ -5238,6 +5238,13 @@ ModifDonneesFrame.pack(side = TOP)
 Affichageframe.pack(fill=BOTH, expand=1)
 #LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1)
 
+### ouverture d'un fichier via l'explorateur windows 
+if len(sys.argv) > 1:
+    # Récupère le fichier passé en paramètre
+    fichier_parametre = sys.argv[1]
+    # Appelle votre fonction pour gérer le fichier
+    recupererSauvegardeGUI(name_file=fichier_parametre)
+
 
 CoureursParClasseUpdate()
 
@@ -5262,7 +5269,6 @@ root.mainloop() # enter the message loop
 Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()
 
 print("Fermeture de la BDD")
-
 
 # suppression de la sauvegarde automatique vers db à la fermeture
 date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
