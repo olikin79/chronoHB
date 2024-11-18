@@ -190,7 +190,7 @@ class MonTableau(Frame):
         self.parent = parent
         self.initTreeview()
         
-    def initTreeview(self) :
+    def initTreeview(self, Reordonner = True) :
         try :
             self.treeview.destroy()
             self.vsb.destroy()
@@ -216,7 +216,6 @@ class MonTableau(Frame):
             except :
                 True # rien à détruire.
             
-
         def YscrollCompl (x1,x2) :
             self.vsb.set(x1,x2)
             try :
@@ -224,7 +223,6 @@ class MonTableau(Frame):
             except :
                 True # rien à détruire.
             
-        
         self.vsb = Scrollbar(self.parent, orient="vertical", command=treeviewYscrollCompl) #self.treeview.yview
         self.vsb.pack(side='right', fill='y')
         self.hsb = Scrollbar(self.parent, orient="horizontal", command=self.treeview.xview)
@@ -248,13 +246,7 @@ class MonTableau(Frame):
             elif el == "Doss. Aff." :
                 self.colonneDossAff = i
             i += 1
-        #print(self.colonneDossard ,self.colonneRang , self.colonneTemps)
-##        self.update()
-##        self.treeview.update()
-        #print(len(donnees))
-##        for i in range(len(self.tableau.lignes)): #write data
-##            #print(tuple([var for var in donnees[i]]))
-##            self.treeview.insert('', i, values=tuple([var for var in self.tableau.lignes[i]]))
+
         self.effectif = len(self.treeview.get_children())
         for col in self.enTetes: # bind function to make the header sortable
             self.treeview.heading(col, text=col, command=lambda _col=col: treeview_sort_column(self.treeview, _col, False))
@@ -265,6 +257,7 @@ class MonTableau(Frame):
             # rearrange items in sorted positions
             for index, (val, k) in enumerate(l): # based on sorted index movement
                 tv.move(k, '', index)
+            print("on réordonne les colonnes du treeview")
             tv.heading(col, command=lambda: treeview_sort_column(tv, col, not reverse)) # Rewrite the title to make it the title of the reverse order
 ##        def conv_Hexa_vers_Dec(chaine) :
 ##            ch = chaine
@@ -533,7 +526,7 @@ class MonTableau(Frame):
         self.listeDesTemps = []
         self.effectif = 0
         self.delTreeviewFrom(1)
-        self.initTreeview()
+        self.initTreeview(Reordonner = False)
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
@@ -635,7 +628,7 @@ class MonTableau(Frame):
         #noLigneDansTreeview = 1
         for iid in self.treeview.get_children() :
             #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
-            #print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
+            # print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
             if self.treeview.item(iid)['values'][self.colonneDossard] in listeDesDossardsConcernees :
                 self.treeview.item(iid, tags="erreurs")
                 #indDansListeDesLignesConcernees += 1
@@ -2586,8 +2579,12 @@ def actualiseAffichageErreurs(listErreursEnCours):
         bouton.destroy()
     #print("Liste des erreurs en cours : ",listErreursEnCours)
     lblListE = []
+    if len(listErreursEnCours) > 11 :
+        listErreursEnCoursTronquee = listErreursEnCours[:10]
+    else :
+        listErreursEnCoursTronquee = listErreursEnCours
     if listErreursEnCours :
-        for grp in listErreursEnCours :
+        for grp in listErreursEnCoursTronquee :
                 lblFrE = Frame(zoneAffichageErreurs)
                 #lblLegende = Label(lblFrE, text= " : ")
                 #print("bouton avec commande : onClick(",grp,")")
@@ -4741,7 +4738,7 @@ FTPFrame.pack(side=TOP,anchor="w",fill=X)
 
 URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur xlsx", largeur=120, parent=ImportTempsReelFrame)
 
-emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparés par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
+emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparées par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
 emailMDPEntry = EntryParam( "emailMDP", "Mot(s) de passe d'application email (séparés par un point virgule)", largeur=60, parent=EnvoiDiplomeFrame, password=True)
 EmailParametresFrame = Frame(EnvoiDiplomeFrame)
 emailNombreDEnvoisMaxEntry = EntryParam( "emailNombreDEnvoisMax", "Nombre maximum d'envois quotidiens par adresse", largeur=20, parent=EmailParametresFrame)
