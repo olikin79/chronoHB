@@ -952,6 +952,9 @@ class Coureur():#persistent.Persistent):
         #if not Parametres["CoursesManuelles"] :
         # if "217" in self.dossard : 
         #     print("catégorie", self.__private_categorie, self.course, self.etablissement, self.etablissementNature)
+        print(self.__private_categorie)
+        print("naissance",self.naissance)
+        print("categorieAthletisme(",self.naissance[6:], self.etablissementNature,")",categorieAthletisme(self.naissance[6:], etablissementNature = self.etablissementNature))
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
@@ -1126,17 +1129,19 @@ class Coureur():#persistent.Persistent):
         if naissance != "" :
             result = convertir_nombre_en_date(naissance)
             if naissance != result :
-                print("modif date de naissance", result)
+                print("modif date de naissance fournie en nombre entier depuis 1899", result)
                 self.naissance = result
                 self.__private_categorie = None # réinit
             else :
-                print("date de naissance non modifiée", naissance, "autre tentative")
+                print("Autre tentative de décodage de date de naissance ", naissance)
                 try :
+                    print("Tentative de décodage de date de naissance ", naissance)
                     chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
+                    print("chNaissance",chNaissance)
                     if naissanceValide(chNaissance) :
                         self.naissance = chNaissance
                         self.__private_categorie = None # réinit
-                        # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
+                        print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
                     else :
                         if len(chNaissance) > 8 :
                             self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
@@ -1145,6 +1150,7 @@ class Coureur():#persistent.Persistent):
                         self.__private_categorie = None # réinit
                 except :
                     self.naissance = ""
+        print(self.naissance, self.categorie(CategorieDAge))
 
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = str(commentaire)
@@ -2649,7 +2655,8 @@ def listCategories(nomStandard=True):
                 nom = groupementAPartirDUneCategorie(coureur.course).nom
             if nom not in retour :
                 retour.append(nom)
-        retour.sort()
+        retour = sorted(retour, key=lambda x: (x is None, x))
+        # retour.sort()
     return retour
 
 def listClasses():
@@ -2659,7 +2666,8 @@ def listClasses():
         for coureur in Coureurs.liste() :
             if coureur.classe not in retour :
                 retour.append(coureur.classe)
-        retour.sort()
+        retour = sorted(retour, key=lambda x: (x is None, x))
+        #retour.sort()
     return retour
 
 def listDossardsDUneClasse(classe):
