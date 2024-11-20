@@ -8,9 +8,12 @@ import paramiko
 
 # from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
 
-def ActualiseAffichageInternet():
+def ActualiseAffichageInternet(depotInitial = False) :
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
         dépose les pages générées sur un serveur SFTP.'''
+    if depotInitial :
+        liste = ["www/jquery-3.6.0.js", "www/mystyle.css", "www/mystyleWeb.css", "www/mystyle_mode-sombre.css", "www/favicon.ico" , "www/media/or.webp", "www/media/argent.webp", "www/media/bronze.webp"]
+        deposePagesHTMLInternet(liste, remplacer=False)
     liste = generePagesHTMLInternet()
     deposePagesHTMLInternet(liste)
 
@@ -41,18 +44,52 @@ def ActualiseAffichageInternet():
 #         print(f"Erreur lors du dépôt des pages générées sur internet : {e}")
 #         return False
 
-import os
-from ftplib import FTP
-import paramiko
 
-def deposePagesHTMLInternet(liste):
+def deposePagesHTMLInternet(liste, remplacer=True):
     """
     Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+    Si remplacer=False, les fichiers existants sur le serveur ne seront pas écrasés.
+    Les fichiers dans des sous-dossiers locaux seront copiés dans les mêmes sous-dossiers sur le serveur.
     """
     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
     dossierWWW = Parametres["FTPdir"]
     if not dossierWWW.endswith("/"):
         dossierWWW += "/"
+
+    def fichier_existe_sftp(sftp, chemin):
+        try:
+            sftp.stat(chemin)
+            return True
+        except FileNotFoundError:
+            return False
+
+    def fichier_existe_ftp(ftp, fichier):
+        fichiers_sur_serveur = ftp.nlst()
+        return fichier in fichiers_sur_serveur
+
+    def creer_dossier_sftp(sftp, chemin):
+        """Crée récursivement des dossiers sur le serveur SFTP."""
+        dirs = chemin.strip('/').split('/')
+        chemin_courant = ""
+        for dossier in dirs:
+            chemin_courant += f"/{dossier}"
+            try:
+                sftp.chdir(chemin_courant)
+            except IOError:
+                sftp.mkdir(chemin_courant)
+                sftp.chdir(chemin_courant)
+
+    def creer_dossier_ftp(ftp, chemin):
+        """Crée récursivement des dossiers sur le serveur FTP."""
+        dirs = chemin.strip('/').split('/')
+        chemin_courant = ""
+        for dossier in dirs:
+            chemin_courant += f"/{dossier}"
+            try:
+                ftp.cwd(chemin_courant)
+            except Exception:
+                ftp.mkd(chemin_courant)
+                ftp.cwd(chemin_courant)
 
     try:
         # Tentative de connexion via SFTP
@@ -68,19 +105,22 @@ def deposePagesHTMLInternet(liste):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(host_key_policy)
         ssh.load_system_host_keys()
-        
-        # S'assurer que le dossier existe sur le serveur
-        try:
-            sftp.chdir(dossierWWW)
-        except IOError:
-            print(f"Création du dossier {dossierWWW} sur le serveur SFTP...")
-            sftp.mkdir(dossierWWW)
-            sftp.chdir(dossierWWW)
-        
+
         for file in liste:
-            fichier = os.path.basename(file)
-            print(f"Transfert de {file} vers {dossierWWW + fichier} via SFTP...")
-            sftp.put(file, dossierWWW + fichier)
+            chemin_relatif = os.path.relpath(file, "./www")  # Chemin relatif par rapport à "./www"
+            chemin_dist = dossierWWW + chemin_relatif.replace("\\", "/")  # Convertir pour compatibilité SFTP
+            dossier_dist = os.path.dirname(chemin_dist)
+
+            # Créer les dossiers distants si nécessaires
+            creer_dossier_sftp(sftp, dossier_dist)
+
+            # Vérifier si le fichier doit être écrasé
+            if not remplacer and fichier_existe_sftp(sftp, chemin_dist):
+                print(f"Le fichier {chemin_dist} existe déjà sur le serveur SFTP. Dépôt ignoré.")
+                continue
+
+            print(f"Transfert de {file} vers {chemin_dist} via SFTP...")
+            sftp.put(file, chemin_dist)
             if DEBUG:
                 print(f"Dépôt de {file} sur le serveur SFTP effectué.")
         
@@ -96,13 +136,23 @@ def deposePagesHTMLInternet(liste):
     try:
         with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
             ftp.set_pasv(True)  # Forcer le mode passif pour FTP
-            ftp.cwd(dossierWWW)
             
             for file in liste:
+                chemin_relatif = os.path.relpath(file, "./www")  # Chemin relatif par rapport à "./www"
+                chemin_dist = dossierWWW + chemin_relatif.replace("\\", "/")  # Convertir pour compatibilité FTP
+                dossier_dist = os.path.dirname(chemin_dist)
+
+                # Créer les dossiers distants si nécessaires
+                creer_dossier_ftp(ftp, dossier_dist)
+
                 fichier = os.path.basename(file)
-                print(f"Transfert de {file} vers {dossierWWW + fichier} via FTP...")
+                if not remplacer and fichier_existe_ftp(ftp, fichier):
+                    print(f"Le fichier {chemin_dist} existe déjà sur le serveur FTP. Dépôt ignoré.")
+                    continue
+
+                print(f"Transfert de {file} vers {chemin_dist} via FTP...")
                 with open(file, 'rb') as f:
-                    ftp.storbinary('STOR ' + fichier, f)
+                    ftp.storbinary('STOR ' + chemin_dist, f)
                 if DEBUG:
                     print(f"Dépôt de {file} sur le serveur FTP effectué.")
         
@@ -112,6 +162,163 @@ def deposePagesHTMLInternet(liste):
     except Exception as e:
         print(f"Erreur lors du dépôt via FTP : {e}")
         return False
+
+
+# def deposePagesHTMLInternet(liste, remplacer=True):
+#     """
+#     Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+#     Si remplacer=False, les fichiers existants sur le serveur ne seront pas écrasés.
+#     """
+#     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+#     dossierWWW = Parametres["FTPdir"]
+#     if not dossierWWW.endswith("/"):
+#         dossierWWW += "/"
+
+#     def fichier_existe_sftp(sftp, chemin):
+#         try:
+#             sftp.stat(chemin)
+#             return True
+#         except FileNotFoundError:
+#             return False
+
+#     def fichier_existe_ftp(ftp, fichier):
+#         fichiers_sur_serveur = ftp.nlst()
+#         return fichier in fichiers_sur_serveur
+
+#     try:
+#         # Tentative de connexion via SFTP
+#         print("Tentative de connexion via SFTP...")
+#         transport = paramiko.Transport((Parametres["FTPserveur"], 22))
+#         transport.connect(username=Parametres["FTPlogin"], password=Parametres["FTPmdp"])
+        
+#         sftp = paramiko.SFTPClient.from_transport(transport)
+
+#         # Accepter automatiquement les clés d'hôte non approuvées
+#         known_hosts_path = os.path.expanduser("~/.ssh/known_hosts")
+#         host_key_policy = paramiko.AutoAddPolicy()
+#         ssh = paramiko.SSHClient()
+#         ssh.set_missing_host_key_policy(host_key_policy)
+#         ssh.load_system_host_keys()
+        
+#         # S'assurer que le dossier existe sur le serveur
+#         try:
+#             sftp.chdir(dossierWWW)
+#         except IOError:
+#             print(f"Création du dossier {dossierWWW} sur le serveur SFTP...")
+#             sftp.mkdir(dossierWWW)
+#             sftp.chdir(dossierWWW)
+        
+#         for file in liste:
+#             fichier = os.path.basename(file)
+#             chemin_dist = dossierWWW + fichier
+#             if not remplacer and fichier_existe_sftp(sftp, chemin_dist):
+#                 print(f"Le fichier {fichier} existe déjà sur le serveur SFTP. Dépôt ignoré.")
+#                 continue
+#             print(f"Transfert de {file} vers {chemin_dist} via SFTP...")
+#             sftp.put(file, chemin_dist)
+#             if DEBUG:
+#                 print(f"Dépôt de {file} sur le serveur SFTP effectué.")
+        
+#         sftp.close()
+#         transport.close()
+#         print("Dépôt via SFTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Connexion SFTP échouée : {e}. Tentative avec FTP...")
+
+#     # Si SFTP échoue, basculement vers FTP
+#     try:
+#         with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
+#             ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+#             ftp.cwd(dossierWWW)
+            
+#             for file in liste:
+#                 fichier = os.path.basename(file)
+#                 if not remplacer and fichier_existe_ftp(ftp, fichier):
+#                     print(f"Le fichier {fichier} existe déjà sur le serveur FTP. Dépôt ignoré.")
+#                     continue
+#                 print(f"Transfert de {file} vers {dossierWWW + fichier} via FTP...")
+#                 with open(file, 'rb') as f:
+#                     ftp.storbinary('STOR ' + fichier, f)
+#                 if DEBUG:
+#                     print(f"Dépôt de {file} sur le serveur FTP effectué.")
+        
+#         print("Dépôt via FTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Erreur lors du dépôt via FTP : {e}")
+#         return False
+
+
+# def deposePagesHTMLInternet(liste):
+#     """
+#     Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+#     """
+#     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+#     dossierWWW = Parametres["FTPdir"]
+#     if not dossierWWW.endswith("/"):
+#         dossierWWW += "/"
+
+#     try:
+#         # Tentative de connexion via SFTP
+#         print("Tentative de connexion via SFTP...")
+#         transport = paramiko.Transport((Parametres["FTPserveur"], 22))
+#         transport.connect(username=Parametres["FTPlogin"], password=Parametres["FTPmdp"])
+        
+#         sftp = paramiko.SFTPClient.from_transport(transport)
+
+#         # Accepter automatiquement les clés d'hôte non approuvées
+#         known_hosts_path = os.path.expanduser("~/.ssh/known_hosts")
+#         host_key_policy = paramiko.AutoAddPolicy()
+#         ssh = paramiko.SSHClient()
+#         ssh.set_missing_host_key_policy(host_key_policy)
+#         ssh.load_system_host_keys()
+        
+#         # S'assurer que le dossier existe sur le serveur
+#         try:
+#             sftp.chdir(dossierWWW)
+#         except IOError:
+#             print(f"Création du dossier {dossierWWW} sur le serveur SFTP...")
+#             sftp.mkdir(dossierWWW)
+#             sftp.chdir(dossierWWW)
+        
+#         for file in liste:
+#             fichier = os.path.basename(file)
+#             print(f"Transfert de {file} vers {dossierWWW + fichier} via SFTP...")
+#             sftp.put(file, dossierWWW + fichier)
+#             if DEBUG:
+#                 print(f"Dépôt de {file} sur le serveur SFTP effectué.")
+        
+#         sftp.close()
+#         transport.close()
+#         print("Dépôt via SFTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Connexion SFTP échouée : {e}. Tentative avec FTP...")
+
+#     # Si SFTP échoue, basculement vers FTP
+#     try:
+#         with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
+#             ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+#             ftp.cwd(dossierWWW)
+            
+#             for file in liste:
+#                 fichier = os.path.basename(file)
+#                 print(f"Transfert de {file} vers {dossierWWW + fichier} via FTP...")
+#                 with open(file, 'rb') as f:
+#                     ftp.storbinary('STOR ' + fichier, f)
+#                 if DEBUG:
+#                     print(f"Dépôt de {file} sur le serveur FTP effectué.")
+        
+#         print("Dépôt via FTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Erreur lors du dépôt via FTP : {e}")
+#         return False
 
 
 

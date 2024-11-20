@@ -2931,21 +2931,21 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
 
 tagDepotFTPEnCours = False
 
-def depotFTPResultats():
+def depotFTPResultats(initial=False):
     """Dépose les fichiers de résultats sur serveur FTP en initiant un thread"""
     global tagDepotFTPEnCours
     if not tagDepotFTPEnCours :
         tagDepotFTPEnCours = True
         if DEBUG :
             print("Début de dépôt FTP automatique...")
-        mon_thread = Thread(target=depotFTPResultatsSansMessage)
-        mon_thread.start()
+        mon_thread_FTP = Thread(target=depotFTPResultatsSansMessage, kwargs={"initial": initial})
+        mon_thread_FTP.start()
 
-def depotFTPResultatsSansMessage():
+def depotFTPResultatsSansMessage(initial=False):
     """Dépose les résultats sur le serveur FTP sans afficher de message de fin
     Exécuté dans un thread"""
     global tagDepotFTPEnCours
-    ActualiseAffichageInternet()
+    ActualiseAffichageInternet(depotInitial=initial)
     tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
@@ -3687,6 +3687,8 @@ def tempsDesCoureurs():
     GaucheFrameDossards.forget()
     rejouerToutesLesActionsMemorisees()
     calculeTousLesTemps(True)
+    # dépose les pages internet sur le serveur FTP
+    depotFTPResultats(initial=True)
     ## décoche les cases, pourtant il faudrait actualiser les valeurs. actualiseZoneAffichageTV()
     GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)

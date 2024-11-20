@@ -17,7 +17,7 @@ from pathlib import Path
 #import http.server
 from server import *
 import threading
-from threading import Thread
+from threading import Thread, Lock
 import requests
 
 import xlsxwriter # pour les exports excels des résultats
