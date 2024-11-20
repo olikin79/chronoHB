@@ -37,7 +37,7 @@ from FonctionsAssistance import *
 # pour les hash de mise à jour. Exécution unique de update.py
 import hashlib
 
-version="2.0.1"
+version="2.1.1"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -1235,7 +1235,7 @@ class ColorSelector(Frame):
 
         # Création des boutons carrés pour chaque couleur
         for color in self.colors:
-            button = Button(self.frame_colors, bg=color, width=2, height=1, command=lambda c=color: self.select_color(c))
+            button = Button(self.frame_colors, bg=color, width=1, height=1, command=lambda c=color: self.select_color(c))
             button.pack(side=LEFT, padx=0)
 
     def select_color(self, color):
@@ -1248,7 +1248,7 @@ class EntryCourse(Frame):
     def __init__(self, groupement, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         # Liste des couleurs
-        colors = ['white', 'yellow', 'light green', 'pink', 'light blue', 'orange']
+        colors = ['white', 'yellow', 'light green', 'pink', 'light blue', 'orange','#D8BFD8']
         self.groupement = groupement
         self.nomCourse = groupement.nom
         self.distance = self.groupement.distance
@@ -4212,7 +4212,7 @@ class CoureurFrame(Frame) :
                     self.classeE.insert(0, coureur.naissance)
                 else :
                     self.classeE.insert(0, coureur.classe)
-                self.lblCat.configure(text="Catégorie : " + coureur.categorie(Parametres["CategorieDAge"]))
+                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])))
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
