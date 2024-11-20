@@ -831,12 +831,12 @@ def naissanceValide(naissance) :
         correctDate = True
     else :
         try:
-            #print("annee")
+            print("annee")
             annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
-            #print("mois")
+            print("mois")
             mois = naissance[3:5]
             jour = naissance[0:2]
-            correctDate = None
+            correctDate = False
             newDate = datetime.datetime(int(annee),int(mois),int(jour))
             correctDate = True
             #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
@@ -1125,32 +1125,35 @@ class Coureur():#persistent.Persistent):
         except :
             self.VMA = 0
     def setNaissance(self, naissance) :
-        print("setNaissance", naissance,".")
         if naissance != "" :
             result = convertir_nombre_en_date(naissance)
             if naissance != result :
-                print("modif date de naissance fournie en nombre entier depuis 1899", result)
+                print("Date de naissance fournie en nombre entier depuis 1899 (tableur)", result)
                 self.naissance = result
                 self.__private_categorie = None # réinit
             else :
-                print("Autre tentative de décodage de date de naissance ", naissance)
+                # print("Autre tentative de décodage de date de naissance :", naissance)
                 try :
-                    print("Tentative de décodage de date de naissance ", naissance)
+                    # print("Tentative de décodage de date de naissance ", naissance)
                     chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
-                    print("chNaissance",chNaissance)
+                    # print("chNaissance",chNaissance)
                     if naissanceValide(chNaissance) :
                         self.naissance = chNaissance
                         self.__private_categorie = None # réinit
-                        print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
+                        # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
                     else :
                         if len(chNaissance) > 8 :
-                            self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
+                            print("Date de naissance année à 4 chiffres " + chNaissance)
+                            self.naissance = chNaissance[0:2] + "/" + chNaissance[3:5] + "/" + chNaissance[6:10] # on s'assure que c'est bien une date valide correspondant à l'algorithme de naissanceValide() 
+                            # time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
                         else :
+                            print("Date de naissance année à 2 chiffres " + chNaissance)
                             self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
                         self.__private_categorie = None # réinit
                 except :
                     self.naissance = ""
-        print(self.naissance, self.categorie(CategorieDAge))
+        # print(time.strptime("04/03/2011", "%d/%m/%Y").strftime('%d/%m/%Y'))
+        print("Valeur affectée à naissance :",self.naissance)
 
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = str(commentaire)
