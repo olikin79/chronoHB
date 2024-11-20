@@ -4749,7 +4749,7 @@ emailMessageEntry = EntryParam( "emailMessage", "Message à envoyer avec les dip
 
 HTTPSserveurEntry = EntryParam( "HTTPSserveur", "Serveur HTTPS", largeur=50, parent=FTPFrame)
 FTPserveurFrame= Frame(FTPFrame)
-FTPserveurEntry = EntryParam( "FTPserveur", "Serveur FTP", largeur=50, parent=FTPserveurFrame)
+FTPserveurEntry = EntryParam( "FTPserveur", "Serveur SFTP (ou FTP)", largeur=50, parent=FTPserveurFrame)
 FTPdirEntry = EntryParam( "FTPdir", "Répertoire FTP", largeur=20, parent=FTPserveurFrame)
 FTPidentifiantsFrame = Frame(FTPFrame)
 FTPloginEntry = EntryParam( "FTPlogin", "Login FTP", largeur=20, parent=FTPidentifiantsFrame)
