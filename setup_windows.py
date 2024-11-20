@@ -8,7 +8,7 @@ build_exe_options = {
     "includes": ["tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
         "idlelib.tooltip", "pprint", "cgi", "requests", "importlib", "hashlib", "CameraMotionDetection", "functools", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
-        "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet"],
+        "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko"],
     "include_files": ["favicon.ico","create_shortcuts.py", \
         "CameraMotionDetection.py", "FonctionsAssistance.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py", "jquery-3.6.0.js", \
         "LICENSE", "mystyle.css", "mystyle_mode-sombre.css", "mystyleWeb.css", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
