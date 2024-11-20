@@ -31,7 +31,6 @@ Travail du 18/11/24 :
 - ouverture d'un fichier sous windows via les associations de fichiers.
 - ajout de l'icone au MSI généré.
 
-
 Travail du 06/11/24 :
 - correctif bug envoi des diplômes (type de variable incorrect dans une comparaison).
 - correctif : tri possible dans l'interface (cela se remettait tout seul dans l'ordre des temps d'arrivée).
