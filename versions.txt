@@ -1,15 +1,36 @@
 A venir :
-- fichier de sauvegarde contenant tout zippé.
-- en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
-- en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
+- fichier de sauvegarde contenant tout zippé. OK
+- (à vérifier) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
+- (à vérifier) en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
-Après cross :
-- faire une sauvegarde régulière de Cours.db (pas seulement à la fermeture).
+
+Après cross  2024 :
+- faire une sauvegarde régulière de Course.db (pas seulement à la fermeture).
 - vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
+- déplacer les fichiers générés dans mes documents ou dossier %TMP% : diplomes, dossards, resultats.
+- enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
+- vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
+- alignement des boites de gauche dans paramètres des courses.
 
+
+Avant le cross départemental :
+- renommer index-en-ligne.html en index.html. (Plus logique)
+- les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
+quand on effectuer quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
+- transférer les images de www/media automatiquement si absentes.
+
+
+Travail du 20/11/24 :
+- envoi sur serveur SFTP (par défaut) et FTP 
+- correction bug date de naissance non importée.
+- Ajout de paramiko pour serveur SFTP dans setup.py
 
 Travail du 18/11/24 :
 - limitation du nombre d'erreurs en cours affichées : 10 maximum (même pour un grand écran).
+- préparatifs création d'un msi pour distribuer le programme.
+- ouverture d'un fichier sous windows via les associations de fichiers.
+- ajout de l'icone au MSI généré.
+
 
 Travail du 06/11/24 :
 - correctif bug envoi des diplômes (type de variable incorrect dans une comparaison).
