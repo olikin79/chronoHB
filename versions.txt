@@ -17,13 +17,15 @@ Avant le cross départemental :
 - renommer index-en-ligne.html en index.html. (Plus logique)
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
 quand on effectuer quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
-- transférer les images de www/media automatiquement si absentes.
+
 
 
 Travail du 20/11/24 :
-- envoi sur serveur SFTP (par défaut) et FTP 
+- envoi sur serveur SFTP désormais possible (par défaut) et FTP 
 - correction bug date de naissance non importée.
 - Ajout de paramiko pour serveur SFTP dans setup.py
+- transfert des images de www/media automatiquement, du fichier js et des fichiers css si absents.
+
 
 Travail du 18/11/24 :
 - limitation du nombre d'erreurs en cours affichées : 10 maximum (même pour un grand écran).
