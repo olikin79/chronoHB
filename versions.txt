@@ -14,7 +14,6 @@ Après cross  2024 :
 
 
 Avant le cross départemental :
-- renommer index-en-ligne.html en index.html. (Plus logique)
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
 quand on effectuer quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
 
@@ -25,7 +24,7 @@ Travail du 20/11/24 :
 - correction bug date de naissance non importée.
 - Ajout de paramiko pour serveur SFTP dans setup.py
 - transfert des images de www/media automatiquement, du fichier js et des fichiers css si absents.
-
+- renommage de index-en-ligne.html en index.html. (Plus logique pour afficher sur un site web standard sans préciser le fichier)
 
 Travail du 18/11/24 :
 - limitation du nombre d'erreurs en cours affichées : 10 maximum (même pour un grand écran).

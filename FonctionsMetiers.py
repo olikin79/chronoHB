@@ -6187,7 +6187,7 @@ def genereAffichageWWW(listeDesGroupements) :
     ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
     contenu = contenu.replace("@@onglets@@",onglets).replace("@@dureesActualisation@@", str(dureesActualisation))\
               .replace("@@heuresDeparts@@",str(heuresDeparts)).replace("@@timerID@@",str(timerID))
-    fichierIndex = "./www/index-en-ligne.html"
+    fichierIndex = "./www/index.html"
     with open(fichierIndex,"w", encoding='utf8') as f :
         f.write(contenu)
     f.close()
