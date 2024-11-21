@@ -1860,7 +1860,7 @@ def chargerDonnees() :
         Parametres["lieu"]="Stade Mirandol"
     lieu=Parametres["lieu"]
     if not "messageDefaut" in Parametres :
-        Parametres["messageDefaut"]="<prenom> de <classe>. Pour éla, merci beaucoup !"
+        Parametres["messageDefaut"]="<prenom>, bravo !"
     messageDefaut=Parametres["messageDefaut"]
     if not "cheminSauvegardeUSB" in Parametres :
         Parametres["cheminSauvegardeUSB"]="N:"
@@ -1923,13 +1923,13 @@ def chargerDonnees() :
         Parametres["FTPmdp"] = "mdp"
     FTPmdp=Parametres["FTPmdp"]
     if not "HTTPSserveur" in Parametres :
-        Parametres["HTTPSserveur"] = "marielleetolivier2.synology.me"
+        Parametres["HTTPSserveur"] = "https://monserveur.fr/dossierExportResultatsTempsReel"
     HTTPSserveur=Parametres["HTTPSserveur"]
     if not "FTPserveur" in Parametres :
-        Parametres["FTPserveur"] = "marielleetolivier2.synology.me"
+        Parametres["FTPserveur"] = "monserveur.fr"
     FTPserveur=Parametres["FTPserveur"]
     if not "FTPdir" in Parametres :
-        Parametres["FTPdir"] = "/"
+        Parametres["FTPdir"] = "dossierExportResultatsTempsReel"
     FTPdir=Parametres["FTPdir"]
     if not "email" in Parametres :
         Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com;chronoHB3@gmail.com"
@@ -1946,7 +1946,7 @@ def chargerDonnees() :
     if not "emailMessage" in Parametres :
         Parametres["emailMessage"] = """<h1>Bravo pour ta participation !</h1>
 <a href="<urlresultats>">Lien vers tous les résultats.</a>
-<p>Voici ton diplôme <i>(réalisé par Théo et Alessio)</i> :</p>
+<p>Voici ton diplôme <i></i> :</p>
 <img src="<diplome>" width=100%><br>"""
     emailMessage=Parametres["emailMessage"]
     if not "emailMessageObjet" in Parametres :
