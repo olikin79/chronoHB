@@ -952,9 +952,9 @@ class Coureur():#persistent.Persistent):
         #if not Parametres["CoursesManuelles"] :
         # if "217" in self.dossard : 
         #     print("catégorie", self.__private_categorie, self.course, self.etablissement, self.etablissementNature)
-        print(self.__private_categorie)
-        print("naissance",self.naissance)
-        print("categorieAthletisme(",self.naissance[6:], self.etablissementNature,")",categorieAthletisme(self.naissance[6:], etablissementNature = self.etablissementNature))
+        # print(self.__private_categorie)
+        # print("naissance",self.naissance)
+        # print("categorieAthletisme(",self.naissance[6:], self.etablissementNature,")",categorieAthletisme(self.naissance[6:], etablissementNature = self.etablissementNature))
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
