@@ -51,8 +51,40 @@ if not os.path.exists(LOGDIR) :
 CoureursParClasse = {}
 
 #### DEBUG
-DEBUG = True
+DEBUG = False
+if os.path.exists("../DEBUG.txt") :
+    DEBUG = True 
 
+
+# Détecter l'OS et si c'est windows, si c'est une app distribué ou un script python exécuté.
+import platform
+
+def is_frozen():
+    return getattr(sys, 'frozen', False)
+
+
+is_app = ".app/" in sys.executable
+if is_app :
+    print("c'est une app mac os : '.app/' in " + sys.executable + " == True")
+    # Remonter d'un cran dans l'arborescence pour le dossier racine dans lequel est l'app"
+    dossierRacineApp = os.path.abspath(os.path.join(os.path.dirname(sys.executable), "..", "/"))
+else :
+    print("ce n'est pas une application Mac OS : " + sys.executable + " ne contient pas .app/")
+    if platform.system() == "Windows":
+        print("OS windows détecté")
+        if is_frozen():
+            print("Le script s'exécute dans un exécutable cx_Freeze.")
+            dossierRacineApp = os.path.dirname(sys.executable)
+        else:
+            print("Le script s'exécute dans l'interpréteur Python.")
+            dossierRacineApp = os.path.dirname(__file__)
+    else :
+        print("OS non windows détecté")
+        dossierRacineApp = os.path.dirname(__file__)
+print("dossierRacineApp=", dossierRacineApp)
+
+
+## LOGS de l'application.
 def LOGstandards():
     ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
     if not DEBUG : 
