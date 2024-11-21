@@ -22,7 +22,8 @@ Travail du 21/11/24 :
 - icone correctement affichée après installation du MSI.
 - suppression de la dépendance importlib devenue inutile.
 - Détecter l'OS et si c'est windows, si c'est une app distribué ou un script python exécuté.
-- Mode DEBUG=False automatique si application distribuée dans une app mac os ou msi windows.
+- Mode DEBUG=False automatique si application exécutée sur mon ordi; false sinon.
+- Fonctionnalité de détection de l'OS et du caractère exporté (msi ou app mac os)
 
 Travail du 20/11/24 :
 - envoi sur serveur SFTP désormais possible (par défaut) et FTP 
