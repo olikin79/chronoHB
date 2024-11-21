@@ -10,10 +10,10 @@ build_exe_options = {
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko"],
     "include_files": ["favicon.ico","create_shortcuts.py", \
-        "CameraMotionDetection.py", "FonctionsAssistance.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py", "jquery-3.6.0.js", \
-        "LICENSE", "mystyle.css", "mystyle_mode-sombre.css", "mystyleWeb.css", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
+        "CameraMotionDetection.py", "FonctionsAssistance.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
+        "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
         "server.py", "Videos.html", \
-        "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "texlive", "www"]
+        "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www"]# , "texlive"
 }
 
 # build_mac_options = { "iconfile": "Icon.icns",
@@ -26,8 +26,8 @@ directory_table = [
 
 msi_data = {
     "Shortcut": [
-                ("DesktopShortcut", "DesktopFolder", "ChronoHB", "TARGETDIR", "[TARGETDIR]ChronoHB.exe", None, "favicon.ico", None, None, None, None, 'TARGETDIR'),
-                ("StartMenuShortcut", "ProgramMenuFolder", "ChronoHB", "TARGETDIR", "[TARGETDIR]ChronoHB.exe", None, "favicon.ico", None, None, None, None, 'TARGETDIR')
+                ("DesktopShortcut", "DesktopFolder", "ChronoHB", "TARGETDIR", "[TARGETDIR]ChronoHB.exe", None, "IconId", None, None, None, None, 'TARGETDIR'),
+                ("StartMenuShortcut", "ProgramMenuFolder", "ChronoHB", "TARGETDIR", "[TARGETDIR]ChronoHB.exe", None, "IconId", None, None, None, None, 'TARGETDIR')
     ],
     "Directory": directory_table,
     "ProgId": [
@@ -60,5 +60,5 @@ setup(
     description="Chronométrage de courses",
     options={"build_exe": build_exe_options,
              "bdist_msi": build_msi_options},
-    executables=[Executable("chronoHB.pyw", base="gui", target_name='chronoHB', copyright="Copyright (C) 2024 chronoHB")],
+    executables=[Executable("chronoHB.pyw", base="gui", target_name='chronoHB', copyright="Copyright (C) 2024 chronoHB",icon="favicon.ico")],
 )
