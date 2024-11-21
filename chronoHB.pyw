@@ -26,11 +26,15 @@ import cgi # pour auto-py-to-exe et Arrivee.py qui n'est pas pris en compte.
 
 # pour les MAJ
 # superflu from tqdm import tqdm
-import requests,importlib
+import requests #,importlib
 # bibliothèque personnelle qui sera téléchargée pour mise à jour.
-sys.path.append('maj')
+# sys.path.append('maj')
 #importlib.import_module('maj')
-from maj import *
+
+# OBSOLETE
+# from maj import *
+
+
 from FonctionsAssistance import *
 #import git
 

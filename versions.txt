@@ -17,7 +17,10 @@ Avant le cross départemental :
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
 quand on effectuer quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
 
-
+Travail du 21/11/24 :
+- suppression de "from maj import *" problématique avec cx_freeze.
+- icone correctement affichée après installation du MSI.
+- suppression de la dépendance importlib devenue inutile.
 
 Travail du 20/11/24 :
 - envoi sur serveur SFTP désormais possible (par défaut) et FTP 
