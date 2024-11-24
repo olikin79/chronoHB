@@ -3576,7 +3576,7 @@ def fichier_cree_aujourdhui(filepath):
     # Retourne True si la date de modification est aujourd'hui, sinon False
     return date_modification == date_aujourdhui
 
-def generateImpressions() :
+def generateImpressions(uniquementCoursesEtChallenge = False) :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
     #print("Resultats avant impressions", ResultatsPourImpressions)
     #print("Courses",Courses)
@@ -3698,10 +3698,14 @@ def generateImpressions() :
                 nomFichier = classe.replace(" ","_").replace("__","_")
                 if ArrDispAbsAbandon[8] :
                     if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
-                        with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                            f.write(contenu)
-                            f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                        f.close()
+                        # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
+                        # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
+                        print("coursesmanuelles", CoursesManuelles)
+                        if not uniquementCoursesEtChallenge or CoursesManuelles==1 :
+                            with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                                f.write(contenu)
+                                f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                            f.close()
                     # alimentation des statistiques
                     listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
                     effTot = sum(ArrDispAbsAbandon[:-1])

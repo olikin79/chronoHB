@@ -3071,12 +3071,16 @@ def selectionner_fichiers_popup(root, debuts, dossier="impressions"):
     popup.mainloop()
 
 # Fonction pour créer le popup "Veuillez patienter" et lancer la tâche donnée
-def ouvrir_popup_patienter(tache):
+def ouvrir_popup_patienter(tache, callback=None):
     popup = Toplevel(root)
     popup.title("Veuillez patienter...")
     popup.geometry("400x200")
     
-    label = Label(popup, text="Veuillez patienter...\nVous pouvez fermer cette fenêtre sans risque si besoin.\nLe traitement se poursuivra en arrière plan.", font=("Arial", 12))
+    label = Label(
+        popup, 
+        text="Veuillez patienter...\nVous pouvez fermer cette fenêtre sans risque si besoin.\nLe traitement se poursuivra en arrière plan.",
+        font=("Arial", 12)
+    )
     label.pack(pady=20)
     
     # Lancer la tâche dans un thread
@@ -3088,12 +3092,39 @@ def ouvrir_popup_patienter(tache):
         if thread.is_alive():
             root.after(100, verifier_si_termine)  # Vérifier encore après 100ms
         else:
-            popup.destroy()  # Fermer le popup lorsque le thread est terminé
-            print("Popup fermé")
+            # Appeler le callback lorsque le thread est terminé
+            if callback:
+                callback()
+            popup.destroy()  # Fermer le popup (si ce n'est pas déjà fait)
 
     # Lancer la vérification périodique
     verifier_si_termine()
+
+    # Retourner le popup (facultatif)
     return popup
+# def ouvrir_popup_patienter(tache):
+#     popup = Toplevel(root)
+#     popup.title("Veuillez patienter...")
+#     popup.geometry("400x200")
+    
+#     label = Label(popup, text="Veuillez patienter...\nVous pouvez fermer cette fenêtre sans risque si besoin.\nLe traitement se poursuivra en arrière plan.", font=("Arial", 12))
+#     label.pack(pady=20)
+    
+#     # Lancer la tâche dans un thread
+#     thread = threading.Thread(target=tache)
+#     thread.start()
+
+#     # Fonction pour vérifier l'état du thread
+#     def verifier_si_termine():
+#         if thread.is_alive():
+#             root.after(100, verifier_si_termine)  # Vérifier encore après 100ms
+#         else:
+#             popup.destroy()  # Fermer le popup lorsque le thread est terminé
+#             print("Popup fermé")
+
+#     # Lancer la vérification périodique
+#     verifier_si_termine()
+#     return popup
 
 # timer 
 class Clock():
@@ -3578,11 +3609,25 @@ def generateResultatsArrierePlan():
     #     mon_threadbis.start()
     ouvrir_popup_patienter(generateResultatsMessage)
 
+# def generateImpressionsArrierePlan():
+#     # creation des fichiers à imprimer
+#     popup = ouvrir_popup_patienter(generateImpressions)
+#     root.wait_window(popup)
+#     affichagePopupPourImpressionRapide()
 def generateImpressionsArrierePlan():
-    # creation des fichiers à imprimer
-    popup = ouvrir_popup_patienter(generateImpressions)
-    root.wait_window(popup)
-    affichagePopupPourImpressionRapide()
+    def on_thread_finished():
+        affichagePopupPourImpressionRapide()  # Appeler cette fonction uniquement après que le thread est terminé
+    # Créer la tâche avec un argument
+    tache = lambda: generateImpressions(uniquementCoursesEtChallenge=True)
+    # Passer cette tâche à `ouvrir_popup_patienter`
+    ouvrir_popup_patienter(tache, callback=on_thread_finished)
+
+# def generateImpressionsArrierePlan():
+#     def on_thread_finished():
+#         affichagePopupPourImpressionRapide()  # Appeler cette fonction uniquement après que le thread est terminé
+#     # Créer le popup avec le thread et le callback
+#     ouvrir_popup_patienter(generateImpressions, callback=on_thread_finished)
+#     # uniquementCoursesEtChallenge = True
 
 
 def affichagePopupPourImpressionRapide() : 
