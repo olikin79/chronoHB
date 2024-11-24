@@ -28,6 +28,8 @@ Travail du 24/11/24 :
 - ajout d'espaces insécables dans les challenges pour une plus belle présentation : nom~prénom~(classement)
 - sécurisation de la fonction effectuant le tri des impressions à regénérer dans le cas où la catégorie n'existerait pas dans les deux sexes.
 - impression rapide des résultats plus rapide : on ne compile plus les résultats par classe (cross établissement) ou par établissement (cross UNSS).
+- correctif quand on fermait la fenêtre de l'impression rapide, on n'obtenait pas tous les résultats si le thread n'avait pas terminé. Corrigé.
+
 
 Travail du 21/11/24 :
 - suppression de "from maj import *" problématique avec cx_freeze.

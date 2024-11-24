@@ -6253,8 +6253,8 @@ def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else :
-        print("Coucou temp ",groupement)
-        if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
+        # print("Coucou temp ",groupement)
+        if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True) and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
             c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
             #print("TEST HTML :",c.label, c.temps)
             if c.temps :
