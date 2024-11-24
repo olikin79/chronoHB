@@ -3,6 +3,9 @@ A venir :
 - (à vérifier) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
 - (à vérifier) en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
+Avant diffusion plus large :
+- permettre le dépôt de diplomes personnalisés dans un dossier ~/Documents/chronoHB/diplomes.
+
 
 Après cross  2024 :
 - faire une sauvegarde régulière de Course.db (pas seulement à la fermeture).
@@ -11,11 +14,19 @@ Après cross  2024 :
 - enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
 - vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
 - alignement des boites de gauche dans paramètres des courses.
+- afficher les diplomes non encore envoyés.
+- voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
 
 
 Avant le cross départemental :
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
-quand on effectuer quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
+quand on effectue quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
+
+
+Travail du 24/11/24 :
+- challenge au format portrait pour impressions rapides efficaces.
+- ajout d'espaces insécables dans les challenges pour une plus belle présentation : nom~prénom~(classement)
+
 
 Travail du 21/11/24 :
 - suppression de "from maj import *" problématique avec cx_freeze.

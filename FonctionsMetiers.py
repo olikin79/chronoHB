@@ -6241,6 +6241,7 @@ def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else :
+        print("Coucou temp ",groupement)
         if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
             c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
             #print("TEST HTML :",c.label, c.temps)
@@ -6368,7 +6369,7 @@ def creerFichierChallenge(challenge, entete):
         chaineSub = "Classe"
     tableau = """
 \\begin{center}
-\\begin{longtable}{| p{2cm} | p{2cm} | p{18cm} | p{2cm} |}
+\\begin{longtable}{| p{1.5cm} | p{1.5cm} | p{10.5cm} | p{1.5cm} |}
 \\hline
 {}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{@classe@} \\hfill {} & {}\\hfill \\textbf{Détail :} \ldots Prénom Nom (rang à l'arrivée) \ldots \\hfill {} & {}\\hfill \\textbf{Total} \\hfill{} \\\\
 \\hline
@@ -6610,7 +6611,7 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
             retour += "</p><p>"
             i = 0
         #print("coureur", coureur.nom, coureur.prenom)
-        retour += coureur.nom + " " + coureur.prenom  + " ("
+        retour += coureur.nom + "~" + coureur.prenom  + "~("
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
             retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
         else :
