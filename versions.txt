@@ -26,7 +26,7 @@ quand on effectue quelques actions à trouver dans les paramètres. Reconstructi
 Travail du 24/11/24 :
 - challenge au format portrait pour impressions rapides efficaces.
 - ajout d'espaces insécables dans les challenges pour une plus belle présentation : nom~prénom~(classement)
-
+- sécurisation de la fonction effectuant le tri des impressions à regénérer dans le cas où la catégorie n'existerait pas dans les deux sexes.
 
 Travail du 21/11/24 :
 - suppression de "from maj import *" problématique avec cx_freeze.

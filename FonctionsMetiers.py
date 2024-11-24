@@ -3623,7 +3623,15 @@ def generateImpressions() :
         if nomFichierPdfDecoupe[0] == "Classe" :
             catG = nomFichierPdfDecoupe[1][0] + "-G"
             catF = nomFichierPdfDecoupe[1][0] + "-F"
-            aSupprimer = Courses[catG].aRegenererPourImpression or Courses[catF].aRegenererPourImpression
+            if catG in Courses.keys() :
+                aSupprimerG = Courses[catG].aRegenererPourImpression
+            else :
+                aSupprimerG = False
+            if catF in Courses.keys() :
+                aSupprimerF = Courses[catF].aRegenererPourImpression
+            else :
+                aSupprimerF = False
+            aSupprimer = aSupprimerG or aSupprimerF
         else :
             aSupprimer = False
         try :
