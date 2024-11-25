@@ -4749,16 +4749,18 @@ cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuel
 
 ### choix de génération de documents qui apparaissent pour tous les types de courses.
 def choixQRCodesListing():
-    if cbCMgenerer.get() :
+    if cbgenererListingQRCodes.get() :
         Parametres["genererListingQRcodes"]=True
     else :
         Parametres["genererListingQRcodes"]=False
+    print("Case à cocher générer listing QR-codes :", Parametres["genererListingQRcodes"])
 
 def choixListing():
-    if cbCMgenerer.get() :
+    if cbgenererListing.get() :
         Parametres["genererListing"]=True
     else :
         Parametres["genererListing"]=False
+    print("Case à cocher générer listing noms :", Parametres["genererListing"], "cbCMgenerer.get()", cbgenererListing.get())
 
 cbgenererListing = BooleanVar()
 cbgenererListingQRCodes = BooleanVar()
