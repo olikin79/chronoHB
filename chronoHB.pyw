@@ -5260,10 +5260,15 @@ def envoi_demande_assistance():
     if rep:
         # Créer un fichier zip de la dernière sauvegarde de la course
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        listeFichiersJoints=[]
         nomFichierCopie = "db" + os.sep + "Course_"+ date + "-lors-demande-assistance.chb"
         ecrire_sauvegardeNG(nomFichierCopie, avecVideos=False, avecLogs=True)
+        listeFichiersJoints.append(nomFichierCopie)
         # Appel de la fonction pour envoyer l'e-mail avec la pièce jointe
-        envoi_email_assistance(nomFichierCopie)
+        # Pour chaque fichier du dossier logs, on l'ajoute à la liste des fichiers joints
+        for fichier in os.listdir("logs"):
+            listeFichiersJoints.append("logs" + os.sep + fichier)
+        envoi_email_assistance(listeFichiersJoints)
         # Supprimer le fichier zip
         os.remove(nomFichierCopie)
         # Informer l'utilisateur de l'envoi

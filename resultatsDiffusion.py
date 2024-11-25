@@ -264,8 +264,8 @@ def recupererMDP() :
     return password
 
 
-def envoi_email_assistance(fichier_joint):
-    ''' Fonction pour envoyer un email d'assistance avec le fichier joint '''
+def envoi_email_assistance(fichiers_joint):
+    ''' Fonction pour envoyer un email d'assistance avec les fichiers joints '''
     # Paramètres de l'envoi
     destinataire = "lax.olivier@gmail.com"
     sujet = "Demande d'assistance chronoHB"
@@ -283,7 +283,7 @@ def envoi_email_assistance(fichier_joint):
             receivers=[destinataire],
             subject=sujet,
             html=message,
-            attachments=[fichier_joint]
+            attachments=fichiers_joint
             )
         #     print("Email d'assistance envoyé avec succès.")
         # except:
