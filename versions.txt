@@ -25,7 +25,7 @@ quand on effectue quelques actions à trouver dans les paramètres. Reconstructi
 Travail du 25/11/24 :
 - Ajout de tous les fichiers log à la demande d'assistance.
 - Correctif case à cocher non fonctionnelle (pour générer le listing noms-dossards).
-
+- Adaptation pour challenge UNSS règles 2024.
 
 Travail du 24/11/24 :
 - challenge au format portrait pour impressions rapides efficaces.
