@@ -276,13 +276,15 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
 
 #### catégories d'athlétisme
 
-def categorieAthletisme(anneeNaissance, etablissementNature = "") :
+def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLAnnee = False) :
     # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
     # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
     # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
+    # PrecisionSurLAnne permet de retourner des catégories comme JU2 ou JU1 pour le cas où on en a besoin. (Challenge UNSS)
+    # PAr défaut le programme retourne des catégories comme BE, MI, CA, JU sans la précision sur l'année.
     categorie = ""
     if CategorieDAge :
-        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
+        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU2" ], [2005, "JU1" ], [2006, "CA2" ], [2007, "CA1" ], [2008, "MI2" ], [2009, "MI1" ], [2010, "BE2" ], [2011, "BE1" ], [2012, "PO3" ],  [2013, "PO2" ],  [2014, "PO1" ], [2015, "EA" ], [3000, "BB" ]]
         try :
             anneeNaissance = int(anneeNaissance)
             currentDateTime = datetime.datetime.now()
@@ -301,16 +303,24 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "") :
                     categorie = correspondanceAnneeCategories[i][1]
                 i += 1
             # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
-            if Parametres["CategorieDAge"] == 2 :
-                if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
-                    categorie = "MI"
-                elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
-                    categorie = "CA"
-                elif Parametres["crossUNSScollegeLycee"] and categorie == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
-                    categorie = "BE"
+            if not precisionSurLAnnee :
+                # si on ne demande pas de précision sur l'année, c'est uniquement pour savoir qui coure où en UNSS
+                # Ainsi, les collégiens courent avec les collégiens et inversement. On modifie artificiellement leur catégorie pour déterminer la course
+                # par contre, en cas de demande de précision sur l'année (calcul du challenge UNSS), on ne modifie pas la catégorie réelle.
+                if Parametres["CategorieDAge"] == 2 :
+                    if etablissementNature == "CLG" and categorie[:2] == "CA" : # le cadet a redoublé
+                        categorie = "MI"
+                    elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
+                        categorie = "CA"
+                    elif Parametres["crossUNSScollegeLycee"] and categorie == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                        categorie = "BE"
             # return categorie
         except :
             print("argument fourni incorrect : pas au format nombre entier")
+    if not precisionSurLAnnee :
+        # on ne garde que deux caractère pour la catégorie sauf pour les M10, qui comportent 3 caractères et doivent les conserver
+        if categorie != "M10" :
+            categorie = categorie[:2]
     return categorie
 
 # enregistre les données de sauvegarde
@@ -1049,8 +1059,8 @@ class Coureur():#persistent.Persistent):
                 self.emailNombreDEnvois2 = 1
             else :
                 self.emailNombreDEnvois2 = 0
-    def categorieFFA(self) :
-        return categorieAthletisme(self.naissance[6:])
+    def categorieFFA(self, precisionSurLAnnee=False) :
+        return categorieAthletisme(self.naissance[6:], precisionSurLAnnee=precisionSurLAnnee)
     def scoreUNSSFormate(self, avecVirgule = True) :
         if int(self.scoreUNSS) == self.scoreUNSS : # scoreUNSS est un entier au type float.
             retour = str(int(self.scoreUNSS))
@@ -4325,13 +4335,17 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"], dictrangsDSDEN=dictrangsDSDEN)
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
-    #print("nom cat-etab",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
+    print("Challenge UNSS",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
     nbreDeCoureursNecessairesParEquipe = 5
     tousLesGars = []
     toutesLesFilles = []
     listeFSelect = []
     listeGSelect = []
-    unCoureurCategorieLimiteDejaSelectionne = False
+    ### permettait de ne sélectionner qu'un seul coureur par categoriesLimitees dans chaque équipe constituée.
+    ### Après 2024, les catégories autorisées le sont pleinement ou pas. 
+    ### En basculant à True, le script actuel interdit de fait toutes les categoriesLimitees
+    ### A réactiver si besoin en remettant True.
+    unCoureurCategorieLimiteDejaSelectionne = True
     complet = False
     listeDesEquipes = []
     # on sépare les filles des garçons dans listeCG et listeCF.
@@ -4344,16 +4358,21 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
             nbreDeFillesNecessairesParEquipe = 0
             nbreDeGarsNecessairesParEquipe = 0
             nbreMaxdUnSexe = 5
+            # En 2024, les lycées pro autorisent toutes les catégories d'âges, y compris séniors, sans mixité.
             categoriesLimitees = []# [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
         else :
             nbreDeFillesNecessairesParEquipe = 2
             nbreDeGarsNecessairesParEquipe = 2
             if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
                 nbreMaxdUnSexe = 3
-                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+                # En 2024, les lycées LGT autorisent toutes les catégories d'âges, de MI2 jusqu'à JU2 maximum, avec mixité obligatoire.
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "MI1", "BE2", "BE1", "PO3", "PO2", "PO1" ]
             else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
                 nbreMaxdUnSexe = 3
-                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
+                # En 2024, les collèges, courses Minimes autorisent toutes les catégories d'âges, de MI1 jusqu'à CA1 maximum, avec mixité obligatoire.
+                # En 2024, les collèges, courses Benjamins autorisent toutes les catégories d'âges, jusqu'à B2 maximum, avec mixité obligatoire.
+                # Ce dernier critère est automatique puisque les minimes de collège qui ont redoublé ne courent pas avec les benjamins.
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA2" ]
         i = 0
         ### parcours de la liste ordonnée fournie pour la séparer par sexe
         while i < len(listeOrdonneeParScoreDesDossardsDeLaClasse):
@@ -4438,7 +4457,7 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
         retour = None
         i = 0
         for c in listeDeCoureurs :
-            if not c.categorieFFA() in categoriesInterdites :
+            if not c.categorieFFA(precisionSurLAnnee=True) in categoriesInterdites :
                 retour = i
                 break
             i += 1
@@ -4523,7 +4542,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 Resultats[cat].append(doss)
             ResultatsPourImpressions[cat].append(doss)
         elif Parametres["CategorieDAge"] == 2 :
-            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # cas du challenge UNSS lycée qui mélange tous les lycéens !
+            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : 
+                # cas du challenge UNSS lycée qui mélange tous les lycéens !
                 ### cas particulier du challenge UNSS : on ajoute les résultats des LP et des LG même s'il n'y a aucun coureur.
                 ### Trop galère de tout changer sachant que les challenges ne correspondent pas à des catégories d'athlétisme du logiciel
                 if "LP-"  + str(etab) not in Resultats :
