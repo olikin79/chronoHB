@@ -3029,6 +3029,8 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
                 retour += "\\newpage\n" # le newpage est ignoré par latex en début de document. Chouette.
                 listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurPrecedente])
                 totalCouleurActuelle = 0
+            if not premierParcours and totalCouleurActuelle % 2 == 0 : # le nombre de dossards est pair.
+                retour += "\\newpage\n"
             totalCouleurActuelle += 1
             couleurPrecedente = couleurActuelle
             groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
