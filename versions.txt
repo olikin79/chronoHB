@@ -22,6 +22,12 @@ Avant le cross départemental :
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
 quand on effectue quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
 
+
+Travail du 26/11/24 :
+- A chaque import, on dump les données vers le disque pour ne pas avoir de perte en cas de plantage de l'application.
+- correctif marges d'impression des dossards UNSS (en bas de page)
+- correctif nombre de pages à imprimer mal arrondi pour les dossards de dernière minute.
+
 Travail du 25/11/24 :
 - Ajout de tous les fichiers log à la demande d'assistance.
 - Correctif case à cocher non fonctionnelle (pour générer le listing noms-dossards).
