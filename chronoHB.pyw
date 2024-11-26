@@ -2497,7 +2497,7 @@ def actualiseHeureActuelle():
 def actualiseIPActuelle():
     lblIPActuelle.configure(text="Adr. IP : " + extract_ip())
     # actualisation de l'IP toutes les minutes
-    defilementEtHeureFrame.after(60000, actualiseIPActuelle)
+    defilementEtHeureFrame.after(30000, actualiseIPActuelle)
 
 ##print(time.localtime())
 ##print(time.strftime("%H:%M:%S", time.localtime()))
@@ -3246,6 +3246,8 @@ class Clock():
         if self.auMoinsUnImport :
             self.auMoinsUnImportPourSauvegarde = True
             # permet d'effectuer une sauvegarde après toute modif, au plus tard 1 min plus tard. Du coup, dans tous les cas, la dernière sauvegarde contient toutes les données nouvelles...
+            # A chaque import, on dump les données vers le disque pour ne pas avoir de perte en casde plantage de l'application.
+            dump_sauvegarde()
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImportPourSauvegarde : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             destination = "db"
@@ -4288,7 +4290,7 @@ class CoureurFrame(Frame) :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = str(self.choixDossardCombo.get())
             print("dossard:",doss)
-            if doss : # la combobox n'est pas vide 
+            if doss : # la combobox n'est pas vide   
                 coureur = Coureurs.recuperer(doss)
                 print("licence", coureur.licence)
                 self.nomE.insert(0, coureur.nom)
@@ -4297,7 +4299,7 @@ class CoureurFrame(Frame) :
                     self.classeE.insert(0, coureur.naissance)
                 else :
                     self.classeE.insert(0, coureur.classe)
-                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])))
+                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])) + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + ")")
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
@@ -4430,8 +4432,9 @@ class CoureurFrame(Frame) :
             if Parametres["CoursesManuelles"] :
                 self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
             else :
-                self.lblCat.configure(text="Catégorie : " + resultat, fg='black')
-            self.lblCat.configure(text="Catégorie : " + resultat)
+                coureur = Coureurs.recuperer(str(self.choixDossardCombo.get()))
+                self.lblCat.configure(text="Catégorie : " + resultat + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + ")", fg='black')
+            # self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
                 ## on autorise la validation uniquement si la catégorie est correcte et si le nom et le prénom sont saisis
