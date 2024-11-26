@@ -293,7 +293,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
             if currentDateTime.month > 8 :
                 #changement d'année sportive au premier septembre.
                 year += 1
-            ecart2022 = year - 2022
+            ecart2022 = year - 2023
             anneeCherchee = anneeNaissance - ecart2022
             i = 0
             continuer = True
@@ -945,7 +945,7 @@ class Coureur():#persistent.Persistent):
 
 
 
-    def categorie(self, CategorieDAge=0):
+    def categorie(self, CategorieDAge=0, precisionSurLAnnee=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
         except:
@@ -964,7 +964,6 @@ class Coureur():#persistent.Persistent):
         #     print("catégorie", self.__private_categorie, self.course, self.etablissement, self.etablissementNature)
         # print(self.__private_categorie)
         # print("naissance",self.naissance)
-        # print("categorieAthletisme(",self.naissance[6:], self.etablissementNature,")",categorieAthletisme(self.naissance[6:], etablissementNature = self.etablissementNature))
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
@@ -972,7 +971,7 @@ class Coureur():#persistent.Persistent):
                     if CategorieDAge == 2 : ## UNSS
                             ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
                             ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
-                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
+                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature, precisionSurLAnnee=precisionSurLAnnee)
                         ### INUTILE car FAIT DANS categorieAthletisme :
                         # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
                         #     cat = "MI"
@@ -4431,7 +4430,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
             # le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
              #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
              #    print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(),"mais de catégorie réelle", coureurSelectionne.categorieFFA())
-             if coureurSelectionne.categorieFFA() in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
+             if coureurSelectionne.categorieFFA(precisionSurLAnnee=True) in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
                  #print(coureurSelectionne.nom, " est de catégorie réelle", coureurSelectionne.categorieFFA()," et court avec des élèves de catégorie inférieure. On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
                  unCoureurCategorieLimiteDejaSelectionne = True
             # on alimente l'équipe avec celui sélectionné.
@@ -4443,7 +4442,8 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
                 # si une équipe est complète, on réinitialise les variables.
                  #print("Création d'une équipe pour le challenge",nom, [cour.nom for cour in listeGSelect], [cour.nom for cour in listeFSelect])
                  listeDesEquipes.append(EquipeClasse(nom, listeGSelect, listeFSelect))
-                 unCoureurCategorieLimiteDejaSelectionne = False
+                 # DEpuis 2024, il n'y a plus d'exception : c'est pas année uniquement.
+                 unCoureurCategorieLimiteDejaSelectionne = True
                  listeGSelect = []
                  listeFSelect = []
     return listeDesEquipes
@@ -6587,7 +6587,7 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
                 chEME = "ère "
         else :
             chEME = "ème "
-        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
+        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA(precisionSurLAnnee=True) + ")"
     else :
         contenuRangCat = ""
     contenuSuppl = ""
@@ -6614,7 +6614,7 @@ def genereLigneTableauTEX(dossard) :
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex() #+ supplVMA
         contenuRang = str(coureur.rang)
         if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
-            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.categorieFFA() + ")"
+            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.categorieFFA(precisionSurLAnnee=True) + ")"
         else :
             contenuRangCat = ""
         ligne = " {} \\hfill " + contenuRang  + contenuRangCat + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +\
