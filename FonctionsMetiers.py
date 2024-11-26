@@ -3023,13 +3023,13 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
             couleurActuelle = information[1]
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
             print("Création du dossard de ", coureur.nom, coureur.dossard, "pour la course" , coureur.course)
-            totalCouleurActuelle += 1
             # on change de page à chaque changement de couleur.
             if couleurActuelle != couleurPrecedente and not premierParcours :
                 print("Changement de couleur pour le dossard suivant.", couleurActuelle)
                 retour += "\\newpage\n" # le newpage est ignoré par latex en début de document. Chouette.
                 listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurPrecedente])
-                totalCouleurActuelle = 1
+                totalCouleurActuelle = 0
+            totalCouleurActuelle += 1
             couleurPrecedente = couleurActuelle
             groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
             chaineComplete = replaceDansDossardEnFonctionDesParametres(modele, coureur)
