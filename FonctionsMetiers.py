@@ -302,7 +302,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
                     continuer = False
                     categorie = correspondanceAnneeCategories[i][1]
                 i += 1
-            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
+            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens
             if not precisionSurLAnnee :
                 # si on ne demande pas de précision sur l'année, c'est uniquement pour savoir qui coure où en UNSS
                 # Ainsi, les collégiens courent avec les collégiens et inversement. On modifie artificiellement leur catégorie pour déterminer la course
@@ -312,7 +312,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
                         categorie = "MI"
                     elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
                         categorie = "CA"
-                    elif Parametres["crossUNSScollegeLycee"] and categorie == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                    elif Parametres["crossUNSScollegeLycee"] and categorie[:2] == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
                         categorie = "BE"
             # return categorie
         except :
@@ -585,6 +585,12 @@ class DictionnaireDeCoureurs(dict) :
         self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+    def repareCourseUNSS(self) :
+        for coureur in self.liste() :
+            coureur.actualiseCategorie()
+            # print(coureur.nom , coureur.categorie(Parametres["CategorieDAge"]))
+            # print(Parametres["CategorieDAge"])
+        # self.initEffectifs()
     def initEffectifs(self):
         """ permet de connaître le nombre total de coureurs de chaque sexe et de chaque catégorie : pour les catégories, on considère ceux qui sont inférieurs qui doivent être battus."""
         self.nombreDeCoureursParSexe = [0,0]
@@ -783,7 +789,7 @@ class DictionnaireDeCoureurs(dict) :
             i = 0
             for coureur in self[course] :
                 if not i in indicesLibres :
-                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
+                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.course)
                 i += 1
     def reindexer(self,transcription) :
         """ réindexe les entrées de ce dictionnaire et tous les dossards qu'ils contiennent"""
@@ -944,7 +950,6 @@ class Coureur():#persistent.Persistent):
         return self.categorie(CategorieDAge)
 
 
-
     def categorie(self, CategorieDAge=0, precisionSurLAnnee=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
@@ -960,8 +965,7 @@ class Coureur():#persistent.Persistent):
         except :
             self.course = ""
         #if not Parametres["CoursesManuelles"] :
-        # if "217" in self.dossard : 
-        #     print("catégorie", self.__private_categorie, self.course, self.etablissement, self.etablissementNature)
+        
         # print(self.__private_categorie)
         # print("naissance",self.naissance)
         if self.__private_categorie == None :
@@ -990,6 +994,10 @@ class Coureur():#persistent.Persistent):
             self.course = self.__private_categorie
         # if "217" in self.dossard :
         #     print("catégorie", self.__private_categorie, self.course)
+        # if "277" in self.dossard : 
+        #     anneeNaissance = self.naissance[6:]
+        #     print('Parametres["crossUNSScollegeLycee"]',Parametres["crossUNSScollegeLycee"])
+        #     print("catégorie du dossard 277", self.__private_categorie, self.course, categorieAthletisme(anneeNaissance, precisionSurLAnnee=False), categorieAthletisme(anneeNaissance, precisionSurLAnnee=True))
         return self.__private_categorie
 
     def categorieSansSexe(self) :
@@ -2004,6 +2012,9 @@ def chargerDonnees() :
     return globals()
     
 chargerDonnees()
+
+# n'execute qu'une seule fois cette commande TEMPORAIRE
+Coureurs.repareCourseUNSS()
 
 if os.name=="posix" :
     sep="/"
@@ -4579,57 +4590,58 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     root["dictrangsDSDEN"] = {}
     dictRangsDSDEN = root["dictrangsDSDEN"]
     for nom in ResultatsGroupements :
-        # print("Groupement",nom,":")
-        groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
-        # on considère que la meilleure catégorie est SENIOR.
-        L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
-        L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
-        DecompteParCategoriesDAge = [L1, L2]
-        # rang par sexes
-        RangSexe = [0,0]
-        dictRangsDSDEN[nom] = []
-        #keyList.append(nom)
-        ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
-        # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
-        #print("course ",nom,":",Resultats[nom])
-        ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
-            #print(nom, "est une course ou un groupement",Resultats[nom])
-        i = 0
-        nbreArriveesGroupement = len(ResultatsGroupements[nom])
-        #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
-        while i < nbreArriveesGroupement :
-            doss = ResultatsGroupements[nom][i]
-            coureur = Coureurs.recuperer(doss)
-            groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
-            #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-            if coureur.temps > 0 :
-            ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
-                coureur.setRang(i+1)
-                if coureur.sexe == "F" :
-                    iSexe = 1 # rang dans la liste incrémentée.
-                else :
-                    iSexe = 0 # rang dans la liste incrémentée.
-                RangSexe[iSexe] += 1
-                ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
-                if Parametres["CategorieDAge"] == 2 :
-                    coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
-                if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
-                    catFFA = coureur.categorieFFA()
-                    coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
-                    coureur.setRangSexe(RangSexe[iSexe])
-                else :
-                    ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
-                    # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
-                    if coureur.classe in classeIgnoreesPourChallenge.split(";") :
-                        # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
-                        dictRangsDSDEN[nom].append(i+1)
-            else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
-            # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
-                coureur.setRang(0)
-                coureur.setRangCat(0)
-                coureur.setRangSexe(0)
-            #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
-            i += 1
+        print("Groupement",nom,":")
+        if nom :
+            groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
+            # on considère que la meilleure catégorie est SENIOR.
+            L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
+            L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
+            DecompteParCategoriesDAge = [L1, L2]
+            # rang par sexes
+            RangSexe = [0,0]
+            dictRangsDSDEN[nom] = []
+            #keyList.append(nom)
+            ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
+            # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
+            #print("course ",nom,":",Resultats[nom])
+            ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
+                #print(nom, "est une course ou un groupement",Resultats[nom])
+            i = 0
+            nbreArriveesGroupement = len(ResultatsGroupements[nom])
+            #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
+            while i < nbreArriveesGroupement :
+                doss = ResultatsGroupements[nom][i]
+                coureur = Coureurs.recuperer(doss)
+                groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
+                #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
+                if coureur.temps > 0 :
+                ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
+                    coureur.setRang(i+1)
+                    if coureur.sexe == "F" :
+                        iSexe = 1 # rang dans la liste incrémentée.
+                    else :
+                        iSexe = 0 # rang dans la liste incrémentée.
+                    RangSexe[iSexe] += 1
+                    ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
+                    if Parametres["CategorieDAge"] == 2 :
+                        coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
+                    if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
+                        catFFA = coureur.categorieFFA()
+                        coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
+                        coureur.setRangSexe(RangSexe[iSexe])
+                    else :
+                        ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
+                        # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
+                        if coureur.classe in classeIgnoreesPourChallenge.split(";") :
+                            # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
+                            dictRangsDSDEN[nom].append(i+1)
+                else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+                # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
+                    coureur.setRang(0)
+                    coureur.setRangCat(0)
+                    coureur.setRangSexe(0)
+                #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+                i += 1
         # on définit combien de coureurs appartiennent à un groupement.
         ### inutile car fait au fur et à mesure par groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
     ### ETAPE 3 : On traite les rangs dans les classes (pour le cross HB) ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
@@ -5441,7 +5453,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
             message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
             print(message)
             retour=Erreur(421,message,elementConcerne=doss)
-        elif not Courses[Coureurs.recuperer(doss).course].depart :
+        elif Coureurs.recuperer(doss).course in Courses.keys() and not Courses[Coureurs.recuperer(doss).course].depart :
             message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
             print(message)
             retour=Erreur(431,message,elementConcerne=doss)
