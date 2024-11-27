@@ -4299,7 +4299,7 @@ class CoureurFrame(Frame) :
                     self.classeE.insert(0, coureur.naissance)
                 else :
                     self.classeE.insert(0, coureur.classe)
-                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])) + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + ")")
+                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])) + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + "). Course : " + coureur.course + ".")
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
@@ -4433,7 +4433,7 @@ class CoureurFrame(Frame) :
                 self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
             else :
                 coureur = Coureurs.recuperer(str(self.choixDossardCombo.get()))
-                self.lblCat.configure(text="Catégorie : " + resultat + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + ")", fg='black')
+                self.lblCat.configure(text="Catégorie : " + resultat + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + "). Course : " + coureur.course + ".", fg='black')
             # self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
             if self.ajoutCoureur :
