@@ -8,7 +8,6 @@ Avant diffusion plus large :
 
 
 Après cross  2024 :
-- faire une sauvegarde régulière de Course.db (pas seulement à la fermeture).
 - vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
 - déplacer les fichiers générés dans mes documents ou dossier %TMP% : diplomes, dossards, resultats.
 - enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
@@ -16,11 +15,20 @@ Après cross  2024 :
 - alignement des boites de gauche dans paramètres des courses.
 - afficher les diplomes non encore envoyés.
 - voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
-
-
-Avant le cross départemental :
+Idem pour les cases à cocher des listings.
 - les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
 quand on effectue quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
+
+
+Avant le cross Rieutort :
+Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
+
+
+
+Travail du 27/11/24 :
+- correctif poussins en benjamins pour l'UNSS mal implémenté depuis les correctifs du 25/11
+- sécurisation diverses dans le code.
+- arrêt des tentatives FTP si les paramètres sont incomplets.
 
 
 Travail du 26/11/24 :
