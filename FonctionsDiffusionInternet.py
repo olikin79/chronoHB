@@ -51,6 +51,9 @@ def deposePagesHTMLInternet(liste, remplacer=True):
     Si remplacer=False, les fichiers existants sur le serveur ne seront pas écrasés.
     Les fichiers dans des sous-dossiers locaux seront copiés dans les mêmes sous-dossiers sur le serveur.
     """
+    if not Parametres["FTPserveur"] or not Parametres["FTPlogin"] or not Parametres["FTPmdp"]:
+        print("Paramètres de connexion FTP manquants ou incomplets (serveur, login ou mdp).")
+        return 
     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
     dossierWWW = Parametres["FTPdir"]
     if not dossierWWW.endswith("/"):
