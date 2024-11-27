@@ -160,7 +160,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
         ##            c.setEmail("lax.olivier@gmail.com")
                     #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
                     #c.setEmailEnvoiEffectue(False)
-                print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
+                # print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
                 if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(diplomeDiffusionApresNMin) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
                     genereDiplome(modele, c, nomModele)
                     if envoiDiplomeParMail(c) :
