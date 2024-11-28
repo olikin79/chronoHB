@@ -1,6 +1,8 @@
 import os
 from cx_Freeze import setup, Executable
 
+versionDistribuee = "2.2.9"
+
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Dependencies are automatically detected, but they might need fine-tuning.
@@ -9,7 +11,7 @@ build_exe_options = {
         "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko"],
-    "include_files": ["favicon.ico","create_shortcuts.py", \
+    "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
         "CameraMotionDetection.py", "FonctionsAssistance.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
         "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
         "server.py", "Videos.html", \
@@ -56,7 +58,7 @@ build_msi_options = {"upgrade_code": "{66212526-7761-6E69-6F6E-6C129E797817}",
 
 setup(
     name="ChronoHB",
-    version="2.1.1",
+    version=versionDistribuee,
     description="Chronométrage de courses",
     options={"build_exe": build_exe_options,
              "bdist_msi": build_msi_options},

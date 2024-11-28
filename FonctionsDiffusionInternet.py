@@ -1,6 +1,9 @@
 ### Fichier contenant les fonctions de :
 ### - création des pages internet de résultats avec des onglets par course.
 ### - diffusion vers un serveur FTP ou SFTP 
+
+from config import DEBUG
+
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 # import pysftp
 from ftplib import FTP
