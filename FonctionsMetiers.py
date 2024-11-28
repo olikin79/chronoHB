@@ -34,8 +34,10 @@ from tkinter.messagebox import *
 # pour créer des sauvegardes et les décompresser. v2.0
 import zipfile
 
-#### DEBUG
-DEBUG = False
+# #### DEBUG
+# DEBUG = False
+
+from config import DEBUG
 
 version = "2.1.0"
 
@@ -824,6 +826,8 @@ class Erreur():
         else :
             self.dossard = "0A"
             self.temps = 0.0
+    def affiche(self) :
+        print("Erreur", self.numero, ":", self.description, "pour le dossard", self.dossard, "avec le temps", self.temps)
 
 
 class ErreursATraiter():
@@ -4347,7 +4351,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"], dictrangsDSDEN=dictrangsDSDEN)
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
-    print("Challenge UNSS",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
+    # print("Challenge UNSS",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
     nbreDeCoureursNecessairesParEquipe = 5
     tousLesGars = []
     toutesLesFilles = []
@@ -4590,7 +4594,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     root["dictrangsDSDEN"] = {}
     dictRangsDSDEN = root["dictrangsDSDEN"]
     for nom in ResultatsGroupements :
-        print("Groupement",nom,":")
+        # print("Groupement",nom,":")
         if nom :
             groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
             # on considère que la meilleure catégorie est SENIOR.
