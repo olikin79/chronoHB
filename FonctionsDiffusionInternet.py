@@ -54,6 +54,9 @@ def deposePagesHTMLInternet(liste, remplacer=True):
     if not Parametres["FTPserveur"] or not Parametres["FTPlogin"] or not Parametres["FTPmdp"]:
         print("Paramètres de connexion FTP manquants ou incomplets (serveur, login ou mdp).")
         return 
+    if DEBUG :
+        print("Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.")
+        return
     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
     dossierWWW = Parametres["FTPdir"]
     if not dossierWWW.endswith("/"):
