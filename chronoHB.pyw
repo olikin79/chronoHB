@@ -791,12 +791,21 @@ class MonTableau(Frame):
             print("itemSelect",itemSelect)
             # cas classique où une vraie sélection a eu lieu
             dossSelect = item_text[self.colonneDossard]
-            itemPrecNum = self.conv_Dec_vers_Hexa((int(self.conv_Hexa_vers_Dec(itemSelect[1:])) -1))
+            recul = 1
+            itemPrecNum = self.conv_Dec_vers_Hexa((int(self.conv_Hexa_vers_Dec(itemSelect[1:])) - recul))
+            dossPrec = "0"
             if itemSelect != "I001" : #cas classique où le premier élément de la liste n'est pas sélectionné
                 itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
                 dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
-            else :
-                dossPrec = "0"
+                # sécurité ajoutée pour le cas où il n'y a de prédécesseur dans le treeview (temps non affectés à des dossards) : dans ce cas, on remonte jusqu'à trouver un prédécesseur ou le premier éléemnt du tableau
+                while dossPrec == None and itemPrec != "I001" :
+                    recul += 1
+                    itemPrecNum = self.conv_Dec_vers_Hexa((int(self.conv_Hexa_vers_Dec(itemSelect[1:])) - recul))
+                    itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
+                    dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
+
+
+              
             #print(dossSelect, dossPrec)
             return dossSelect, dossPrec
 
