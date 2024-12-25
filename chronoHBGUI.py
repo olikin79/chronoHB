@@ -4970,58 +4970,58 @@ def lireFichierTexte(nom) :
         retour = "-1"
     return retour
 
-# def MAJChronoHB():
-#     # télécharge un script de MAJ depuis une URL fixe
-#     try :
-#         creerDir("maj")
-#         print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
-#         url = "http://mathlacroix.free.fr/chronoHB/"
-#         nomFichierVersionActuelle = "maj/version.txt"
-#         nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
-#         # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
-#         response = requests.get(url + "maj/maj.py", stream=True)
-#         with open("maj/maj.py", "wb") as handle:
-#             for data in response.iter_content() : #tqdm(response.iter_content()):
-#                 handle.write(data)
-#         response = requests.get(url + nomFichierVersionActuelle, stream=True)
-#         with open(nomFichierVersionDeployee, "wb") as handle :
-#             for data in response.iter_content() : #tqdm(response.iter_content()):
-#                 handle.write(data)
-#             #f.write("mise à jour en cours")
-#         print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
-#         relancer()
-#     except :
-#         print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
-#         showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
-#     # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
-# ##    # importe les nouvelles fonctions du fichier
-# ##    importlib.reload(maj)
-# ##    # lance un script prédéfini
-# ##    reboot = majScript()
-#     # relance le programme avec un flag qui provoquera l'exécution de la mise à jour.
-# ##    # relance l'ordinateur à la fin de l'exécution si imposé.
-# ##    if reboot :
-# ##        relancer()
+def MAJChronoHB():
+    # télécharge un script de MAJ depuis une URL fixe
+    try :
+        creerDir("maj")
+        print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
+        url = "http://mathlacroix.free.fr/chronoHB/"
+        nomFichierVersionActuelle = "maj/version.txt"
+        nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+        # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
+        response = requests.get(url + "maj/maj.py", stream=True)
+        with open("maj/maj.py", "wb") as handle:
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+        response = requests.get(url + nomFichierVersionActuelle, stream=True)
+        with open(nomFichierVersionDeployee, "wb") as handle :
+            for data in response.iter_content() : #tqdm(response.iter_content()):
+                handle.write(data)
+            #f.write("mise à jour en cours")
+        print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
+        relancer()
+    except :
+        print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+        showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+    # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
+##    # importe les nouvelles fonctions du fichier
+##    importlib.reload(maj)
+##    # lance un script prédéfini
+##    reboot = majScript()
+    # relance le programme avec un flag qui provoquera l'exécution de la mise à jour.
+##    # relance l'ordinateur à la fin de l'exécution si imposé.
+##    if reboot :
+##        relancer()
 
-# def relancer():
-# ##    sys.stdout.flush()
-# ##    print(sys.argv[0], sys.argv)
-# ##    os.execv(sys.argv[0],sys.argv)
-#     root.destroy()
-#     os.startfile("chronoHB.pyw")
+def relancer():
+##    sys.stdout.flush()
+##    print(sys.argv[0], sys.argv)
+##    os.execv(sys.argv[0],sys.argv)
+    root.destroy()
+    os.startfile("chronoHB.pyw")
 
-# # exécution éventuelle de la mise à jour programmée.
-# nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
-# nomFichierVersionActuelle = "maj/version.txt"
-# if os.path.exists(nomFichierVersionDeployee) :
-#     # comparaison des versions.
-#     versionActuelle = lireFichierTexte(nomFichierVersionActuelle)
-#     versionDeployee = lireFichierTexte(nomFichierVersionDeployee)
-#     reboot, message = majScript(versionActuelle,versionDeployee)
-#     os.remove(nomFichierVersionDeployee)
-#     showinfo("MISE A JOUR",message)
-#     if reboot :
-#         relancer()
+# exécution éventuelle de la mise à jour programmée.
+nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+nomFichierVersionActuelle = "maj/version.txt"
+if os.path.exists(nomFichierVersionDeployee) :
+    # comparaison des versions.
+    versionActuelle = lireFichierTexte(nomFichierVersionActuelle)
+    versionDeployee = lireFichierTexte(nomFichierVersionDeployee)
+    reboot, message = majScript(versionActuelle,versionDeployee)
+    os.remove(nomFichierVersionDeployee)
+    showinfo("MISE A JOUR",message)
+    if reboot :
+        relancer()
     
 
 ### UNSS ####
