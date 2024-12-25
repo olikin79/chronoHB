@@ -31,3 +31,20 @@ if os.path.exists(dossierRacineApp + os.sep + ".." + os.sep + "DEBUG.txt") :
     DEBUG = True 
 
 print("MODE DEBUG AUTOMATIQUE", DEBUG)
+
+
+# fichier journal 
+LOGDIR="logs"
+if not os.path.exists(LOGDIR) :
+    os.makedirs(LOGDIR)
+
+
+
+
+# compilateur selon l'OS 
+if os.name=="posix" :
+    sep="/"
+    compilateur = "/Library/TeX/texbin/pdflatex"
+else :
+    sep="\\"
+    compilateur = 'start "" /I /wait /min /D .\\@dossier@\\tex .\\texlive\\2020\\bin\\win32\\pdflatex.exe -synctex=1 -no-shell-escape -interaction=nonstopmode -output-directory=.. '#
