@@ -37,11 +37,11 @@ import zipfile
 # #### DEBUG
 # DEBUG = False
 
-from config import DEBUG
+from config import *
 
-version = "2.1.0"
+# version = "2.1.0"
 
-LOGDIR="logs"
+# LOGDIR="logs"
 
 def windows():
     if os.sep == "\\" :
@@ -366,7 +366,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
 #     setParametres() # fichier à destination du smartphone à regéréner.
 #     return retour
 
-def recupere_sauvegardeNG(sauvegardeChoisie):
+def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
     global sauvegarde
 
     # Si le fichier sélectionné est un fichier .chb (zip)
@@ -431,17 +431,21 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
                     shutil.copy2(video, os.path.join("videos", os.path.basename(video)))
                     print(f"Vidéo {os.path.basename(video)} extraite vers le dossier 'videos'.")
 
-        # Charger les données restaurées
-        retour = chargerDonnees()
-        setParametres()  # fichier à destination du smartphone à régénérer
-
         # Nettoyer le dossier temporaire si un fichier .chb a été extrait
         if sauvegardeChoisie.endswith('.chb'):
             shutil.rmtree(temp_dir)
 
-        return retour
-    else:
-        return None
+
+def recupere_sauvegardeNG(sauvegardeChoisie):
+    global sauvegarde
+
+    recupere_sauvegardeNG_horsGUI(sauvegardeChoisie)
+
+    # Charger les données restaurées
+    retour = chargerDonnees()
+    setParametres()  # fichier à destination du smartphone à régénérer
+
+    return retour
 
 
 # def recupere_sauvegardeNG(sauvegardeChoisie):
@@ -2018,14 +2022,8 @@ def chargerDonnees() :
 chargerDonnees()
 
 # n'execute qu'une seule fois cette commande TEMPORAIRE
-Coureurs.repareCourseUNSS()
+# Coureurs.repareCourseUNSS()
 
-if os.name=="posix" :
-    sep="/"
-    compilateur = "/Library/TeX/texbin/pdflatex"
-else :
-    sep="\\"
-    compilateur = 'start "" /I /wait /min /D .\\@dossier@\\tex .\\texlive\\2020\\bin\\win32\\pdflatex.exe -synctex=1 -no-shell-escape -interaction=nonstopmode -output-directory=.. '#
 
     ### commande fonctionnelle mais pas propre car le logo doit se trouver dans la distribution, dans win32
     ## start "" /I /wait /min /D ".\dossards\tex\" ".\texlive\2020\bin\win32\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." "3-F.tex"
@@ -7380,9 +7378,9 @@ def supprLF(ch) :
 ##    #connection.close()
 ##    #db.close()
 ##
-if __name__=="__main__":
-    pdf_path = "./resultats/3A.pdf"
-    imprimePDF(pdf_path)
+# if __name__=="__main__":
+#     pdf_path = "./resultats/3A.pdf"
+#     imprimePDF(pdf_path)
     # print("création du dictionnaire")
     # C = DictionnaireDeCoureurs()
     # C.effacerTout()
