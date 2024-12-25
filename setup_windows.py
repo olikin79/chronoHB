@@ -8,7 +8,7 @@ os.environ["PYTHONIOENCODING"] = "utf-8"
 # Dependencies are automatically detected, but they might need fine-tuning.
 build_exe_options = {
     "includes": ["platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
-        "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", \
+        "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", "pywin32", "opencv-python", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko"],
     "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
