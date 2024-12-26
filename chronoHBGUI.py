@@ -2975,7 +2975,7 @@ def depotFTPResultatsSansMessage(initial=False):
     """Dépose les résultats sur le serveur FTP sans afficher de message de fin
     Exécuté dans un thread"""
     global tagDepotFTPEnCours
-    ActualiseAffichageInternet(depotInitial=initial)
+    ActualiseAffichageInternet(Groupements, depotInitial=initial)
     tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
@@ -5327,12 +5327,13 @@ ModifDonneesFrame.pack(side = TOP)
 Affichageframe.pack(fill=BOTH, expand=1)
 #LogFrame.pack(side=BOTTOM,fill=BOTH, expand=1)
 
-### ouverture d'un fichier via l'explorateur windows 
-if len(sys.argv) > 1:
-    # Récupère le fichier passé en paramètre
-    fichier_parametre = sys.argv[1]
-    # Appelle votre fonction pour gérer le fichier
-    recupererSauvegardeGUI(name_file=fichier_parametre)
+### ouverture d'un fichier via l'explorateur windows passé dans chronoHB.pyw
+# if len(sys.argv) > 1:
+#     showinfo("TEMP",str(sys.argv))
+#     # Récupère le fichier passé en paramètre
+#     fichier_parametre = sys.argv[1]
+#     # Appelle votre fonction pour gérer le fichier
+#     recupererSauvegardeGUI(name_file=fichier_parametre)
 
 
 CoureursParClasseUpdate()
