@@ -1952,16 +1952,16 @@ def chargerDonnees() :
         Parametres["HTTPSserveur"] = "https://monserveur.fr/dossierExportResultatsTempsReel"
     HTTPSserveur=Parametres["HTTPSserveur"]
     if not "FTPserveur" in Parametres :
-        Parametres["FTPserveur"] = "monserveur.fr"
+        Parametres["FTPserveur"] = "" # "monserveur.fr"
     FTPserveur=Parametres["FTPserveur"]
     if not "FTPdir" in Parametres :
-        Parametres["FTPdir"] = "dossierExportResultatsTempsReel"
+        Parametres["FTPdir"] = "" # "dossierExportResultatsTempsReel"
     FTPdir=Parametres["FTPdir"]
     if not "email" in Parametres :
         Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com;chronoHB3@gmail.com"
     email=Parametres["email"]
     if not "emailMDP" in Parametres :
-        Parametres["emailMDP"] = "mdp"
+        Parametres["emailMDP"] = "mdp;mdp;mdp"
     emailMDP=Parametres["emailMDP"]
     if not "emailNombreDEnvoisMax" in Parametres :
         Parametres["emailNombreDEnvoisMax"] = "500;500;500"
