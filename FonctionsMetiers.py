@@ -29,7 +29,7 @@ from openpyxl import load_workbook
 # afin de télécharger un fichier avec urllib
 import urllib.request
 
-from tkinter.messagebox import *
+# from tkinter.messagebox import *
 
 # pour créer des sauvegardes et les décompresser. v2.0
 import zipfile
@@ -399,7 +399,8 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
             tousPresents = False
             message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
             print(message)
-            showinfo("ERREUR", message)
+            return message
+            # showinfo("ERREUR", message)
             break
 
     if tousPresents:
@@ -434,18 +435,18 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
         # Nettoyer le dossier temporaire si un fichier .chb a été extrait
         if sauvegardeChoisie.endswith('.chb'):
             shutil.rmtree(temp_dir)
+    return ""
 
 
 def recupere_sauvegardeNG(sauvegardeChoisie):
     global sauvegarde
 
-    recupere_sauvegardeNG_horsGUI(sauvegardeChoisie)
-
+    erreur = recupere_sauvegardeNG_horsGUI(sauvegardeChoisie)
     # Charger les données restaurées
-    retour = chargerDonnees()
+    chargerDonnees()
     setParametres()  # fichier à destination du smartphone à régénérer
 
-    return retour
+    return erreur
 
 
 # def recupere_sauvegardeNG(sauvegardeChoisie):

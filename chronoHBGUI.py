@@ -17,7 +17,7 @@ from datetime import datetime
 import webbrowser 
 import subprocess
 import sys, os, re
-import copy
+# import copy
 import socket # obtenir ip
 from idlelib.tooltip import Hovertip # tooltip
 from pprint import pprint
@@ -41,7 +41,7 @@ from FonctionsAssistance import *
 # pour les hash de mise à jour. Exécution unique de update.py
 import hashlib
 
-version="2.1.1"
+# version="2.1.1"
 
 LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
@@ -58,7 +58,7 @@ import platform
 
 
 
-from config import DEBUG
+from config import *
 
 ## LOGS de l'application.
 def LOGstandards():
@@ -4069,7 +4069,9 @@ def recupererSauvegardeGUI(name_file="") :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         # effaceToutesDonnees()
-        recupere_sauvegardeNG(name_file)
+        erreur = recupere_sauvegardeNG(name_file)
+        if erreur :
+            showinfo("ERREUR", erreur)
         dictionnaire = chargerDonnees()
         if dictionnaire :
             globals().update(dictionnaire)
