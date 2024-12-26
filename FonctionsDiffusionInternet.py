@@ -2,7 +2,7 @@
 ### - création des pages internet de résultats avec des onglets par course.
 ### - diffusion vers un serveur FTP ou SFTP 
 
-from config import DEBUG
+from config import *
 
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 # import pysftp
@@ -11,13 +11,13 @@ import paramiko
 
 # from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
 
-def ActualiseAffichageInternet(depotInitial = False) :
+def ActualiseAffichageInternet(Groupements, depotInitial = False) :
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
         dépose les pages générées sur un serveur SFTP.'''
     if depotInitial :
         liste = ["www/jquery-3.6.0.js", "www/mystyle.css", "www/mystyleWeb.css", "www/mystyle_mode-sombre.css", "www/favicon.ico" , "www/media/or.webp", "www/media/argent.webp", "www/media/bronze.webp"]
         deposePagesHTMLInternet(liste, remplacer=False)
-    liste = generePagesHTMLInternet()
+    liste = generePagesHTMLInternet(Groupements)
     deposePagesHTMLInternet(liste)
 
 
@@ -330,14 +330,95 @@ def deposePagesHTMLInternet(liste, remplacer=True):
 #         return False
 
 
-
-def generePagesHTMLInternet() :
+def generePagesHTMLInternet(Groupements) :
     '''crée les pages internet en HTML avec un onglet par course.
     Retourne la liste des pages générées.'''
     listeFichiers = genereAffichageWWW(Groupements)
     # print("liste des pages générés pour internet : ", listeFichiers)
     return listeFichiers
 
+def genereAffichageWWW(listeDesGroupements) :
+    """Génère toutes les pages html utiles pour l'affichage dynamique en temps réel depuis internet
+    Retourne la liste des fichiers générés.
+    """
+    retour = []
+    with open("modeles/index-en-ligne.html","r", encoding='utf8') as f:
+        contenu = f.read()
+    f.close()
+    ## modèle d'onglet
+    ongletModele = """
+    <div id=tab@@indicePartantDe1@@ > <a href="#tab@@indicePartantDe1@@">@@groupement@@</a>
+	  <div>
+		  <h2> @@groupementTitre@@ @@chronoSousCondition@@</h2>
+		  <div id="conteneurGlobal@@indicePartantDe0@@" >
+		  </div>
+	  </div>
+     </div>
+    """
+    # supprimé de la fin de h2> : 
+    ## à remettre dans onglet modèle, à côté du titre du groupement : 
+    ## affichage tab modèle
+    tabModele = """
+    <html><head></head><body>
+        @@tableauCourse@@
+    <div id="testCharge@@indicePartantDe0@@"></div>
+    <script>
+    chronometres[@@indicePartantDe0@@] = @@heureDepartGroupement@@ ;
+    </script>
+    </body></html>
+    """
+    ## suppression de les fichiers "Affichage-tab*.html" du dossier www
+    for fichier in os.listdir("./www") :
+        if "Affichage-tab" in fichier :
+            os.remove("./www/" + fichier)
+    ## création des contenus à partir des données de courses.
+    onglets = ""
+    heuresDeparts = []
+    timerID = []
+    dureesActualisation = []
+    i = 0
+    for groupement in listeDesGroupements :
+        chrono = not yATIlUCoureurArrive(groupement.nomStandard)
+        onglet = ongletModele.replace("@@chronoSousCondition@@","<span id='chronotime@@indicePartantDe0@@'></span>")
+        onglet = onglet.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
+        # print(groupement.nomStandard)
+        groupementNomStandard = groupement.nomStandard
+        if estChallenge(groupement) :
+            #print("C'est un challenge par niveau")
+            if Parametres["CategorieDAge"] == 2 :
+                groupementTitre = "Challenge entre les établissements : catégorie " + groupement.nom + "."
+            else :
+                groupementTitre = "Challenge entre les classes : niveau " + groupement.nom + "ème."
+        else :
+            groupementTitre = "Course " + groupement.nom
+            if not chrono :
+                groupementTitre += " <span id='chronotime'></span>"
+        onglet = onglet.replace("@@groupement@@",groupement.nom).replace("@@groupementTitre@@", groupementTitre)
+        onglets += onglet
+        hdep = genereHeureDepartHTML(groupementNomStandard)
+        heuresDeparts.append(hdep)
+        timerID.append(0)
+        dureesActualisation.append(10000) # actualisation par défaut de 10 secondes. Varie ensuite selon le contexte.
+        # création du fichier lié à l'onglet 
+        tableauComplet = genereEnTetesHTML(groupementNomStandard, chrono, avecFermetureTABLE=False) + genereTableauHTML(groupementNomStandard, chrono, avecOuvertureTABLE=False, affichageWWW=True)
+        tableauComplet.replace("Chronomètre actuel","") # inutile ?
+        tabActuel = tabModele.replace("@@heureDepartGroupement@@",str(hdep)).replace("@@indicePartantDe0@@",str(i))\
+            .replace("@@tableauCourse@@", tableauComplet).replace("Chronomètre actuel","Pas de coureur arrivé.")
+        fichierTabActuel = "./www/Affichage-tab" + str(i) + ".html"
+        with open(fichierTabActuel,"w", encoding='utf8') as f :
+            f.write(tabActuel)
+        f.close()
+        retour.append(fichierTabActuel)
+        i += 1
+    ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
+    contenu = contenu.replace("@@onglets@@",onglets).replace("@@dureesActualisation@@", str(dureesActualisation))\
+              .replace("@@heuresDeparts@@",str(heuresDeparts)).replace("@@timerID@@",str(timerID))
+    fichierIndex = "./www/index.html"
+    with open(fichierIndex,"w", encoding='utf8') as f :
+        f.write(contenu)
+    f.close()
+    retour.append(fichierIndex)
+    return retour
 
 if __name__ == '__main__':
     deposePagesHTMLInternet(["./www/Affichage-Contenu.html"])
