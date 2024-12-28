@@ -2972,25 +2972,76 @@ def generateListCoureursPourSmartphone() :
         f.close()
     fComplet.close()
 
-def generateQRcode(n) :
-    osCWD = os.getcwd()
-    chemin = "dossards" + os.sep + "QRcodes" + os.sep
-    if not os.path.exists(chemin + str(n) + ".pdf") :
-        #if n < 2 : # pour les tests
-        print("création du QR-code" , n)
-        with open("./modeles/QRcode.tex", 'r') as f :
-            contenu = f.read()
-        f.close()
-        contenu = contenu.replace("@dossard@",str(n))
-        TEXDIR = "dossards"+os.sep+"QRcodes"+os.sep+"tex"+os.sep
-        creerDir(TEXDIR)
-        with open(TEXDIR+str(n)+ ".tex", 'w') as f :
-            f.write(contenu)
-        f.close()
-        compilateurComplete = compilateur.replace("@dossier@","dossards"+os.sep+"QRcodes")#.replace('-output-directory=".."','-output-directory=".."'+os.sep+"QRcodes")
-        compiler(compilateurComplete, TEXDIR, str(n) + ".tex" , 1)
-    ##else :
-     #   print("le QR-code existe déjà")
+# ancienne génération des QR-codes avec latex.
+# def generateQRcode(n) :
+#     osCWD = os.getcwd()
+#     chemin = "dossards" + os.sep + "QRcodes" + os.sep
+#     if not os.path.exists(chemin + str(n) + ".pdf") :
+#         #if n < 2 : # pour les tests
+#         print("création du QR-code" , n)
+#         with open("./modeles/QRcode.tex", 'r') as f :
+#             contenu = f.read()
+#         f.close()
+#         contenu = contenu.replace("@dossard@",str(n))
+#         TEXDIR = "dossards"+os.sep+"QRcodes"+os.sep+"tex"+os.sep
+#         creerDir(TEXDIR)
+#         with open(TEXDIR+str(n)+ ".tex", 'w') as f :
+#             f.write(contenu)
+#         f.close()
+#         compilateurComplete = compilateur.replace("@dossier@","dossards"+os.sep+"QRcodes")#.replace('-output-directory=".."','-output-directory=".."'+os.sep+"QRcodes")
+#         compiler(compilateurComplete, TEXDIR, str(n) + ".tex" , 1)
+#     ##else :
+#      #   print("le QR-code existe déjà")
+
+import qrcode 
+from reportlab.pdfgen import canvas
+
+def generateQRcode(n):
+    # Dossier de destination
+    folder = "dossards" + os.sep + "QRcodes"
+    os.makedirs(folder, exist_ok=True)  # Crée les dossiers s'ils n'existent pas
+
+    # # Nom du fichier PDF final
+    # pdf_file = os.path.join(folder, f"{n}.pdf")
+    png_file = os.path.join(folder, f"{n}.png")
+    # Vérifier si le fichier existe déjà
+    if not os.path.exists(png_file):   
+        # Fichier PNG temporaire pour le QR code
+        # temp_png = os.path.join(folder, f"temp_{n}.png")
+        
+        # Générer le QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=1,
+        )
+        qr.add_data(str(n))  # Ajouter la valeur au QR code
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
+
+        # Rendre le fond transparent
+        data = img.getdata()
+        new_data = []
+        for item in data:
+            # Si la couleur est blanche (255, 255, 255), rendre transparent
+            if item[:3] == (255, 255, 255):
+                new_data.append((255, 255, 255, 0))  # Transparent
+            else:
+                new_data.append(item)  # Conserver les autres couleurs
+        img.putdata(new_data)
+        img.save(png_file)  # Sauvegarder en PNG
+
+        # Générer le PDF avec ReportLab
+        # c = canvas.Canvas(pdf_file)
+        # c.drawImage(temp_png, 100, 500, width=200, height=200)  # Position et taille du QR code
+        # c.save()
+
+        # # Supprimer le fichier PNG temporaire
+        # os.remove(temp_png)
+        print(f"QR code pour '{n}' généré dans : {png_file}")
+
+
 
 def generateQRcodes() :
     print("Création des QR-codes nécessaires")
