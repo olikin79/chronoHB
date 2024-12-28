@@ -1,13 +1,13 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.2.10"
+versionDistribuee = "2.2.12"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Dependencies are automatically detected, but they might need fine-tuning.
 build_exe_options = {
-    "includes": ["reportlab", "platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
+    "includes": ["qrcode", "reportlab", "platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
         "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", "cv2", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko", \
@@ -15,7 +15,7 @@ build_exe_options = {
     "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
         "CameraMotionDetection.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
         "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
-        "server.py", "Videos.html", \
+        "server.py", "Videos.html", "mystyle.css", "jquery-3.6.0.js", \
         "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www"]# , "texlive"
 }
 
