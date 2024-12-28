@@ -32,9 +32,7 @@ import requests #,importlib
 
 # OBSOLETE
 # from maj import *
-
-
-from FonctionsAssistance import *
+# from FonctionsAssistance import *
 #import git
 
 # pour les hash de mise à jour. Exécution unique de update.py
