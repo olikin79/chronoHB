@@ -1,18 +1,18 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.2.9"
+versionDistribuee = "2.2.10"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Dependencies are automatically detected, but they might need fine-tuning.
 build_exe_options = {
-    "includes": ["platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
-        "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", "pywin32", "opencv-python", \
+        "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", "cv2", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
-        "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko"],
+        "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko", \
+        "copy" ,"datetime" ,"email.utils" ,"html" ,"http.client" ,"io" ,"mimetypes" , "os" ,"posixpath" ,"select" ,"shutil" ,"socket" ,"socketserver", "sys" ,"time" ,"urllib.parse" ,"http"],
     "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
-        "CameraMotionDetection.py", "FonctionsAssistance.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
+        "CameraMotionDetection.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
         "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
         "server.py", "Videos.html", \
         "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www"]# , "texlive"
