@@ -38,7 +38,16 @@ LOGDIR="logs"
 if not os.path.exists(LOGDIR) :
     os.makedirs(LOGDIR)
 
+## LOGS de l'application.
+def LOGstandards():
+    ''' redirige les logs en mode production vers des fichiers spécifiques sauf pour les imports qui sont redirigés vers un fichier dédié'''
+    if not DEBUG : 
+        sys.stdout = open(LOGDIR + os.sep + "ChronoHBLOG.txt", "a")
+        # en attendant un horadatage des print, le mieux est de tout avoir dans un seul fichier pour s'y repérer.
+        sys.stderr = open(LOGDIR + os.sep + 'ChronoHBLOG.txt', 'a')
+        # sys.stderr = open(LOGDIR + os.sep + 'ChronoHBErr.txt', 'a')
 
+LOGstandards()   
 
 
 # compilateur selon l'OS 
