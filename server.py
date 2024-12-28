@@ -1180,11 +1180,18 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
             import subprocess
             cmdline = [scriptfile]
             if self.is_python(scriptfile):
-                interp = sys.executable
-                #if interp.lower().endswith("w.exe"):
+                # ajout personnel pour utiliser cgi/python.exe dans le cas d'une exécution de l'application gelée avec cx_freeze
+                env["PYTHONPATH"] = os.path.join(os.getcwd(),"cgi" , "Lib")
+                if "chronoHB.exe" in sys.executable :
+                    interp = os.path.join(os.getcwd(),"cgi", "pythonw.exe")
+                else :
+                    interp = sys.executable
+                # fin de l'ajout personnel
+                if interp.lower().endswith("w.exe"):
                     # On Windows, use python.exe, not pythonw.exe
-                    #interp = interp[:-5] + interp[-4:]
+                    interp = interp[:-5] + interp[-4:]
                 cmdline = [interp, '-u'] + cmdline
+            self.log_message("query: %s", str(query))
             if '=' not in query:
                 cmdline.append(query)
             self.log_message("command: %s", subprocess.list2cmdline(cmdline))
@@ -1196,7 +1203,8 @@ class CGIHTTPRequestHandler(SimpleHTTPRequestHandler):
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
-                                 env = env
+                                 env = env,
+                                 creationflags=subprocess.CREATE_NO_WINDOW  # Empêche la création de la fenêtre noire
                                  )
             if self.command.lower() == "post" and nbytes > 0:
                 data = self.rfile.read(nbytes)
