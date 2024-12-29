@@ -632,7 +632,7 @@ class DictionnaireDeCoureurs(dict) :
         course = coureur.categorie(Parametres["CategorieDAge"])
         # if Parametres["CategorieDAge"] == 0 : # cross du collège
         if Parametres["CoursesManuelles"] : # courses manuelles activées
-            print("ATTENTION : à implémenter total de la course en mode manuel")
+            print("ATTENTION : à implémenter total de la course en mode manuel. Remarque obsolète ?")
             course = coureur.dossard[-1].upper()
             if course in self.keys() :
                 for c in self[course] :
