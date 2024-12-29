@@ -1,15 +1,10 @@
-### Fichier contenant les fonctions de :
+### Fonctions contenant les fonctions de :
 ### - création des pages internet de résultats avec des onglets par course.
 ### - diffusion vers un serveur FTP ou SFTP 
 
-from config import *
-
-from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
-# import pysftp
-from ftplib import FTP
-import paramiko
-
 # from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
+import os 
+from FonctionsMetiers import *
 
 def ActualiseAffichageInternet(Groupements, depotInitial = False) :
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
