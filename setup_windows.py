@@ -7,7 +7,7 @@ os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # Dependencies are automatically detected, but they might need fine-tuning.
 build_exe_options = {
-    "includes": ["qrcode", "reportlab", "platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
+    "includes": ["PIL", "qrcode", "reportlab", "platform", "tkinter", "time", "datetime", "webbrowser", "subprocess", "sys", "os", "re", "copy", "socket",\
         "idlelib.tooltip", "pprint", "cgi", "requests", "hashlib", "CameraMotionDetection", "functools", "cv2", \
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko", \
@@ -16,7 +16,7 @@ build_exe_options = {
         "CameraMotionDetection.py", "FonctionsDiffusionInternet.py", "FonctionsMetiers.py",  \
         "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
         "server.py", "Videos.html", "mystyle.css", "jquery-3.6.0.js", \
-        "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www"]# , "texlive"
+        "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www", "Fonts"]# , "texlive"
 }
 
 # build_mac_options = { "iconfile": "Icon.icns",
