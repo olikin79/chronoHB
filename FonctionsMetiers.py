@@ -37,8 +37,6 @@ import zipfile
 # #### DEBUG
 # DEBUG = False
 
-from config import *
-
 #### pour la diffusion des résultats sur internet , sur serveur FTP, FTPS.
 from config import *
 from ftplib import FTP
@@ -46,6 +44,7 @@ import paramiko
 
 # version = "2.1.0"
 
+from FonctionsGenerationPDF import *
 # LOGDIR="logs"
 
 def windows():

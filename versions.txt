@@ -42,7 +42,7 @@ Travail du 29/12/24 :
 - Correctif webcam qui ne se fermait pas quand l'humain était trop rapide.
 - Déplacement des fonctions de diffusion internet dans fonctions_metiers.py
 - Implémentation des dossards construits sans latex.
-
+- Implémentation d'une fonction pour générer les pdf des résultats à partir d'un contenu standardisé, flexible.
 
 Travail du 20/12/24 au 28/12/2024 : (objectif : suppression de latex pour alléger l'application et l'accélérer)
 - capacité à déployer l'application avec cx_freeze.
