@@ -838,7 +838,7 @@ def rechercheVideoProcheDe(horaire) :
 class ValidatingEntry(Entry):
     # base class for validating entry widgets
     def __init__(self, master, value="", **kw):
-        apply(Entry.__init__, (self, master), kw)
+        super().__init__(master, **kw)
         self.__value = value
         self.__variable = StringVar()
         self.__variable.set(value)
@@ -881,7 +881,7 @@ class FloatEntry(ValidatingEntry):
 class MaxLengthEntry(ValidatingEntry):
     def __init__(self, master, value="", maxlength=None, **kw):
         self.maxlength = maxlength
-        apply(ValidatingEntry.__init__, (self, master), kw)
+        ValidatingEntry.__init__(self, master, value=value, **kw)
 
     def validate(self, value):
         if self.maxlength:
@@ -2391,9 +2391,16 @@ def activerDesactiverLaVideo():
             recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             recoderT.start()
     else :
-        MD.end()
-        del MD
-        print("on stoppe le module motion detection")
+        try :
+            MD.end()
+            del MD
+            print("on stoppe le module motion detection")
+        except :
+            # on retente un peu plus tard car l'initialisation n'a pas pu être effectuée.
+            # on relance activerDesactiverLaVideo() dans 1 seconde avec timer
+            root.after(1000,activerDesactiverLaVideo)
+            pass
+
 
 def enregistrerLaVideo():
     global MD
@@ -3533,7 +3540,10 @@ def effaceToutesDonnees() :
         genereResultatsCoursesEtClasses(True)
         tableau.reinit()
         actualiseToutLAffichage()
-        nettoyerTousLesFichiersGeneres()
+        retour = nettoyerTousLesFichiersGeneres()
+        if retour :
+            for texte in retour :
+                showinfo("ERREUR !",texte)
         #actualiseEtatBoutonsRadioConfig()
         
 def effaceDonneesGUI ():
@@ -3626,7 +3636,10 @@ def imprimerArrierePlan(fichiers) :
 #         imprimePDF(fichier)
 
 def generateResultatsMessage() :
-    generateImpressions()
+    retour = generateImpressions()
+    if retour :
+        for texte in retour :
+            showinfo("ERREUR !",texte)
     #print('explorer /select,"' + path + os.sep + 'impressions"')
     # si c'est un OS windows 
     if os.name == 'nt':
@@ -4051,9 +4064,10 @@ def recupererSauvegardeGUI(name_file="") :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         # effaceToutesDonnees()
-        erreur = recupere_sauvegardeNG(name_file)
-        if erreur :
-            showinfo("ERREUR", erreur)
+        erreurs = recupere_sauvegardeNG(name_file)
+        if erreurs :
+            for texte in erreurs :
+                showinfo("ERREUR", texte)
         dictionnaire = chargerDonnees()
         if dictionnaire :
             globals().update(dictionnaire)
