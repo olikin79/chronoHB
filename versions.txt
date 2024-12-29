@@ -24,24 +24,30 @@ quand on effectue quelques actions à trouver dans les paramètres. Reconstructi
 - Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
 
 
+A finir :
+- ouverture depuis l'explorateur windows des fichiers *.chb.
+- recréer les modèles d'autres dossards en mode "sans latex".
+
 Bug constaté :
 si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
 - le clic sur l'heure de départ ne fonctionne plus pour la modifier. C'est sûrement dû au fait que l'on n'est plus la même date. Presque souhaitable ?
 - le temps depuis le départ clignote (se remet à 00:00:00 puis se règle),
-
 
 Avant le cross Rieutort :
 - Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+Travail du 29/12/24 :
+- Correctif webcam qui ne se fermait pas quand l'humain était trop rapide.
+- Déplacement des fonctions de diffusion internet dans fonctions_metiers.py
+- Implémentation des dossards construits sans latex.
 
 
 Travail du 20/12/24 au 28/12/2024 : (objectif : suppression de latex pour alléger l'application et l'accélérer)
 - capacité à déployer l'application avec cx_freeze.
 - Changements dans run_cgi() de server.py afin d'assurer la compatibilité existante.
 - Génération de QR-codes en png sans latex et intégration à l'existant.
-
 
 Travail du 28/11/24 :
 - Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.
