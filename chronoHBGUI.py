@@ -49,8 +49,6 @@ from resultatsDiffusion import * # création puis diffusion des diplomes par ema
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
-from FonctionsDiffusionInternet import *
-
 # def mainGUI() :
 # version="2.1.1"
 
@@ -3606,7 +3604,7 @@ def generateImpressionsArrierePlan():
     def on_thread_finished():
         affichagePopupPourImpressionRapide()  # Appeler cette fonction uniquement après que le thread est terminé
     # Créer la tâche avec un argument
-    tache = lambda: generateImpressions(uniquementCoursesEtChallenge=True)
+    tache = lambda: generateImpressionsNG(uniquementCoursesEtChallenge=True)
     # Passer cette tâche à `ouvrir_popup_patienter`
     ouvrir_popup_patienter(tache, callback=on_thread_finished)
 
@@ -3636,9 +3634,9 @@ def imprimerArrierePlan(fichiers) :
 #         imprimePDF(fichier)
 
 def generateResultatsMessage() :
-    retour = generateImpressions()
-    if retour :
-        for texte in retour :
+    retour = generateImpressionsNG()
+    for texte in retour :
+        if retour :
             showinfo("ERREUR !",texte)
     #print('explorer /select,"' + path + os.sep + 'impressions"')
     # si c'est un OS windows 
@@ -4054,7 +4052,9 @@ def actualiseEntryParams():
 def recupererSauvegardeGUI(name_file="") :
     #global root,Courses
     if not name_file :
-        CURRENT_DIRECTORY = os.getcwd()
+        # récupérer le chemin vers Mes Documents sous windows ou vers Documents sur mac os ou linux
+        CURRENT_DIRECTORY = os.path.expanduser("~") + os.sep + "Documents"
+        # CURRENT_DIRECTORY = os.getcwd()
         options = {
                     'initialdir': CURRENT_DIRECTORY,
                     'title': 'Choisir la sauvegarde à récupérer',
