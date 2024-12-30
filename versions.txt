@@ -38,6 +38,11 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+
+Travail du 30/12/24 :
+- création du msi 2.2.12 avec la génération des résultats en pdf hors texlive et l'ouverture de fichiers dans l'explorer windows ok.
+Manquent les créations de dossards, les statistiques de course.
+
 Travail du 29/12/24 :
 - Correctif webcam qui ne se fermait pas quand l'humain était trop rapide.
 - Déplacement des fonctions de diffusion internet dans fonctions_metiers.py

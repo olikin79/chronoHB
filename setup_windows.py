@@ -52,7 +52,7 @@ build_msi_options = {"upgrade_code": "{66212526-7761-6E69-6F6E-6C129E797817}",
                                 "verb": "open",
                                 "executable": "chronoHB.exe",
                                 "context": "Ouvre les fichiers chb",
-                                # "argument": '"%1"',
+                                "argument": '"%1"',
                                 },
                         ],
                     }
