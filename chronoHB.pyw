@@ -1,21 +1,11 @@
 from config import *
 
+# Définir le répertoire de travail comme le répertoire contenant l'exécutable
+# CURRENT_DIRECTORY = os.getcwd()
+os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+
 # import cgi
 
-# # Vérifie si l'application est exécutée en mode CGI
-# if "-u" in sys.argv:
-#     # Exécution du script CGI
-#     # query = os.environ.get("QUERY_STRING", "")
-#     # params = cgi.parse_qs(query)
-    
-#     # # Exemple de traitement
-#     # result = f"CGI Script executed with params: {params}"
-    
-#     # # Imprimer les en-têtes HTTP et le résultat
-#     # print("Content-Type: text/plain\n")
-#     # print(result)
-#     print("execution du script CGI avec les arguments", sys.argv)
-# else:
 # Exécution normale (fenêtre tkinter)
 # récupération du nom du fichier passé en paramètre si présent
 fichier_parametre = ""
