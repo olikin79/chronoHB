@@ -3303,12 +3303,14 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 401, 411, 441, 451]:
+            if not erreur.numero in [0, 190, 311, 312, 321, 401, 411, 441, 451]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
             ### Le traitement strictement chronologique des fichiers de données impose ce post-traitement dans ce seul cas.
                 #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
+            elif erreur.numero == 190 and Parametres["utilisationDesDossardsDeChronoHB"] :
+                ajout = True
             elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
                 ajout = True
             ## alimentation de la liste complète des erreurs à afficher de façon effective.

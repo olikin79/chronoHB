@@ -1789,7 +1789,7 @@ def chargerDonnees() :
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1999,6 +1999,9 @@ def chargerDonnees() :
     urlMiseAJour=Parametres["urlMiseAJour"]
     if not "urlMiseAJourPrefixeZip" in Parametres :
         Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
+    if not "utilisationDesDossardsDeChronoHB" in Parametres :
+        Parametres["utilisationDesDossardsDeChronoHB"] = False
+    utilisationDesDossardsDeChronoHB = Parametres["utilisationDesDossardsDeChronoHB"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()

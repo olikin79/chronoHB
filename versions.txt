@@ -27,6 +27,9 @@ quand on effectue quelques actions à trouver dans les paramètres. Reconstructi
 A finir :
 - ouverture depuis l'explorateur windows des fichiers *.chb.
 - recréer les modèles d'autres dossards en mode "sans latex".
+- ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
+- ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
+
 
 Bug constaté :
 si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
@@ -38,6 +41,8 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+Travail du 30/12/24 post 2.2.12 :
+- ajout d'un paramètre utilisationDesDossardsDeChronoHB = False par défaut pour ne pas afficher l'avertissement des dossards non imprimés si on ne les utilise pas.
 
 
 Travail du 30/12/24 :
