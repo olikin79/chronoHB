@@ -3539,8 +3539,8 @@ def effaceToutesDonnees() :
         tableau.reinit()
         actualiseToutLAffichage()
         retour = nettoyerTousLesFichiersGeneres()
-        if retour :
-            for texte in retour :
+        for texte in retour :
+            if texte :
                 showinfo("ERREUR !",texte)
         #actualiseEtatBoutonsRadioConfig()
         
@@ -3552,7 +3552,7 @@ def effaceDonneesGUI ():
         nomFichierCopie = "db" + os.sep + "Course_"+ date + "-Avant-effacement-toutes-donnees.chb"
         fichier = ecrire_sauvegardeNG(nomFichierCopie)
         effaceToutesDonnees()
-        reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+fichier+".")
+        reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+os.getcwd() + os.sep + fichier+".")
         print("Données effacées et affichage initialisé.")
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
 
@@ -3636,7 +3636,7 @@ def imprimerArrierePlan(fichiers) :
 def generateResultatsMessage() :
     retour = generateImpressionsNG()
     for texte in retour :
-        if retour :
+        if texte :
             showinfo("ERREUR !",texte)
     #print('explorer /select,"' + path + os.sep + 'impressions"')
     # si c'est un OS windows 
@@ -4065,8 +4065,8 @@ def recupererSauvegardeGUI(name_file="") :
         #print("Sauvegarde choisie :",name_file)
         # effaceToutesDonnees()
         erreurs = recupere_sauvegardeNG(name_file)
-        if erreurs :
-            for texte in erreurs :
+        for texte in erreurs :
+            if texte :
                 showinfo("ERREUR", texte)
         dictionnaire = chargerDonnees()
         if dictionnaire :
@@ -4939,10 +4939,13 @@ else :
 
 def exportCourse():
     # Ouvrir une boîte de dialogue pour choisir le nom et le dossier du fichier de sauvegarde
+    CURRENT_DIRECTORY = os.path.expanduser("~") + os.sep + "Documents"
+                    
     fichierChoisi = asksaveasfilename(
         defaultextension=".chb",  # Extension par défaut
         filetypes=[("Sauvegarde chronoHB", "*.chb")],  # Filtrer pour .chb
-        title="Choisir un nom pour la sauvegarde"
+        title="Choisir un nom pour la sauvegarde",
+        initialdir = CURRENT_DIRECTORY,
     )
     
     if fichierChoisi:

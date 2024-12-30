@@ -39,9 +39,11 @@ Avant le cross Rieutort :
 
 
 
+
 Travail du 30/12/24 :
 - création du msi 2.2.12 avec la génération des résultats en pdf hors texlive et l'ouverture de fichiers dans l'explorer windows ok.
-Manquent les créations de dossards, les statistiques de course.
+Manquent les créations de dossards, les statistiques de course afin d'éliminer totalement texlive.
+- Correctif : des messages vides s'affichaient quand il n'y avait pas d'erreur.
 
 Travail du 29/12/24 :
 - Correctif webcam qui ne se fermait pas quand l'humain était trop rapide.
