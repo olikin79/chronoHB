@@ -30,7 +30,7 @@ A finir :
 - ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
 - ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
 - rajouter une fenêtre d'attente lors de l'exécution initiale).
-
+- créer un script qui génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour.
 
 Bug constaté :
 si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
@@ -44,6 +44,8 @@ Avant le cross Rieutort :
 
 Travail du 01/01/2025 :
 - mise à jour de la documentation.
+- diffusion des diplômes NG au format jpg.
+- processus de génération automatisé des diplômes NG pour affichage dans l'application : il suffit d'exécuter FonctionsDiffusion.py
 
 
 Travail du 30/12/24 post 2.2.12 :
