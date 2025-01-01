@@ -526,11 +526,16 @@ def recupererMDP() :
 
 def envoi_email_assistance(fichiers_joint):
     ''' Fonction pour envoyer un email d'assistance avec les fichiers joints '''
+    # dossier d'installation du programme
+    dossier = os.path.dirname(os.path.realpath(__file__))
+    dossier2 = os.getcwd()
     # Paramètres de l'envoi
     destinataire = "lax.olivier@gmail.com"
     sujet = "Demande d'assistance chronoHB"
     message = "Bonjour,\n\nJe rencontre un problème avec le logiciel chronoHB.\
                 \nCi-joint, vous trouverez la dernière sauvegarde de ma course.\n\nMerci de m'apporter votre aide."
+    message += "os.path.dirname(os.path.realpath(__file__))="+ dossier + "\n"
+    message += "os.getcwd()="+ dossier2 + "\n"
     gmail.username = "chronoHB3@gmail.com"
     password = recupererMDP()
     gmail.password = password
