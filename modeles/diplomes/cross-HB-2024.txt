@@ -5,11 +5,11 @@
  	{"type": "text", "text": " / @nbreTotal@ participants", "taille": 40, "police": "", "color" :  "white"}
  	]
  },
- {"type": "text", "text": "@nom@ @prenom@", "x": 30, "y": 500, "taille": 50, "police": "", "style" : "bold", "color" : "white"},
- {"type": "multiobjects", "y": 600, "marge": 30, "list": [
-	 {"type": "img-text", "file": "media/chronometre-blanc.png", "scale": 0.13, "text": "@temps@", "taille": 40, "color" : "white", "ecart" : 10},
-	 {"type": "img-text", "file": "media/vitesse-blanc.png", "scale": 0.25, "text": " @vitesse@", "taille": 40, "color" : "white", "ecart" : 10, "style" : "italic"},
-	 {"type": "img-text", "file": "media/@logoSexe@", "scale": 0.165, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 40, "color" : "white", "ecart" : 10}
+ {"type": "text", "text": "@nom@ @prenom@", "x": 30, "y": 450, "taille": 50, "police": "", "style" : "bold", "color" : "white"},
+ {"type": "multiobjects", "y": 500, "marge": 30, "list": [
+	 {"type": "img-text", "file": "media/chronometre-blanc.png", "scale": 0.1, "text": "@temps@", "taille": 30, "color" : "white", "ecart" : 10},
+	 {"type": "img-text", "file": "media/vitesse-blanc.png", "scale": 0.19, "text": " @vitesse@", "taille": 30, "color" : "white", "ecart" : 10, "style" : "italic"},
+	 {"type": "img-text", "file": "media/symbole-@logoSexe@-blanc.png", "scale": 0.12, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 30, "color" : "white", "ecart" : 10}
 	 ]
  }
 ]

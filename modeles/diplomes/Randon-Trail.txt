@@ -9,7 +9,7 @@
  {"type": "multiobjects", "y": 600, "marge": 30, "list": [
 	 {"type": "img-text", "file": "media/chronometre-blanc.png", "scale": 0.13, "text": "@temps@", "taille": 40, "color" : "white", "ecart" : 10},
 	 {"type": "img-text", "file": "media/vitesse-blanc.png", "scale": 0.25, "text": " @vitesse@", "taille": 40, "color" : "white", "ecart" : 10, "style" : "italic"},
-	 {"type": "img-text", "file": "media/@logoSexe@", "scale": 0.165, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 40, "color" : "white", "ecart" : 10}
+	 {"type": "img-text", "file": "media/symbole-@logoSexe@-blanc.png", "scale": 0.165, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 40, "color" : "white", "ecart" : 10}
 	 ]
  }
 ]
