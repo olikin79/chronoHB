@@ -19,39 +19,62 @@ diplomeEmailQuotaDepasse=False
 
 def replaceDansDiplomeEnFonctionDesResultats(modele, coureur, nomModele) :
     """ remplace les champs du modèle par les informations du coureur fourni"""
-    groupement = groupementAPartirDeSonNom(coureur.course,nomStandard = True)
-    if Parametres["CategorieDAge"] == 0 :
-        # cas du cross du collège.
-        categorie = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nom
-    else :
-        # autres cas : les catégories d'âge sont indicatives.
-        categorie = "Catégorie " + coureur.categorieSansSexe()
-    if coureur.sexe == "F" :
-        logoSexe = "symbole-feminin-blanc.png"
-        nbreTotalSexe = groupement.nombreDeCoureursFTotal
-    else :
-        logoSexe = "symbole-male-blanc.png"
-        nbreTotalSexe = groupement.nombreDeCoureursGTotal
-    nomCourse = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom#Courses[coureur.course].description
-    #print(coureur.nom,nomCourse)
-    temps = coureur.tempsHMS()
-    dateDuTrail = Courses[coureur.course].dateFormatee()
-    nbreTotal = str(Coureurs.getTotalDeLaCourse(coureur)) # str(groupement.nombreDeCoureursTotal)
-    nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
-    rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
-    fondDiplome = nomModele + ".jpg" 
-    # astuce pour éviter que des rangs par catégorie inutiles apparaissent, on change en SENIOR puisque le classement par catégorie
-    # pour les séniors revient au même que la classement global.
-    cat = coureur.categorieSansSexe()
+    try :
+        fondDiplome = nomModele + ".jpg" 
+        groupement = groupementAPartirDeSonNom(coureur.course,nomStandard = True)
+        if Parametres["CategorieDAge"] == 0 :
+            # cas du cross du collège.
+            categorie = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nom
+        else :
+            # autres cas : les catégories d'âge sont indicatives.
+            categorie = "Catégorie " + coureur.categorieSansSexe()
+        if coureur.sexe == "F" :
+            logoSexe = "feminin"
+            nbreTotalSexe = groupement.nombreDeCoureursFTotal
+        else :
+            logoSexe = "male"
+            nbreTotalSexe = groupement.nombreDeCoureursGTotal
+        nomCourse = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom#Courses[coureur.course].description
+        #print(coureur.nom,nomCourse)
+        temps = coureur.tempsHMS()
+        dateDuTrail = Courses[coureur.course].dateFormatee()
+        nbreTotal = str(Coureurs.getTotalDeLaCourse(coureur)) # str(groupement.nombreDeCoureursTotal)
+        nbreTotalCategorie = str(groupement.getTotalParCategorie(coureur.categorieSansSexe(),coureur.sexe))
+        rangSexe = formateRangSexe(coureur.rangSexe,coureur.sexe)
+        # astuce pour éviter que des rangs par catégorie inutiles apparaissent, on change en SENIOR puisque le classement par catégorie
+        # pour les séniors revient au même que la classement global.
+        cat = coureur.categorieSansSexe()
+        intitule = Parametres["intituleCross"]
+        lieuDeLaCourse = Parametres["lieu"]
+        vitesse = coureur.vitesseFormateeAvecVMAtex(retourALaLigne=True).replace(".",",")
+        rangDansCategorie = formateRangSexe(coureur.rangCat, coureur.sexe)
+        rang = formateRangSexe(coureur.rang, coureur.sexe)
+    except :
+        print("Génération d'un modèle de diplôme. Cette exécution ne devrait pas se produire en production.")
+        categorie = "SENIOR"
+        cat = "SE"
+        logoSexe = "male"
+        nbreTotalSexe = "49"
+        nbreTotalCategorie = "100"
+        nbreTotal = "100"
+        rangSexe = "17"
+        dateDuTrail = "Mercredi 01 janvier 2025"
+        lieuDeLaCourse = "Mende"
+        intitule = "Cross Henri Bourrillon"
+        nomCourse = "5 km"
+        temps = "25:00"
+        vitesse = "12 km/h (80% VMA)"
+        rangDansCategorie = "3ème"
+        rang = "3ème"
 ##    if nbreTotalCategorie == "1" :
 ##        # s'il n'y a qu'une seule personne dans une catégorie, est ce que l'on supprime l'affichage ou non en mettant SE artificiellement ?
 ##        cat = "SE"
     retour = modele.replace("@nom@",coureur.nom).replace("@prenom@",coureur.prenom).replace("@date@",dateDuTrail)\
-                .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
-                .replace("@rang@",formateRangSexe(coureur.rang, coureur.sexe))\
+                .replace("@intituleCross@",intitule).replace("@lieu@",lieuDeLaCourse)\
+                .replace("@rang@",rang)\
                 .replace("@nbreTotal@",nbreTotal).replace("@categorie@",categorie).replace("@cat@",cat)\
-                .replace("@logoSexe@",logoSexe).replace("@nomCourse@",nomCourse).replace("@rangCat@",formateRangSexe(coureur.rangCat, coureur.sexe))\
-                .replace("@nbreTotalCategorie@",str(nbreTotalCategorie)).replace("@temps@",temps).replace("@vitesse@",coureur.vitesseFormateeAvecVMAtex(retourALaLigne=True).replace(".",","))\
+                .replace("@logoSexe@",logoSexe).replace("@nomCourse@",nomCourse).replace("@rangCat@",rangDansCategorie)\
+                .replace("@nbreTotalCategorie@",str(nbreTotalCategorie)).replace("@temps@",temps).replace("@vitesse@",vitesse)\
                 .replace("@rangSexe@",rangSexe).replace("@nbreTotalSexe@",str(nbreTotalSexe)).replace("@fondDiplome@",fondDiplome)
     return retour
 
@@ -68,7 +91,7 @@ def formateRangSexe(rang, sexe) :
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-def genereDiplome(coureur, nomModele) :
+def genereDiplome(coureur, nomModele, creationDeTousLesModeles = False) :
     """ transition entre l'ancien genereDiplome et genereDiplomeNG"""
     dossard = coureur.dossard
     # ouvre le fichier ./modeles/diplomes/nomModele.txt et en récupère le contenu dans une variable modele
@@ -81,19 +104,26 @@ def genereDiplome(coureur, nomModele) :
     # transforme cette chaine en une liste de dictionnaires en l'évaluant
     modele = eval(modele)
     # localise le fond d'écran correspondant
-    fond = os.path.join("modeles", "diplomes", nomModele + ".png")
+    fond = os.path.join("modeles", "diplomes", nomModele + "-fond.png")
     # génère le diplome dans un fichier png
-    genereDiplomeNG(dossard, fond, modele)
+    if os.path.exists(fond) :
+        genereDiplomeNG(dossard, fond, modele, creationDeTousLesModeles = creationDeTousLesModeles, nomModele=nomModele)
+    else :
+        print("Le fichier de fond", fond, "est introuvable.")
 
 
-def genereDiplomeNG(dossard, modele, listeDesObjetsAIncruster):
+def genereDiplomeNG(dossard, modele, listeDesObjetsAIncruster, creationDeTousLesModeles = False, nomModele=""):
     """ générer un diplome dans un fichier png
     dossard est le numéro du dossard
     modele est le nom du fichier image de fond
     listeDesObjetsAIncruster est la liste des objets à incruster sur le diplome"""
 
-    # Créer le dossier "resultats" s'il n'existe pas
-    os.makedirs("resultats", exist_ok=True)
+    if creationDeTousLesModeles :
+        dossierGeneration = "modeles/diplomes"
+    else :
+        dossierGeneration = "resultats"
+        # Créer le dossier "resultats" s'il n'existe pas
+        os.makedirs(dossierGeneration, exist_ok=True)
 
     # Charger l'image de base (fond)
     try:
@@ -319,8 +349,15 @@ def genereDiplomeNG(dossard, modele, listeDesObjetsAIncruster):
             incruster_multitexts(obj["x"], obj["y"], obj["list"])
 
     # Sauvegarder le résultat
-    fichier_resultat = f"resultats/{dossard}.png"
-    img_base.save(fichier_resultat, "PNG")
+    if creationDeTousLesModeles :
+        fichier_resultat = dossierGeneration + f"/{nomModele}.png"
+        formatExport = "PNG"
+    else :
+        fichier_resultat = dossierGeneration + f"/{dossard}.jpg"
+        formatExport = "JPEG"
+        print("Conversion du diplôme en image non transparente")
+        img_base = img_base.convert("RGB")
+    img_base.save(fichier_resultat, formatExport)
     print(f"Image générée : {fichier_resultat}")
 
 
@@ -579,7 +616,7 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     return retour
             
 def envoiDiplomeParMail(coureur, envoiManuel = False) :
-    fichier = "resultats/" + coureur.dossard + ".png"
+    fichier = "resultats/" + coureur.dossard + ".jpg"
     try :
         if os.path.exists(fichier) :
             print(coureur.nom, coureur.prenom, "a passé la ligne, nombre d'envois sur email", coureur.emailNombreDEnvois, "et sur email2", coureur.emailNombreDEnvois2)
@@ -630,17 +667,27 @@ if __name__ == '__main__':
     # print(choixDuMailAUtiliser())
     # diplomeImpose = "cross-HB"
     # envoiDiplomePourTousLesCoureurs(diplomeImpose=diplomeImpose)
-    listeDesObjetsAIncruster = [
-        {"type": "text", "text": "Félicitations !", "x": 100, "y": 50, "taille": 40, "police": ""},
-        {"type": "img", "file": "logo.png", "x": 200, "y": 100, "scale": 1.5},
-        {"type": "img-text", "file": "medaille.png", "x": 50, "y": 200, "scale": 1, "text": "Champion", "taille": 20},
-        {"type": "multiobjects", "y": 300, "marge": 20, "list": [
-            {"type": "text", "text": "Participant 1", "taille": 20},
-            {"type": "img", "file": "badge.png", "scale": 1},
-            {"type": "text", "text": "Participant 2", "taille": 20}
-        ]}
-    ]
+    # listeDesObjetsAIncruster = [
+    #     {"type": "text", "text": "Félicitations !", "x": 100, "y": 50, "taille": 40, "police": ""},
+    #     {"type": "img", "file": "logo.png", "x": 200, "y": 100, "scale": 1.5},
+    #     {"type": "img-text", "file": "medaille.png", "x": 50, "y": 200, "scale": 1, "text": "Champion", "taille": 20},
+    #     {"type": "multiobjects", "y": 300, "marge": 20, "list": [
+    #         {"type": "text", "text": "Participant 1", "taille": 20},
+    #         {"type": "img", "file": "badge.png", "scale": 1},
+    #         {"type": "text", "text": "Participant 2", "taille": 20}
+    #     ]}
+    # ]
 
-    genereDiplome("dossard123", "fond.png", listeDesObjetsAIncruster)
+    # genereDiplome("dossard123", "fond.png", listeDesObjetsAIncruster)
 
-        
+    ### génère tous les diplomes des modèles présents dans modeles/diplomes/*.txt
+    import glob
+    dossierModeles = "modeles/diplomes/"
+    listeDesModeles = glob.glob(dossierModeles + "*.txt")
+    coureur = Coureur("LACROIX", "Olivier", "M", "1A", "62", "01/01/2000", 0.0)
+    for modele in listeDesModeles :
+        file = modele[:-4]
+        # récupère uniquement le nom du fichier file 
+        file = file.split(os.sep)[-1]
+        print(file)
+        genereDiplome(coureur, file, creationDeTousLesModeles = True)
