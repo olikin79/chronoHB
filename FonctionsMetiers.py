@@ -48,7 +48,7 @@ from FonctionsGenerationPDF import *
 # LOGDIR="logs"
 
 def windows():
-    if os.sep == "\\" :
+    if platform.system() == "Windows" :
         return True
     else :
         return False

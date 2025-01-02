@@ -43,10 +43,11 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+Travail du 03/01/2025 : 
 
-Travail du 02/01/2025 :
+Travail du 02/01/2025 : v 2.2.13
 - information des imports en arrière plan dans l'interface même si l'impression n'est plus proposée.
-
+- correctif import win32 non présent dans le msi et bloquant sur certains windows.
 
 Travail du 01/01/2025 :
 - mise à jour de la documentation.
