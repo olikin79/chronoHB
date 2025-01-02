@@ -1,8 +1,9 @@
-from config import *
-
-# Définir le répertoire de travail comme le répertoire contenant l'exécutable
-# CURRENT_DIRECTORY = os.getcwd()
+import os
+# Définir le répertoire de travail comme le répertoire contenant l'exécutable pour que les logs se placent au bon endroit.
+CURRENT_DIRECTORY = os.getcwd()
 os.chdir(os.path.dirname(os.path.abspath(sys.argv[0])))
+
+from config import *
 
 # import cgi
 
