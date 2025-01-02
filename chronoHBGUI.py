@@ -4658,6 +4658,9 @@ def packAutresWidgets():
         CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
         cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
         choixCMQRCodes()
+    cbutilisationDesDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
+    # cbutilisationDesDossardsDeChronoHBLbl.pack(side=LEFT,anchor="w")
+    cbutilisationDesDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
     cbListingsFrame.pack(side=TOP,anchor="w")
     cbListingsLbl.pack(side=LEFT,anchor="w")
     cbCMgenererListing.pack(side=LEFT,anchor="w")
@@ -4805,6 +4808,13 @@ def choixQRCodesListing():
         Parametres["genererListingQRcodes"]=False
     print("Case à cocher générer listing QR-codes :", Parametres["genererListingQRcodes"])
 
+def choixUtilisationDesDossardsDeChronoHB():
+    if cbutilisationDesDossardsDeChronoHB.get() :
+        Parametres["utilisationDesDossardsDeChronoHB"]=True
+    else :
+        Parametres["utilisationDesDossardsDeChronoHB"]=False
+    print("Case à cocher utilisation des dossards de ChronoHB :", Parametres["utilisationDesDossardsDeChronoHB"])
+
 def choixListing():
     if cbgenererListing.get() :
         Parametres["genererListing"]=True
@@ -4822,6 +4832,18 @@ if genererListingQRcodes:
     cbgenererListingQRCodes.set(True)
 else :
     cbgenererListingQRCodes.set(False)
+
+cbutilisationDesDossardsDeChronoHB = BooleanVar()
+if utilisationDesDossardsDeChronoHB:
+    cbutilisationDesDossardsDeChronoHB.set(True)
+else :
+    cbutilisationDesDossardsDeChronoHB.set(False)
+
+cbutilisationDesDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
+# cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChronoHBFrame, text="Impression des dossards avec ChronoHB")
+cbutilisationDesDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesDossardsDeChronoHBFrame, text="Impression des dossards avec ChronoHB", variable=cbutilisationDesDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesDossardsDeChronoHB)
+
+
 cbListingsFrame = Frame(GaucheFrameParametresCourses)
 cbListingsLbl = Label(cbListingsFrame,text="En cas de pertes de dossards : ")
 cbCMgenererListing = Checkbutton(cbListingsFrame, text="Générer un tableau des associations noms-dossards", variable=cbgenererListing, onvalue=1, offvalue=0, command=choixListing)
@@ -5400,8 +5422,6 @@ DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 
 #actualiseAffichageZoneDeDroite()
-
-
 
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
