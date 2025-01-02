@@ -2550,7 +2550,7 @@ def onClickE(err):
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 190 :
-        if utilisationDesDossardsDeChronoHB :
+        if Parametres["utilisationDesDossardsDeChronoHB"] :
             print("on bascule vers le menu d'impression des dossards non encore imprimés.")
             ouvrir_popup_patienter(imprimerDossardsNonImprimes)
         else :
@@ -3715,9 +3715,13 @@ def envoiDiplomeIndividuelsLanceur():
     mon_thread_Diplomes.start()
 
 def envoiDiplomeIndividuels() :
-    saisieDossards(buttonBarMode=1)
+    imprimerDossards(buttonBarMode=1)
 
-def saisieDossards(buttonBarMode = 0) :
+def imprimerDossards(buttonBarMode = 0) :
+    if not Parametres["utilisationDesDossardsDeChronoHB"] :
+        showinfo("Informations","Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
+        print("Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
+        return
     Parametres["buttonBarMode"] = buttonBarMode
     GaucheFrame.forget()
     DroiteFrame.forget()
@@ -4075,6 +4079,10 @@ def afficher_popup_couleurs(listeCouleur, nomFichierGenere, listeDesDossardsGene
     btn_annuler.pack(side=RIGHT, padx=10)
 
 def imprimerDossardsNonImprimes(listeDesDossardsGeneres = []) :
+    if not Parametres["utilisationDesDossardsDeChronoHB"] :
+        showinfo("Informations","Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
+        print("Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
+        return
     print("génération des dossards non imprimés en pdf puis impression immédiate puis bascule de chacun 'aImprimer=False' si confirmation de la bonne impression ")
     if not listeDesDossardsGeneres :
         listeDesDossardsGeneres, listeCouleurs = generateDossardsAImprimer()
@@ -4161,7 +4169,7 @@ filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
 filemenu.add_command(label="Imprimer tous les dossards non encore imprimés", command=imprimerDossardsNonImprimes)
-filemenu.add_command(label="Imprimer un dossard particulier", command=saisieDossards)
+filemenu.add_command(label="Imprimer un dossard particulier", command=imprimerDossards)
 filemenu.add_separator()
 filemenu.add_command(label="Saisir les absents, dispensés", command=saisieAbsDisp)
 #filemenu.add_command(label="Modifier une donnée coureur après import (non implémenté)", command=hello)
