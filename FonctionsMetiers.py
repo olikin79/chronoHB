@@ -1789,7 +1789,7 @@ def chargerDonnees() :
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1999,9 +1999,13 @@ def chargerDonnees() :
     urlMiseAJour=Parametres["urlMiseAJour"]
     if not "urlMiseAJourPrefixeZip" in Parametres :
         Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
+    urlMiseAJourPrefixeZip=Parametres["urlMiseAJourPrefixeZip"]
     if not "utilisationDesDossardsDeChronoHB" in Parametres :
         Parametres["utilisationDesDossardsDeChronoHB"] = False
     utilisationDesDossardsDeChronoHB = Parametres["utilisationDesDossardsDeChronoHB"]
+    if not "informationNouveauxDossardsImportesAEffacer" in Parametres :
+        Parametres["informationNouveauxDossardsImportesAEffacer"] = False
+    informationNouveauxDossardsImportesAEffacer = Parametres["informationNouveauxDossardsImportesAEffacer"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -3277,10 +3281,17 @@ def CombienYATIlDossardsAImprimer() :
     for coureur in Coureurs.liste() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
             retour += 1
-    if retour > 1 :
-        erreur = Erreur(190, "Il y a "+str(retour)+" dossards non encore imprimés. Cliquer ici pour les imprimer.")
-    elif retour == 1 :
-        erreur = Erreur(190, "Il y a un dossard non encore imprimé. Cliquer ici pour l'imprimer.")
+    if retour :
+        if utilisationDesDossardsDeChronoHB :
+            if retour > 1 :
+                erreur = Erreur(190, "Il y a "+str(retour)+" dossards non encore imprimés. Cliquer ici pour les imprimer.")
+            elif retour == 1 :
+                erreur = Erreur(190, "Il y a un dossard non encore imprimé. Cliquer ici pour l'imprimer.")
+        else :
+            if retour > 1 :
+                erreur = Erreur(190, "Import de " + str(retour) + " coureurs effectué en arrière plan.\nCliquer ici pour faire disparaître ce message.")
+            else :
+                erreur = Erreur(190, "Import d'un coureur effectué en arrière plan.\nCliquer ici pour faire disparaître ce message.")
     else :
         # print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
         erreur = Erreur(0)

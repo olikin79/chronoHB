@@ -2540,7 +2540,7 @@ lblListE=[]
 listErreursEnCours=[]
 
 #frE = Frame(zoneAffichageErreurs, relief=GROOVE, bd=2)
-Label(zoneAffichageErreurs, text="Erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP, fill=X)
+Label(zoneAffichageErreurs, text="Informations ou erreurs actuellement détectées (cliquer pour corriger) :", fg="red").pack(side=TOP, fill=X)
 
 def onClickE(err):
     #print(grpe)
@@ -2549,8 +2549,15 @@ def onClickE(err):
     #root.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     if err.numero == 190 :
-        print("on bascule vers le menu d'impression des dossards non encore imprimés.")
-        ouvrir_popup_patienter(imprimerDossardsNonImprimes)
+        if utilisationDesDossardsDeChronoHB :
+            print("on bascule vers le menu d'impression des dossards non encore imprimés.")
+            ouvrir_popup_patienter(imprimerDossardsNonImprimes)
+        else :
+            print("on efface l'affichage d'information sur les dossards importés car l'utilisateur en a pris connaissance.")
+            Parametres["informationNouveauxDossardsImportesAEffacer"] = True
+            nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
+            Parametres["nbreAImprimerAncien"] = nbreAImprimerActuel
+            timer.update_clock()
     elif err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
             Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
@@ -3129,6 +3136,7 @@ class Clock():
         self.dejaDesErreurs = False
         self.auMoinsUnImportPourSauvegarde = False
         # self.nbreAImprimerPrecedent = -1
+        nbreAImprimerAncien = 0
         self.update_clock()
 
     def setPremiereExecution(self,valeur):
@@ -3199,16 +3207,39 @@ class Clock():
             DownloadDaemon.start()
             self.compteurTelechargementURLGoogleSheet = 0
         self.compteurTelechargementURLGoogleSheet += 1
+
+        ########## GESTION DU MESSAGE D'INOFFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
         # si des dossards de certains coureurs n'ont pas encore été imprimés, proposer l'impression via une erreur spcifique à ajouter dans listeNouvellesErreursATraiter
         # print("Dossards à imprimer à signaler dans l'interface : ", listeDesDossardsAImprimer)
         nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
-        listeNouvellesErreursATraiter.append(erreur)
+        if Parametres["utilisationDesDossardsDeChronoHB"] :
+            # le logiciel gère les dossards du cross
+            # tant qu'il y a des dossards à imprimer, on le signale.
+            listeNouvellesErreursATraiter.append(erreur)
+        else :
+            # le logiciel ne gère pas l'impression des dossards du trail. 
+            # On signale l'import mais on permet d'un clic de supprimer l'information
+            if not "nbreAImprimerAncien" in Parametres.keys() : # cas de la première exécution
+                Parametres["nbreAImprimerAncien"] = 0
+                Parametres["informationNouveauxDossardsImportesAEffacer"] = False
+                print("Initialisation de la variable nbreAImprimerAncien")
+            if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
+                # print("Le nombre de coureurs a changé depuis le dernier import automatique.")
+                # le nombre a changé depuis le dernier clic : on réaffiche le message
+                # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
+                    # le message doit se réafficher 
+                print("On affiche l'information")
+                listeNouvellesErreursATraiter.append(erreur)
+            # else :
+            #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
+            #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
+            #     listeNouvellesErreursATraiter.append(erreur)        
 
-        # DEVENU INUTILE : c'est le clic sur le bouton de l'interface qui provoque la compilation. Inutile de compiler à l'avance ni deux fois.
+        # DEVENU POSSIBLE ou INUTILE ? : c'est le clic sur le bouton de l'interface qui provoque la compilation. Inutile de compiler à l'avance ni deux fois.
         # compilation des dossards à imprimer si changement récent.
-        # if self.nbreAImprimerPrecedent != nbreAImprimerActuel :
+        # if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
         #     listeDesDossardsAImprimer, listeCouleurs = generateDossardsAImprimer()
-        #     self.nbreAImprimerPrecedent = nbreAImprimerActuel
+        #     Parametres["nbreAImprimerAncien"] = nbreAImprimerActuel
 
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
@@ -3303,14 +3334,12 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 190, 311, 312, 321, 401, 411, 441, 451]:
+            if not erreur.numero in [0, 311, 312, 321, 401, 411, 441, 451]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
             ### Le traitement strictement chronologique des fichiers de données impose ce post-traitement dans ce seul cas.
                 #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
-            elif erreur.numero == 190 and Parametres["utilisationDesDossardsDeChronoHB"] :
-                ajout = True
             elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
                 ajout = True
             ## alimentation de la liste complète des erreurs à afficher de façon effective.
