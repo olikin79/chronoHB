@@ -2001,7 +2001,7 @@ def chargerDonnees() :
         Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
     urlMiseAJourPrefixeZip=Parametres["urlMiseAJourPrefixeZip"]
     if not "utilisationDesDossardsDeChronoHB" in Parametres :
-        Parametres["utilisationDesDossardsDeChronoHB"] = False
+        Parametres["utilisationDesDossardsDeChronoHB"] = True
     utilisationDesDossardsDeChronoHB = Parametres["utilisationDesDossardsDeChronoHB"]
     if not "informationNouveauxDossardsImportesAEffacer" in Parametres :
         Parametres["informationNouveauxDossardsImportesAEffacer"] = False

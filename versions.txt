@@ -43,8 +43,11 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
-Travail du 03/01/2025 : v 2.2.14
+Travail du 02/01/2025 : v 2.2.14
 - déport des options internet dans un menu dédié.
+- démarrage en plein écran.
+- ajout d'une case pour faire le choix de l'impression des dossards par chronoHB ou non.
+- utilisationDesDossardsDeChronoHB = True (par défaut)
 
 Travail du 02/01/2025 : v 2.2.13
 - information des imports en arrière plan dans l'interface même si l'impression n'est plus proposée.
