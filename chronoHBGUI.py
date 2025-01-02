@@ -55,7 +55,18 @@ from functools import partial
 
 CoureursParClasse = {}
 
+root = Tk() # initial box declaration
+root.title("ChronoHB")
+root.iconbitmap(r'favicon.ico')
 
+### popup pour faire patienter
+# Création du popup de démarrage
+popup = Toplevel(root)
+popup.title("Chargement...")
+popup.geometry("300x100")
+popup.resizable(False, False)
+popup_label = Label(popup, text="Démarrage de chronoHB en cours...", font=("Arial", 12))
+popup_label.pack(expand=True)
  
 
 # from PIL import ImageTk,Image 
@@ -1593,9 +1604,7 @@ def extract_ip():
 #print("IP",extract_ip())
 
 
-root = Tk() # initial box declaration
-root.title("ChronoHB")
-root.iconbitmap(r'favicon.ico')
+
 
 DroiteFrame = Frame(root)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(root)
@@ -5440,6 +5449,9 @@ ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 
 # pour un plein écran avec barre des taches.
 root.state("zoomed")
+
+### Ferme le popup qui montre le chargement de chronoBHB
+popup.destroy()
 
 root.mainloop() # enter the message loop
 

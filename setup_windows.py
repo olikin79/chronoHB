@@ -1,7 +1,7 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.2.14"
+versionDistribuee = "2.2.15"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
