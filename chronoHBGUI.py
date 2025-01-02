@@ -1610,6 +1610,7 @@ GaucheFrameDossards = Frame(root)
 #GaucheFrameParametres = Frame(root)
 GaucheFrameDistanceCourses = Frame(root)
 GaucheFrameParametresCourses = Frame(root)
+GaucheFrameParametresInternet = Frame(root)
 GaucheFrameParametresDossardsDiplomes = Frame(root)
 
 
@@ -3722,6 +3723,7 @@ def saisieDossards(buttonBarMode = 0) :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
@@ -3735,6 +3737,7 @@ def saisieAbsDisp(classeOuCategorie="") :
     DroiteFrame.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
@@ -3753,6 +3756,7 @@ def ajoutManuelCoureur():
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
@@ -3766,6 +3770,7 @@ def modifManuelleCoureur(dossard=0):
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
@@ -3781,6 +3786,7 @@ def tempsDesCoureurs():
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.forget()
 ##    affectationGroupementsFrame.forget()
@@ -3802,6 +3808,7 @@ def distanceDesCourses():
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
@@ -3813,11 +3820,21 @@ def parametrerDossardsDiplomes():
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
     GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresInternet.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
     
-
+def parametresInternet() :
+    GaucheFrame.forget()
+    DroiteFrame.forget()
+    GaucheFrameAbsDisp.forget()
+    GaucheFrameCoureur.forget()
+    GaucheFrameDossards.forget()
+    GaucheFrameDistanceCourses.forget()
+    GaucheFrameParametresCourses.forget()
+    GaucheFrameParametresDossardsDiplomes.forget()
+    GaucheFrameParametresInternet.pack(side = TOP,fill=X)
 
 def parametresDesCourses():
     GaucheFrame.forget()
@@ -3827,6 +3844,7 @@ def parametresDesCourses():
     GaucheFrameDossards.forget()
     GaucheFrameDistanceCourses.forget()
     GaucheFrameParametresDossardsDiplomes.forget()
+    GaucheFrameParametresInternet.forget()
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     actualiseEtatBoutonsRadioConfig()
@@ -3983,6 +4001,11 @@ def affecterDistances() :
     else :
         actualiserDistanceDesCourses()
 
+def affecterParametresInternet() :
+    parametresInternet()
+    #print("Affectation des distances à chaque course")
+    #actualiserDistanceDesCourses()
+
 def affecterParametres() :
     parametresDesCourses()
     #print("Affectation des distances à chaque course")
@@ -4129,6 +4152,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
 filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
+filemenu.add_command(label="Paramètres internet", command=affecterParametresInternet)
 filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
@@ -4832,8 +4856,8 @@ webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
 webcamScale.set(Parametres['webcamSensibility'])
 
 # FRame avec les options de connectivité
-ConnectiviteFrame = Frame(GaucheFrameParametresCourses, relief=GROOVE, borderwidth=2)
-Label(ConnectiviteFrame, text="OPTION DE CONNECTIVITE :").pack(side=TOP,anchor="w")
+ConnectiviteFrame = Frame(GaucheFrameParametresInternet, relief=GROOVE, borderwidth=2)
+Label(ConnectiviteFrame, text="OPTIONS DE CONNECTIVITE :").pack(side=TOP,anchor="w")
 
 ImportTempsReelFrame = Frame(ConnectiviteFrame, relief=GROOVE, borderwidth=2)
 Label(ImportTempsReelFrame, text="IMPORT DE DONNEES AUTOMATIQUE :").pack(side=TOP,anchor="w")
@@ -4847,7 +4871,7 @@ FTPFrame = Frame(ConnectiviteFrame, relief=GROOVE, borderwidth=2)
 Label(FTPFrame, text="PARAMETRES EXPORT DES RESULTATS EN TEMPS REEL :").pack(side=TOP,anchor="w")
 FTPFrame.pack(side=TOP,anchor="w",fill=X)
 
-URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur xlsx", largeur=120, parent=ImportTempsReelFrame)
+URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur Google Sheet", largeur=120, parent=ImportTempsReelFrame)
 
 emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparées par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
 emailMDPEntry = EntryParam( "emailMDP", "Mot(s) de passe d'application email (séparés par un point virgule)", largeur=60, parent=EnvoiDiplomeFrame, password=True)
@@ -5382,6 +5406,12 @@ ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 ##width = root.winfo_screenwidth()
 ##height = root.winfo_screenheight()
 ##root.configure(width=width, height=height)  # 100% de l'écran
+
+# pour un plein écran sans barre des taches.
+# root.attributes("-fullscreen", True)
+
+# pour un plein écran avec barre des taches.
+root.state("zoomed")
 
 root.mainloop() # enter the message loop
 
