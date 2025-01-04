@@ -30,8 +30,12 @@ A finir :
 - ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
 - ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
 - rajouter une fenêtre d'attente lors de l'exécution initiale).
-- créer un script qui génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour.
+- créer un script qui incrémente les versions automatiquement en fonction d'un choix x.y.z de l'utilisateur,
+  génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour,
+  voir les déposer sur le dépôt ftp...
 - actualiser les paramètres généraux dans l'interface après une récupération de sauvegarde. J'ai l'impression que cela n'est pas le cas.
+- envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
+
 
 Bug constaté :
 si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
@@ -43,6 +47,7 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+Travail du 03/01/2025 :
 
 
 
