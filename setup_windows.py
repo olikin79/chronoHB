@@ -15,7 +15,7 @@ build_exe_options = {
     "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
         "CameraMotionDetection.py", "FonctionsMetiers.py", "FonctionsGenerationPDF.py",  \
         "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
-        "server.py", "Videos.html", "mystyle.css", "jquery-3.6.0.js", \
+        "server.py", "Videos.html", "mystyle.css", "jquery-3.6.0.js", "index.html"\
         "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www", "Fonts"]# , "texlive"
 }
 
