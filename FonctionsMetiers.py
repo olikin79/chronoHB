@@ -2029,6 +2029,9 @@ def chargerDonnees() :
             else :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
             i += 1
+    ### ajout important pour que le fichier "messageDefaut.txt" soit disponible pour les smartphones
+    if not os.path.exists("messageDefaut.txt") :
+        setParam("messageDefaut", Parametres["messageDefaut"])
     return globals()
     
 chargerDonnees()
@@ -5528,7 +5531,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         dossardTrouve = coureurExists(nom, prenom)
         dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
         dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
-        if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent :
+        if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent : ##"commentaire en urgence" 
             if dossard == "" :
                 dossard = dossardTrouve
             # # on empêche de créer plusieurs fois le même coureur avec des dossards différents.
@@ -5548,7 +5551,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##                    course = 
 ##                else :
                 lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
-                print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
+                # print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
 ##                nomStandard = estDansGroupementsEnModeManuel(course)
 ##                if not nomStandard :
 ##                    nomStandard = addCourse(course)
@@ -5651,8 +5654,10 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 # addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
                 # si oui, alors, on crée le coureur.
+                print("temp", not Coureurs.existe(dossard), lettreCourse, " == ", formateDossardNG(dossard)[-1])
                 if (not Coureurs.existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
                     # création avec le dossard imposé.
+                    print("c'est ici que l'on ajoute le coureur à mettre à jour.")
                     dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
@@ -5661,6 +5666,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 else :
                     print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
             else :
+                # 
                 dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
