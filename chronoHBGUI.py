@@ -3238,7 +3238,7 @@ class Clock():
                 # le nombre a changé depuis le dernier clic : on réaffiche le message
                 # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
                     # le message doit se réafficher 
-                print("On affiche l'information")
+                # print("On affiche l'information")
                 listeNouvellesErreursATraiter.append(erreur)
             # else :
             #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")

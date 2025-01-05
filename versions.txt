@@ -35,6 +35,9 @@ A finir :
   voir les déposer sur le dépôt ftp...
 - actualiser les paramètres généraux dans l'interface après une récupération de sauvegarde. J'ai l'impression que cela n'est pas le cas.
 - envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
+- sur le smartphone, créer un bouton (un peu caché) permettant de renvoyer tous les résultats une deuxième fois.
+- dans le code python, sécuriser systématiquement l'absence d'un fichier pour que le fonctionnement principal perdure (messageDefault.txt, etc)
+- sécuriser les dates de naissance inférieures à 1900 en les considérant invalides.
 
 
 Bug constaté :
@@ -47,9 +50,9 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
-Travail du 03/01/2025 :
-
-
+Travail du 04/01/2025 :
+- oubli de index.html pour l'affichage TV dans le msi déployé.
+- sécurisation si absence de messageDefaut.txt et pour que messageDefaut.txt ne soit plus jamais absent.
 
 Travail du 02/01/2025 : v 2.2.14
 - déport des options internet dans un menu dédié.
