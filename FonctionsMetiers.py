@@ -16,6 +16,7 @@ from pathlib import Path
 
 #import http.server
 from server import *
+import json
 import threading
 from threading import Thread, Lock
 import requests
@@ -6511,6 +6512,40 @@ def delCourse(categorie) :
 ##    httpd = server(server_address, handler)
 ##    httpd.serve_forever()
 
+class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
+    """Custom HTTP Request Handler supporting both CGI and JSON handling."""
+    
+    def do_POST(self):
+        """Handle POST requests for JSON data or delegate to CGI."""
+        if self.path == "/receive-json":
+            # Récupération de l'heure exacte actuelle en secondes depuis l'époque
+            heureReceptionServeur = float(time.time())
+
+            # Handle JSON data
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            
+            try:
+                data = json.loads(post_data)
+                print("Received JSON data:", data)
+                
+                # Send a response to the client
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"JSON received successfully")
+            except json.JSONDecodeError:
+                # Handle JSON parsing errors
+                print("Invalid JSON data received")
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Invalid JSON format")
+        else:
+            # For all other POST requests, delegate to the parent handler (CGI handling)
+            super().do_POST()
+
+    def do_GET(self):
+        """Handle GET requests for HTML, CGI, or static files."""
+        super().do_GET()
 
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''
@@ -6519,7 +6554,7 @@ def start_server(path, port=8888):
 ##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
 ##    httpd.serve_forever()
     server = HTTPServer
-    handler = CGIHTTPRequestHandler
+    handler = CustomCGIHTTPRequestHandler# CGIHTTPRequestHandler
     handler.cgi_directories = ["/cgi"]
     print("Serveur actif sur le port :", port)
     httpd = server(server_address, handler)

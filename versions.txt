@@ -50,6 +50,13 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
+
+
+Travail du 12/01/2025 :
+- modification du serveur http pour recevoir des données json sur http://ip:8888/receive-json (depuis un lecteur RFID à venir)
+
+
+
 Travail du 04/01/2025 :
 - oubli de index.html pour l'affichage TV dans le msi déployé.
 - sécurisation si absence de messageDefaut.txt et pour que messageDefaut.txt ne soit plus jamais absent.
