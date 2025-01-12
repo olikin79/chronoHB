@@ -54,7 +54,11 @@ Avant le cross Rieutort :
 
 Travail du 12/01/2025 :
 - modification du serveur http pour recevoir des données json sur http://ip:8888/receive-json (depuis un lecteur RFID à venir)
-
+- récupération du RSSI transmis par le lecteur RFID (le rssi est négatif).
+Plus le rssi est proche de zéro, plus le signal reçu par l'antenne est fort.
+On pourrait envisager d'éliminer les rssi trop faibles à voir. Ceci pourrait être un réglage dans l'interface.
+Réglage qui pourrait donc être changé et appliqué aux données déjà captées pour savoir si on les conserve ou non.
+A voir si on prévoit l'affichage dans l'interface pour information.
 
 
 Travail du 04/01/2025 :

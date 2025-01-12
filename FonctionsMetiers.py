@@ -1790,7 +1790,8 @@ def chargerDonnees() :
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
+           seuilRSSI
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -2007,6 +2008,9 @@ def chargerDonnees() :
     if not "informationNouveauxDossardsImportesAEffacer" in Parametres :
         Parametres["informationNouveauxDossardsImportesAEffacer"] = False
     informationNouveauxDossardsImportesAEffacer = Parametres["informationNouveauxDossardsImportesAEffacer"]
+    if not "seuilRSSI" in Parametres :
+        Parametres["seuilRSSI"] = -100
+    seuilRSSI = Parametres["seuilRSSI"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -2516,10 +2520,23 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             noTransmission = int(listeAction[7])
         except :
             noTransmission = 0
+        try :
+            rssi = int(listeAction[8])
+        except :
+            rssi = 0
+            # le rssi est négatif. 
+            # plus le rssi est proche de zéro, plus le signal reçu par l'antenne est fort.
+            # on pourrait éliminer les rssi trop faibles à voir.
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
         #print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
-        if not noTransmission in UIDPrecedents[uid] :
+        if noTransmission in UIDPrecedents[uid] :
+            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
+            retour = Erreur(451)
+        elif rssi < Parametres["seuilRSSI"] :
+            print("Signal trop faible : entrée RFID ignorée. Probable tag scanné de trop loin et n'ayant pas franchi l'arrivée.\nLigne = ",ligne)
+            retour = Erreur(452)
+        else :
             if action == "add" :
                 retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
             elif action =="del" :
@@ -2550,9 +2567,6 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
                 retour = Erreur(301)
             if uid and noTransmission :
                 UIDPrecedents[uid].append(noTransmission)
-        else :
-            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
-            retour = Erreur(451)
     elif listeAction[0] =="dossard" :
         dossardPrecedent = formateDossardNG(str(listeAction[3]))
         try :
