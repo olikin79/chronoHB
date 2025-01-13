@@ -50,7 +50,9 @@ Avant le cross Rieutort :
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
 
-
+Travail du 13/01/2025 :
+- ajout du fichier donneesRFID.txt dans la sauvegarde et dans la fonction de récupération de sauvegarde.
+- correction d'un oubli : les fichiers de piques sont restaurés lors de l'ouverture d'une sauvegarde. Ils étaient sauvegardés mais non restaurés.
 
 Travail du 12/01/2025 :
 - modification du serveur http pour recevoir des données json sur http://ip:8888/receive-json (depuis un lecteur RFID à venir)

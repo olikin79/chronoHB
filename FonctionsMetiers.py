@@ -209,22 +209,15 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
             else:
                 print("Le fichier Courses.db est absent.")
 
-            # Ajouter donneesModifLocale.txt au fichier zip
-            if os.path.exists("donneesModifLocale.txt"):
-                sauvegardeZip.write("donneesModifLocale.txt", "donneesModifLocale.txt")
-            else:
-                print("Pas de fichier de modifications locales, création d'un fichier vide.")
-                open("donneesModifLocale.txt", 'a').close()
-                sauvegardeZip.write("donneesModifLocale.txt", "donneesModifLocale.txt")
+            # Ajouter les fichiers de données au fichier zip
+            for file in ["donneesModifLocale.txt", "donneesSmartphone.txt", "donneesRFID.txt"]:
+                if os.path.exists(file):
+                    sauvegardeZip.write(file, file)
+                else:
+                    print(f"Le fichier {file} est absent. On le crée.")
+                    open(file, 'a').close()
+                    sauvegardeZip.write(file, file)
 
-            # Ajouter donneesSmartphone.txt au fichier zip
-            if os.path.exists("donneesSmartphone.txt"):
-                sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
-            else:
-                print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
-                open("donneesSmartphone.txt", 'a').close()
-                sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
-            
             # Ajouter les fichiers logs au fichier zip
             if avecLogs:
                 # LOGDIR = "logs"
@@ -391,15 +384,20 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
         fichierDB = os.path.join(temp_dir, "Courses.db")
         fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
         fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+        fichierRFID = os.path.join(temp_dir, "donneesRFID.txt")
+        # Récupération des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
+        listeFichiersPiques = glob.glob(os.path.join(temp_dir,"donneesSmartphone-pique-*.txt"))
     else:
         # Si c'est un fichier .db classique, on utilise les noms habituels
         fichierDB = sauvegardeChoisie
         fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
         fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+        fichierRFID = sauvegardeChoisie[:-3] + "_RFID.txt"
+        listeFichiersPiques = [] # ces fichiers n'existait pas avant les fichiers .chb
 
     # Tester si les trois fichiers existent
     tousPresents = True
-    for fichier in [fichierDB, fichierML, fichierDS]:
+    for fichier in [fichierDB, fichierML, fichierDS, fichierRFID]:
         if not os.path.exists(fichier):
             tousPresents = False
             message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
@@ -419,6 +417,10 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
         shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
         shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+        shutil.copy2(fichierRFID, os.path.join(os.getcwd(), "donneesRFID.txt"))
+        # on replace les fichiers piques au bon endroit avec le même nom.
+        for file in listeFichiersPiques :
+            shutil.copy2(file, os.path.join(os.getcwd(), os.path.basename(file)))
 
         # Si un fichier .chb a été traité, récupérer les vidéos
         if sauvegardeChoisie.endswith('.chb'):
