@@ -4157,6 +4157,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
     """Custom HTTP Request Handler supporting both CGI and JSON handling."""
     
     def do_POST(self):
+        global popup
         """Handle POST requests for JSON data or delegate to CGI."""
         if self.path == "/receive-json":
             # Récupération de l'heure exacte actuelle en secondes depuis l'époque
@@ -4253,8 +4254,6 @@ def lancerPopupRFID() :
     global popup
     # Créer une instance du popup
     popup = Popup()
-    # Mettre à jour le texte du popup
-    popup.setInfo("Ici, apparaissent les données actuellement reçues depuis les lecteurs RFID...")
     # Afficher le popup (vous pouvez le déclencher à un événement précis)
     popup.mainloop() 
 

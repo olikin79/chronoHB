@@ -324,46 +324,6 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
             categorie = categorie[:2]
     return categorie
 
-# enregistre les données de sauvegarde
-# récupère les données de sauvegarde
-# def recupere_sauvegarde(sauvegardeChoisie) :
-#     global sauvegarde
-#     #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
-#     #rep = os.path.dirname(sauvegardeChoisie)
-#     #fichierDonnees = sauvegardeChoisie
-#     #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
-#     fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
-#     fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
-#     listeFichiersPiques = glob.glob(sauvegardeChoisie[:-3] + "-*.txt")
-#     dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
-#     tousPresents = True
-#     ### tester si les trois fichiers existent.
-#     for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
-#         if not os.path.exists(fichier) :
-#             #print("Fichier",fichier,"absent")
-#             tousPresents = False
-#             break
-#     ### avertir sinon
-#     if not tousPresents :
-#         message = "Le fichier " + fichier + " est absent. La sauvegarde est incomplète. Import annulé."
-#         print(message)
-#         showinfo("ERREUR",message)
-#     else :
-#         ### sauvegarder les données actuelles de façon automatique avec ecrire_sauvegarde(...)
-#         ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees",surCle=False)
-#         ### copier les trois fichiers : celui db à la place de l'ancien + 2 fichiers textes finissant par ML et DS
-#         shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
-#         shutil.copy2(fichierML, "donneesModifLocale.txt")
-#         shutil.copy2(fichierDS, "donneesSmartphone.txt")
-#         # restauration des vidéos sauvegardées
-#         if os.path.exists("videos") :
-#             shutil.rmtree("videos")
-#         if os.path.exists(dossierVideos) :
-#             shutil.copytree(dossierVideos,"videos")
-#         ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
-#     retour = chargerDonnees()
-#     setParametres() # fichier à destination du smartphone à regéréner.
-#     return retour
 
 def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
     global sauvegarde
