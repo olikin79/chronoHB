@@ -46,6 +46,7 @@ import paramiko
 # version = "2.1.0"
 
 from FonctionsGenerationPDF import *
+
 # LOGDIR="logs"
 
 def windows():
@@ -6574,93 +6575,6 @@ def delCourse(categorie) :
 ##    httpd = server(server_address, handler)
 ##    httpd.serve_forever()
 
-class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
-    """Custom HTTP Request Handler supporting both CGI and JSON handling."""
-    
-    def do_POST(self):
-        """Handle POST requests for JSON data or delegate to CGI."""
-        if self.path == "/receive-json":
-            # Récupération de l'heure exacte actuelle en secondes depuis l'époque
-            heureReceptionServeur = time.time()
-            
-            try:
-                # Récupérer la longueur du contenu
-                content_length = int(self.headers['Content-Length'])
-                
-                # Lire les données JSON reçues
-                post_data = self.rfile.read(content_length).decode('utf-8')
-                data = json.loads(post_data)
-                
-                # Récupération des données spécifiques
-                reader_name = data.get("readerName", "UnknownReader")
-                tags = data.get("tags", [])
-                json_timestamp_epoch = self.convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
-                
-                # Traitement des tags reçus
-                with open("donneesRFID.txt", "a") as file:
-                    for tag in tags:
-                        epc = tag.get("epc", "UnknownEPC")
-                        antenna_port = tag.get("antennaPort", "UnknownPort")
-                        rssi = tag.get("rssi", 0)
-                        seen_count = tag.get("seenCount", 0)
-                        tag_timestamp_epoch = self.convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
-                        reader_name_antenna = f"{reader_name}-{antenna_port}"
-                        # Écrire les lignes dans le fichier
-                        file.write(f"tps,add,{epc},{tag_timestamp_epoch},{json_timestamp_epoch},{heureReceptionServeur},{reader_name_antenna},0,{rssi},END\n")
-                        file.write(f"dossard,add,{epc},-1,{reader_name}+{antenna_port},0,{rssi},END\n")
-                
-                # Répondre au client
-                self.send_response(200)
-                self.end_headers()
-                self.wfile.write(b"Data processed and saved successfully.")
-            
-            except Exception as e:
-                # Gérer les erreurs et envoyer une réponse d'erreur
-                self.send_response(500)
-                self.end_headers()
-                error_message = f"Error processing request: {str(e)}"
-                self.wfile.write(error_message.encode('utf-8'))
-        else:
-            # For all other POST requests, delegate to the parent handler (CGI handling)
-            super().do_POST()
-
-    def do_GET(self):
-        """Handle GET requests for HTML, CGI, or static files."""
-        super().do_GET()
-    
-    def convert_timestamp_to_epoch(self, timestamp):
-        """
-        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
-        Retourne un float pour inclure les millisecondes.
-        """
-        try:
-            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
-            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
-            return float(time.mktime(dt) + int(millisecondes) / 1000)
-        except Exception as e:
-            print(f"Error converting timestamp: {timestamp}, Error: {e}")
-            return -1.0
-
-def start_server(path, port=8888):
-    '''Start a simple webserver serving path on port'''
-    PORT = 8888
-    server_address = (path, PORT)
-##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
-##    httpd.serve_forever()
-    server = HTTPServer
-    handler = CustomCGIHTTPRequestHandler# CGIHTTPRequestHandler
-    handler.cgi_directories = ["/cgi"]
-    print("Serveur actif sur le port :", port)
-    httpd = server(server_address, handler)
-    httpd.serve_forever()
-
-# Start the server in a new thread
-port = 8888
-#start_server("/",8888)
-daemon = threading.Thread(name='daemon_server', target=start_server, args=('', port))
-daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-daemon.start()
-#time.sleep(1)
 
 def simulateArriveesAleatoires():
     #listeDeCourses = [ '6-F', "6-G", '5-F', "5-G", '4-F', "4-G", '3-F', "3-G" ]

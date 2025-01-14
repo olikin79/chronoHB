@@ -49,6 +49,7 @@ from resultatsDiffusion import * # création puis diffusion des diplomes par ema
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
+from chronoHBRFID import * # pour les fonctions de lecture RFID
 # def mainGUI() :
 # version="2.1.1"
 
@@ -1939,7 +1940,6 @@ class departDialog:
 ##    inputDialog = departDialog(Groupements[0],root)
 ##    root.wait_window(inputDialog.top)
 ##    print('Nouveau temps défini : ', tempsDialog)
-
 
 
 
@@ -4151,8 +4151,118 @@ def recupererSauvegardeGUI(name_file="") :
         actualiseToutLAffichage()
         generateListCoureursPourSmartphone()
         rejouerToutesLesActionsMemorisees()
-        
+
+
+class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
+    """Custom HTTP Request Handler supporting both CGI and JSON handling."""
     
+    def do_POST(self):
+        """Handle POST requests for JSON data or delegate to CGI."""
+        if self.path == "/receive-json":
+            # Récupération de l'heure exacte actuelle en secondes depuis l'époque
+            heureReceptionServeur = time.time()
+            
+            try:
+                # Récupérer la longueur du contenu
+                content_length = int(self.headers['Content-Length'])
+                
+                # Lire les données JSON reçues
+                post_data = self.rfile.read(content_length).decode('utf-8')
+                data = json.loads(post_data)
+                
+                # Récupération des données spécifiques
+                reader_name = data.get("readerName", "UnknownReader")
+                tags = data.get("tags", [])
+                json_timestamp_epoch = self.convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
+                
+                # Traitement des tags reçus
+                with open("donneesRFID.txt", "a") as file:
+                    for tag in tags:
+                        epc = tag.get("epc", "UnknownEPC")
+                        antenna_port = tag.get("antennaPort", "UnknownPort")
+                        rssi = tag.get("rssi", 0)
+                        seen_count = tag.get("seenCount", 0)
+                        tag_timestamp_epoch = self.convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
+                        reader_name_antenna = f"{reader_name}-{antenna_port}"
+                        # si le popup RFID est actif on lui envoie toutes les infos
+                        try :
+                            # si le popup RFID est actif on lui envoie toutes les infos
+                            info = {"epc":epc, "reader":reader_name_antenna, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
+                            popup.setInfo(info)
+                        except :
+                            # Écrire les lignes dans le fichier
+                            file.write(f"tps,add,{epc},{tag_timestamp_epoch},{json_timestamp_epoch},{heureReceptionServeur},{reader_name_antenna},0,{rssi},END\n")
+                            file.write(f"dossard,add,{epc},-1,{reader_name}+{antenna_port},0,{rssi},END\n")
+                
+                # Répondre au client
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"Data processed and saved successfully.")
+            
+            except Exception as e:
+                # Gérer les erreurs et envoyer une réponse d'erreur
+                self.send_response(500)
+                self.end_headers()
+                error_message = f"Error processing request: {str(e)}"
+                self.wfile.write(error_message.encode('utf-8'))
+        else:
+            # For all other POST requests, delegate to the parent handler (CGI handling)
+            super().do_POST()
+
+    def do_GET(self):
+        """Handle GET requests for HTML, CGI, or static files."""
+        super().do_GET()
+    
+    def convert_timestamp_to_epoch(self, timestamp):
+        """
+        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
+        Retourne un float pour inclure les millisecondes.
+        """
+        try:
+            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
+            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
+            return float(time.mktime(dt) + int(millisecondes) / 1000)
+        except Exception as e:
+            print(f"Error converting timestamp: {timestamp}, Error: {e}")
+            return -1.0
+
+def start_server(path, port=8888):
+    '''Start a simple webserver serving path on port'''
+    PORT = 8888
+    server_address = (path, PORT)
+##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
+##    httpd.serve_forever()
+    server = HTTPServer
+    handler = CustomCGIHTTPRequestHandler# CGIHTTPRequestHandler
+    handler.cgi_directories = ["/cgi"]
+    print("Serveur actif sur le port :", port)
+    httpd = server(server_address, handler)
+    httpd.serve_forever()
+
+# Start the server in a new thread
+port = 8888
+#start_server("/",8888)
+daemon = threading.Thread(name='daemon_server', target=start_server, args=('', port))
+daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+daemon.start()
+#time.sleep(1)
+
+global popup
+
+def lancerPopupRFID() :
+    global popup
+    # Créer une instance du popup
+    popup = Popup()
+    # Mettre à jour le texte du popup
+    popup.setInfo("Ici, apparaissent les données actuellement reçues depuis les lecteurs RFID...")
+    # Afficher le popup (vous pouvez le déclencher à un événement précis)
+    popup.mainloop() 
+
+
+# def popupRFID(info) :
+#     """Transmet l'information RFID reçue au popup créé par l'interface."""
+#     global popup
+#     popup.setInfo(info)
 
 # create a pulldown menu, and add it to the menu bar
 filemenu = Menu(menubar, tearoff=0)
@@ -4175,6 +4285,9 @@ filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
+if DEBUG : # pour l'instant, ne pas afficher le popup RFID en production
+    filemenu.add_command(label="Paramètres RFID", command=lancerPopupRFID)
+    filemenu.add_separator()
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
 filemenu.add_command(label="Imprimer tous les dossards non encore imprimés", command=imprimerDossardsNonImprimes)
