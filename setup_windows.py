@@ -1,7 +1,7 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.2.16"
+versionDistribuee = "2.2.17"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
@@ -12,10 +12,9 @@ build_exe_options = {
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko", \
         "copy" ,"datetime" ,"email.utils" ,"html" ,"http.client" ,"io" ,"mimetypes" , "os" ,"posixpath" ,"select" ,"shutil" ,"socket" ,"socketserver", "sys" ,"time" ,"urllib.parse" ,"http"],
-    "include_files": ["favicon.ico","create_shortcuts.py", "chronoHBGUI.py", "config.py", \
-        "CameraMotionDetection.py", "FonctionsMetiers.py", "FonctionsGenerationPDF.py",  \
-        "LICENSE", "openh264-1.8.0-win64.dll", "resultatsDiffusion.py", \
-        "server.py", "Videos.html", "mystyle.css", "jquery-3.6.0.js", "index.html"\
+    "include_files": ["favicon.ico","create_shortcuts.py", \
+        "LICENSE", "openh264-1.8.0-win64.dll", \
+        "mystyle.css", "jquery-3.6.0.js", "index.html"\
         "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www", "Fonts"]# , "texlive"
 }
 
