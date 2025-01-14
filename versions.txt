@@ -1,7 +1,7 @@
 A venir :
-- fichier de sauvegarde contenant tout zippé. OK
-- (à vérifier) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
-- (à vérifier) en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
+- FAIT fichier de sauvegarde contenant tout zippé. OK
+- (DEJA IMPLEMENTE) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
+- (CORRIGE le 13/01/25) en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
 
 Avant diffusion plus large :
 - permettre le dépôt de diplomes personnalisés dans un dossier ~/Documents/chronoHB/diplomes.
@@ -16,9 +16,7 @@ Après cross  2024 :
 - afficher les diplomes non encore envoyés.
 - voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
 Idem pour les cases à cocher des listings.
-- les paramètres "en cas de perte de dossards", "webcam" apparaîssent en bas 
-quand on effectue quelques actions à trouver dans les paramètres. Reconstruction de l'écran corrigée.
-- Zone de recherche dans le tableau.
+- Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 - faire en sorte que le nom soit prononcé plus tôt dans le haut parleur par le téléphone.
 - Afficher les coureurs en erreur en orange.
 - Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
@@ -27,16 +25,16 @@ quand on effectue quelques actions à trouver dans les paramètres. Reconstructi
 A finir :
 - ouverture depuis l'explorateur windows des fichiers *.chb.
 - recréer les modèles d'autres dossards en mode "sans latex".
-- ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
-- ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
-- rajouter une fenêtre d'attente lors de l'exécution initiale).
+- FAIT ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
+- FAIT ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
+- rajouter une fenêtre d'attente lors de l'exécution initiale.
 - créer un script qui incrémente les versions automatiquement en fonction d'un choix x.y.z de l'utilisateur,
   génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour,
   voir les déposer sur le dépôt ftp...
 - actualiser les paramètres généraux dans l'interface après une récupération de sauvegarde. J'ai l'impression que cela n'est pas le cas.
 - envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
-- sur le smartphone, créer un bouton (un peu caché) permettant de renvoyer tous les résultats une deuxième fois.
-- dans le code python, sécuriser systématiquement l'absence d'un fichier pour que le fonctionnement principal perdure (messageDefault.txt, etc)
+- FAIT sur le smartphone, créer un bouton (un peu caché) permettant de renvoyer tous les résultats une deuxième fois.
+- FAIT dans le code python, sécuriser systématiquement l'absence d'un fichier pour que le fonctionnement principal perdure (messageDefault.txt, etc)
 - sécuriser les dates de naissance inférieures à 1900 en les considérant invalides.
 
 
@@ -49,10 +47,56 @@ Avant le cross Rieutort :
 - Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
+##########################################################
+Idées pour le RFID :
+Le handler du serveur http orienterait les données (temporaires) reçus vers le popup = TopLevel() dédié aux réglages RFID si présent.
+Sinon, les données reçus seront orientées vers donneesRFID.txt comme actuellement.
+Avant d'orienter les données, le handler alimenterait la liste des antennes connectées si nouvelle antenne.
+
+Sur le lecteur, il faut régler la période de scan par antenne à 50ms pour être sûr de ne pas rater de coureurs.
+En limitant la puissance (3m max), on élargit peut-être le champ et donc les capacités de détection.
+
+Pour le cross HB 2025 : 
+- Réfléchir comment rajouter les coureurs manquants : lecture RFID avec un scanner courte distance pouvant remplacer la saisie de numéro, peut-être suffisante.
+- récupération des dossards, passage devant un lecteur RFID courte distance prévu au moins tant que tout n'est pas validé de façon opérationnelle.
+
+L'affichage du temps du coureur en temps réel sera désormais possible : 
+on pourrait créer un affichage html des 10 derniers coureurs arrivés qui s'actualiserait toutes les 3 secondes, ne changerait pas en cas de coupure réseau.
+
+Prévoir une antenne très courte distance pour les paramétrages (qui ne détecterait pas loin).
+Il faut impérativement créer une variable dédiée à la correspondance entre puce RFID et dossard.
+Cette correspondance serait sauvegardée dans le fichier et jamais effacée lors des réinitialisations.
+Seul un remplacement volontaire de la puce affectée à un dossard permettrait de supprimer les valeurs précédentes.
+
+Le popup RFID aurait les fonctionnalités suivantes :
+0. Affichage en temps réel des réceptions RFID dans une fenêtre dédiée toujours visible : nom de l'antenne source, puce, rssi (en bas ?), 
+	afficherait la correspondance du numéro de dossard si présent dans la base.
++ une ligne de boutons en haut correspondant aux choix suivants :
+1. Réglages relatifs aux antennes sur la course. Afficher les antennes qui ont déjà envoyé une donnée à chronoHB.
+	Affecter les antennes en question à des rôles (Départ, Checkpoint1, CheckPoint2, Arrivée, Départ-Arrivée pour les courses en boucle)
+	si course en boucle, combien de passages pour chaque catégorie ? => on en déduit la taille d'une boucle.
+	Permettre le découpage de la distance totale en morceaux entre les checkpoints.
+Quid des relais entre coureurs à savoir gérer ?
+2. affecter une ou plusieurs puces RFID à un ou plusieurs dossards (successifs) :
+	* on connaitrait le numéro de la première puce (à saisir ou à scanner)
+	* on connaîtrait le nombre de dossards du rouleau à affecter.
+	On validerait si autorisé par le logiciel (si les dossards existent jusqu'au nombre choisi).
+	Cela affecterait toutes les puces dans l'ordre.
+3. affecter à des sucessions de dossards des puces en les passant devant le lecteur RFID choisi. Passerait au dossard suivant dès que détecté.
+Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop longtemps.
+4. Permettrait d'effectuer un test de tous les dossards d'une course globalement : cela indiquerait si tous les dossards de la course sont bien présents 
+(cela afficherait les numéros des dossards non scannés (donc potentiellement en panne) ainsi que les numéros de puces RFID non connus dans la base.
+Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
+Le test pourra être réinitialisé.
+##############################################
+
+Travail du 14/01/2025 :
+- Mise à part de la correspondance Dossard-EPC pour conservation lors des réinitialisations d'année en année.
 
 Travail du 13/01/2025 :
 - ajout du fichier donneesRFID.txt dans la sauvegarde et dans la fonction de récupération de sauvegarde.
 - correction d'un oubli : les fichiers de piques sont restaurés lors de l'ouverture d'une sauvegarde. Ils étaient sauvegardés mais non restaurés.
+- implémentation de l'attribut EPC dans la class Coureur et DictionnaireDeCoureurs. Ajout du traitement de donneesRFID.txt dans les fonctions métiers.
 
 Travail du 12/01/2025 :
 - modification du serveur http pour recevoir des données json sur http://ip:8888/receive-json (depuis un lecteur RFID à venir)
@@ -61,7 +105,6 @@ Plus le rssi est proche de zéro, plus le signal reçu par l'antenne est fort.
 On pourrait envisager d'éliminer les rssi trop faibles à voir. Ceci pourrait être un réglage dans l'interface.
 Réglage qui pourrait donc être changé et appliqué aux données déjà captées pour savoir si on les conserve ou non.
 A voir si on prévoit l'affichage dans l'interface pour information.
-
 
 Travail du 04/01/2025 :
 - oubli de index.html pour l'affichage TV dans le msi déployé.

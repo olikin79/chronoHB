@@ -674,6 +674,11 @@ class DictionnaireDeCoureurs(dict) :
         except :
             c = Coureur("","","") # on retourne un objet Coureur mais vide.
         return c
+    def getDossardFromEPC(self, epc) :
+        for c in self.liste() :
+            if c.getEPC() == epc :
+                return c.dossard
+        return ""
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
         for e in self.cles() :
@@ -950,6 +955,12 @@ class Coureur():#persistent.Persistent):
         self.nom = self.formateNomPrenom(self.nom)
         self.prenom = self.formateNomPrenom(self.prenom)
     
+    def getEPC(self) :
+        try :
+            return Parametres["dictDossardsEPC"][formateDossardNG(self.dossard)]
+        except :
+            return ""
+
     def formateNomPrenom(self, chaine) :
         chaineRetour = ""
         i = 0
@@ -1793,7 +1804,7 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI
+           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1846,6 +1857,9 @@ def chargerDonnees() :
     if not "dictUIDPrecedents" in root :
         root["dictUIDPrecedents"] = {}
     dictUIDPrecedents=root["dictUIDPrecedents"]
+    if not "dictDossardsEPC" in root :
+        root["dictDossardsEPC"] = {}
+    dictDossardsEPC=root["dictDossardsEPC"]
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
@@ -1860,6 +1874,12 @@ def chargerDonnees() :
     if not "ligneDerniereRecuperationSmartphone" in Parametres :
         Parametres["ligneDerniereRecuperationSmartphone"]=1
     ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+    if not "tempsDerniereRecuperationRFID" in Parametres :
+        Parametres["tempsDerniereRecuperationRFID"]=0
+    tempsDerniereRecuperationRFID = Parametres["tempsDerniereRecuperationRFID"]
+    if not "ligneDerniereRecuperationRFID" in Parametres :
+        Parametres["ligneDerniereRecuperationRFID"]=1
+    ligneDerniereRecuperationRFID = Parametres["ligneDerniereRecuperationRFID"]
     if not "tempsDerniereRecuperationLocale" in Parametres :
         Parametres["tempsDerniereRecuperationLocale"]=0
     tempsDerniereRecuperationLocale = Parametres["tempsDerniereRecuperationLocale"]
@@ -2392,55 +2412,72 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
     """
     fichierDonneesSmartphone = "donneesSmartphone.txt"
-    #print("Import depuis de le début :", DepuisLeDebut)
-    if DepuisLeDebut :
-        #root["ArriveeTemps"] = []
-        #root["ArriveeTempsAffectes"] = []
-        #root["ArriveeDossards"] = []
-        Parametres["ligneDerniereRecuperationSmartphone"] = 1
-        Parametres["tempsDerniereRecuperationSmartphone"] = 0
-        Parametres["calculateAll"] = True
-        dictUIDPrecedents.clear()
-    retour = [] # si aucune ligne à traiter, on retourne []
-    # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
-    if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone) :
-        listeLigne = lignesAPartirDe(fichierDonneesSmartphone, Parametres["ligneDerniereRecuperationSmartphone"])
-        i = 0
-        #pasDErreur = True
-        while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
-            ligne = listeLigne[i]
-            #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
-            #print(ligne[-4:])
-            if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents)
-                if codeErreur.numero :
-                    # une erreur s'est produite
-                    print("Code erreur :", codeErreur.numero)
-                    print(ligne)
-##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
-##                        print("Erreur ignorée")
-##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
-##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                    #else :
-                        #pasDErreur = False
-##                else :
-                    #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
-                ### désormais, même s'il y a une erreur, on poursuit les imports.
-                Parametres["ligneDerniereRecuperationSmartphone"] += 1
+    fichierDonneesRFID = "donneesRFID.txt"
+    for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
+        #print("Import depuis de le début :", DepuisLeDebut)
+        RFIDtag = "RFID" in fichier
+        if DepuisLeDebut :
+            #root["ArriveeTemps"] = []
+            #root["ArriveeTempsAffectes"] = []
+            #root["ArriveeDossards"] = []
+            Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
+            Parametres["tempsDerniereRecuperationSmartphone"] = 0
+            Parametres["ligneDerniereRecuperationRFID"] = 1
+            Parametres["tempsDerniereRecuperationRFID"] = 0
+            Parametres["calculateAll"] = True
+            dictUIDPrecedents.clear()
+        listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
+        listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
+        retour = [] # si aucune ligne à traiter, on retourne []
+        # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+        if os.path.exists(fichier) and derniereModifFichierDonnneesSmartphoneRecente(fichier) :
+            listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
+            i = 0
+            #pasDErreur = True
+            while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
+                ligne = listeLigne[i]
+                #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
+                #print(ligne[-4:])
+                if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
+                    codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
+                    if codeErreur.numero :
+                        # une erreur s'est produite
+                        print("Code erreur :", codeErreur.numero)
+                        print(ligne)
+    ##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
+    ##                        print("Erreur ignorée")
+    ##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
+    ##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                        #else :
+                            #pasDErreur = False
+    ##                else :
+                        #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
+                    ### désormais, même s'il y a une erreur, on poursuit les imports.
+                    if indice == 0 :
+                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
+                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                    elif indice == 1 :
+                        Parametres["ligneDerniereRecuperationRFID"] += 1
+                        Parametres["tempsDerniereRecuperationRFID"] = time.time()
+                        ##transaction.commit()
+                else :
+                    #pasDErreur = False
+                    print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+                i += 1
+                retour.append(codeErreur)
+            #print("Erreurs retournées :",retour)
+            if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+                if indice == 0 :
+                    Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                elif indice == 1 :
+                    Parametres["tempsDerniereRecuperationRFID"] = time.time()
+        else :
+            if indice == 0 :
                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                    ##transaction.commit()
-            else :
-                #pasDErreur = False
-                print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
-            i += 1
-            retour.append(codeErreur)
-        #print("Erreurs retournées :",retour)
-        if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
-            Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-    else :
-        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-    #    print("Fichier du smartphone déjà traité à cette heure")
-##        retour = "RAS"
+            elif indice == 1 :
+                Parametres["tempsDerniereRecuperationRFID"] = time.time()
+        #    print("Fichier du smartphone déjà traité à cette heure")
+    ##        retour = "RAS"
     return retour
 
 
@@ -2502,12 +2539,16 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
     return retour
 
 
-def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
+def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
     action = listeAction[1]
-    dossard = formateDossardNG(str(listeAction[2]))
+    if RFID :
+        dossard = Coureurs.getDossardFromEPC(listeAction[2])
+        return Erreur(340)
+    else :
+        dossard = formateDossardNG(str(listeAction[2]))
     if dossard != "-1A" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
@@ -2626,6 +2667,11 @@ def effacerFichierDonnneesSmartphone() :
     for file in files :
         os.remove(file)
 
+def effacerFichierDonnneesRFID() :
+    print("Effacement des données RFID  effectué")
+    file = "donneesRFID.txt"
+    if os.path.exists(file) :
+        os.remove(file)
 
 def effacerFichierDonnneesLocales() :
     print("Effacement des modifications locales  effectué")
