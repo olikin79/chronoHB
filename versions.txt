@@ -94,6 +94,7 @@ Le test pourra être réinitialisé.
 
 Travail du 15/01/2025 :
 - Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
+- Premiers développements affectation en masse de puces RFID à des dossards. Non finalisé : l'affectation d'une puce à un dossard ne fonctionne pas.
 
 Travail du 14/01/2025 :
 - Mise à part de la correspondance Dossard-EPC pour conservation lors des réinitialisations d'année en année.
