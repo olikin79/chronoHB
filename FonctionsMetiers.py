@@ -2523,6 +2523,18 @@ def DossardtoREPC(dossard) :
     except :
         return ""
 
+def associe_dossard_epc(dossard, epc):
+    if epc and dossardValide(dossard) : 
+        print("Le dossard est valide et le epc non vide", dossard, epc)
+        Parametres['dictEPCDossards'][epc] = dossard
+        print('youpee')
+        Parametres['dictDossardsEPC'][dossard] = epc
+        print('yahoo')
+        return True
+    else :
+        print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")
+        return False
+
 def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.

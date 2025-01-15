@@ -1,4 +1,6 @@
 import tkinter as tk
+# import pour les messagebox
+from tkinter import messagebox
 from FonctionsMetiers import *
 
 class Popup(tk.Toplevel):
@@ -9,6 +11,7 @@ class Popup(tk.Toplevel):
         self.state('zoomed')
 
         self.infos = []
+        self.listeDossardsCHB = Coureurs.listeDossards()
 
         # Créer une grille avec plusieurs lignes et colonnes
         self.grid_rowconfigure(0, weight=0)  # Ligne des boutons
@@ -30,7 +33,7 @@ class Popup(tk.Toplevel):
         self.nbreBoutons = len(self.boutons)
         self.main_frame.grid(row=1, column=0, sticky="nsew", columnspan=self.nbreBoutons)
 
-        self.selected_tab = 3  # Onglet sélectionné par défaut
+        self.selected_tab = 1  # Onglet sélectionné par défaut
         self.buildTabs()
         self.show_tab(self.selected_tab)
 
@@ -45,6 +48,7 @@ class Popup(tk.Toplevel):
         self.text_widget.insert(tk.END, "Ici, apparaitront les dernières données reçues depuis les lecteurs RFID...")
         self.text_widget.pack(fill="both", expand=True)
         self.text_widget.config(state="disabled")
+
 
     def buildTabs(self):
         # Créer les widgets pour chaque onglet
@@ -69,17 +73,191 @@ class Popup(tk.Toplevel):
         label.pack(fill="both", expand=True, side=tk.TOP)
     
     def build_frame_Affecter(self, frame):
-        """Widgets ajoutés à frame chargés d'affecter une ou plusieurs puces RFID à un ou plusieurs dossards (successifs) :
-	* on connaitrait le numéro de la première puce (à saisir ou à scanner)
-	* on connaîtrait le nombre de dossards du rouleau à affecter.
-	On validerait si autorisé par le logiciel (si les dossards existent jusqu'au nombre choisi).
-	Cela affecterait toutes les puces dans l'ordre.
-    Permettrait d'affecter à des successions de dossards des puces en les passant devant le lecteur RFID choisi.
-    Passerait au dossard suivant dès que détecté (si case à cocher dédiée activée)
-    Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop longtemps."""
+        """
+    Configure une interface avec deux modes de fonctionnement (proposés dans un combobox avec les choix 1 et 2 ci-dessous) :
+
+    1. "Affectation de dossards en masse" :
+    des widgets ajoutés à frame chargés d'affecter une ou plusieurs puces RFID à un ou plusieurs dossards (successifs) :
+	* on utilise un champ Entry pour la saisie du numéro de la première puce (au format hexadécimal uniquement). Le dernier epc récupéré en RFID serait affiché dans le champ Entry dédié.
+    * un autre widget combobox (au texte non modifiable par l'utilisateur) pour le numéro du premier dossard à affecter. Il serait rempli avec toutes les valeurs de tous les dossards existants.
+	* un autre champ on connaîtrait le nombre de dossards du rouleau à affecter. Ce serait un combobox modifiable (avec les valeurs 1, 2, 5, 10, 50, 100 proposées par défaut).
+    * un bouton "Valider" permettrait de lancer l'affectation des puces RFID aux dossards.
+    Ce bouton "Valider" serait rendu actif si les dossards existent jusqu'au nombre choisi.
+	Cela affecterait toutes les puces dans l'ordre des dossards en incrémentant les puces avec la méthode incremente_epc.
+
+    2. "Passage des dossards succesivement devant le lecteur" :
+    Un deuxième mode d'affectation existerait : on passerait un dossard devant l'antenne et cela affecterait la puce RFID détectée au dossard sléectionné dans le combobox.
+    Cela passerait au dossard suivant dès qu'un dossard serait détecté (si case à cocher dédiée activée).
+    Un signal graphique changement de couleur de l'interface en vert durant une seconde indiquerait 
+    Eliminerait le doublon immédiat si on reste devant le lecteur RFID trop longtemps. Le dernier epc affecté à un dossard ne serait pas affecté au suivant."""
+        # on crée un combobox non modifiable pour choisir le mode d'affectation. Placement avec grid
+        self.label = tk.Label(frame, text="Choisir le mode d'affectation :", justify="left")
+        self.label.grid(row=0, column=0, columnspan=2, sticky="w")
+        self.modeAffectation = tk.StringVar()
+        self.modeAffectation.set("Affectation de dossards en masse")
+        self.combobox = tk.OptionMenu(frame, self.modeAffectation, "Affectation de dossards en masse", "Passage des dossards successivement devant le lecteur") 
+        self.combobox.grid(row=0, column=2, columnspan=2, sticky="w")
+        # en dessous du combobox, on remplir la fenêtre avec une frame qui occupe tout l'espace en largeur et en hauteur
+        self.frameAffectation = tk.Frame(frame)
+        self.frameAffectation.grid(row=1, column=0, columnspan=4, sticky="nsew")
+        # la modification du comboxbox appelle la méthode qui affiche les widgets correspondants au mode d'affectation choisi.
+        self.combobox.bind("<Button-1>", lambda event: self.afficheWidgetsModeAffectation(self.frameAffectation))
+        # on crée un champ Entry pour la saisie du numéro de la première puce (au format hexadécimal uniquement). Placement avec grid
+
         # label d'information
-        label = tk.Label(frame, text="Affecter des puces RFID aux dossards :", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
+        # label = tk.Label(frame, text="Affecter des puces RFID aux dossards :", justify="left")
+        # label.pack(fill="both", expand=True, side=tk.TOP)
+    def afficheWidgetsModeAffectation(self, frame):
+        """Affiche les widgets correspondant au mode d'affectation choisi.
+        """
+        # on efface les widgets précédents
+        for widget in frame.winfo_children():
+            widget.destroy()
+        # on crée les widgets correspondant au mode d'affectation choisi
+        if self.modeAffectation.get() == "Affectation de dossards en masse" :
+            self.build_frame_AffectationMasse(frame)
+        elif self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" :
+            self.build_frame_AffectationSuccessive(frame)
+        else :
+            print("Mode d'affectation inconnu : ", self.modeAffectation.get())
+    
+    def build_frame_AffectationSuccessive(self, frame):
+        """"Passage des dossards succesivement devant le lecteur" :
+    Un deuxième mode d'affectation existerait : on passerait un dossard devant l'antenne et cela affecterait la puce RFID détectée au dossard sléectionné dans le combobox.
+    Cela passerait au dossard suivant dès qu'un dossard serait détecté (si case à cocher dédiée activée).
+    Un signal graphique changement de couleur de l'interface en vert durant une seconde indiquerait 
+    Eliminerait le doublon immédiat si on reste devant le lecteur RFID trop longtemps. Le dernier epc affecté à un dossard ne serait pas affecté au suivant.
+        """
+        # label d'information
+        label = tk.Label(frame, text="Affecter des puces RFID aux dossards en passant les dossards devant l'antenne un par un :", justify="left")
+        label.grid(row=0, column=0, sticky="w")
+        # combobox pour le numéro du premier dossard à affecter. Placement avec grid
+        self.dossard = tk.StringVar()
+        self.combobox = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
+        # La première valeur du combobox est la chaine de caractères du premier dossard
+        self.dossard.set(self.listeDossardsCHB[0])
+        self.combobox.grid(row=0, column=1, columnspan=2, sticky="w")
+        # Affiche en gros le numéro de dossard dont le scan RFID est attendu dans un canvas
+        self.canvas = tk.Canvas(frame, width=200, height=100)
+        self.canvas.grid(row=2, column=0, sticky="w")
+        self.combobox.bind("<Button-1>", lambda event : self.afficheDossardEnGros())
+        self.afficheDossardEnGros()
+    
+    def afficheDossardEnGros(self):
+        self.canvas.delete("all")
+        self.canvas.create_text(100, 50, text=self.dossard.get(), font=("Helvetica", 36))
+    
+    def validerAffectationSuccessive(self, dossard, epc): 
+        """Méthode qui sera appelée lors de la réception d'une information RFID par la méthode info().
+        Elle doit affecter la puce RFID détectée au dossard sélectionné dans le combobox.
+        Elle doit afficher un fond vert dans self.canvas durant une seconde puis elle doit passer au dossard suivant dans le combobox.
+        """
+        associe_dossard_epc(dossard, epc)
+        # on récupère la couleur actuelle du fond de self.canvas
+        couleurFond = self.canvas.cget("bg")
+        # on affiche un fond vert dans self.canvas durant une seconde
+        self.canvas.config(bg="green")
+        def retabliLaCouleurPuisPasseAuSuivant(couleurFond):
+            self.canvas.config(bg=couleurFond)
+            # on récupère l'index du dossard sélectionné dans le combobox
+            index = self.listeDossardsCHB.index(dossard)
+            # on passe au dossard suivant dans le combobox
+            index += 1
+            if index >= len(self.listeDossardsCHB):
+                index = 0
+            self.dossard.set(self.listeDossardsCHB[index])
+            # on affiche le dossard en gros dans self.canvas
+            self.afficheDossardEnGros()
+        self.after(1000, lambda couleurFond=couleurFond : retabliLaCouleurPuisPasseAuSuivant(couleurFond))
+
+
+    def build_frame_AffectationMasse(self, frame):
+        """Widgets ajoutés à frame pour affecter une ou plusieurs puces RFID à un ou plusieurs dossards (successifs) :
+        * on utilise un champ Entry pour la saisie du numéro de la première puce (au format hexadécimal uniquement). Le dernier epc récupéré en RFID serait affiché dans le champ Entry dédié.
+        * un autre widget combobox (au texte non modifiable par l'utilisateur) pour le numéro du premier dossard à affecter. Il serait rempli avec toutes les valeurs de tous les dossards existants.
+        * un autre champ on connaîtrait le nombre de dossards du rouleau à affecter. Ce serait un combobox modifiable (avec les valeurs 1, 2, 5, 10, 50, 100 proposées par défaut).
+        * un bouton "Valider" permettrait de lancer l'affectation des puces RFID aux dossards.
+        Ce bouton "Valider" serait rendu actif si les dossards existent jusqu'au nombre choisi.
+        Cela affecterait toutes les puces dans l'ordre des dossards en incrémentant les puces avec la méthode incremente_epc.
+        """
+        self.dossardEnAttenteDeDetection = ""
+        self.epcEnAttenteDeDetection = ""
+        # label d'information
+        # label = tk.Label(frame, text="Affecter des puces RFID aux dossards en masse :", justify="left")
+        # label.grid(row=0, column=0, columnspan=2, sticky="w")
+        # label pour indiquer le rôle de chaque champ 
+        label = tk.Label(frame, text="Passer devant l'antenne le dossard ci-dessus (puce RFID collée) :", justify="left")
+        label.grid(row=2, column=0,  sticky="w")
+        # champ Entry pour la saisie du numéro de la première puce (au format hexadécimal uniquement). Placement avec grid
+        self.epc = tk.StringVar()
+        self.epc.set("")
+        entry = tk.Entry(frame, textvariable=self.epc, width=30, state="disabled", justify="center")
+        entry.grid(row=2, column=1, sticky="w")
+        # label pour indiquer le rôle du combobox
+        label = tk.Label(frame, text="Sélectionner le numéro du premier dossard à affecter :", justify="left")
+        label.grid(row=1, column=0,  sticky="w")
+        # combobox pour le numéro du premier dossard à affecter. Placement avec grid
+        self.dossard = tk.StringVar()
+        comboboxDossard = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
+        # La première valeur du combobox est la chaine de caractères du premier dossard
+        self.dossard.set(self.listeDossardsCHB[0])
+        comboboxDossard.grid(row=1, column=1, sticky="w")
+        # label pour indiquer le rôle de comboboxNombre
+        label = tk.Label(frame, text="Choisir le nombre de dossards successifs du rouleau à affecter :", justify="left")
+        label.grid(row=3, column=0,  sticky="w")
+        # combobox pour le nombre de dossards du rouleau à affecter. Placement avec grid
+        self.nbreDossards = tk.StringVar()
+        # on crée un combobox modifiable (avec les valeurs 1, 2, 5, 10, 50, 100 proposées par défaut).
+        comboboxNombre = tk.ttk.Combobox(frame, justify="center", textvariable=self.nbreDossards, values=["5", "10", "50", "100"])
+        comboboxNombre.set("100")
+        comboboxNombre.grid(row=3, column=1, sticky="w")
+        # bouton "Valider" pour lancer l'affectation des puces RFID aux dossards. Placement avec grid
+        button = tk.Button(frame, text="Valider", command=lambda frame=frame : self.validerAffectationMasse(frame))
+        button.grid(row=4, column=0, columnspan=2, sticky="nsew")
+        # on désactive la possibilité de saisir une chaine personnalisée dans les combobox
+        # self.dossard.trace("w", lambda *args: self.dossard.set(self.dossard.get()))
+        # self.nbreDossards.trace("w", lambda *args: self.nbreDossards.set(self.nbreDossards.get()))
+
+    def validerAffectationMasse(self, frame):
+        """Méthode qui sera appelée lors du clic sur le bouton "Valider" de l'affectation en masse.
+        Elle doit afficher un popup demandant de passer le dernier dossard du rouleau devant l'antenne.
+        Si le numéro récupéré par l'antenne est le même que celui calculé, alors on affecte en masse tous 
+        les dossards aux EPC calculés du rouleau."""
+        # on récupère le numéro du premier dossard à affecter
+        self.dossardActuel = self.dossard.get()
+        # on récupère le nombre de dossards à affecter
+        # vérifier si nbreDossards est un entier positif
+        if self.nbreDossards.get().isdigit() and int(self.nbreDossards.get()) > 0 :
+            nbreDossards = int(self.nbreDossards.get())
+            # on récupère le numéro de la première puce RFID à affecter
+            self.epcActuel = self.epc.get()
+            if self.epcActuel :
+                print("Affectation en masse de ", nbreDossards, " dossards à partir de ", self.dossardActuel, " avec la puce RFID ", self.epcActuel)
+                # on récupère le numéro de la dernière puce RFID à affecter
+                self.epcEnAttenteDeDetection = self.increment_epc(self.epcActuel, nbre=nbreDossards-1)
+                # on affiche un popup demandant de passer le dernier dossard du rouleau devant l'antenne
+                # on récupère le numéro de dossard détecté par l'antenne
+                self.dossardEnAttenteDeDetection = self.increment_dossard(self.dossardActuel, nbre=nbreDossards-1)
+                # on affiche un popup demandant de passer le dernier dossard du rouleau devant l'antenne
+                self.popup = tk.Toplevel(frame)
+                self.popup.title("Affectation en masse")
+                # Maximiser la fenêtre
+                # self.popup.state('zoomed')
+                # label d'information
+                label = tk.Label(self.popup, text="Passer le dernier dossard du rouleau devant l'antenne pour valider l'affectation en masse.", justify="left")
+                label.pack(fill="both", expand=True, side=tk.TOP)
+                # label pour afficher le numéro de dossard attendu
+                label = tk.Label(self.popup, text="Dernier dossard du rouleau à passer devant l'antenne : " + self.dossardEnAttenteDeDetection, justify="left")
+                label.pack(fill="both", expand=True, side=tk.TOP)
+            else :
+                # message d'avertissement avec showinfo
+                messagebox.showinfo("Numéro de la première puce RFID non saisi", "Le numéro de la première puce RFID à affecter n'a pas été saisi ou détecté par une antenne.")
+                print("Le numéro de la première puce RFID à affecter n'a pas été saisi ni détecté.")
+        else :
+            # message d'avertissement avec showinfo
+            messagebox.showinfo("Nombre de dossards à affecter incorrect", "Le nombre de dossards à affecter n'a pas été saisi ou n'est pas un entier positif :" + self.nbreDossards.get() + ".")
+            print("Le nombre de dossards à affecter n'a pas été saisi ou n'est pas un entier positif : ", self.nbreDossards.get(), ".")
+
 
     def build_frame_Tester(self, frame):
         """Widgets ajoutés à frame pour tester des dossards : dès qu'un dossard sera détecté par l'antenne, on l'afficherait.
@@ -178,7 +356,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
 
     def reinitialiser_test(self, frame):
         print("On réinitialise le test de tous les dossards d'une course.")
-        self.listeDossardsNonDetectes = Coureurs.listeDossards()
+        self.listeDossardsNonDetectes = self.listeDossardsCHB.copy()
         self.listeDossardsDetectes = []
         self.listeDossardsInconnus = []
         self.actualiser_affichage_test_dossards(frame)
@@ -200,7 +378,52 @@ Le test pourra être réinitialisé par un bouton dédié."""
 
     def setInfo(self, info):
         self.infos.append(info)
-        if self.selected_tab == 3 :
+        if self.selected_tab == 1 :
+            # cas où l'on affecte des puces RFID à des dossards
+            if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" :
+                if self.dossardEnAttenteDeDetection and EPCtoDossard(info["epc"]) == self.dossardEnAttenteDeDetection :
+                    print("Détection d'un dossard : ", self.dossardEnAttenteDeDetection)
+                    associe_dossard_epc(self.dossardEnAttenteDeDetection, info["epc"])
+                    self.validerAffectationSuccessive(self.dossardEnAttenteDeDetection, info["epc"])
+            elif self.modeAffectation.get() == "Affectation de dossards en masse" :
+                # si self.popup existe, on est en phase de validation d'une affectation de masse
+                try : 
+                    self.popup
+                    validationAffectationEnMasse = True
+                except AttributeError :
+                    validationAffectationEnMasse = False
+                if validationAffectationEnMasse :
+                    # si self.dossardEnAttenteDeDetection est non vide, on compare self.dossardEnAttenteDeDetection avec info["epc"]
+                    if self.epcEnAttenteDeDetection and info["epc"] == self.epcEnAttenteDeDetection :
+                        print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection)
+                        # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
+                        dossardInitial = self.dossardActuel
+                        epcInitial = self.epcActuel
+                        for i in range(int(self.nbreDossards.get())):
+                            print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
+                            # associe_dossard_epc(self.dossardActuel, self.epcActuel)
+                            print("coucou pas d'association")
+                            self.dossardActuel = self.increment_dossard(self.dossardActuel)
+                            print("chouette")
+                            self.epcActuel = self.increment_epc(self.epcActuel)
+                            print("mégachouette")
+                        # on indique la réussite de l'opération
+                        message = "Tous les dossards entre " + dossardInitial + " et " + self.increment_dossard(self.dossardActuel, nbre=-1) +" ont été affectés des puces RFID du rouleau entre " + epcInitial + " et " + self.increment_epc(self.epcActuel, nbre=-1) + "."
+                        print(message)
+                        messagebox.showinfo("Affectation en masse réussie", message)
+                    else :
+                        message = "Détection d'un EPC non attendu : " + info["epc"] + " au lieu de " + self.epcEnAttenteDeDetection + " pour le dossard " + self.dossardEnAttenteDeDetection
+                        print(message)
+                        # on affiche un popup showInfo
+                        messagebox.showinfo("La puce détectée ne correspond pas aux calculs effectués", message)
+                    # on ferme self.popup
+                    self.popup.destroy()
+                else :
+                    # si self.popup n'existe pas, on est en phase de saisie de l'EPC de la première puce du rouleau
+                    self.epc.set(info["epc"])
+                    print("EPC détecté affecté à l'entry de détection pour les affectations en masse : ", info["epc"])
+            
+        elif self.selected_tab == 3 :
             # cas où l'on teste tous les dossards d'une course
             dossardDetecte = EPCtoDossard(info["epc"])
             if dossardDetecte in self.listeDossardsNonDetectes : # Si le dossard n'a pas encore été détecté et est connu
@@ -230,15 +453,41 @@ Le test pourra être réinitialisé par un bouton dédié."""
         if EPCtoDossard(info["epc"]) :
             compl = " - Dossard connu : " + EPCtoDossard(info["epc"])
         return "Antenne : " + info["reader"] + " PUCE : " + info["epc"] + " RSSI (qualité signal): " + str(info["rssi"]) + "dB - Nombre de vues : " + str(info["seen_count"]) + compl
-
-    def associe_dossard_epc(self, dossard, epc):
-        if epc and dossardValide(dossard) : # Si le dossard est valide et le epc non vide
-            Parametres['dictEPCDossards'][epc] = dossard
-            Parametres['dictDossardsEPC'][dossard] = epc
-            return True
+        
+    def increment_dossard(self, dossard, nbre=1):
+        """Incrémente le numéro de dossard au format "123A" (un entier suivi d'une lettre) pour retourner le nbre ème successeur de dossard dans ce format"""
+        if not dossardValide(dossard):
+            raise ValueError("Le dossard n'est pas valide.")
         else :
-            print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")
-            return False
+            numero = int(dossard[:-1])
+            lettre = dossard[-1]
+            numero += nbre
+            return str(numero) + lettre        
+
+    def increment_epc(self, epc, nbre=1):
+        """
+        Incrémente un EPC au format hexadécimal de 1 sauf indication contraire.
+        Args:
+            epc (str): L'EPC en tant que chaîne hexadécimale.
+        Returns:
+            str: L'EPC incrémenté, formaté en hexadécimal avec des zéros initiaux conservés.
+        """
+        try:
+            # Vérification : l'entrée doit être une chaîne hexadécimale
+            if not all(c in "0123456789ABCDEF" for c in epc.upper()):
+                raise ValueError("L'EPC contient des caractères non-hexadécimaux.")
+            
+            # Convertir l'EPC en un entier
+            epc_int = int(epc, 16)
+            
+            # Incrémenter l'entier
+            epc_int += nbre
+            
+            # Reconvertir en hexadécimal avec des zéros initiaux conservés
+            epc_incremented = f"{epc_int:0{len(epc)}X}"
+            return epc_incremented
+        except Exception as e:
+            raise ValueError(f"Erreur lors de l'incrémentation de l'EPC : {e}")
 
 
     
