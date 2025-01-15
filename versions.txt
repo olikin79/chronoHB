@@ -73,7 +73,8 @@ Le popup RFID aurait les fonctionnalités suivantes :
 	afficherait la correspondance du numéro de dossard si présent dans la base.
 + une ligne de boutons en haut correspondant aux choix suivants :
 1. Réglages relatifs aux antennes sur la course. Afficher les antennes qui ont déjà envoyé une donnée à chronoHB.
-	Affecter les antennes en question à des rôles (Départ, Checkpoint1, CheckPoint2, Arrivée, Départ-Arrivée pour les courses en boucle)
+	Affecter les antennes en question à des rôles :
+	(Départ, Checkpoint1, CheckPoint2, Arrivée, Départ-Arrivée pour les courses en boucle, Arrivee-complément pour l'antenne latérale de secours complementaire du tapis)
 	si course en boucle, combien de passages pour chaque catégorie ? => on en déduit la taille d'une boucle.
 	Permettre le découpage de la distance totale en morceaux entre les checkpoints.
 Quid des relais entre coureurs à savoir gérer ?
@@ -82,13 +83,17 @@ Quid des relais entre coureurs à savoir gérer ?
 	* on connaîtrait le nombre de dossards du rouleau à affecter.
 	On validerait si autorisé par le logiciel (si les dossards existent jusqu'au nombre choisi).
 	Cela affecterait toutes les puces dans l'ordre.
-3. affecter à des sucessions de dossards des puces en les passant devant le lecteur RFID choisi. Passerait au dossard suivant dès que détecté.
+ affecter à des successions de dossards des puces en les passant devant le lecteur RFID choisi. Passerait au dossard suivant dès que détecté.
 Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop longtemps.
+3. Tester des dossards.
 4. Permettrait d'effectuer un test de tous les dossards d'une course globalement : cela indiquerait si tous les dossards de la course sont bien présents 
 (cela afficherait les numéros des dossards non scannés (donc potentiellement en panne) ainsi que les numéros de puces RFID non connus dans la base.
 Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
 Le test pourra être réinitialisé.
 ##############################################
+
+Travail du 15/01/2025 :
+- Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
 
 Travail du 14/01/2025 :
 - Mise à part de la correspondance Dossard-EPC pour conservation lors des réinitialisations d'année en année.

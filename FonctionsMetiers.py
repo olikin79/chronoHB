@@ -635,11 +635,20 @@ class DictionnaireDeCoureurs(dict) :
         except :
             c = Coureur("","","") # on retourne un objet Coureur mais vide.
         return c
-    def getDossardFromEPC(self, epc) :
-        for c in self.liste() :
-            if c.getEPC() == epc :
-                return c.dossard
-        return ""
+
+    def listeDossards(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
+        L = []
+        for e in self.cles() :
+            #print(self["CoureursElimines"][e])
+            i = 0
+            indicesLibres = self["CoureursElimines"][e]
+            for c in self[e] :
+                if not i in indicesLibres :
+                    L.append(c.dossard)
+                    #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
+                i += 1
+        return L
+    
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
         for e in self.cles() :
@@ -1765,7 +1774,7 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC
+           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1821,6 +1830,9 @@ def chargerDonnees() :
     if not "dictDossardsEPC" in root :
         root["dictDossardsEPC"] = {}
     dictDossardsEPC=root["dictDossardsEPC"]
+    if not "dictEPCDossards" in root :
+        root["dictEPCDossards"] = {}
+    dictEPCDossards=root["dictEPCDossards"]
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
@@ -2499,6 +2511,17 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
 ##        retour = "RAS"
     return retour
 
+def EPCtoDossard(epc) :
+    try :
+        return Parametres['dictEPCDossards'][epc]
+    except :
+        return ""
+    
+def DossardtoREPC(dossard) :
+    try :
+        return Parametres['dictDossardsEPC'][formateDossardNG(dossard)]
+    except :
+        return ""
 
 def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
@@ -2506,7 +2529,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     listeAction = ligne.split(",")
     action = listeAction[1]
     if RFID :
-        dossard = Coureurs.getDossardFromEPC(listeAction[2])
+        dossard = EPCtoDossard(listeAction[2])
         return Erreur(340)
     else :
         dossard = formateDossardNG(str(listeAction[2]))
