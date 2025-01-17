@@ -44,10 +44,10 @@ class Popup(tk.Toplevel):
         self.label = tk.Label(self.bottom_frame, text="Voici les dernières informations reçues depuis les antennes connectées :", justify="left")
         self.label.pack(fill="both", expand=True)
         # Text pour afficher les informations reçues depuis les antennes
-        self.text_widget = tk.Text(self.bottom_frame, height=5, wrap=tk.WORD)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
-        self.text_widget.insert(tk.END, "Ici, apparaitront les dernières données reçues depuis les lecteurs RFID...")
-        self.text_widget.pack(fill="both", expand=True)
-        self.text_widget.config(state="disabled")
+        self.infos_RFID = tk.Text(self.bottom_frame, height=5, wrap=tk.WORD)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
+        self.infos_RFID.insert(tk.END, "Ici, apparaitront les dernières données reçues depuis les lecteurs RFID...")
+        self.infos_RFID.pack(fill="both", expand=True)
+        self.infos_RFID.config(state="disabled")
 
 
     def buildTabs(self):
@@ -91,15 +91,19 @@ class Popup(tk.Toplevel):
     Un signal graphique changement de couleur de l'interface en vert durant une seconde indiquerait 
     Eliminerait le doublon immédiat si on reste devant le lecteur RFID trop longtemps. Le dernier epc affecté à un dossard ne serait pas affecté au suivant."""
         # on crée un combobox non modifiable pour choisir le mode d'affectation. Placement avec grid
+        frame.grid_columnconfigure(0, weight=0)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_rowconfigure(0, weight=0)
+        frame.grid_rowconfigure(1, weight=1)
         self.label = tk.Label(frame, text="Choisir le mode d'affectation :", justify="left")
-        self.label.grid(row=0, column=0, columnspan=2, sticky="w")
+        self.label.grid(row=0, column=0, sticky="w")
         self.modeAffectation = tk.StringVar()
         self.modeAffectation.set("Affectation de dossards en masse")
         self.combobox = tk.OptionMenu(frame, self.modeAffectation, "Affectation de dossards en masse", "Passage des dossards successivement devant le lecteur") 
-        self.combobox.grid(row=0, column=2, columnspan=2, sticky="w")
+        self.combobox.grid(row=0, column=1, sticky="w")
         # en dessous du combobox, on remplir la fenêtre avec une frame qui occupe tout l'espace en largeur et en hauteur
         self.frameAffectation = tk.Frame(frame)
-        self.frameAffectation.grid(row=1, column=0, columnspan=4, sticky="nsew")
+        self.frameAffectation.grid(row=1, column=0, columnspan=2, sticky="nsew")
         # la modification du comboxbox appelle la méthode qui affiche les widgets correspondants au mode d'affectation choisi.
         # self.combobox.bind("<<ComboboxSelected>>", self.afficheWidgetsModeAffectation)
         self.modeAffectation.trace_add("write", lambda *args: self.afficheWidgetsModeAffectation(self.frameAffectation))
@@ -129,47 +133,83 @@ class Popup(tk.Toplevel):
     Un signal graphique changement de couleur de l'interface en vert durant une seconde indiquerait 
     Eliminerait le doublon immédiat si on reste devant le lecteur RFID trop longtemps. Le dernier epc affecté à un dossard ne serait pas affecté au suivant.
         """
+        frame.grid_columnconfigure(0, weight=0)
+        frame.grid_columnconfigure(1, weight=0)
+        frame.grid_columnconfigure(2, weight=1)
+        frame.grid_rowconfigure(5, weight=1)
+
         # label d'information
-        label = tk.Label(frame, text="Affecter des puces RFID aux dossards en passant les dossards devant l'antenne un par un :", justify="left")
-        label.grid(row=0, column=0, sticky="w")
+        label = tk.Label(frame, text="Affecter des puces RFID aux dossards en passant les dossards devant l'antenne un par un, successivement.", justify="left")
+        label.grid(row=0, column=0, columnspan=3, sticky="w")
+        label = tk.Label(frame, text="Prochain dossard à présenter :", justify="right")
+        # le placer aligné à gauche
+        label.grid(row=1, column=0, sticky="w")
+        # label.grid(row=1, column=0, sticky="w")
         # combobox pour le numéro du premier dossard à affecter. Placement avec grid
         self.dossard = tk.StringVar()
-        self.combobox = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
+        if self.listeDossardsCHB:
+            self.combobox = tk.ttk.Combobox(frame, justify="center", textvariable=self.dossard, values=self.listeDossardsCHB)
+            self.dossard.set(self.listeDossardsCHB[0])
+        else :
+            self.combobox = tk.Entry(frame, textvariable=self.dossard, width=30, justify="center")
+            self.dossard.set("1A")
+        # self.combobox = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
         # La première valeur du combobox est la chaine de caractères du premier dossard
-        self.dossard.set(self.listeDossardsCHB[0])
-        self.combobox.grid(row=0, column=1, columnspan=2, sticky="w")
+        self.combobox.grid(row=1, column=1, columnspan=2, sticky="w")
+        # Label et checkbox pour activer la détection (éviter ainsi de remplacer l'epc d'un dossard par erreur.
+        label = tk.Label(frame, text="Activer la détection RFID :", justify="left")
+        label.grid(row=2, column=0, sticky="w")
+        self.detectionSuccessive = tk.BooleanVar()
+        self.checkbox = tk.Checkbutton(frame, variable=self.detectionSuccessive)
+        self.checkbox.grid(row=2, column=1, sticky="w")
         # Affiche en gros le numéro de dossard dont le scan RFID est attendu dans un canvas
-        self.canvas = tk.Canvas(frame, width=200, height=100)
-        self.canvas.grid(row=2, column=0, sticky="w")
-        self.combobox.bind("<Button-1>", lambda event : self.afficheDossardEnGros())
+        self.canvas = tk.Canvas(frame, width=400, height=200)
+        self.canvas.grid(row=3, column=0, columnspan=3, sticky="w")
+        # self.combobox.bind("<Button-1>", lambda event : self.afficheDossardEnGros())
+        self.dossard.trace_add("write", lambda *args: self.afficheDossardEnGros())
         self.afficheDossardEnGros()
+        # création d'un widget texte affichant toutes les affectations de dossards qui viennent d'être effectuées.
+        label = tk.Label(frame, text="Affectations de dossards qui viennent d'être effectuées :", justify="left")
+        label.grid(row=4, column=0, columnspan=3, sticky="w")
+        self.affectations_recentes = tk.Text(frame, height=10, wrap=tk.WORD)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
+        # self.affectations_recentes.insert(tk.END, "Ici, apparaitront les dernières affectations de puces RFID qui viennent d'être effectuées...")
+        self.affectations_recentes.grid(row=5, column=0, columnspan=3, sticky="nsew")
+        self.affectations_recentes.config(state="disabled")
+
     
     def afficheDossardEnGros(self):
         self.canvas.delete("all")
-        self.canvas.create_text(100, 50, text=self.dossard.get(), font=("Helvetica", 36))
+        self.canvas.create_text(200, 100, text=self.dossard.get(), font=("Helvetica", 60))
+        self.dossardEnAttenteDeDetection = self.dossard.get()
     
     def validerAffectationSuccessive(self, dossard, epc): 
         """Méthode qui sera appelée lors de la réception d'une information RFID par la méthode info().
         Elle doit affecter la puce RFID détectée au dossard sélectionné dans le combobox.
         Elle doit afficher un fond vert dans self.canvas durant une seconde puis elle doit passer au dossard suivant dans le combobox.
         """
-        associe_dossard_epc(dossard, epc)
-        # on récupère la couleur actuelle du fond de self.canvas
-        couleurFond = self.canvas.cget("bg")
-        # on affiche un fond vert dans self.canvas durant une seconde
-        self.canvas.config(bg="green")
-        def retabliLaCouleurPuisPasseAuSuivant(couleurFond):
-            self.canvas.config(bg=couleurFond)
-            # on récupère l'index du dossard sélectionné dans le combobox
-            index = self.listeDossardsCHB.index(dossard)
-            # on passe au dossard suivant dans le combobox
-            index += 1
-            if index >= len(self.listeDossardsCHB):
-                index = 0
-            self.dossard.set(self.listeDossardsCHB[index])
-            # on affiche le dossard en gros dans self.canvas
-            self.afficheDossardEnGros()
-        self.after(1000, lambda couleurFond=couleurFond : retabliLaCouleurPuisPasseAuSuivant(couleurFond))
+        if associe_dossard_epc(dossard, epc) :
+            self.affectations_recentes.config(state="normal")
+            self.affectations_recentes.insert(tk.END, dossard + ":" + epc + " ")
+            self.affectations_recentes.config(state="disabled")
+            # on récupère la couleur actuelle du fond de self.canvas
+            couleurFond = self.canvas.cget("bg")
+            # on affiche un fond vert dans self.canvas durant une seconde
+            self.canvas.config(bg="green")
+            def retabliLaCouleurPuisPasseAuSuivant(couleurFond):
+                self.canvas.config(bg=couleurFond)
+                # on récupère l'index du dossard sélectionné dans le combobox
+                # index = self.listeDossardsCHB.index(dossard)
+                # on passe au dossard suivant dans le combobox
+                # index += 1
+                # if index >= len(self.listeDossardsCHB):
+                #     index = 0
+                # self.dossard.set(self.listeDossardsCHB[index])
+                # on affiche le dossard en gros dans self.canvas
+                self.dossard.set(self.increment_dossard(dossard))
+                self.afficheDossardEnGros()
+            self.after(1000, lambda couleurFond=couleurFond : retabliLaCouleurPuisPasseAuSuivant(couleurFond))
+        else :
+            print("Erreur lors de l'affectation de la puce RFID ", epc, " au dossard ", dossard, "(dossard au format invalide, ...).")
 
 
     def build_frame_AffectationMasse(self, frame):
@@ -398,13 +438,19 @@ Le test pourra être réinitialisé par un bouton dédié."""
         self.show_tab(tab_index)
 
     def setInfo(self, info):
+        # Ici, on devra rajouter le traitement de plusieurs dossards en même temps
+        # Selon les onglets, ces informations seront traitées différemment
+        # Soit ignorées quand on n'attend qu'un seul dossard, (dans ce cas, on ajoutera un avertissement en bas de la fenêtre)
+        # soit utilisées quand on attend plusieurs dossards en même temps (cas du test en masse des dossards d'une course)
         self.infos.append(info)
+        print("info:",info)
+        print("self.detectionSuccessive.get()", self.detectionSuccessive.get())
         if self.selected_tab == 1 :
             # cas où l'on affecte des puces RFID à des dossards
-            if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" :
-                if self.dossardEnAttenteDeDetection and EPCtoDossard(info["epc"]) == self.dossardEnAttenteDeDetection :
-                    print("Détection d'un dossard : ", self.dossardEnAttenteDeDetection)
-                    associe_dossard_epc(self.dossardEnAttenteDeDetection, info["epc"])
+            if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" and self.detectionSuccessive.get() :
+                print("Dossard en attente de détection :", self.dossardEnAttenteDeDetection)
+                if self.dossardEnAttenteDeDetection and info["epc"] :
+                    print("On affecte l'epc", info["epc"], "au dossard attendu : ", self.dossardEnAttenteDeDetection)
                     self.validerAffectationSuccessive(self.dossardEnAttenteDeDetection, info["epc"])
             elif self.modeAffectation.get() == "Affectation de dossards en masse" :
                 # si self.popup existe, on est en phase de validation d'une affectation de masse
@@ -455,12 +501,12 @@ Le test pourra être réinitialisé par un bouton dédié."""
                     self.listeDossardsInconnus.append(info["epc"])
                 self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
             # on n'actualise rien dans le dernier cas : si le dossard a déjà été détecté.
-        self.text_widget.config(state="normal")  # Temporairement activer l'édition
-        self.text_widget.delete('1.0', tk.END)  # Effacer le contenu du Text
+        self.infos_RFID.config(state="normal")  # Temporairement activer l'édition
+        self.infos_RFID.delete('1.0', tk.END)  # Effacer le contenu du Text
         for line in self.infos[-5:]:  # Afficher les 5 dernières lignes
             text = self.formate_info_affichage(line)
-            self.text_widget.insert(tk.END, text + '\n')
-        self.text_widget.config(state="disabled")
+            self.infos_RFID.insert(tk.END, text + '\n')
+        self.infos_RFID.config(state="disabled")
 
     def insererDansListeTriee(self, liste, element):
         """Insère un élément dans une liste triée de dossards (au format "123A" : un entier suivi d'une lettre) en conservant l'ordre des dossards :

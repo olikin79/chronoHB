@@ -2525,18 +2525,21 @@ def DossardtoREPC(dossard) :
 
 def associe_dossard_epc(dossard, epc):
     if epc and dossardValide(dossard) : 
+        dossard = formateDossardNG(dossard)
         # éviter les doublons. Deux dossards ne peuvent pas être associés au même epc : on efface l'ancien et on remplace par le nouveau.
         # Par contre, deux epc peuvent être associés au même dossard : cas où deux puces RFID sont collées sur un même dossard
         # récupérer les valeurs
         try :
             dossardActuel = Parametres['dictEPCDossards'][epc]
+            print("La puce", epc, "est déjà affectée à", dossardActuel)
+            if dossardActuel :
+                del Parametres['dictDossardsEPC'][dossardActuel]
+                print("La puce", epc, "n'est plus associée au dossard :", dossardActuel, ". On l'affecte à :", dossard)
         except :
-            dossardActuel = ""
-        if dossardActuel :
-            del Parametres['dictDossardsEPC'][dossardActuel]
-            print("La puce", epc, "était déjà associé au dossard :", dossardActuel, ". On l'affecte à :", dossard)
+            pass
         Parametres['dictEPCDossards'][epc] = dossard
         Parametres['dictDossardsEPC'][dossard] = epc
+        print("Association du dossard", dossard, "à la puce", epc, "réalisée avec succès.")
         return True
     else :
         print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")

@@ -90,6 +90,8 @@ Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop long
 (cela afficherait les numéros des dossards non scannés (donc potentiellement en panne) ainsi que les numéros de puces RFID non connus dans la base.
 Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
 Le test pourra être réinitialisé.
+
+Prévoir une sécurité pour ne pas remplacer les affectations existantes par erreur.
 ##############################################
 
 Travail du 17/01/2025 :
