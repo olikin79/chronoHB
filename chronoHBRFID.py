@@ -101,15 +101,16 @@ class Popup(tk.Toplevel):
         self.frameAffectation = tk.Frame(frame)
         self.frameAffectation.grid(row=1, column=0, columnspan=4, sticky="nsew")
         # la modification du comboxbox appelle la méthode qui affiche les widgets correspondants au mode d'affectation choisi.
-        self.combobox.bind("<Button-1>", lambda event: self.afficheWidgetsModeAffectation(self.frameAffectation))
-        # on crée un champ Entry pour la saisie du numéro de la première puce (au format hexadécimal uniquement). Placement avec grid
-
-        # label d'information
-        # label = tk.Label(frame, text="Affecter des puces RFID aux dossards :", justify="left")
-        # label.pack(fill="both", expand=True, side=tk.TOP)
-    def afficheWidgetsModeAffectation(self, frame):
+        # self.combobox.bind("<<ComboboxSelected>>", self.afficheWidgetsModeAffectation)
+        self.modeAffectation.trace_add("write", lambda *args: self.afficheWidgetsModeAffectation(self.frameAffectation))
+        
+        self.afficheWidgetsModeAffectation(self.frameAffectation)
+        
+    def afficheWidgetsModeAffectation(self, frame=None):
         """Affiche les widgets correspondant au mode d'affectation choisi.
         """
+        if frame == None :
+            frame = self.frameAffectation
         # on efface les widgets précédents
         for widget in frame.winfo_children():
             widget.destroy()
@@ -198,9 +199,17 @@ class Popup(tk.Toplevel):
         label.grid(row=1, column=0,  sticky="w")
         # combobox pour le numéro du premier dossard à affecter. Placement avec grid
         self.dossard = tk.StringVar()
-        comboboxDossard = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
+        if self.listeDossardsCHB :
+            # des coureurs existent, on crée un combobox avec les dossards existants dans la base
+            comboboxDossard = tk.ttk.Combobox(frame, justify="center", textvariable=self.dossard, values=self.listeDossardsCHB)
+            self.dossard.set(self.listeDossardsCHB[0])
+        else :
+            # pas de coureurs existants, on crée un champ Entry pour la saisie du numéro du premier dossard
+            comboboxDossard = tk.Entry(frame, textvariable=self.dossard, width=30, justify="center")
+            self.dossard.set("1A")
+        # comboboxDossard = tk.OptionMenu(frame, self.dossard, *self.listeDossardsCHB)
         # La première valeur du combobox est la chaine de caractères du premier dossard
-        self.dossard.set(self.listeDossardsCHB[0])
+        # self.dossard.set(self.listeDossardsCHB[0])
         comboboxDossard.grid(row=1, column=1, sticky="w")
         # label pour indiquer le rôle de comboboxNombre
         label = tk.Label(frame, text="Choisir le nombre de dossards successifs du rouleau à affecter :", justify="left")
@@ -291,15 +300,15 @@ Le test pourra être réinitialisé par un bouton dédié."""
         self.text_widget_non_detectes = tk.Text(frame, wrap=tk.WORD)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
         self.text_widget_detectes = tk.Text(frame, wrap=tk.WORD)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
         # widget dédiés aux epc inconnus captés par les antennes.
-        self.labelInconnus = tk.Label(frame, text="Des puces RFID inconnues viennent d'être captées par une antenne (les éliminer de la distribution) :", justify="left")
+        self.labelInconnus = tk.Label(frame, text="Des puces RFID inconnues ou qui ne devraient pas être distribuées viennent d'être captées par une antenne (les éliminer de la distribution) :", justify="left")
         self.text_widget_inconnus = tk.Text(frame, wrap=tk.WORD, height=3)  # wrap=tk.WORD permet de couper les mots à la fin de la ligne
         # avec grid, on peut définir la taille des colonnes identique
         frame.grid_columnconfigure(0, weight=1)
         frame.grid_columnconfigure(1, weight=1)
         # avec grid, on impose la taille maximale à la ligne 1
         frame.grid_rowconfigure(0, weight=0)
-        frame.grid_rowconfigure(1, weight=1)
-        frame.grid_rowconfigure(2, weight=0)
+        frame.grid_rowconfigure(1, weight=0)
+        frame.grid_rowconfigure(2, weight=1)
         frame.grid_rowconfigure(3, weight=0)
         frame.grid_rowconfigure(4, weight=0)
         frame.grid_rowconfigure(5, weight=0)
@@ -311,7 +320,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
         self.reinitialiser_test(frame)
         # bouton pour réinitialiser le test
         button = tk.Button(frame, text="Réinitialiser le test", command=lambda frame=self.frames[3] : self.reinitialiser_test(frame))
-        button.grid(row=4, column=0, columnspan=2, sticky="nsew")
+        button.grid(row=5, column=0, columnspan=2, sticky="nsew")
 
     def actualiser_affichage_test_dossards(self, frame):
         print("Actualisation de l'affichage du test de tous les dossards d'une course.")
@@ -322,16 +331,28 @@ Le test pourra être réinitialisé par un bouton dédié."""
             # print("on affiche les widgets des dossards inconnus.", self.listeDossardsInconnus)
             self.text_widget_inconnus.delete('1.0', tk.END)
             for epc in self.listeDossardsInconnus:
-                self.text_widget_inconnus.insert(tk.END, epc + ' ')
+                # tenter une conversion en dossard pour voir s'il est connu dans la base
+                dossard = EPCtoDossard(epc)
+                if dossard :
+                    # on a trouvé un dossard correspondant à l'EPC inconnu
+                    self.text_widget_inconnus.insert(tk.END, dossard + ' ')
+                else :
+                    self.text_widget_inconnus.insert(tk.END, epc + ' ')
             self.text_widget_inconnus.config(state="disabled")
             # self.frame_inconnus.grid(row=2, column=0, columnspan=2, sticky="nsew")
-            self.text_widget_inconnus.grid(row=3, column=0, columnspan=2, sticky="nsew")
-            self.labelInconnus.grid(row=2, column=0, columnspan=2, sticky="nsew")
+            self.text_widget_inconnus.grid(row=4, column=0, columnspan=2, sticky="nsew")
+            self.labelInconnus.grid(row=3, column=0, columnspan=2, sticky="nsew")
         else :
             # self.frame_inconnus.grid_forget()
             self.text_widget_inconnus.grid_forget()
             self.labelInconnus.grid_forget()
 
+        # on légende les widget zones de text avec deux label juste au dessus
+        label = tk.Label(frame, text="Dossards, prévus pour la course, non encore détectés :", justify="center")
+        # on place le label 
+        label.grid(row=1, column=0, sticky="nsew")
+        label = tk.Label(frame, text="Dossards détectés :", justify="center")
+        label.grid(row=1, column=1, sticky="nsew")
         self.text_widget_non_detectes.config(state="normal")
         self.text_widget_detectes.config(state="normal")
         # supprimer le contenu des deux widgets text
@@ -351,8 +372,8 @@ Le test pourra être réinitialisé par un bouton dédié."""
         self.text_widget_non_detectes.config(state="disabled")
         self.text_widget_detectes.config(state="disabled")
         # on place les deux widgets text dans la frame
-        self.text_widget_non_detectes.grid(row=1, column=0, sticky="nsew")
-        self.text_widget_detectes.grid(row=1, column=1, sticky="nsew")
+        self.text_widget_non_detectes.grid(row=2, column=0, sticky="nsew")
+        self.text_widget_detectes.grid(row=2, column=1, sticky="nsew")
 
     def reinitialiser_test(self, frame):
         print("On réinitialise le test de tous les dossards d'une course.")
@@ -401,23 +422,17 @@ Le test pourra être réinitialisé par un bouton dédié."""
                         epcInitial = self.epcActuel
                         for i in range(int(self.nbreDossards.get())):
                             print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
-                            # associe_dossard_epc(self.dossardActuel, self.epcActuel)
-                            print("coucou pas d'association")
+                            associe_dossard_epc(self.dossardActuel, self.epcActuel)
                             self.dossardActuel = self.increment_dossard(self.dossardActuel)
-                            print("chouette")
                             self.epcActuel = self.increment_epc(self.epcActuel)
-                            print("mégachouette")
                         # on indique la réussite de l'opération
                         message = "Tous les dossards entre " + dossardInitial + " et " + self.increment_dossard(self.dossardActuel, nbre=-1) +" ont été affectés des puces RFID du rouleau entre " + epcInitial + " et " + self.increment_epc(self.epcActuel, nbre=-1) + "."
-                        print(message)
-                        messagebox.showinfo("Affectation en masse réussie", message)
                     else :
                         message = "Détection d'un EPC non attendu : " + info["epc"] + " au lieu de " + self.epcEnAttenteDeDetection + " pour le dossard " + self.dossardEnAttenteDeDetection
-                        print(message)
-                        # on affiche un popup showInfo
-                        messagebox.showinfo("La puce détectée ne correspond pas aux calculs effectués", message)
                     # on ferme self.popup
                     self.popup.destroy()
+                    print(message)
+                    messagebox.showinfo("Affectation en masse", message)
                 else :
                     # si self.popup n'existe pas, on est en phase de saisie de l'EPC de la première puce du rouleau
                     self.epc.set(info["epc"])
@@ -429,8 +444,9 @@ Le test pourra être réinitialisé par un bouton dédié."""
             if dossardDetecte in self.listeDossardsNonDetectes : # Si le dossard n'a pas encore été détecté et est connu
                 print("Détection d'un dossard : ", dossardDetecte)
                 self.listeDossardsNonDetectes.remove(dossardDetecte)
-                self.listeDossardsDetectes.append(dossardDetecte)
-                self.actualiser_affichage_test_dossards(self.frames(self.selected_tab))
+                self.insererDansListeTriee(self.listeDossardsDetectes, dossardDetecte)
+                # self.listeDossardsDetectes.append(dossardDetecte)
+                self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
             elif not dossardDetecte and info["epc"]: # si le dossard n'est pas connu (il est vide)
                 print("Détection d'une puce RFID inconnue : ", info["epc"])
                 if info["epc"] not in self.listeDossardsInconnus:
@@ -443,6 +459,36 @@ Le test pourra être réinitialisé par un bouton dédié."""
             text = self.formate_info_affichage(line)
             self.text_widget.insert(tk.END, text + '\n')
         self.text_widget.config(state="disabled")
+
+    def insererDansListeTriee(self, liste, element):
+        """Insère un élément dans une liste triée de dossards (au format "123A" : un entier suivi d'une lettre) en conservant l'ordre des dossards :
+            "1A", "2A", "3A", ..., "9A", "10A", "11A", ..., "99A", "100A", "101A", ...
+        Args:
+            liste (list): La liste triée dans laquelle insérer l'élément.
+            element (Any): L'élément à insérer.
+        """
+        def estPlusPetitQue(doss1, doss2):
+            """compare deux chaines dossards et retourne True si doss1 est plus petit que doss2, False sinon."""
+            lettre1 = doss1[-1]
+            lettre2 = doss2[-1]
+            if ord(lettre1) == ord(lettre2) :
+                numero1 = int(doss1[:-1])
+                numero2 = int(doss2[:-1])
+                if numero1 < numero2 :
+                    return True
+                else :
+                    return False
+            else :
+                if ord(lettre1) < ord(lettre2) :
+                    return True
+                else :
+                    return False
+                
+        for i, el in enumerate(liste):
+            if estPlusPetitQue(element, el):
+                liste.insert(i, element)
+                return
+        liste.append(element)
 
     def formate_info_affichage(self,info):
         """Formate les informations pour les afficher dans le Text :

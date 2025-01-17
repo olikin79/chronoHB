@@ -92,6 +92,9 @@ Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritaire
 Le test pourra être réinitialisé.
 ##############################################
 
+Travail du 17/01/2025 :
+- affectation des dossards en masse fonctionnelle.
+
 Travail du 15/01/2025 :
 - Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
 - Premiers développements affectation en masse de puces RFID à des dossards. Non finalisé : l'affectation d'une puce à un dossard ne fonctionne pas.

@@ -1827,12 +1827,6 @@ def chargerDonnees() :
     if not "dictUIDPrecedents" in root :
         root["dictUIDPrecedents"] = {}
     dictUIDPrecedents=root["dictUIDPrecedents"]
-    if not "dictDossardsEPC" in root :
-        root["dictDossardsEPC"] = {}
-    dictDossardsEPC=root["dictDossardsEPC"]
-    if not "dictEPCDossards" in root :
-        root["dictEPCDossards"] = {}
-    dictEPCDossards=root["dictEPCDossards"]
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
@@ -1841,6 +1835,12 @@ def chargerDonnees() :
     if not "Parametres" in root :
         root["Parametres"] = {}
     Parametres=root["Parametres"]
+    if not "dictDossardsEPC" in Parametres :
+        Parametres["dictDossardsEPC"] = {}
+    dictDossardsEPC=Parametres["dictDossardsEPC"]
+    if not "dictEPCDossards" in Parametres :
+        Parametres["dictEPCDossards"] = {}
+    dictEPCDossards=Parametres["dictEPCDossards"]
     if not "tempsDerniereRecuperationSmartphone" in Parametres :
         Parametres["tempsDerniereRecuperationSmartphone"]=0
     tempsDerniereRecuperationSmartphone = Parametres["tempsDerniereRecuperationSmartphone"]
@@ -2525,11 +2525,8 @@ def DossardtoREPC(dossard) :
 
 def associe_dossard_epc(dossard, epc):
     if epc and dossardValide(dossard) : 
-        print("Le dossard est valide et le epc non vide", dossard, epc)
         Parametres['dictEPCDossards'][epc] = dossard
-        print('youpee')
         Parametres['dictDossardsEPC'][dossard] = epc
-        print('yahoo')
         return True
     else :
         print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")
