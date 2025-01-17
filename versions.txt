@@ -91,7 +91,7 @@ Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop long
 Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
 Le test pourra être réinitialisé.
 
-Prévoir une sécurité pour ne pas remplacer les affectations existantes par erreur.
+Les popups showinfo font revenir la fenêtre principale au premier plan. Ajouter une possibilité d'interagir avec elle peut solutionner ou non le pb.
 ##############################################
 
 Travail du 17/01/2025 :
@@ -99,6 +99,7 @@ Travail du 17/01/2025 :
 - correctif test détection de tous les dossards d'une course (ceux connus mais pas dans la course sont désormais signalés.
 - empêche que deux dossard soient affectés à la même puce RFID. Remplace automatiquement par le plus récent dans les données.
 - affectation successive des dossards fonctionnelle sur des dossards qui ne sont pas encore présents dans la base.
+- menu de test de dossards un par un avec possibilité de modifier l'affectation à la volée.
 
 Travail du 15/01/2025 :
 - Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
