@@ -441,14 +441,16 @@ Le test pourra être réinitialisé par un bouton dédié."""
         elif self.selected_tab == 3 :
             # cas où l'on teste tous les dossards d'une course
             dossardDetecte = EPCtoDossard(info["epc"])
-            if dossardDetecte in self.listeDossardsNonDetectes : # Si le dossard n'a pas encore été détecté et est connu
-                print("Détection d'un dossard : ", dossardDetecte)
+            if dossardDetecte in self.listeDossardsNonDetectes and dossardDetecte in self.listeDossardsCHB :
+                # Si le dossard n'a pas encore été détecté et est connu et est dans la liste des dossards de la course
+                print("Détection d'un dossard pour le test de tous les dossards d'une course : ", dossardDetecte)
                 self.listeDossardsNonDetectes.remove(dossardDetecte)
                 self.insererDansListeTriee(self.listeDossardsDetectes, dossardDetecte)
                 # self.listeDossardsDetectes.append(dossardDetecte)
                 self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
-            elif not dossardDetecte and info["epc"]: # si le dossard n'est pas connu (il est vide)
-                print("Détection d'une puce RFID inconnue : ", info["epc"])
+            elif (not dossardDetecte and info["epc"]) or (dossardDetecte not in self.listeDossardsCHB) : 
+                # si le dossard n'est pas connu (il est vide et epc non) OU si le dossard est connu mais pas utilisé dans cette course
+                print("Détection d'un dossard qui n'est pas dans la course :", dossardDetecte, "ou d'une puce RFID inconnue :", info["epc"])
                 if info["epc"] not in self.listeDossardsInconnus:
                     self.listeDossardsInconnus.append(info["epc"])
                 self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])

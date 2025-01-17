@@ -94,6 +94,7 @@ Le test pourra être réinitialisé.
 
 Travail du 17/01/2025 :
 - affectation des dossards en masse fonctionnelle.
+- correctif test détection de tous les dossards d'une course (ceux connus mais pas dans la course sont désormais signalés.
 
 Travail du 15/01/2025 :
 - Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
