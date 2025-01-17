@@ -33,7 +33,7 @@ class Popup(tk.Toplevel):
         self.nbreBoutons = len(self.boutons)
         self.main_frame.grid(row=1, column=0, sticky="nsew", columnspan=self.nbreBoutons)
 
-        self.selected_tab = 1  # Onglet sélectionné par défaut
+        self.selected_tab = 2  # Onglet sélectionné par défaut
         self.buildTabs()
         self.show_tab(self.selected_tab)
 
@@ -309,21 +309,23 @@ class Popup(tk.Toplevel):
 
 
     def build_frame_Tester(self, frame):
-        """Widgets ajoutés à frame pour tester des dossards : dès qu'un dossard sera détecté par l'antenne, on l'afficherait.
-        Ce menu permettrait de changer l'affectation de la puce RFID si cela ne correspond pas au numéro de dossard effectivement détecté.
+        """Widgets ajoutés à frame pour tester des dossards : 
+        il afficherait des Label et labels successifs sur chaque dès qu'un dossard sera détecté par l'antenne : le label afficherait l'epc détecté, l'entry afficherait le numéro du dossard détecté.
+        Un bouton "ok" apparaîtra à côté de l'entry en cas de modification de celle-ci. Un clic sur ce bouton validerait la modification.
+        Un bouton "annuler" juste à côté permettra de restaurer la valeur par défaut du dossard.
+        Seuls les 20 dernières détections seront affichées. Les autres disparaîtront. 
+        Ce menu permettra donc de changer l'affectation de la puce RFID si cela ne correspond pas au numéro de dossard effectivement détecté.
         """
+        frame.grid_rowconfigure(0, weight=0)
+        frame.grid_rowconfigure(1, weight=1)
         # label d'information
-        label = tk.Label(frame, text="Tester des dossards :", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
-        # affiche le numéro de dossard associé à la dernière puce RFID détectée
-        label = tk.Label(frame, text="Dernier dossard détecté : ", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
-        # affiche le numéro de la puce RFID associée au dernier dossard détecté
-        label = tk.Label(frame, text="Dernière puce RFID détectée : ", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
-        # menu déroulant pour changer l'affectation de la dernière puce détectée
-        label = tk.Label(frame, text="Changer l'affectation de la dernière puce détectée : ", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
+        label = tk.Label(frame, text="Tester des dossards un par un en les passant devant l'antenne :", justify="left")
+        label.grid(row=0, column=0, columnspan=2, sticky="w")
+        # FRame pour afficher tous les dossards détectés
+        self.frameDossardsDetectesTest = tk.Frame(frame)
+        self.frameDossardsDetectesTest.grid(row=1, column=0, columnspan=2, sticky="nsew")
+        self.listeDesFramesDossardsDetectesTest = []
+        self.listeDesDossardsDetectesTest = []
 
     def build_frame_TesterTous(self, frame):
         """Permettrait d'effectuer un test de tous les dossards d'une course globalement : cela indiquerait si tous les dossards de la course sont bien présents 
@@ -443,8 +445,8 @@ Le test pourra être réinitialisé par un bouton dédié."""
         # Soit ignorées quand on n'attend qu'un seul dossard, (dans ce cas, on ajoutera un avertissement en bas de la fenêtre)
         # soit utilisées quand on attend plusieurs dossards en même temps (cas du test en masse des dossards d'une course)
         self.infos.append(info)
-        print("info:",info)
-        print("self.detectionSuccessive.get()", self.detectionSuccessive.get())
+        # print("info:",info)
+        # print("self.detectionSuccessive.get()", self.detectionSuccessive.get())
         if self.selected_tab == 1 :
             # cas où l'on affecte des puces RFID à des dossards
             if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" and self.detectionSuccessive.get() :
@@ -483,7 +485,81 @@ Le test pourra être réinitialisé par un bouton dédié."""
                     # si self.popup n'existe pas, on est en phase de saisie de l'EPC de la première puce du rouleau
                     self.epc.set(info["epc"])
                     print("EPC détecté affecté à l'entry de détection pour les affectations en masse : ", info["epc"])
-            
+        elif self.selected_tab == 2 :
+            # cas où l'on teste un dossard
+            dossardDetecte = EPCtoDossard(info["epc"])
+            # if dossardDetecte :
+            # si le dossard détecté est un dossard connu mais pas celui attendu
+            print("Détection d'un dossard dans l'onglet : ", self.selected_tab)
+            # on alimente la liste des dossards détectés
+            self.listeDesDossardsDetectesTest.append(dossardDetecte)
+            # liste des widgets d'une ligne
+            def creeLigneWidget():
+                frame = tk.Frame(self.frameDossardsDetectesTest)
+                frame.grid_columnconfigure(0, weight=1)
+                frame.grid_columnconfigure(1, weight=1)
+                frame.grid_columnconfigure(2, weight=0)
+                frame.grid_columnconfigure(2, weight=0)
+                # ajoute un label avec epc de largeur 30, un entry avec le numéro de dossard
+                # si le contenu de l'entry est modifié, affiche un bouton valider ou annuler à côté
+                label = tk.Label(frame, text=info["epc"], justify="center")
+                label.grid(row=0, column=0, sticky="nsew")
+                entry = tk.Entry(frame, width=10, justify="center")
+                if dossardDetecte :
+                    entry.insert(tk.END, dossardDetecte)
+                    # ajout d'une prorpiété texteInitial à l'entry pour mémoriser le texte initial
+                    entry.texteInitial = dossardDetecte
+                else :
+                    entry.insert(tk.END, "Inconnu")
+                    entry.texteInitial = "Inconnu"
+                entry.grid(row=0, column=1, sticky="nsew")
+                def validerAffectationTest():
+                    # on récupère le texte de l'entry
+                    dossard = entry.get()
+                    # on vérifie si le dossard est valide
+                    if dossard and dossardValide(dossard) :
+                        # on affecte le dossard au dossard détecté
+                        if associe_dossard_epc(dossard, info["epc"]) :
+                            entry.texteInitial = dossard
+                        else :
+                            print("Erreur lors de l'affectation du dossard ", dossard, " à la puce RFID ", info["epc"], " (dossard au format invalide, ...).")
+                            # on remet le texte initial et on supprime les boutons
+                            entry.delete(0, tk.END)
+                            entry.insert(tk.END, entry.texteInitial)
+                    else :
+                        print("Dossard mal saisi pour la puce RFID ", info["epc"], ":", dossard)
+                        # on remet le texte initial et on supprime les boutons
+                        entry.delete(0, tk.END)
+                        entry.insert(tk.END, entry.texteInitial)
+                    afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
+                def annulerAffectationTest():
+                    # on rétablit la valeur initiale de l'entry
+                    entry.delete(0, tk.END)
+                    entry.insert(tk.END, entry.texteInitial)
+                    afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
+                buttonOK = tk.Button(frame, text="Valider", command=validerAffectationTest)
+                buttonAnnuler = tk.Button(frame, text="Annuler", command=annulerAffectationTest)
+
+                # button.grid(row=0, column=2, sticky="nsew")
+                # la modification du texte de l'entry doit provoquer l'affichage des boutons OK et Annuler
+                def afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler):
+                    if entry.get() != entry.texteInitial :
+                        buttonOK.grid(row=0, column=2, sticky="nsew")
+                        buttonAnnuler.grid(row=0, column=3, sticky="nsew")
+                    else :
+                        buttonOK.grid_forget()
+                        buttonAnnuler.grid_forget()
+                entry.bind("<KeyRelease>", lambda event : afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler))
+                return frame
+            # on ajoute une ligne de widget pour chaque dossard détecté
+            nbreLignesActuelles = len(self.listeDesDossardsDetectesTest)
+            fr = creeLigneWidget()
+            self.listeDesFramesDossardsDetectesTest.append(fr)
+            fr.grid(row=nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
+            # on supprimer l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
+            if nbreLignesActuelles > 20 :
+                self.listeDesFramesDossardsDetectesTest[nbreLignesActuelles-21].grid_forget()
+
         elif self.selected_tab == 3 :
             # cas où l'on teste tous les dossards d'une course
             dossardDetecte = EPCtoDossard(info["epc"])
