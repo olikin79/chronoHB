@@ -43,13 +43,14 @@ import platform
 
 from config import *
 
+from chronoHBRFID import * # pour les fonctions de lecture RFID
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 from resultatsDiffusion import * # création puis diffusion des diplomes par email
 
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
-from chronoHBRFID import * # pour les fonctions de lecture RFID
+
 # def mainGUI() :
 # version="2.1.1"
 
@@ -4287,6 +4288,9 @@ filemenu.add_separator()
 if DEBUG : # pour l'instant, ne pas afficher le popup RFID en production
     filemenu.add_command(label="Paramètres RFID", command=lancerPopupRFID)
     filemenu.add_separator()
+    # temporaire : on lance le menu direct pour gagner du temps lors des tests
+    # lancerPopupRFID()
+
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
 filemenu.add_command(label="Imprimer tous les dossards non encore imprimés", command=imprimerDossardsNonImprimes)
