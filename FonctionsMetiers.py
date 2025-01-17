@@ -2525,6 +2525,16 @@ def DossardtoREPC(dossard) :
 
 def associe_dossard_epc(dossard, epc):
     if epc and dossardValide(dossard) : 
+        # éviter les doublons. Deux dossards ne peuvent pas être associés au même epc : on efface l'ancien et on remplace par le nouveau.
+        # Par contre, deux epc peuvent être associés au même dossard : cas où deux puces RFID sont collées sur un même dossard
+        # récupérer les valeurs
+        try :
+            dossardActuel = Parametres['dictEPCDossards'][epc]
+        except :
+            dossardActuel = ""
+        if dossardActuel :
+            del Parametres['dictDossardsEPC'][dossardActuel]
+            print("La puce", epc, "était déjà associé au dossard :", dossardActuel, ". On l'affecte à :", dossard)
         Parametres['dictEPCDossards'][epc] = dossard
         Parametres['dictDossardsEPC'][dossard] = epc
         return True
