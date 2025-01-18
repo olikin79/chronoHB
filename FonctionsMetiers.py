@@ -6460,6 +6460,10 @@ def delDossardsEtTemps():
     Parametres["positionDansArriveeDossards"] = 0
     Parametres["tempsDerniereRecuperationSmartphone"]=0
     Parametres["ligneDerniereRecuperationSmartphone"]=1
+    Parametres["tempsDerniereRecuperationLocal"]=0
+    Parametres["ligneDerniereRecuperationLocal"]=1
+    Parametres["tempsDerniereRecuperationRFID"]=0
+    Parametres["ligneDerniereRecuperationRFID"]=1
     delArriveeDossards()
     delArriveeTempss()
     delTousLesDeparts()
