@@ -2552,6 +2552,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     action = listeAction[1]
     if RFID :
         dossard = EPCtoDossard(listeAction[2])
+        print("Traitement RFID", ligne, "dossard=", dossard)
         return Erreur(340)
     else :
         dossard = formateDossardNG(str(listeAction[2]))
@@ -2672,6 +2673,12 @@ def effacerFichierDonnneesSmartphone() :
     files = glob.glob("donneesSmartphone-pique-*.txt")
     for file in files :
         os.remove(file)
+
+def effacerDonneesRFID() :
+    file = "donneesRFID.txt"
+    if os.path.exists(file) :
+        os.remove(file)
+    print("Effacement des données RFID  effectué")
 
 def effacerFichierDonnneesRFID() :
     print("Effacement des données RFID  effectué")
@@ -6458,6 +6465,7 @@ def delDossardsEtTemps():
     delTousLesDeparts()
     delTousLesTempsDesCoureurs()
     effacerFichierDonnneesSmartphone()
+    effacerDonneesRFID()
     effacerFichierDonnneesLocales()
     genereAffichageTV([])# on vide le fichier Affichage.html pour qu'il ne contienne pas de vieilles données de course.
     genereAffichageWWW([])
