@@ -94,6 +94,15 @@ Le test pourra être réinitialisé.
 Les popups showinfo font revenir la fenêtre principale au premier plan. Ajouter une possibilité d'interagir avec elle peut solutionner ou non le pb.
 ##############################################
 
+Il faudrait enregistrer tous les évènements (issus des smartphones, RFID et local dans un unique fichier car, 
+dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas les actions dans l'ordre.
+
+##############################################
+
+Travail du 18/01/2025 :
+- si on supprime un dossard d'un temps qui lui était affecté, on supprime l'affectation du dossard (indispensable pour le RFID)
+- le traitement du fichier issu du RFID est corrigé : ne s'effectuait pas depuis mon implémentation.
+
 Travail du 17/01/2025 :
 - affectation des dossards en masse fonctionnelle.
 - correctif test détection de tous les dossards d'une course (ceux connus mais pas dans la course sont désormais signalés.

@@ -1774,7 +1774,7 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards
+           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, compteurReceptionRFID
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -2386,30 +2386,35 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
     """
     fichierDonneesSmartphone = "donneesSmartphone.txt"
     fichierDonneesRFID = "donneesRFID.txt"
+    if DepuisLeDebut :
+        #root["ArriveeTemps"] = []
+        #root["ArriveeTempsAffectes"] = []
+        #root["ArriveeDossards"] = []
+        Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
+        Parametres["tempsDerniereRecuperationSmartphone"] = 0
+        Parametres["ligneDerniereRecuperationRFID"] = 1
+        Parametres["tempsDerniereRecuperationRFID"] = 0
+        Parametres["compteurReceptionRFID"] = 0
+        Parametres["calculateAll"] = True
+        dictUIDPrecedents.clear()
+        # print("Réimport de toutes les données smartphone et RFID")
+    listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
     for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
-        #print("Import depuis de le début :", DepuisLeDebut)
+        # print("Import depuis de le début :", DepuisLeDebut)
         RFIDtag = "RFID" in fichier
-        if DepuisLeDebut :
-            #root["ArriveeTemps"] = []
-            #root["ArriveeTempsAffectes"] = []
-            #root["ArriveeDossards"] = []
-            Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
-            Parametres["tempsDerniereRecuperationSmartphone"] = 0
-            Parametres["ligneDerniereRecuperationRFID"] = 1
-            Parametres["tempsDerniereRecuperationRFID"] = 0
-            Parametres["calculateAll"] = True
-            dictUIDPrecedents.clear()
         listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
-        listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
+        # listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
         retour = [] # si aucune ligne à traiter, on retourne []
         # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
-        if os.path.exists(fichier) and derniereModifFichierDonnneesSmartphoneRecente(fichier) :
+        # print(os.path.exists(fichier), listeDerniereModifFichierDonnees[indice])
+        if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
             listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
+            # print("Fichier", fichier, "modifié récemment. Import de", listeLigne)
             i = 0
             #pasDErreur = True
             while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
                 ligne = listeLigne[i]
-                #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
+                # print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
                 #print(ligne[-4:])
                 if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
                     codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
@@ -2445,11 +2450,13 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                 elif indice == 1 :
                     Parametres["tempsDerniereRecuperationRFID"] = time.time()
         else :
+            # if not os.path.exists(fichier) :
+            #     print("Fichier", fichier, "n'existe pas.")
             if indice == 0 :
                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
             elif indice == 1 :
                 Parametres["tempsDerniereRecuperationRFID"] = time.time()
-        #    print("Fichier du smartphone déjà traité à cette heure")
+            # print("Fichier", fichier, "déjà traité à cette heure")
     ##        retour = "RAS"
     return retour
 
@@ -2553,7 +2560,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     if RFID :
         dossard = EPCtoDossard(listeAction[2])
         print("Traitement RFID", ligne, "dossard=", dossard)
-        return Erreur(340)
+        if not dossard :
+            return Erreur(340, courteDescription="Dossard non trouvé pour l'EPC " + listeAction[2], elementConcerne=listeAction[2])
     else :
         dossard = formateDossardNG(str(listeAction[2]))
     if dossard != "-1A" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
@@ -2579,9 +2587,9 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             # on pourrait éliminer les rssi trop faibles à voir.
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
-        #print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
-        if noTransmission in UIDPrecedents[uid] :
-            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
+        print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
+        if noTransmission in UIDPrecedents[uid] and not RFID : # on ne filtre pas les doublons RFID via le numéro de transmission qui n'existe pas.
+            print("Fichier smartphone avec UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)
         elif rssi < Parametres["seuilRSSI"] :
             print("Signal trop faible : entrée RFID ignorée. Probable tag scanné de trop loin et n'ayant pas franchi l'arrivée.\nLigne = ",ligne)
@@ -2716,6 +2724,14 @@ def derniereModifFichierDonnneesSmartphonePiqueRecente(fichier):
             retour = True
     return retour
 
+def derniereModifFichierDonnneesRFIDRecente(fichier):
+    """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
+    retour = False
+    if os.path.exists(fichier) :
+        diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationRFID"]
+        if diff > 0 :
+            retour = True
+    return retour
 
 def derniereModifFichierDonnneesSmartphoneRecente(fichier):
     """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
@@ -5966,6 +5982,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         else :
             # insère juste après le dossard dossardPrecedent , si on le trouve.
             try :
+                print("insertion du dossard", doss, "juste après", dossPrecedent, "dans ArriveeDossards", ArriveeDossards)
                 n = ArriveeDossards.index(dossPrecedent)
                 print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
                 #position = n+1
@@ -6377,7 +6394,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
                 print(message)
                 retour = Erreur(441, doss, message)
-        elif len(dossardPrec) > 1 : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
+        else : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
         # Le dossard prédécesseur sera forcément spécifié pour ne pas supprimer n'importe lequel !
             i = 1
             pasTrouve = True
@@ -6397,8 +6414,8 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 retour = Erreur(441, doss, message)
             else :
                 retour = Erreur(0)
-        else :
-            print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
+        # else :
+        #     print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     else :
         print("ArriveeDossards est vide. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     return retour

@@ -2132,6 +2132,17 @@ def supprimerDossardAction() :
         requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
         print("requete :", requete)
         r = requests.get(requete)
+        # si la ligne sélectionnée était affectée à un dossard, on supprime cette affectation (ce serait très gênant de le conserver pour le RFID)
+        test = tableau.getTemps()
+        if test :
+            tempsReel = test.tempsReelFormateDateHeure()
+            print("Déaffectation du temps", tempsReel, "du dossard", dossard)
+            if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
+                print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
+                r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
+                # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=aff&dossard=0&tpsCoureur='+tempsReel)
+                # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+                regenereAffichageGUI()
         regenereAffichageGUI()
         annulerTempsDossards()
     else :
@@ -3181,11 +3192,11 @@ class Clock():
             self.auMoinsUnImport = True
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        traitementSmartphone = traiterDonneesSmartphone()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
+        traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
         # print("traitementSmartphone",traitementSmartphone)
         traitementSmartphonePiques = traiterDonneesSmartphonePiques()
         # print("traitementSmartphonePiques",traitementSmartphonePiques)
-        traitementLocal = traiterDonneesLocales()#inutile car les données présentes ont déjà été traitées : DepuisLeDebut = self.premiereExecution)
+        traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
         if traitementSmartphone + traitementSmartphonePiques + traitementLocal :
             # il y a des erreurs qui peuvent se corriger sans action depuis les smartphones, on doit tout retraiter tant qu'il y en a.
