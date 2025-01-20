@@ -4171,7 +4171,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
     def do_POST(self):
         global popup
         """Handle POST requests for JSON data or delegate to CGI."""
-        if self.path == "/receive-json":
+        if self.path == "/rfid-json":
             # Récupération de l'heure exacte actuelle en secondes depuis l'époque
             heureReceptionServeur = time.time()
             
@@ -4182,30 +4182,15 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                 # Lire les données JSON reçues
                 post_data = self.rfile.read(content_length).decode('utf-8')
                 data = json.loads(post_data)
-                
-                # Récupération des données spécifiques
-                reader_name = data.get("readerName", "UnknownReader")
-                tags = data.get("tags", [])
-                json_timestamp_epoch = self.convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
-                
-                # Traitement des tags reçus
-                with open("donneesRFID.txt", "a") as file:
-                    for tag in tags:
-                        epc = tag.get("epc", "UnknownEPC")
-                        antenna_port = tag.get("antennaPort", "UnknownPort")
-                        rssi = tag.get("rssi", 0)
-                        seen_count = tag.get("seenCount", 0)
-                        tag_timestamp_epoch = self.convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
-                        reader_name_antenna = f"{reader_name}-{antenna_port}"
-                        # si le popup RFID est actif on lui envoie toutes les infos
-                        try :
-                            # si le popup RFID est actif on lui envoie toutes les infos
-                            info = {"epc":epc, "reader":reader_name_antenna, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
-                            popup.setInfo(info)
-                        except :
-                            # Écrire les lignes dans le fichier
-                            file.write(f"tps,add,{epc},{tag_timestamp_epoch},{json_timestamp_epoch},{heureReceptionServeur},{reader_name_antenna},0,{rssi},END\n")
-                            file.write(f"dossard,add,{epc},-1,{reader_name}+{antenna_port},0,{rssi},END\n")
+
+                try :
+                    # si le popup RFID est actif on lui envoie toutes les infos : on est en phase de configuration des puces RFID (hors course)
+                    popup.setInfo(data)
+                    print("Fin du traitement des données RFID reçues par le popup de configuration.")
+                except :
+                    # traiter les données dans le logiciel chronoHB car on est en configuration de course
+                    print("Début du traitement des données RFID reçues en configuration de course.")
+                    traiterDonneesRFID(data, heureReceptionServeur)
                 
                 # Répondre au client
                 self.send_response(200)
@@ -4226,18 +4211,6 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
         """Handle GET requests for HTML, CGI, or static files."""
         super().do_GET()
     
-    def convert_timestamp_to_epoch(self, timestamp):
-        """
-        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
-        Retourne un float pour inclure les millisecondes.
-        """
-        try:
-            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
-            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
-            return float(time.mktime(dt) + int(millisecondes) / 1000)
-        except Exception as e:
-            print(f"Error converting timestamp: {timestamp}, Error: {e}")
-            return -1.0
 
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''

@@ -1,3 +1,4 @@
+import traceback
 import tkinter as tk
 # import pour les messagebox
 from tkinter import messagebox
@@ -60,6 +61,42 @@ class Popup(tk.Toplevel):
             frame.pack(fill="both", expand=True)
 
     def build_frame_Antennes(self, frame):
+        """Ajoute tous les widgets nécessaires à frame pour effectuer les réglages relatifs aux antennes d'une course à choisir dans un optionMenu."""
+        # liste des antennes déjà connectées une fois
+        self.listeAntennes, self.listeNomsAntennes = Parametres["donneesRFID"].listeAntennes()
+        
+        # option menu pour choisir parmi les noms des courses actuelles
+        self.comboboxGroupementsVariable = tk.StringVar()
+        self.listeDesGroupementsActuels = listNomsGroupements(nomStandard = False)
+        frameLabel = tk.Frame(frame)
+        # extension gauche droite maximale
+        frameLabel.pack(fill=tk.X, side=tk.TOP)
+        # label 
+        label = tk.Label(frameLabel, text="Choisir la course concernée :", justify="right")
+        label.pack(side=tk.LEFT)
+        # label.grid(row=0, column=0, sticky="w")
+        self.comboboxGroupements = tk.OptionMenu(frameLabel, self.comboboxGroupementsVariable, *self.listeDesGroupementsActuels)
+        # self.comboboxGroupements.grid(row=0, column=1, sticky="w")
+        self.comboboxGroupements.pack(side=tk.LEFT)
+        if self.listeDesGroupementsActuels :
+            self.comboboxGroupementsVariable.set(self.listeDesGroupementsActuels[0])
+        # frame avec tous les widgets pour ce groupement.
+        def changementGroupement() :
+            self.frameGroupement = tk.Frame(frame)
+            # self.frameGroupement.grid(row=1, column=0, columnspan=2, sticky="nsew")
+            self.frameGroupement.pack(fill="both", expand=True, side=tk.TOP)
+            if self.listeAntennes :
+                self.build_frame_Antennes_course(self.frameGroupement)
+            else :
+                message = "Aucun lecteur RFID n'a jamais envoyé de donnée à chronoHB. Ce menu ne peut pas être utilisé. Les données doivent être envoyées au format json à : http://localhost:8888/rfid-json"
+                print(message)
+                label = tk.Label(self.frameGroupement, text=message, justify="left")
+                # label.grid(row=0, column=0, sticky="w")
+                label.pack(fill="both", expand=True, side=tk.TOP)
+        changementGroupement()
+        self.comboboxGroupementsVariable.trace_add("write", lambda *args: changementGroupement())
+
+    def build_frame_Antennes_course(self, frame):
         """Ajoute tous les widgets nécessaires à frame pour effectuer les réglages relatifs aux antennes sur la course.
         Afficher les antennes qui ont déjà envoyé une donnée à chronoHB.
         1. Permettre le choix (Course en ligne ou course en boucle) avec un checkbox. Pour une course en boucle, permettre de choisir le nombre de passage (en déduit la longueur d'une boucle).
@@ -68,9 +105,116 @@ class Popup(tk.Toplevel):
         Permettre le réglage de la distance entre des antennes positionnées.
         Permettre d'affecter des rôles aux antennes : passage chronométrage, complément de détection.
 	"""
-        # label d'information
-        label = tk.Label(frame, text="Informations sur les antennes déjà connectées :", justify="left")
-        label.pack(fill="both", expand=True, side=tk.TOP)
+        for widget in frame.winfo_children():
+            widget.destroy()
+        
+        if self.listeAntennes :
+            print("Liste des antennes connues:", self.listeNomsAntennes)
+            # label d'information
+            label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
+            label.grid(row=0, column=0, sticky="w")
+            # OptionMenu pour choisir le nombre d'antennes au départ
+            label = tk.Label(frame, text="Choisir le nombre d'antennes au départ :", justify="right")
+            label.grid(row=1, column=0, sticky="w")
+            self.nbreAntennesDepart = tk.StringVar()
+            self.listeAntennesDepart , self.listeNomAntennesDepart = Parametres["donneesRFID"].listeAntennes(departUniquement=True)
+            self.nbreAntennesDepart.set(str(len(self.listeAntennesDepart)))
+            self.combobox = tk.OptionMenu(frame, self.nbreAntennesDepart, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            self.combobox.grid(row=1, column=1, sticky="w")
+            self.frameDepart = tk.Frame(frame)
+            self.frameDepart.grid(row=2, column=0, columnspan=3, sticky="nsew")
+            # OptionMenu pour choisir les self.nbreAntennesDepart antennes au départ
+            self.listeVariablesAntennesDepart = []
+            for i in range(0, int(self.nbreAntennesDepart.get())):
+                self.listeVariablesAntennesDepart.append(tk.StringVar())
+                self.combobox = tk.OptionMenu(self.frameDepart, self.listeVariablesAntennesDepart[i], self.listeNomAntennesDepart)
+                self.combobox.grid(row=0, column=i+1, sticky="w")
+            # séparateur horizontal
+            sep = tk.Frame(frame, height=2, bd=1, relief=tk.SUNKEN)
+            sep.grid(row=3, column=0, columnspan=3, sticky="ew")
+            # optionMenu pour choisir le nombre de checkpoint
+            label = tk.Label(frame, text="Choisir le nombre de checkpoints :", justify="right")
+            label.grid(row=4, column=0, sticky="w")
+            self.nbreCheckpoints = tk.StringVar()
+            self.listeAntennesCheckPoint , self.listeNomAntennesCheckPoint = Parametres["donneesRFID"].listeAntennes(checkPointUniquement=True)
+            self.nbreCheckpoints.set(str(len(self.listeAntennesCheckPoint)))
+            self.combobox = tk.OptionMenu(frame, self.nbreCheckpoints, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            self.combobox.grid(row=4, column=1, sticky="w")
+            self.frameCheckpoints = tk.Frame(frame)
+            self.frameCheckpoints.grid(row=5, column=0, columnspan=2, sticky="nsew")
+            # OptionMenu pour choisir les self.nbreCheckpoints checkpoints
+            self.listeVariablesCheckpoints = []
+            for i in range(0, int(self.nbreCheckpoints.get())):
+                self.listeCheckpoints.append(tk.StringVar())
+                self.combobox = tk.OptionMenu(self.frameCheckpoints, self.listeVariablesCheckpoints[i], self.listeNomAntennesCheckPoint)
+                self.combobox.grid(row=0, column=i+1, sticky="w")
+            # séparateur horizontal
+            sep = tk.Frame(frame, height=2, bd=1, relief=tk.SUNKEN)
+            sep.grid(row=6, column=0, columnspan=3, sticky="ew")
+            # OptionMenu pour choisir le nombre d'antennes à l'arrivée
+            label = tk.Label(frame, text="Choisir le nombre d'antennes à l'arrivée :", justify="right")
+            label.grid(row=7, column=0, sticky="w")
+            self.nbreAntennesArrivee = tk.StringVar()
+            self.listeAntennesArrivee , self.listeNomAntennesArrivee = Parametres["donneesRFID"].listeAntennes(arriveeUniquement=True)
+            self.nbreAntennesArrivee.set(str(len(self.listeAntennesArrivee)))
+            self.combobox = tk.OptionMenu(frame, self.nbreAntennesArrivee, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            # exécuter construireFrameArrivee() à chaque fois que le nombre d'antennes à l'arrivée change
+            self.combobox.grid(row=7, column=1, sticky="w")
+            # label d'information complémentaire
+            label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur.\nLes antennes secondaires permet de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.", justify="left")
+            label.grid(row=8, column=0, columnspan=3, sticky="w")
+            self.frameArrivee = tk.Frame(frame)
+            self.frameArrivee.grid(row=9, column=0, columnspan=3, sticky="nsew")
+            def construireFrameArrivee() :
+                # efface tous les children de frameArrivee
+                for widget in self.frameArrivee.winfo_children():
+                    widget.destroy()
+                # OptionMenu pour choisir les self.nbreAntennesArrivee antennes à l'arrivée
+                self.listeVariablesAntennesArrivee = []
+                self.comboboxRoleVariables = []
+                # self.listeDesComboboxArrivee = []
+                for i in range(0, int(self.nbreAntennesArrivee.get())):
+                    # si il y a suffisamment d'antennes référencées dans la mémoire, on affiche un OptionMenu correspondant du nombre demandé
+                    if i < len(self.listeNomsAntennes) :
+                        self.listeVariablesAntennesArrivee.append(tk.StringVar())
+                        self.listeVariablesAntennesArrivee[i].set(self.listeNomsAntennes[i])
+                        self.listeVariablesAntennesArrivee[i].valeurActuelle = self.listeVariablesAntennesArrivee[i].get()
+                        self.combobox = tk.OptionMenu(self.frameArrivee, self.listeVariablesAntennesArrivee[i], *self.listeNomsAntennes)
+                        # self.listeDesComboboxArrivee.append(self.combobox)
+                        self.combobox.grid(row=0, column=i+1, sticky="w")
+                        # on crée un widget optionMenu juste en dessous des autres optionMenu avec deux options "principale" ou "secondaire"
+                        self.comboboxRoleVariables.append(tk.StringVar())
+                        self.comboboxRole = tk.OptionMenu(self.frameArrivee, self.comboboxRoleVariables[i], "principale", "secondaire")
+                        if self.listeAntennesArrivee[i]["principale"] :
+                            self.comboboxRoleVariables[i].set("principale")
+                        else :
+                            self.comboboxRoleVariables[i].set("secondaire")
+                        # il faut centrer self.comboboxRole dans la colonne de grid
+                        self.comboboxRole.grid(row=1, column=i+1, sticky="w")
+                        def changeAntenneArrivee(i) :
+                            self.listeAntennes[i].change_lieu(arrivee=True)
+                            # si l'ancienne valeur est encore présente dans un autre combobox, on ne supprime pas son rôle. Sinon, on le supprime
+                            AntenneSupprimee = True
+                            for j in range(0, len(self.listeVariablesAntennesArrivee)) :
+                                if self.listeVariablesAntennesArrivee[j].get() == self.listeVariablesAntennesArrivee[i].valeurActuelle :
+                                    AntenneSupprimee = False
+                                    break
+                            if AntenneSupprimee :
+                                self.listeAntennes[i].change_lieu(arrivee=False)
+                        self.listeVariablesAntennesArrivee[i].trace_add("write", lambda *args: changeAntenneArrivee(i))
+                        def changeRoleAntenneArrivee() :
+                            if self.comboboxRoleVariables[i].get() == "principale" :
+                                self.listeAntennes[i].change_role(True)
+                            else :
+                                self.listeAntennes[i].change_role(False)
+                        self.comboboxRoleVariables[i].trace_add("write", lambda *args: changeRoleAntenneArrivee())
+                    else :
+                        
+            self.nbreAntennesArrivee.trace_add("write", lambda *args: construireFrameArrivee())
+            construireFrameArrivee()
+        else :
+            print("Aucun lecteur RFID n'a jamais envoyé de donnée à chronoHB.")
+        
     
     def build_frame_Affecter(self, frame):
         """
@@ -439,150 +583,217 @@ Le test pourra être réinitialisé par un bouton dédié."""
         self.selected_tab = tab_index
         self.show_tab(tab_index)
 
-    def setInfo(self, info):
+    def setInfo(self, data):
         # Ici, on devra rajouter le traitement de plusieurs dossards en même temps
         # Selon les onglets, ces informations seront traitées différemment
         # Soit ignorées quand on n'attend qu'un seul dossard, (dans ce cas, on ajoutera un avertissement en bas de la fenêtre)
         # soit utilisées quand on attend plusieurs dossards en même temps (cas du test en masse des dossards d'une course)
-        self.infos.append(info)
+        # self.infos.append(data)
         # print("info:",info)
         # print("self.detectionSuccessive.get()", self.detectionSuccessive.get())
-        if self.selected_tab == 1 :
-            # cas où l'on affecte des puces RFID à des dossards
-            if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" and self.detectionSuccessive.get() :
-                print("Dossard en attente de détection :", self.dossardEnAttenteDeDetection)
-                if self.dossardEnAttenteDeDetection and info["epc"] :
-                    print("On affecte l'epc", info["epc"], "au dossard attendu : ", self.dossardEnAttenteDeDetection)
-                    self.validerAffectationSuccessive(self.dossardEnAttenteDeDetection, info["epc"])
-            elif self.modeAffectation.get() == "Affectation de dossards en masse" :
-                # si self.popup existe, on est en phase de validation d'une affectation de masse
-                try : 
-                    self.popup
-                    validationAffectationEnMasse = True
-                except AttributeError :
-                    validationAffectationEnMasse = False
-                if validationAffectationEnMasse :
-                    # si self.dossardEnAttenteDeDetection est non vide, on compare self.dossardEnAttenteDeDetection avec info["epc"]
-                    if self.epcEnAttenteDeDetection and info["epc"] == self.epcEnAttenteDeDetection :
-                        print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection)
-                        # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
-                        dossardInitial = self.dossardActuel
-                        epcInitial = self.epcActuel
-                        for i in range(int(self.nbreDossards.get())):
-                            print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
-                            associe_dossard_epc(self.dossardActuel, self.epcActuel)
-                            self.dossardActuel = self.increment_dossard(self.dossardActuel)
-                            self.epcActuel = self.increment_epc(self.epcActuel)
-                        # on indique la réussite de l'opération
-                        message = "Tous les dossards entre " + dossardInitial + " et " + self.increment_dossard(self.dossardActuel, nbre=-1) +" ont été affectés des puces RFID du rouleau entre " + epcInitial + " et " + self.increment_epc(self.epcActuel, nbre=-1) + "."
+        message = ""
+        try :
+            print("Traitement de données reçues par le popup de configuration RFID : ", data)
+            reader_name, tags, json_timestamp_epoch = extractionDonneesCommunesDeDataRFID(data)
+            def messageErreurDetectionMultiple(tags):
+                # extraire les epc des tags
+                epcs = [extractionDonneesDUnTagRFID(tag, reader_name)["epc"] for tag in tags]
+                message = "Plusieurs dossards détectés en même temps : " + str(epcs) + ". Information reçue ignorée."
+                return message
+            
+            if self.selected_tab == 1 :
+                ### Ici, il faudra traiter le cas où l'on veut pouvoir affecter deux puces RFID au même dosssard.
+                ### on pourrait ajouter une checkbox pour associer deux puces à un dossard. Dans ce cas, le nbre
+                ### de puces attendues serait 2 et on affecterait les deux puces à un même dossard pour les passages individuels
+                ### Pour l'affectation en masse, on pourrait vérifier que l'une des deux puces détectées est bien celle attendue.
+                # cas où l'on affecte des puces RFID à des dossards
+                if self.modeAffectation.get() == "Passage des dossards successivement devant le lecteur" and self.detectionSuccessive.get() :
+                    if len(tags) == 1 :
+                        info = extractionDonneesDUnTagRFID(tags[0], reader_name)
+                        # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch}
+                        print("Dossard en attente de détection :", self.dossardEnAttenteDeDetection)
+                        if self.dossardEnAttenteDeDetection and info["epc"] :
+                            print("On affecte l'epc", info["epc"], "au dossard attendu : ", self.dossardEnAttenteDeDetection)
+                            self.validerAffectationSuccessive(self.dossardEnAttenteDeDetection, info["epc"])
                     else :
-                        message = "Détection d'un EPC non attendu : " + info["epc"] + " au lieu de " + self.epcEnAttenteDeDetection + " pour le dossard " + self.dossardEnAttenteDeDetection
-                    # on ferme self.popup
-                    self.popup.destroy()
-                    print(message)
-                    messagebox.showinfo("Affectation en masse", message)
-                else :
-                    # si self.popup n'existe pas, on est en phase de saisie de l'EPC de la première puce du rouleau
-                    self.epc.set(info["epc"])
-                    print("EPC détecté affecté à l'entry de détection pour les affectations en masse : ", info["epc"])
-        elif self.selected_tab == 2 :
-            # cas où l'on teste un dossard
-            dossardDetecte = EPCtoDossard(info["epc"])
-            # if dossardDetecte :
-            # si le dossard détecté est un dossard connu mais pas celui attendu
-            print("Détection d'un dossard dans l'onglet : ", self.selected_tab)
-            # on alimente la liste des dossards détectés
-            self.listeDesDossardsDetectesTest.append(dossardDetecte)
-            # liste des widgets d'une ligne
-            def creeLigneWidget():
-                frame = tk.Frame(self.frameDossardsDetectesTest)
-                frame.grid_columnconfigure(0, weight=1)
-                frame.grid_columnconfigure(1, weight=1)
-                frame.grid_columnconfigure(2, weight=0)
-                frame.grid_columnconfigure(2, weight=0)
-                # ajoute un label avec epc de largeur 30, un entry avec le numéro de dossard
-                # si le contenu de l'entry est modifié, affiche un bouton valider ou annuler à côté
-                label = tk.Label(frame, text=info["epc"], justify="center")
-                label.grid(row=0, column=0, sticky="nsew")
-                entry = tk.Entry(frame, width=10, justify="center")
-                if dossardDetecte :
-                    entry.insert(tk.END, dossardDetecte)
-                    # ajout d'une prorpiété texteInitial à l'entry pour mémoriser le texte initial
-                    entry.texteInitial = dossardDetecte
-                else :
-                    entry.insert(tk.END, "Inconnu")
-                    entry.texteInitial = "Inconnu"
-                entry.grid(row=0, column=1, sticky="nsew")
-                def validerAffectationTest():
-                    # on récupère le texte de l'entry
-                    dossard = entry.get()
-                    # on vérifie si le dossard est valide
-                    if dossard and dossardValide(dossard) :
-                        # on affecte le dossard au dossard détecté
-                        if associe_dossard_epc(dossard, info["epc"]) :
-                            entry.texteInitial = dossard
+                        message = messageErreurDetectionMultiple(tags)
+                        print(message)
+                        self.infos.append(message)
+                elif self.modeAffectation.get() == "Affectation de dossards en masse" :
+                    # si self.popup existe, on est en phase de validation d'une affectation de masse
+                    try : 
+                        self.popup
+                        validationAffectationEnMasse = True
+                    except AttributeError :
+                        validationAffectationEnMasse = False
+                    if validationAffectationEnMasse :
+                        # on attend le scan du dernier dossard de la série pour validation
+                        bonDossardDetecte = False
+                        for tag in tags :
+                            info = extractionDonneesDUnTagRFID(tag, reader_name)
+                            # on vérifie si l'EPC scanné est bien celui attendu
+                            if self.epcEnAttenteDeDetection and info["epc"] == self.epcEnAttenteDeDetection :
+                                print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection)
+                                # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
+                                dossardInitial = self.dossardActuel
+                                epcInitial = self.epcActuel
+                                for i in range(int(self.nbreDossards.get())):
+                                    print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
+                                    associe_dossard_epc(self.dossardActuel, self.epcActuel)
+                                    self.dossardActuel = self.increment_dossard(self.dossardActuel)
+                                    self.epcActuel = self.increment_epc(self.epcActuel)
+                                # on indique la réussite de l'opération
+                                message = "Tous les dossards entre " + dossardInitial + " et " + self.increment_dossard(self.dossardActuel, nbre=-1) +" ont été affectés des puces RFID du rouleau entre " + epcInitial + " et " + self.increment_epc(self.epcActuel, nbre=-1) + "."
+                                bonDossardDetecte = True
+                                break
+                        if not bonDossardDetecte :
+                            message = "Détection de puce(s) RFID non attendue : " + str([extractionDonneesDUnTagRFID(tag, reader_name)["epc"] for tag in tags]) + " au lieu de " + self.epcEnAttenteDeDetection + " pour le dossard " + self.dossardEnAttenteDeDetection
+                        # on ferme self.popup
+                        self.popup.destroy()
+                        print(message)
+                        # messagebox.showinfo("Affectation en masse", message)
+                        self.infos.append(message)
+                    else :
+                        if len(tags) == 1 :
+                            info = extractionDonneesDUnTagRFID(tags[0], reader_name)
+                            # si self.popup n'existe pas, on est en phase de saisie de l'EPC de la première puce du rouleau
+                            self.epc.set(info["epc"])
+                            print("EPC détecté affecté à l'entry de détection pour les affectations en masse : ", info["epc"])
                         else :
-                            print("Erreur lors de l'affectation du dossard ", dossard, " à la puce RFID ", info["epc"], " (dossard au format invalide, ...).")
-                            # on remet le texte initial et on supprime les boutons
+                            message = messageErreurDetectionMultiple(tags)
+                            print(message)
+                            self.infos.append(message)
+                
+            elif self.selected_tab == 2 :
+                for tag in tags :
+                    info = extractionDonneesDUnTagRFID(tag, reader_name)
+                    # cas où l'on teste un dossard
+                    dossardDetecte = EPCtoDossard(info["epc"])
+                    # if dossardDetecte :
+                    # si le dossard détecté est un dossard connu mais pas celui attendu
+                    # print("Détection d'un dossard dans l'onglet : ", self.selected_tab)
+                    # on alimente la liste des dossards détectés
+                    self.listeDesDossardsDetectesTest.append(dossardDetecte)
+                    # liste des widgets d'une ligne
+                    def creeLigneWidget():
+                        frame = tk.Frame(self.frameDossardsDetectesTest)
+                        frame.grid_columnconfigure(0, weight=1)
+                        frame.grid_columnconfigure(1, weight=1)
+                        frame.grid_columnconfigure(2, weight=0)
+                        frame.grid_columnconfigure(2, weight=0)
+                        # ajoute un label avec epc de largeur 30, un entry avec le numéro de dossard
+                        # si le contenu de l'entry est modifié, affiche un bouton valider ou annuler à côté
+                        label = tk.Label(frame, text=info["epc"], justify="center")
+                        label.grid(row=0, column=0, sticky="nsew")
+                        entry = tk.Entry(frame, width=10, justify="center")
+                        if dossardDetecte :
+                            entry.insert(tk.END, dossardDetecte)
+                            # ajout d'une prorpiété texteInitial à l'entry pour mémoriser le texte initial
+                            entry.texteInitial = dossardDetecte
+                        else :
+                            entry.insert(tk.END, "Inconnu")
+                            entry.texteInitial = "Inconnu"
+                        entry.grid(row=0, column=1, sticky="nsew")
+                        def validerAffectationTest():
+                            # on récupère le texte de l'entry
+                            dossard = entry.get()
+                            # on vérifie si le dossard est valide
+                            if dossard and dossardValide(dossard) :
+                                # on affecte le dossard au dossard détecté
+                                if associe_dossard_epc(dossard, info["epc"]) :
+                                    entry.texteInitial = dossard
+                                else :
+                                    print("Erreur lors de l'affectation du dossard ", dossard, " à la puce RFID ", info["epc"], " (dossard au format invalide, ...).")
+                                    # on remet le texte initial et on supprime les boutons
+                                    entry.delete(0, tk.END)
+                                    entry.insert(tk.END, entry.texteInitial)
+                            else :
+                                print("Dossard mal saisi pour la puce RFID ", info["epc"], ":", dossard)
+                                # on remet le texte initial et on supprime les boutons
+                                entry.delete(0, tk.END)
+                                entry.insert(tk.END, entry.texteInitial)
+                            afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
+                        def annulerAffectationTest():
+                            # on rétablit la valeur initiale de l'entry
                             entry.delete(0, tk.END)
                             entry.insert(tk.END, entry.texteInitial)
-                    else :
-                        print("Dossard mal saisi pour la puce RFID ", info["epc"], ":", dossard)
-                        # on remet le texte initial et on supprime les boutons
-                        entry.delete(0, tk.END)
-                        entry.insert(tk.END, entry.texteInitial)
-                    afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
-                def annulerAffectationTest():
-                    # on rétablit la valeur initiale de l'entry
-                    entry.delete(0, tk.END)
-                    entry.insert(tk.END, entry.texteInitial)
-                    afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
-                buttonOK = tk.Button(frame, text="Valider", command=validerAffectationTest)
-                buttonAnnuler = tk.Button(frame, text="Annuler", command=annulerAffectationTest)
+                            afficheBoutonsValiderAnnuler(None, entry, buttonOK, buttonAnnuler)
+                        buttonOK = tk.Button(frame, text="Valider", command=validerAffectationTest)
+                        buttonAnnuler = tk.Button(frame, text="Annuler", command=annulerAffectationTest)
 
-                # button.grid(row=0, column=2, sticky="nsew")
-                # la modification du texte de l'entry doit provoquer l'affichage des boutons OK et Annuler
-                def afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler):
-                    if entry.get() != entry.texteInitial :
-                        buttonOK.grid(row=0, column=2, sticky="nsew")
-                        buttonAnnuler.grid(row=0, column=3, sticky="nsew")
-                    else :
-                        buttonOK.grid_forget()
-                        buttonAnnuler.grid_forget()
-                entry.bind("<KeyRelease>", lambda event : afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler))
-                return frame
-            # on ajoute une ligne de widget pour chaque dossard détecté
-            nbreLignesActuelles = len(self.listeDesDossardsDetectesTest)
-            fr = creeLigneWidget()
-            self.listeDesFramesDossardsDetectesTest.append(fr)
-            fr.grid(row=nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
-            # on supprimer l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
-            if nbreLignesActuelles > 20 :
-                self.listeDesFramesDossardsDetectesTest[nbreLignesActuelles-21].grid_forget()
+                        # button.grid(row=0, column=2, sticky="nsew")
+                        # la modification du texte de l'entry doit provoquer l'affichage des boutons OK et Annuler
+                        def afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler):
+                            if entry.get() != entry.texteInitial :
+                                buttonOK.grid(row=0, column=2, sticky="nsew")
+                                buttonAnnuler.grid(row=0, column=3, sticky="nsew")
+                            else :
+                                buttonOK.grid_forget()
+                                buttonAnnuler.grid_forget()
+                        entry.bind("<KeyRelease>", lambda event : afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler))
+                        return frame
+                    # on ajoute une ligne de widget pour chaque dossard détecté
+                    nbreLignesActuelles = len(self.listeDesDossardsDetectesTest)
+                    fr = creeLigneWidget()
+                    self.listeDesFramesDossardsDetectesTest.append(fr)
+                    fr.grid(row=nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
+                    # on supprimer l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
+                    if nbreLignesActuelles > 20 :
+                        self.listeDesFramesDossardsDetectesTest[nbreLignesActuelles-21].grid_forget()
 
-        elif self.selected_tab == 3 :
-            # cas où l'on teste tous les dossards d'une course
-            dossardDetecte = EPCtoDossard(info["epc"])
-            if dossardDetecte in self.listeDossardsNonDetectes and dossardDetecte in self.listeDossardsCHB :
-                # Si le dossard n'a pas encore été détecté et est connu et est dans la liste des dossards de la course
-                print("Détection d'un dossard pour le test de tous les dossards d'une course : ", dossardDetecte)
-                self.listeDossardsNonDetectes.remove(dossardDetecte)
-                self.insererDansListeTriee(self.listeDossardsDetectes, dossardDetecte)
-                # self.listeDossardsDetectes.append(dossardDetecte)
-                self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
-            elif (not dossardDetecte and info["epc"]) or (dossardDetecte not in self.listeDossardsCHB) : 
-                # si le dossard n'est pas connu (il est vide et epc non) OU si le dossard est connu mais pas utilisé dans cette course
-                print("Détection d'un dossard qui n'est pas dans la course :", dossardDetecte, "ou d'une puce RFID inconnue :", info["epc"])
-                if info["epc"] not in self.listeDossardsInconnus:
-                    self.listeDossardsInconnus.append(info["epc"])
-                self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
-            # on n'actualise rien dans le dernier cas : si le dossard a déjà été détecté.
-        self.infos_RFID.config(state="normal")  # Temporairement activer l'édition
-        self.infos_RFID.delete('1.0', tk.END)  # Effacer le contenu du Text
-        for line in self.infos[-5:]:  # Afficher les 5 dernières lignes
-            text = self.formate_info_affichage(line)
-            self.infos_RFID.insert(tk.END, text + '\n')
-        self.infos_RFID.config(state="disabled")
+            elif self.selected_tab == 3 :
+                auMoinsUnChangement = False
+                for tag in tags :
+                    info = extractionDonneesDUnTagRFID(tag, reader_name)
+                    # cas où l'on teste tous les dossards d'une course
+                    dossardDetecte = EPCtoDossard(info["epc"])
+                    if dossardDetecte in self.listeDossardsNonDetectes and dossardDetecte in self.listeDossardsCHB :
+                        # Si le dossard n'a pas encore été détecté et est connu et est dans la liste des dossards de la course
+                        print("Détection d'un dossard pour le test de tous les dossards d'une course : ", dossardDetecte)
+                        self.listeDossardsNonDetectes.remove(dossardDetecte)
+                        self.insererDansListeTriee(self.listeDossardsDetectes, dossardDetecte)
+                        auMoinsUnChangement = True
+                        # self.listeDossardsDetectes.append(dossardDetecte)
+                        # self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
+                    elif (not dossardDetecte and info["epc"]) or (dossardDetecte not in self.listeDossardsCHB) : 
+                        # si le dossard n'est pas connu (il est vide et epc non) OU si le dossard est connu mais pas utilisé dans cette course
+                        print("Détection d'un dossard qui n'est pas dans la course :", dossardDetecte, "ou d'une puce RFID inconnue :", info["epc"])
+                        if info["epc"] not in self.listeDossardsInconnus:
+                            self.listeDossardsInconnus.append(info["epc"])
+                        auMoinsUnChangement = True
+                        # self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
+                    # on n'actualise rien dans le dernier cas : si le dossard a déjà été détecté.
+                if auMoinsUnChangement :
+                    self.actualiser_affichage_test_dossards(self.frames[self.selected_tab])
+            
+            # Traitement des tags reçus pour affichage en bas de la fenêtre
+
+            for tag in tags :
+                # info = extractionDonneesDUnTagRFID(tag, reader_name)
+                # # reader_name_antenna = f"{reader_name}-{antenna_port}"
+                # # si le popup RFID est actif on lui envoie toutes les infos
+                # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch}
+                if not self.infos or not message : #isinstance(self.infos[-1], dict) :
+                    # si une erreur s'est produite, elle contient toutes les informations utiles. Inutile de rajouter des lignes.
+                    self.infos.append(extractionDonneesDUnTagRFID(tag, reader_name))
+                # else :
+                #     print("Pas d'ajout d'information dans les données reçues : ", self.infos[-1], type(self.infos[-1]))
+            
+            # si une nouvelle antenne a été détectée en cours de route, on reconstruit la frame Antennes.
+            if Parametres["donneesRFID"].antenne_frame_a_reconstruire :
+                self.build_frame_Antennes(self.frames[0])
+
+            # on affiche les 5 dernières réceptions en bas de la fenêtre.
+            self.infos_RFID.config(state="normal")  # Temporairement activer l'édition
+            self.infos_RFID.delete('1.0', tk.END)  # Effacer le contenu du Text
+            for line in self.infos[-5:]:  # Afficher les 5 dernières lignes
+                text = self.formate_info_affichage(line)
+                self.infos_RFID.insert(tk.END, text + '\n')
+            self.infos_RFID.config(state="disabled")
+        except Exception as e:
+            # Afficher la ligne contenant l'erreur
+            print("Erreur lors du traitement des données reçues par le popup de configuration RFID : ", e)
+            traceback.print_exc()
 
     def insererDansListeTriee(self, liste, element):
         """Insère un élément dans une liste triée de dossards (au format "123A" : un entier suivi d'une lettre) en conservant l'ordre des dossards :
@@ -619,10 +830,15 @@ Le test pourra être réinitialisé par un bouton dédié."""
             info est un dictionnaire qui a cette forme : info = {"epc":epc, "reader":reader_name_antenna, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
             Affiche l'antenne qui a capté le signal RFID puis le numéro de la puce RFID puis la force du signal puis le numero de dossard associé
         """
-        compl = ""
-        if EPCtoDossard(info["epc"]) :
-            compl = " - Dossard connu : " + EPCtoDossard(info["epc"])
-        return "Antenne : " + info["reader"] + " PUCE : " + info["epc"] + " RSSI (qualité signal): " + str(info["rssi"]) + "dB - Nombre de vues : " + str(info["seen_count"]) + compl
+        if isinstance(info, dict) :
+            compl = ""
+            if EPCtoDossard(info["epc"]) :
+                compl = " - Dossard connu : " + EPCtoDossard(info["epc"])
+            return "Lecteur:" + str(info["reader"]) + " Antenne:" + str(info["antenna"]) + " PUCE : " + str(info["epc"]) + " RSSI (qualité signal): " + str(info["rssi"]) + "dB - Nombre de vues : " + str(info["seen_count"]) + compl
+        elif isinstance(info, str) :
+            return info
+        else :
+            return "Information à afficher non conforme."
         
     def increment_dossard(self, dossard, nbre=1):
         """Incrémente le numéro de dossard au format "123A" (un entier suivi d'une lettre) pour retourner le nbre ème successeur de dossard dans ce format"""

@@ -1764,6 +1764,148 @@ class EquipeClasse():
         retour = retour[:-1] + ")"
         return retour
 
+class InfosRFID(dict) :
+    def __init__(self):
+        self.antenne_frame_a_reconstruire = False
+        # self.lecteurs = []
+        # self.lecteurs_antennes = []
+    # def effacerTout(self) :
+    #     self.lecteurs = []
+    #     self.lecteurs_antennes = []
+    def add_lecteur(self, nomLecteur, nomAntenne) :
+        """ ajoute un lecteur et-ou son antenne si besoin."""
+        l = self.lecteur_exists(nomLecteur)
+        if l :
+            # on ajoute l'antenne si elle n'existe pas.
+            l.add_antenne(nomLecteur, nomAntenne)
+        else :
+            self[nomLecteur] = LecteurRFID(nomLecteur, nomAntenne)
+            print("Détection d'un nouveau lecteur :", nomLecteur, "avec l'antenne :", nomAntenne, ".")
+            # self.lecteurs_antennes.append()
+    # def lecteur_antenne_exists(self, nomLecteur, nomAntenne) :
+    #     return str(nomLecteur)+"-"+str(nomAntenne) in self.keys()
+    # def lecteur_antenne_add(self, nomLecteur, nomAntenne) :
+    #     # if not self.lecteur_antenne_exists(nomLecteur, nomAntenne) 
+    def reconstruire_antenne_frame(self) :
+        self.antenne_frame_a_reconstruire = True     
+    def lecteur_exists(self, nom) :
+        for lecteur in self.keys() :
+            if lecteur == nom :
+                return self[lecteur]
+        return None
+    def listeAntennes(self, departUniquement = False, arriveeUniquement = False, checkPointUniquement = False) :
+        print("self",self)
+        # print("self.lecteurs_antennes",self.lecteurs_antennes)
+        retour = []
+        retourNoms = []
+        for i,lecteur in enumerate(self.values()) :
+            for antenne in lecteur.values() :
+                if (not departUniquement and not arriveeUniquement and not checkPointUniquement) or (departUniquement and antenne["depart"]) or (arriveeUniquement and antenne["arrivee"]) or (checkPointUniquement and antenne["checkPoint"]) :
+                    retour.append(antenne)
+                    retourNoms.append(str(lecteur.nom)+"-"+str(antenne["nom"]))
+        # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
+        if retour :
+            retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
+        # retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
+        return retour, retourNoms
+
+class LecteurRFID(dict):
+    def __init__(self, nom, antenne):
+        self.nom = nom
+        # self.antennes = []
+        self.add_antenne(nom, antenne)
+    def add_antenne(self, nom, antenne, principale=True, depart=False, checkPoint=False, arrivee=True) :
+        if antenne not in self.keys() :
+            self[antenne] = AntenneRFID(self.nom, antenne, principale, depart, checkPoint, arrivee)
+            print("Détection d'une nouvelle antenne :", antenne, "pour le lecteur", self.nom)
+            Parametres["donneesRFID"].reconstruire_antenne_frame()
+    def antenne_exists(self, nom) :
+        for antenne in self.values() :
+            if antenne["nom"] == nom :
+                return antenne
+        return None
+
+
+class AntenneRFID(dict):
+    def __init__(self, lecteur, nom, principale=True, depart=False, checkPoint=False, arrivee=True):
+        self["lecteur"] = lecteur
+        self["nom"] = nom
+        self["principale"] = principale
+        self["depart"] = depart
+        self["checkPoint"] = checkPoint
+        self["listeDesCheckPointsOuElleEstPresente"] = []
+        self["arrivee"] = arrivee
+    def change_role(self, principale):
+        self["principale"] = principale
+        print(self["lecteur"], self["nom"], "basculé sur principale=", principale)
+    def change_lieu(self, depart=None, checkPoint=None, arrivee=None, numeroCheckPoint=None):
+        if depart != None :
+            self["depart"] = depart
+            print(self["lecteur"], self["antenne"], "basculé sur depart=", depart)
+        if (checkPoint == True and numeroCheckPoint != None) or checkPoint == False :
+            self["checkPoint"] = checkPoint
+            if numeroCheckPoint not in self["listeDesCheckPointsOuElleEstPresente"] :
+                self["listeDesCheckPointsOuElleEstPresente"] = numeroCheckPoint
+                print(self["lecteur"], self["antenne"], "basculé sur checkPoint=", checkPoint, "numéro=", numeroCheckPoint)
+        if arrivee != None :
+            self["arrivee"] = arrivee
+            print(self["lecteur"], self["antenne"], "basculé sur arrivee=", arrivee)
+
+def convert_timestamp_to_epoch(timestamp):
+        """
+        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
+        Retourne un float pour inclure les millisecondes.
+        """
+        try:
+            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
+            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
+            return float(time.mktime(dt) + int(millisecondes) / 1000)
+        except Exception as e:
+            print(f"Error converting timestamp: {timestamp}, Error: {e}")
+            return -1.0
+          
+def extractionDonneesCommunesDeDataRFID(data) :
+    # Récupération des données spécifiques de data
+    reader_name = data.get("readerName", "UnknownReader")
+    tags = data.get("tags", [])
+    json_timestamp_epoch = convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    return reader_name, tags, json_timestamp_epoch
+    
+def extractionDonneesDUnTagRFID(tag, reader_name) :
+    epc = tag.get("epc", "UnknownEPC")
+    antenna_port = tag.get("antennaPort", "UnknownPort")
+    if reader_name and antenna_port != "UnknownPort":
+        actualiseListeDesAntennes(reader_name, antenna_port)
+    rssi = tag.get("rssi", 0)
+    seen_count = tag.get("seenCount", 0)
+    tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    return {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch}
+    # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
+
+def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenna_port, rssi, seen_count, tag_timestamp_epoch, heureReceptionServeur, json_timestamp_epoch) :
+    # Récupération des données spécifiques de data
+    reader_name, tags, json_timestamp_epoch = extractionDonneesCommunesDeDataRFID(data)
+    chaineAAjouterDansFichierTexte = ""
+    # Traitement des tags reçus
+    for tag in tags:
+        # epc, antenna_port, rssi, seen_count, tag_timestamp_epoch 
+        info = extractionDonneesDUnTagRFID(tag, reader_name)
+        print("Info",info)
+        # # reader_name_antenna = f"{reader_name}-{antenna_port}"
+        # # si le popup RFID est actif on lui envoie toutes les infos
+        # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
+        chaineAAjouterDansFichierTexte += "tps,add,{"+info["epc"]+"},{"+info["tag_timestamp_epoch"]+"},{"+info["json_timestamp_epoch"]+"},{"+info["heureReceptionServeur"]+"},0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
+        chaineAAjouterDansFichierTexte += "dossard,add,{"+info["epc"]+"},-1,0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
+        # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
+    with open("donneesRFID.txt", "a") as file:
+        # Écrire les lignes dans le fichier en une seule fois.
+        file.write(chaineAAjouterDansFichierTexte)
+
+def actualiseListeDesAntennes(reader_name, antenne) :
+    # print("Actualisation de la liste des antennes", reader_name, antenne)
+    Parametres["donneesRFID"].add_lecteur(reader_name, antenne)
+
+
 # setup the database
 def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
@@ -1774,7 +1916,7 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, compteurReceptionRFID
+           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -2006,6 +2148,9 @@ def chargerDonnees() :
     if not "seuilRSSI" in Parametres :
         Parametres["seuilRSSI"] = -100
     seuilRSSI = Parametres["seuilRSSI"]
+    if not "donneesRFID" in Parametres :
+        Parametres["donneesRFID"] = InfosRFID()
+    donneesRFID = Parametres["donneesRFID"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -2036,6 +2181,8 @@ def chargerDonnees() :
     
 chargerDonnees()
 
+
+# Parametres["donneesRFID"] = InfosRFID()
 # n'execute qu'une seule fois cette commande TEMPORAIRE
 # Coureurs.repareCourseUNSS()
 

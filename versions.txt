@@ -99,6 +99,9 @@ dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas le
 
 ##############################################
 
+Travail du 20/01/2025 :
+- avancement de l'interface antennes et des données associées. Non achevé.
+
 Travail du 18/01/2025 :
 - si on supprime un dossard d'un temps qui lui était affecté, on supprime l'affectation du dossard (indispensable pour le RFID)
 - le traitement du fichier issu du RFID est corrigé : ne s'effectuait pas depuis mon implémentation.
