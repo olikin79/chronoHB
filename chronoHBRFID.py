@@ -7,7 +7,7 @@ from FonctionsMetiers import *
 class Popup(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)
-        self.title("Informations")
+        self.title("Réglages relatifs à la technologie RFID")
         # Maximiser la fenêtre
         self.state('zoomed')
 
@@ -110,6 +110,7 @@ class Popup(tk.Toplevel):
         
         if self.listeAntennes :
             print("Liste des antennes connues:", self.listeNomsAntennes)
+            nbreAntennes = len(self.listeNomsAntennes)
             # label d'information
             label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
             label.grid(row=0, column=0, sticky="w")
@@ -119,7 +120,9 @@ class Popup(tk.Toplevel):
             self.nbreAntennesDepart = tk.StringVar()
             self.listeAntennesDepart , self.listeNomAntennesDepart = Parametres["donneesRFID"].listeAntennes(departUniquement=True)
             self.nbreAntennesDepart.set(str(len(self.listeAntennesDepart)))
-            self.combobox = tk.OptionMenu(frame, self.nbreAntennesDepart, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            # liste avec des valeurs "0", "1", jusqu'à listeNomsAntennes
+            listeNbreAntennes = [str(i) for i in range(0, nbreAntennes+1)]
+            self.combobox = tk.OptionMenu(frame, self.nbreAntennesDepart, *listeNbreAntennes)
             self.combobox.grid(row=1, column=1, sticky="w")
             self.frameDepart = tk.Frame(frame)
             self.frameDepart.grid(row=2, column=0, columnspan=3, sticky="nsew")
@@ -138,7 +141,7 @@ class Popup(tk.Toplevel):
             self.nbreCheckpoints = tk.StringVar()
             self.listeAntennesCheckPoint , self.listeNomAntennesCheckPoint = Parametres["donneesRFID"].listeAntennes(checkPointUniquement=True)
             self.nbreCheckpoints.set(str(len(self.listeAntennesCheckPoint)))
-            self.combobox = tk.OptionMenu(frame, self.nbreCheckpoints, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            self.combobox = tk.OptionMenu(frame, self.nbreCheckpoints, *listeNbreAntennes)
             self.combobox.grid(row=4, column=1, sticky="w")
             self.frameCheckpoints = tk.Frame(frame)
             self.frameCheckpoints.grid(row=5, column=0, columnspan=2, sticky="nsew")
@@ -157,11 +160,11 @@ class Popup(tk.Toplevel):
             self.nbreAntennesArrivee = tk.StringVar()
             self.listeAntennesArrivee , self.listeNomAntennesArrivee = Parametres["donneesRFID"].listeAntennes(arriveeUniquement=True)
             self.nbreAntennesArrivee.set(str(len(self.listeAntennesArrivee)))
-            self.combobox = tk.OptionMenu(frame, self.nbreAntennesArrivee, "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
+            self.combobox = tk.OptionMenu(frame, self.nbreAntennesArrivee, *listeNbreAntennes)
             # exécuter construireFrameArrivee() à chaque fois que le nombre d'antennes à l'arrivée change
             self.combobox.grid(row=7, column=1, sticky="w")
             # label d'information complémentaire
-            label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur.\nLes antennes secondaires permet de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.", justify="left")
+            label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur.\nLes antennes secondaires, plutôt en aval de la ligne d'arrivée, permettent de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.", justify="left")
             label.grid(row=8, column=0, columnspan=3, sticky="w")
             self.frameArrivee = tk.Frame(frame)
             self.frameArrivee.grid(row=9, column=0, columnspan=3, sticky="nsew")
@@ -208,8 +211,7 @@ class Popup(tk.Toplevel):
                             else :
                                 self.listeAntennes[i].change_role(False)
                         self.comboboxRoleVariables[i].trace_add("write", lambda *args: changeRoleAntenneArrivee())
-                    else :
-                        
+
             self.nbreAntennesArrivee.trace_add("write", lambda *args: construireFrameArrivee())
             construireFrameArrivee()
         else :
