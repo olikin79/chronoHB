@@ -816,7 +816,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
                     fr.grid(row=self.nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
                     # on supprime l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
                     if self.nbreLignesActuelles > 20 :
-                        self.listeDesFramesDossardsDetectesTest[nbreLignesActuelles-21].grid_forget()
+                        self.listeDesFramesDossardsDetectesTest[self.nbreLignesActuelles-21].grid_forget()
 
             elif self.selected_tab == 3 :
                 auMoinsUnChangement = False
