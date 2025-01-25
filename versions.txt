@@ -101,6 +101,7 @@ dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas le
 
 Travail du 25/01/2025 :
 - interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.
+- correctif test individuel de dossards : on n'affiche un dossard qu'une seule fois, même s'il est détecté plusieurs fois par l'antenne RFID.
 
 Travail du 20/01/2025 :
 - avancement de l'interface antennes et des données associées. Non achevé.

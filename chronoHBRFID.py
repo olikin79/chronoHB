@@ -730,6 +730,10 @@ Le test pourra être réinitialisé par un bouton dédié."""
                             self.infos.append(message)
                 
             elif self.selected_tab == 2 :
+                try : 
+                    self.nbreLignesActuelles
+                except :
+                    self.nbreLignesActuelles = 0
                 for tag in tags :
                     info = extractionDonneesDUnTagRFID(tag, reader_name)
                     # cas où l'on teste un dossard
@@ -737,7 +741,15 @@ Le test pourra être réinitialisé par un bouton dédié."""
                     # if dossardDetecte :
                     # si le dossard détecté est un dossard connu mais pas celui attendu
                     # print("Détection d'un dossard dans l'onglet : ", self.selected_tab)
-                    # on alimente la liste des dossards détectés
+                    # on alimente la liste des dossards détectés en éliminant les doublons : on supprime les précédents si deuxième détection :
+                    if dossardDetecte in self.listeDesDossardsDetectesTest :
+                        index = self.listeDesDossardsDetectesTest.index(dossardDetecte)
+                        print("Détection d'un dossard déjà détecté : ", dossardDetecte, "à l'emplacement", index)
+                        # on supprime le dossard de la liste des dossards détectés
+                        self.listeDesDossardsDetectesTest.pop(index)
+                        # on supprime le widget de la frame correspondante
+                        self.listeDesFramesDossardsDetectesTest[index].grid_forget()
+                        self.listeDesFramesDossardsDetectesTest.pop(index)
                     self.listeDesDossardsDetectesTest.append(dossardDetecte)
                     # liste des widgets d'une ligne
                     def creeLigneWidget():
@@ -798,12 +810,12 @@ Le test pourra être réinitialisé par un bouton dédié."""
                         entry.bind("<KeyRelease>", lambda event : afficheBoutonsValiderAnnuler(event, entry, buttonOK, buttonAnnuler))
                         return frame
                     # on ajoute une ligne de widget pour chaque dossard détecté
-                    nbreLignesActuelles = len(self.listeDesDossardsDetectesTest)
+                    self.nbreLignesActuelles += 1  # len(self.listeDesDossardsDetectesTest)
                     fr = creeLigneWidget()
                     self.listeDesFramesDossardsDetectesTest.append(fr)
-                    fr.grid(row=nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
-                    # on supprimer l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
-                    if nbreLignesActuelles > 20 :
+                    fr.grid(row=self.nbreLignesActuelles, column=0, columnspan=2, sticky="nsew")
+                    # on supprime l'affichage des frames trop anciens mais on ne vide jamais la liste des dossards détectés ni celle des frames.
+                    if self.nbreLignesActuelles > 20 :
                         self.listeDesFramesDossardsDetectesTest[nbreLignesActuelles-21].grid_forget()
 
             elif self.selected_tab == 3 :

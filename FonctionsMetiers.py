@@ -1794,7 +1794,7 @@ class InfosRFID(dict) :
                 return self[lecteur]
         return None
     def listeAntennes(self, departUniquement = False, arriveeUniquement = False, checkPointUniquement = False) :
-        print("self",self)
+        # print("self",self)
         # print("self.lecteurs_antennes",self.lecteurs_antennes)
         retour = []
         retourNoms = []
@@ -1806,7 +1806,7 @@ class InfosRFID(dict) :
         # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
         if retour :
             retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
-            print("listeAntennes", retour, retourNoms)
+            # print("listeAntennes", retour, retourNoms)
         # retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
         return retour, retourNoms
 
