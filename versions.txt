@@ -94,10 +94,13 @@ Le test pourra être réinitialisé.
 Les popups showinfo font revenir la fenêtre principale au premier plan. Ajouter une possibilité d'interagir avec elle peut solutionner ou non le pb.
 ##############################################
 
-Il faudrait enregistrer tous les évènements (issus des smartphones, RFID et local dans un unique fichier car, 
+Il faudrait horodater tous les évènements (issus des smartphones, RFID et local dans les fichiers car, actuellement,
 dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas les actions dans l'ordre.
 
 ##############################################
+
+Travail du 25/01/2025 :
+- interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.
 
 Travail du 20/01/2025 :
 - avancement de l'interface antennes et des données associées. Non achevé.

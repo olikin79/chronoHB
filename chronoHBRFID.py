@@ -3,6 +3,7 @@ import tkinter as tk
 # import pour les messagebox
 from tkinter import messagebox
 from FonctionsMetiers import *
+from functools import partial
 
 class Popup(tk.Toplevel):
     def __init__(self, master=None):
@@ -65,21 +66,27 @@ class Popup(tk.Toplevel):
         # liste des antennes déjà connectées une fois
         self.listeAntennes, self.listeNomsAntennes = Parametres["donneesRFID"].listeAntennes()
         
+        ### Il faudra permettre de choisir "Toutes les courses identiques dans le menu"
+        ### Si une personnalisation est possible, elle le sera à partir de la configuration commune.
+        ### Un bouton sera à ajouter à chaque personnalisation permettant de revenir à la version commune,
+        ### effaçant les personnalisations (à ajouter en propriété du groupement.
+        ### Si la propriété est absente, c'est la configuration commune qui s'appliquera.
         # option menu pour choisir parmi les noms des courses actuelles
         self.comboboxGroupementsVariable = tk.StringVar()
         self.listeDesGroupementsActuels = listNomsGroupements(nomStandard = False)
         frameLabel = tk.Frame(frame)
         # extension gauche droite maximale
         frameLabel.pack(fill=tk.X, side=tk.TOP)
-        # label 
-        label = tk.Label(frameLabel, text="Choisir la course concernée :", justify="right")
+        label = tk.Label(frameLabel, text="Pour le moment, les courses ont toutes les antennes disposées au même endroit.\nDans une version ultérieure, une personnalisation sera possible.", justify="left")
         label.pack(side=tk.LEFT)
-        # label.grid(row=0, column=0, sticky="w")
-        self.comboboxGroupements = tk.OptionMenu(frameLabel, self.comboboxGroupementsVariable, *self.listeDesGroupementsActuels)
-        # self.comboboxGroupements.grid(row=0, column=1, sticky="w")
-        self.comboboxGroupements.pack(side=tk.LEFT)
-        if self.listeDesGroupementsActuels :
-            self.comboboxGroupementsVariable.set(self.listeDesGroupementsActuels[0])
+        # label = tk.Label(frameLabel, text="Choisir la course concernée :", justify="right")
+        # label.pack(side=tk.LEFT)
+        # # label.grid(row=0, column=0, sticky="w")
+        # self.comboboxGroupements = tk.OptionMenu(frameLabel, self.comboboxGroupementsVariable, *self.listeDesGroupementsActuels)
+        # # self.comboboxGroupements.grid(row=0, column=1, sticky="w")
+        # self.comboboxGroupements.pack(side=tk.LEFT)
+        # if self.listeDesGroupementsActuels :
+        #     self.comboboxGroupementsVariable.set(self.listeDesGroupementsActuels[0])
         # frame avec tous les widgets pour ce groupement.
         def changementGroupement() :
             self.frameGroupement = tk.Frame(frame)
@@ -94,8 +101,17 @@ class Popup(tk.Toplevel):
                 # label.grid(row=0, column=0, sticky="w")
                 label.pack(fill="both", expand=True, side=tk.TOP)
         changementGroupement()
-        self.comboboxGroupementsVariable.trace_add("write", lambda *args: changementGroupement())
+        # self.comboboxGroupementsVariable.trace_add("write", lambda *args: changementGroupement())
 
+    def retourneAntenne(self, nomAntenne) :
+        """Retourne l'antenne correspondant au nom passé en paramètre."""
+        # print("listeAntennes", self.listeAntennes)
+        for antenne in self.listeAntennes :
+            if antenne.get_nom_complet() == nomAntenne :
+                return antenne
+        print(nomAntenne, "n'est pas une antenne connue.")
+        return None
+            
     def build_frame_Antennes_course(self, frame):
         """Ajoute tous les widgets nécessaires à frame pour effectuer les réglages relatifs aux antennes sur la course.
         Afficher les antennes qui ont déjà envoyé une donnée à chronoHB.
@@ -114,43 +130,46 @@ class Popup(tk.Toplevel):
             # label d'information
             label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
             label.grid(row=0, column=0, sticky="w")
-            # OptionMenu pour choisir le nombre d'antennes au départ
-            label = tk.Label(frame, text="Choisir le nombre d'antennes au départ :", justify="right")
+            # temporaire : message indiquant que les antennes au départ et sur des étapes seront prises en compte plus tard.
+            label = tk.Label(frame, text="Pour le moment, les antennes au départ et sur des étapes ne sont pas prises en compte.", justify="left")
             label.grid(row=1, column=0, sticky="w")
-            self.nbreAntennesDepart = tk.StringVar()
-            self.listeAntennesDepart , self.listeNomAntennesDepart = Parametres["donneesRFID"].listeAntennes(departUniquement=True)
-            self.nbreAntennesDepart.set(str(len(self.listeAntennesDepart)))
-            # liste avec des valeurs "0", "1", jusqu'à listeNomsAntennes
+            # # OptionMenu pour choisir le nombre d'antennes au départ
+            # label = tk.Label(frame, text="Choisir le nombre d'antennes au départ :", justify="right")
+            # label.grid(row=1, column=0, sticky="w")
+            # self.nbreAntennesDepart = tk.StringVar()
+            # self.listeAntennesDepart , self.listeNomAntennesDepart = Parametres["donneesRFID"].listeAntennes(departUniquement=True)
+            # self.nbreAntennesDepart.set(str(len(self.listeAntennesDepart)))
+            # # liste avec des valeurs "0", "1", jusqu'à listeNomsAntennes
             listeNbreAntennes = [str(i) for i in range(0, nbreAntennes+1)]
-            self.combobox = tk.OptionMenu(frame, self.nbreAntennesDepart, *listeNbreAntennes)
-            self.combobox.grid(row=1, column=1, sticky="w")
-            self.frameDepart = tk.Frame(frame)
-            self.frameDepart.grid(row=2, column=0, columnspan=3, sticky="nsew")
-            # OptionMenu pour choisir les self.nbreAntennesDepart antennes au départ
-            self.listeVariablesAntennesDepart = []
-            for i in range(0, int(self.nbreAntennesDepart.get())):
-                self.listeVariablesAntennesDepart.append(tk.StringVar())
-                self.combobox = tk.OptionMenu(self.frameDepart, self.listeVariablesAntennesDepart[i], self.listeNomAntennesDepart)
-                self.combobox.grid(row=0, column=i+1, sticky="w")
-            # séparateur horizontal
-            sep = tk.Frame(frame, height=2, bd=1, relief=tk.SUNKEN)
-            sep.grid(row=3, column=0, columnspan=3, sticky="ew")
-            # optionMenu pour choisir le nombre de checkpoint
-            label = tk.Label(frame, text="Choisir le nombre de checkpoints :", justify="right")
-            label.grid(row=4, column=0, sticky="w")
-            self.nbreCheckpoints = tk.StringVar()
-            self.listeAntennesCheckPoint , self.listeNomAntennesCheckPoint = Parametres["donneesRFID"].listeAntennes(checkPointUniquement=True)
-            self.nbreCheckpoints.set(str(len(self.listeAntennesCheckPoint)))
-            self.combobox = tk.OptionMenu(frame, self.nbreCheckpoints, *listeNbreAntennes)
-            self.combobox.grid(row=4, column=1, sticky="w")
-            self.frameCheckpoints = tk.Frame(frame)
-            self.frameCheckpoints.grid(row=5, column=0, columnspan=2, sticky="nsew")
-            # OptionMenu pour choisir les self.nbreCheckpoints checkpoints
-            self.listeVariablesCheckpoints = []
-            for i in range(0, int(self.nbreCheckpoints.get())):
-                self.listeCheckpoints.append(tk.StringVar())
-                self.combobox = tk.OptionMenu(self.frameCheckpoints, self.listeVariablesCheckpoints[i], self.listeNomAntennesCheckPoint)
-                self.combobox.grid(row=0, column=i+1, sticky="w")
+            # self.combobox = tk.OptionMenu(frame, self.nbreAntennesDepart, *listeNbreAntennes)
+            # self.combobox.grid(row=1, column=1, sticky="w")
+            # self.frameDepart = tk.Frame(frame)
+            # self.frameDepart.grid(row=2, column=0, columnspan=3, sticky="nsew")
+            # # OptionMenu pour choisir les self.nbreAntennesDepart antennes au départ
+            # self.listeVariablesAntennesDepart = []
+            # for i in range(0, int(self.nbreAntennesDepart.get())):
+            #     self.listeVariablesAntennesDepart.append(tk.StringVar())
+            #     self.combobox = tk.OptionMenu(self.frameDepart, self.listeVariablesAntennesDepart[i], self.listeNomAntennesDepart)
+            #     self.combobox.grid(row=0, column=i+1, sticky="w")
+            # # séparateur horizontal
+            # sep = tk.Frame(frame, height=2, bd=1, relief=tk.SUNKEN)
+            # sep.grid(row=3, column=0, columnspan=3, sticky="ew")
+            # # optionMenu pour choisir le nombre de checkpoint
+            # label = tk.Label(frame, text="Choisir le nombre de checkpoints :", justify="right")
+            # label.grid(row=4, column=0, sticky="w")
+            # self.nbreCheckpoints = tk.StringVar()
+            # self.listeAntennesCheckPoint , self.listeNomAntennesCheckPoint = Parametres["donneesRFID"].listeAntennes(checkPointUniquement=True)
+            # self.nbreCheckpoints.set(str(len(self.listeAntennesCheckPoint)))
+            # self.combobox = tk.OptionMenu(frame, self.nbreCheckpoints, *listeNbreAntennes)
+            # self.combobox.grid(row=4, column=1, sticky="w")
+            # self.frameCheckpoints = tk.Frame(frame)
+            # self.frameCheckpoints.grid(row=5, column=0, columnspan=2, sticky="nsew")
+            # # OptionMenu pour choisir les self.nbreCheckpoints checkpoints
+            # self.listeVariablesCheckpoints = []
+            # for i in range(0, int(self.nbreCheckpoints.get())):
+            #     self.listeCheckpoints.append(tk.StringVar())
+            #     self.combobox = tk.OptionMenu(self.frameCheckpoints, self.listeVariablesCheckpoints[i], self.listeNomAntennesCheckPoint)
+            #     self.combobox.grid(row=0, column=i+1, sticky="w")
             # séparateur horizontal
             sep = tk.Frame(frame, height=2, bd=1, relief=tk.SUNKEN)
             sep.grid(row=6, column=0, columnspan=3, sticky="ew")
@@ -160,9 +179,10 @@ class Popup(tk.Toplevel):
             self.nbreAntennesArrivee = tk.StringVar()
             self.listeAntennesArrivee , self.listeNomAntennesArrivee = Parametres["donneesRFID"].listeAntennes(arriveeUniquement=True)
             self.nbreAntennesArrivee.set(str(len(self.listeAntennesArrivee)))
-            self.combobox = tk.OptionMenu(frame, self.nbreAntennesArrivee, *listeNbreAntennes)
+            self.nbreAntennesArrivee.valeurActuelle = self.nbreAntennesArrivee.get()
+            self.comboboxNbreAntenne = tk.OptionMenu(frame, self.nbreAntennesArrivee, *listeNbreAntennes)
             # exécuter construireFrameArrivee() à chaque fois que le nombre d'antennes à l'arrivée change
-            self.combobox.grid(row=7, column=1, sticky="w")
+            self.comboboxNbreAntenne.grid(row=7, column=1, sticky="w")
             # label d'information complémentaire
             label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur.\nLes antennes secondaires, plutôt en aval de la ligne d'arrivée, permettent de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.", justify="left")
             label.grid(row=8, column=0, columnspan=3, sticky="w")
@@ -172,51 +192,94 @@ class Popup(tk.Toplevel):
                 # efface tous les children de frameArrivee
                 for widget in self.frameArrivee.winfo_children():
                     widget.destroy()
+
+                # deux cas,
+                # soit self.nbreAntennesArrivee.get() > self.nbreAntennesArrivee.valeurActuelle => il y a plus de valeurs qu'avant, on ajoute des antennes déjà présentes ?
+                # soit self.nbreAntennesArrivee.get() > self.nbreAntennesArrivee.valeurActuelle => il faut supprimer le rôle si l'antenne n'est pas présente ailleurs.
+                # if self.nbreAntennesArrivee.get() > self.nbreAntennesArrivee.valeurActuelle :
+                #     print("Il y a plus d'antennes à l'arrivée qu'avant.")
+                if int(self.nbreAntennesArrivee.get()) < int(self.nbreAntennesArrivee.valeurActuelle)  : # l'utilisateur a voulu supprimer des antennes à l'arrivée.
+                    for i in range(int(self.nbreAntennesArrivee.get()), int(self.nbreAntennesArrivee.valeurActuelle)) :
+                        print("Il y a moins d'antennes à l'arrivée qu'avant.")
+                        # on change le lieu des antennes situées aux derniers rangs de self.listeAntenneArrivee
+                        self.listeAntennesArrivee[i].change_lieu(arrivee=False)
+                    # on supprime les derniers éléments de self.AntenneArrivee et self.NomsAntenneArrivee 
+                    self.listeAntennesArrivee = self.listeAntennesArrivee[:int(self.nbreAntennesArrivee.get())]
+                    self.listeNomAntennesArrivee = self.listeNomAntennesArrivee[:int(self.nbreAntennesArrivee.get())]
+                # on actualise la valeurActuelle
+                self.nbreAntennesArrivee.valeurActuelle = self.nbreAntennesArrivee.get()
                 # OptionMenu pour choisir les self.nbreAntennesArrivee antennes à l'arrivée
                 self.listeVariablesAntennesArrivee = []
                 self.comboboxRoleVariables = []
-                # self.listeDesComboboxArrivee = []
+                
+                # on alimente l'interface avec le nombre de menuoption demandé.
                 for i in range(0, int(self.nbreAntennesArrivee.get())):
-                    # si il y a suffisamment d'antennes référencées dans la mémoire, on affiche un OptionMenu correspondant du nombre demandé
-                    if i < len(self.listeNomsAntennes) :
-                        self.listeVariablesAntennesArrivee.append(tk.StringVar())
-                        self.listeVariablesAntennesArrivee[i].set(self.listeNomsAntennes[i])
-                        self.listeVariablesAntennesArrivee[i].valeurActuelle = self.listeVariablesAntennesArrivee[i].get()
-                        self.combobox = tk.OptionMenu(self.frameArrivee, self.listeVariablesAntennesArrivee[i], *self.listeNomsAntennes)
-                        # self.listeDesComboboxArrivee.append(self.combobox)
-                        self.combobox.grid(row=0, column=i+1, sticky="w")
-                        # on crée un widget optionMenu juste en dessous des autres optionMenu avec deux options "principale" ou "secondaire"
-                        self.comboboxRoleVariables.append(tk.StringVar())
-                        self.comboboxRole = tk.OptionMenu(self.frameArrivee, self.comboboxRoleVariables[i], "principale", "secondaire")
+                    # on affiche un OptionMenu par antenne correspondant du nombre demandé
+                    self.listeVariablesAntennesArrivee.append(tk.StringVar())
+                    if i < len(self.listeNomAntennesArrivee) :
+                        self.listeVariablesAntennesArrivee[i].set(self.listeNomAntennesArrivee[i])
+                    else :
+                        self.listeVariablesAntennesArrivee[i].set(self.listeNomsAntennes[0])
+                        # dans ce seul cas, pour garder des données cohérentes, on impose le changement de lieu à cette antenne.
+                        self.listeAntennes[0].change_lieu(arrivee=True)
+                    self.listeVariablesAntennesArrivee[i].valeurActuelle = self.listeVariablesAntennesArrivee[i].get()
+                    self.combobox = tk.OptionMenu(self.frameArrivee, self.listeVariablesAntennesArrivee[i], *self.listeNomsAntennes)
+                    # self.listeDesComboboxArrivee.append(self.combobox)
+                    self.combobox.grid(row=0, column=i+1, sticky="w")
+                    # on crée un widget optionMenu juste en dessous des autres optionMenu avec deux options "principale" ou "secondaire"
+                    self.comboboxRoleVariables.append(tk.StringVar())
+                    self.comboboxRole = tk.OptionMenu(self.frameArrivee, self.comboboxRoleVariables[i], "principale", "secondaire")
+                    try : # si l'antenne est déjà une antenne d'arrivée
                         if self.listeAntennesArrivee[i]["principale"] :
                             self.comboboxRoleVariables[i].set("principale")
                         else :
                             self.comboboxRoleVariables[i].set("secondaire")
-                        # il faut centrer self.comboboxRole dans la colonne de grid
-                        self.comboboxRole.grid(row=1, column=i+1, sticky="w")
-                        def changeAntenneArrivee(i) :
-                            self.listeAntennes[i].change_lieu(arrivee=True)
-                            # si l'ancienne valeur est encore présente dans un autre combobox, on ne supprime pas son rôle. Sinon, on le supprime
-                            AntenneSupprimee = True
-                            for j in range(0, len(self.listeVariablesAntennesArrivee)) :
-                                if self.listeVariablesAntennesArrivee[j].get() == self.listeVariablesAntennesArrivee[i].valeurActuelle :
-                                    AntenneSupprimee = False
-                                    break
-                            if AntenneSupprimee :
-                                self.listeAntennes[i].change_lieu(arrivee=False)
-                        self.listeVariablesAntennesArrivee[i].trace_add("write", lambda *args: changeAntenneArrivee(i))
-                        def changeRoleAntenneArrivee() :
-                            if self.comboboxRoleVariables[i].get() == "principale" :
-                                self.listeAntennes[i].change_role(True)
-                            else :
-                                self.listeAntennes[i].change_role(False)
-                        self.comboboxRoleVariables[i].trace_add("write", lambda *args: changeRoleAntenneArrivee())
+                    except : # si l'antenne affichée est un doublon de la première antenne d'arrivée existante : cela survient quand on rajoute des antennes à l'arrivée.
+                        if self.listeAntennesArrivee[0]["principale"] :
+                            self.comboboxRoleVariables[i].set("principale")
+                        else :
+                            self.comboboxRoleVariables[i].set("secondaire")
+                    # il faut centrer self.comboboxRole dans la colonne de grid
+                    self.comboboxRole.grid(row=1, column=i+1, sticky="w")
+                    
+                    # on active les fonctions de reconstruction des menus si changement.
+                    self.listeVariablesAntennesArrivee[i].trace_add("write", partial(self.changeAntenneArrivee, i))
+                    self.comboboxRoleVariables[i].trace_add("write", partial(self.changeRoleAntenneArrivee, i))
 
             self.nbreAntennesArrivee.trace_add("write", lambda *args: construireFrameArrivee())
             construireFrameArrivee()
         else :
             print("Aucun lecteur RFID n'a jamais envoyé de donnée à chronoHB.")
-        
+
+    def ActualiseAffichageRoleAntenneArrivee(self, k) :
+        print("on actualise l'affichage (rôle) en dessous en fonction du vrai rôle de l'antenne choisie juste au dessus",k, self.retourneAntenne(self.listeVariablesAntennesArrivee[k].get()))
+        if self.retourneAntenne(self.listeVariablesAntennesArrivee[k].get())["arrivee"] :
+            self.comboboxRoleVariables[k].set("principale")
+        else :
+            self.comboboxRoleVariables[k].set("secondaire")
+
+    def changeRoleAntenneArrivee(self, i, *args) :
+        print("changeRoleAntenneArrivee(",i,") pour l'antenne",self.listeVariablesAntennesArrivee[i].get(), self.retourneAntenne(self.listeVariablesAntennesArrivee[i].get())["principale"])
+        if self.comboboxRoleVariables[i].get() == "principale" :
+            self.retourneAntenne(self.listeVariablesAntennesArrivee[i].get()).change_role(True)
+        else :
+            self.retourneAntenne(self.listeVariablesAntennesArrivee[i].get()).change_role(False)
+
+    def changeAntenneArrivee(self, k, *args) :
+        print("changeAntenneArrivee(",k, ")", self.listeVariablesAntennesArrivee[k].valeurActuelle , "devient", self.listeVariablesAntennesArrivee[k].get())
+        antenne = self.retourneAntenne(self.listeVariablesAntennesArrivee[k].get())
+        if antenne : 
+            antenne.change_lieu(arrivee=True)
+            self.ActualiseAffichageRoleAntenneArrivee(k)
+        # si l'ancienne valeur est encore présente dans un autre combobox, on ne supprime pas son rôle. Sinon, on le supprime
+        AntenneSupprimee = True
+        for j in range(0, len(self.listeVariablesAntennesArrivee)) :
+            if self.listeVariablesAntennesArrivee[j].get() == self.listeVariablesAntennesArrivee[k].valeurActuelle :
+                AntenneSupprimee = False
+                break
+        if AntenneSupprimee :
+            print("L'antenne n'a pas d'autre présence dans un optionMenu affiché. On supprime son rôle d'antenne d'arrivée: ", self.listeVariablesAntennesArrivee[k].valeurActuelle)
+            self.retourneAntenne(self.listeVariablesAntennesArrivee[k].valeurActuelle).change_lieu(arrivee=False)
     
     def build_frame_Affecter(self, frame):
         """

@@ -1806,6 +1806,7 @@ class InfosRFID(dict) :
         # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
         if retour :
             retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
+            print("listeAntennes", retour, retourNoms)
         # retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
         return retour, retourNoms
 
@@ -1839,17 +1840,20 @@ class AntenneRFID(dict):
         self["principale"] = principale
         print(self["lecteur"], self["nom"], "basculé sur principale=", principale)
     def change_lieu(self, depart=None, checkPoint=None, arrivee=None, numeroCheckPoint=None):
+        print("change_lieu",self)
         if depart != None :
             self["depart"] = depart
-            print(self["lecteur"], self["antenne"], "basculé sur depart=", depart)
+            print(self["lecteur"], self["nom"], "basculé sur depart=", depart)
         if (checkPoint == True and numeroCheckPoint != None) or checkPoint == False :
             self["checkPoint"] = checkPoint
             if numeroCheckPoint not in self["listeDesCheckPointsOuElleEstPresente"] :
                 self["listeDesCheckPointsOuElleEstPresente"] = numeroCheckPoint
-                print(self["lecteur"], self["antenne"], "basculé sur checkPoint=", checkPoint, "numéro=", numeroCheckPoint)
+                print(self["lecteur"], self["nom"], "basculé sur checkPoint=", checkPoint, "numéro=", numeroCheckPoint)
         if arrivee != None :
             self["arrivee"] = arrivee
-            print(self["lecteur"], self["antenne"], "basculé sur arrivee=", arrivee)
+            print(self["lecteur"], self["nom"], "basculé sur arrivee=", arrivee)
+    def get_nom_complet(self):
+        return str(self["lecteur"])+"-"+str(self["nom"])
 
 def convert_timestamp_to_epoch(timestamp):
         """
