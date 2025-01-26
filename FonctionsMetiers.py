@@ -1919,7 +1919,7 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
 
         # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
         nom_antenne = info["reader"]+"-"+info["antenna"]
-        if not aEteCapteDepuisPeuParLaMêmeAntenne(nom_antenne, info["epc"]) :
+        if not Parametres["donneesRFID"].aEteCapteDepuisPeuParLaMêmeAntenne(nom_antenne, info["epc"]) :
             Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
             # # reader_name_antenna = f"{reader_name}-{antenna_port}"
             # # si le popup RFID est actif on lui envoie toutes les infos
@@ -1937,6 +1937,53 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
 def actualiseListeDesAntennes(reader_name, antenne) :
     # print("Actualisation de la liste des antennes", reader_name, antenne)
     Parametres["donneesRFID"].add_lecteur(reader_name, antenne)
+
+class ArriveeTempsClass(list):
+    def __init__(self, listeDesTemps = []):
+        super().__init__(listeDesTemps)
+    def append(self,element) :
+        super().append(element)
+    def insert(self, index, element) :
+        super().insert(index, element)
+    def index(self, element) :
+        return super().index(element)
+    def pop(self, index) :
+        # utiliser la méthode pop de la classe mère
+        return super().pop(index)
+    def remove(self, element) :
+        # utiliser la méthode remove de la classe mère
+        super().remove(element)
+
+class ArriveeDossardClass(list):
+    def __init__(self, listeDesDossards = []):
+        super().__init__(listeDesDossards)
+    def append(self,element) :
+        super().append(element)
+    def insert(self, index, element) :
+        super().insert(index, element)
+    def index(self, element) :
+        return super().index(element)
+    def pop(self, index) :
+        return super().pop(index)
+    def remove(self, element) :
+        # utiliser la méthode remove de la classe mère
+        super().remove(element)
+
+class ArriveeTempsAffecteClass(list):
+    def __init__(self, listeDesTempsAffectes = []):
+        super().__init__(listeDesTempsAffectes)
+    def append(self,element) :
+        super().append(element)
+    def insert(self, index, element) :
+        super().insert(index, element)
+    def index(self, element) :
+        return super().index(element)
+    def pop(self, index) :
+        return super().pop(index)
+    def remove(self, element) :
+        # utiliser la méthode remove de la classe mère
+        super().remove(element)
+    
 
 
 # setup the database
@@ -1986,23 +2033,39 @@ def chargerDonnees() :
                 root["Groupements"].append(Groupement(cat,[cat])) # on crée les groupements de même nom que les catégories existantes.
     Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
-        root["ArriveeTemps"] = []
-    ArriveeTemps=root["ArriveeTemps"]
+        root["ArriveeTemps"] = ArriveeTempsClass()
+    # ArriveeTemps=root["ArriveeTemps"]
     if not "ArriveeTempsAffectes" in root :
-        root["ArriveeTempsAffectes"] = []
-    ArriveeTempsAffectes=root["ArriveeTempsAffectes"]
+        root["ArriveeTempsAffectes"] = ArriveeTempsAffecteClass()
+    # ArriveeTempsAffectes=root["ArriveeTempsAffectes"]
     if not "ArriveeDossards" in root :
-        root["ArriveeDossards"] = []
+        root["ArriveeDossards"] = ArriveeDossardClass()
+    # ArriveeDossards=root["ArriveeDossards"]
+    ### transformation des données existantes depuis les sauvegardes anciennes
+    ### compatibilité ascendante assurée par héritage.
+    if isinstance(root["ArriveeDossards"], list) :
+        root["ArriveeDossards"] = ArriveeDossardClass(root["ArriveeDossards"])
     ArriveeDossards=root["ArriveeDossards"]
-    if not "LignesIgnoreesSmartphone" in root :
-        root["LignesIgnoreesSmartphone"] = []
-    LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
-    if not "LignesIgnoreesLocal" in root :
-        root["LignesIgnoreesLocal"] = []
-    LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
-    if not "dictUIDPrecedents" in root :
-        root["dictUIDPrecedents"] = {}
-    dictUIDPrecedents=root["dictUIDPrecedents"]
+    if isinstance(root["ArriveeTemps"], list) :
+        root["ArriveeTemps"] = ArriveeTempsClass(root["ArriveeTemps"])
+    ArriveeTemps=root["ArriveeTemps"]
+    if isinstance(root["ArriveeTempsAffectes"], list) :
+        root["ArriveeTempsAffectes"] = ArriveeTempsAffecteClass(root["ArriveeTempsAffectes"])
+    ArriveeTempsAffectes=root["ArriveeTempsAffectes"]
+
+    ### obsolète depuis des lustres, je pense :
+    # if not "LignesIgnoreesSmartphone" in root :
+    #     root["LignesIgnoreesSmartphone"] = []
+    # LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
+    # if not "LignesIgnoreesLocal" in root :
+    #     root["LignesIgnoreesLocal"] = []
+    # LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
+
+    # créé pour rien.
+    # if not "dictUIDPrecedents" in root :
+    #     root["dictUIDPrecedents"] = {}
+    # dictUIDPrecedents=root["dictUIDPrecedents"]
+
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
@@ -2531,7 +2594,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
         Parametres["ligneDerniereRecuperation"] = [1,1,1]
         Parametres["calculateAll"] = True
-        dictUIDPrecedents.clear()
+        # dictUIDPrecedents.clear()
     # on liste les fichiers à analyser
     fichierDonneesSmartphone = "donneesSmartphone.txt"
     fichierDonneesRFID = "donneesRFID.txt"
@@ -2581,7 +2644,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
         ligne = listeDesDonneesATraiter[indiceMin].pop(0)
         if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
+            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, RFID=RFIDtag)
             if codeErreur.numero :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
@@ -2724,7 +2787,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         Parametres["tempsDerniereRecuperationRFID"] = 0
         Parametres["compteurReceptionRFID"] = 0
         Parametres["calculateAll"] = True
-        dictUIDPrecedents.clear()
+        # dictUIDPrecedents.clear()
         # print("Réimport de toutes les données smartphone et RFID")
     listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
     retour = [] # si aucune ligne à traiter, on retourne []
@@ -2751,13 +2814,6 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                         print("Code erreur :", codeErreur.numero)
                         print(ligne)
                         retour.append(codeErreur)
-    ##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
-    ##                        print("Erreur ignorée")
-    ##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
-    ##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                        #else :
-                            #pasDErreur = False
-    ##                else :
                         #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
                     ### désormais, même s'il y a une erreur, on poursuit les imports.
                     if indice == 0 :
@@ -2806,7 +2862,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
         Parametres["ligneDerniereRecuperationLocale"] = 1
         Parametres["tempsDerniereRecuperationLocale"] = 0
         Parametres["calculateAll"] = True
-        dictUIDPrecedents.clear()
+        # dictUIDPrecedents.clear()
     retour = []
     # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
     if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesLocalesRecente(fichierDonneesSmartphone) :
@@ -2818,18 +2874,12 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
             #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
             #print(ligne[-4:])
             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, local=True, UIDPrecedents = dictUIDPrecedents)
+                codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
                 if codeErreur.numero :
                     # une erreur s'est produite
                     print("Code erreur : ", codeErreur.numero)
                     print(ligne)
                     retour.append(codeErreur)
-##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationLocale"] in LignesIgnoreesLocal :
-##                        print("Erreur ignorée")
-##                        Parametres["ligneDerniereRecuperationLocale"] += 1
-##                        Parametres["tempsDerniereRecuperationLocale"] = time.time()
-                    #else :
-                     #   pasDErreur = False
                 #else :
                     #print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
                 # même si une erreur se produit, désormais, on poursuit les imports.
@@ -2884,6 +2934,8 @@ def associe_dossard_epc(dossard, epc):
         return False
 
 def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
+    ### A priori, UIDPrecedents est inutile car les doublons seront gérés par les instances de ArriveeDossards, ArriveeTemps, etc...
+    ### A supprimer plus tard, quand les courses à étapes seront implémentées définitivement.
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
@@ -2924,7 +2976,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             retour = Erreur(451)
         elif rssi < Parametres["seuilRSSI"] :
             print("Signal trop faible : entrée RFID ignorée. Probable tag scanné de trop loin et n'ayant pas franchi l'arrivée.\nLigne = ",ligne)
-            retour = Erreur(452)
+            retour = Erreur(452, courteDescription="Signal trop faible pour l'EPC " + listeAction[2], elementConcerne=listeAction[2])
         else :
             if action == "add" :
                 retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
@@ -6839,8 +6891,8 @@ def delDossardsEtTemps():
     effacerFichierDonnneesLocales()
     genereAffichageTV([])# on vide le fichier Affichage.html pour qu'il ne contienne pas de vieilles données de course.
     genereAffichageWWW([])
-    root["LignesIgnoreesSmartphone"] = []
-    root["LignesIgnoreesLocal"] = []
+    # root["LignesIgnoreesSmartphone"] = []
+    # root["LignesIgnoreesLocal"] = []
     ligneTableauGUI = [1,0]
     if os.path.exists("./videos") :
         shutil.rmtree("./videos")
@@ -6860,7 +6912,7 @@ def delCoureurs():
 
 def delCourses():
 ##    if not Parametres["CourseCommencee"] :
-    dictUIDPrecedents.clear()
+    # dictUIDPrecedents.clear()
     root['Courses'].clear()
     root['Groupements'].clear()
     ##transaction.commit()
@@ -6959,29 +7011,29 @@ def delCourse(categorie) :
 ##    httpd.serve_forever()
 
 
-def simulateArriveesAleatoires():
-    #listeDeCourses = [ '6-F', "6-G", '5-F', "5-G", '4-F', "4-G", '3-F', "3-G" ]
-    #topDepart(listeDeCourses)
-    addArriveeTemps(time.time(), time.time(),time.time())
-    addArriveeTemps(time.time(), time.time(), time.time())
-    nbreCoureursSimules = 11
-    for n in range(nbreCoureursSimules) :
-        time.sleep(random.randint(1,3)/10)
-        addArriveeTemps(time.time(), time.time(),time.time())
-        addArriveeDossard(random.randint(1,nbreCoureursSimules))
+# def simulateArriveesAleatoires():
+#     #listeDeCourses = [ '6-F', "6-G", '5-F', "5-G", '4-F', "4-G", '3-F', "3-G" ]
+#     #topDepart(listeDeCourses)
+#     addArriveeTemps(time.time(), time.time(),time.time())
+#     addArriveeTemps(time.time(), time.time(), time.time())
+#     nbreCoureursSimules = 11
+#     for n in range(nbreCoureursSimules) :
+#         time.sleep(random.randint(1,3)/10)
+#         addArriveeTemps(time.time(), time.time(),time.time())
+#         addArriveeDossard(random.randint(1,nbreCoureursSimules))
 
 
-def listerDonneesTerminal():
-    #print("Coureurs")
-    #listCoureurs()
-    print("Courses")
-    for cat in listCourses():
-        c = Courses[cat]
-        print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
-    print("ArriveeDossards")
-    listArriveeDossards()
-    print("ArriveeTemps")
-    listArriveeTemps()
+# def listerDonneesTerminal():
+#     #print("Coureurs")
+#     #listCoureurs()
+#     print("Courses")
+#     for cat in listCourses():
+#         c = Courses[cat]
+#         print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
+#     print("ArriveeDossards")
+#     listArriveeDossards()
+#     print("ArriveeTemps")
+#     listArriveeTemps()
 ##    print("TableauGUI")
 ##    print(DonneesAAfficher.lignes)
 ##    print(DonneesAAfficher.lignesActualisees)
@@ -8521,203 +8573,4 @@ def genereAffichageWWW(listeDesGroupements) :
 
 if __name__ == '__main__':
     deposePagesHTMLInternet(["./www/Affichage-Contenu.html"])
-
-
-##
-##
-##if __name__=="__main__":
-####    # Start the server in a new thread
-####    port = 8888
-####    daemon = threading.Thread(name='daemon_server', target=start_server, args=('/', port))
-####    daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-####    daemon.start()
-####    time.sleep(1)
-##    while 1:
-##        print("'g' to generate resultats; 'i' pour importer les données des smartphones ; 'g2' pour générer le fichier de coureurs pour les smartphones")
-##        print("'g3' pour générer les pdfs de dossards , 'g4' pour l'impression des résultats, 'a4' affecte un dossard à un temps existant ; 'I' pour imprimer les dossards (test).")
-##        #print("'s2' pour générer des départs et arrivées de coureurs, 'recup' pour importer le csv le plus récent.")
-##        print("Press 'c' to calculate runners times ('c0' from beginning)")#'t' pour le top départ des courses existantes,")# 's' to simulate création de coureurs.")
-##        print("Press 'a2' to add un dossard arrivé, 'a3' pour insérer un temps sur la ligne d'arrivée; 'd3' pour supprimer un temps associé à un dossard ou non")
-##        print("d4 pour dissocier un dossard d'un temps associé ; dist pour affecter une distance à une course ; distall pour affecter une même distance à toutes les courses.")
-##        print("'l' pour lister toutes les données ; 'l1' pour les courses ; 'l2' pour les dossards arrivés ; 'l3' pour les temps à l'arrivée ; 'l4' pour les coureurs.")
-##        choice=input("'d1' to delete one runner, 'd2' to delete dossard ,'r' to reset all, 'A1' to add an Coureur, 'recup' pour siecle or 'Q' to quit:")
-##        choice=choice.lower()
-##        if choice=="l":
-##            listerDonneesTerminal()
-##        elif choice == "l1" :
-##            print("Courses")
-##            for cat in listCourses():
-##                c = Courses[cat]
-##                print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
-##        elif choice == "l2" :
-##            print("ArriveeDossards")
-##            listArriveeDossards()
-##        elif choice == "l3" :
-##            print("ArriveeTemps")
-##            listArriveeTemps()
-##        elif choice == 'l4' :
-##            listCoureurs()
-##        elif choice == "recup" :
-##            recupCSVSIECLE()
-##        elif choice == 'g2':
-##            generateListCoureursPourSmartphone()
-##        elif choice == 'g3':
-##            generateDossards()
-####            mon_thread2=Thread(target=generateDossards)
-####            mon_thread2.start()
-##        elif choice == 'g4' :
-##            mon_thread=Thread(target=generateImpressions)
-##            mon_thread.start()
-##        elif choice =="test":
-##            generateImpressions()
-##        elif choice == "distall" :
-##            saisie = input("Distance en km à affecter à toutes les courses :")
-##            try :
-##                d = float(saisie)
-##                print(d)
-##                setDistanceToutesCourses(d)
-##            except:
-##                print("Distance invalide : le séparateur décimal est un point")
-##        elif choice == "dist" :
-##            print("liste des courses", listCourses())
-##            nom = input("Nom de la course :")
-##            if nom in listCourses() :
-##                saisie = input("Distance en km à affecter à " + nom + " : ")
-##                try :
-##                    d = float(saisie)
-##                    setDistance( nom, d)
-##                except:
-##                    print("Distance invalide : le séparateur décimal est un point")
-##        elif choice =="g":
-##            genereResultatsCoursesEtClasses()
-##            for key in Resultats :
-##                if len(key) == 1 :
-##                    print(key, " :")
-##                    i=0
-##                    while i < len(Resultats[key]) :
-##                        score = Resultats[key][i].score
-##                        classe = Resultats[key][i].nom
-##                        liste = Resultats[key][i].listeCF + Resultats[key][i].listeCG
-##                        print(" -" ,i+1,":", classe, "(score :", score, ") avec les coureurs ", end='')
-##                        for element in liste :
-##                            print(element.prenom, "-", element.dossard,"-rang:" , element.rang, ",", end='')
-##                        i += 1
-##                else :
-##                    print(key , ":", Resultats[key])
-##            genereAffichageTV(listCourses())
-####        elif choice=="t":
-####            listeDeCourses = listCourses()
-####            topDepart(listeDeCourses)
-##        elif choice=="c0":
-##            print(calculeTousLesTemps(True))
-##        elif choice=="c":
-##            calculeTousLesTemps()
-##        elif choice=="d1":
-##            dossard = input("Dossard :")
-##            delCoureur(dossard)
-##        elif choice=="d2":
-##            dossard = input("Dossard :")
-##            delArriveeDossard(dossard)
-##        elif choice=="d3":
-##            #listArriveeTemps()
-##            temps = input("Temps Réel à supprimer :")
-##            saisie = input("Dossard associé :")
-##            if saisie == "" :
-##                dossard = 0
-##            else :
-##                dossard = saisie
-##            delArriveeTemps(temps, dossard)
-##        elif choice=="d4":
-##            #listArriveeTemps()
-##            temps = input("Temps Réel dont il faut dissocier le dossard :")
-##            #dissocieArriveeTemps(temps)
-##            delDossardAffecteArriveeTemps(temps)
-##        elif choice=="r":
-##            delCoureurs()
-##        elif choice == 'a4':
-##            temps = float(input("Temps à affecter :"))
-##            dossard = input("Dossard associé (ne rien mettre pour effacer le dossard affecté) :")
-##            if dossard == "" :
-##                delDossardAffecteArriveeTemps(temps)
-##            else :
-##                affecteDossardArriveeTemps(temps, dossard)
-##        elif choice == 'I' :
-##            imprimePDF('dossards/0-tousLesDossards.pdf')
-##        elif choice == 'a3':
-##            temps = input("Temps à ajouter :")
-##            saisie = input("Dossard associé :")
-##            if saisie == "" :
-##                dossard = 0
-##            else :
-##                dossard = saisie
-##            addArriveeTemps(temps, time.time(), time.time(),dossard)
-##        elif choice=="a2":
-##            dossard = input("Dossard :")
-##            listArriveeDossards()
-##            dossardPrecedent = input("Dossard précédent :")
-##            if dossardPrecedent != "" :
-##                addArriveeDossard(dossard, dossardPrecedent)
-##            else :
-##                addArriveeDossard(dossard)
-##        elif choice=="a1":
-##            nom=input("nom :")
-##            prenom=input("prenom :")
-##            sexe=input("sexe :")
-##            classe=input("classe :")
-##            addCoureur(nom, prenom, sexe, classe)
-##
-##        elif choice=="q":
-##            break
-##        elif choice == "i" :
-##            print("on traite les données venant des smartphones")
-##            traiterDonneesSmartphone()
-##        elif choice == "i0" :
-##            print("on traite les données venant des smartphones et modifiées localement en réimportant tout.")
-##            traiterDonneesSmartphone(True, True)
-##            traiterDonneesLocales(True,True)
-##        elif choice == "cross2021" :
-##            for donnees in [["3-G",1634718699.42883],["3-F",1634717715.5224173],["4-G",1634716606.7038844],["4-F",1634715607.2591505],["M-G",1634716606.7038844],["5-F",1634713685.815892],["5-G",1634714642.7407954],["6-G",1634712769.324046],["6-F",1634711735.989033],["2-F",1634717715.5224173],["A-F",1634717715.5224173],["A-G",1634718699.42883],["B-F",1634715607.2591505]] :
-##                fixerDepart(donnees[0],donnees[1])
-##            root["LignesIgnoreesSmartphone"] = []
-##            root["LignesIgnoreesLocal"] = []
-##        elif choice == "teststats" :
-##            testTMPStats()
-##    ecrire_sauvegardeNG(sauvegarde)
-##    ##transaction.commit()
-##    # close database
-##    #connection.close()
-##    #db.close()
-##
-# if __name__=="__main__":
-#     pdf_path = "./resultats/3A.pdf"
-#     imprimePDF(pdf_path)
-    # print("création du dictionnaire")
-    # C = DictionnaireDeCoureurs()
-    # C.effacerTout()
-    # print("ajout de coureurs")
-    # #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
-    # print("ArriveeDossards",ArriveeDossards)
-    # print("ArriveeTempsAffectes",ArriveeTempsAffectes)
-    # C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
-    # C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
-    # C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
-    # C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
-    # Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
-    # C.ajouter(Cmath,"B")
-    # C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
-    # C.afficher()
-    # print(C.recuperer("2B").prenom)
-    # C.effacer(Cmath)
-    # C.effacer("1B")
-    # C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
-    # C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
-    # C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
-    # #print(C.liste())
-    # C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
-    # #C.effacer("1D")
-    # C.afficher()
-    # print(C.recuperer("3B").prenom)
-    # print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
-    # print(C.existe(3))
-    # print(C.existe(7))
 

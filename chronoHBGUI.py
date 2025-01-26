@@ -2713,7 +2713,7 @@ def rejouerToutesLesActionsMemorisees() :
     Parametres["ligneDerniereRecuperationLocale"]=1
     # on retraite les piques également désormais.
     Parametres["DerniereRecuperationSmartphonePiques"] = {}
-    dictUIDPrecedents.clear()
+    # dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
     ligneTableauGUI = [1,0]
