@@ -1766,32 +1766,51 @@ class EquipeClasse():
 
 class InfosRFID(dict) :
     def __init__(self):
-        self.derniersDossardsCaptesParAntenne = {}
+        self.derniersDossardsCaptes = {}
         self.antenne_frame_a_reconstruire = False
+        self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+        self.listeAntennesSecondairesAReconstruire = False
         # self.lecteurs = []
         # self.lecteurs_antennes = []
     # def effacerTout(self) :
     #     self.lecteurs = []
     #     self.lecteurs_antennes = []
     def clear(self) :
-        self.derniersDossardsCaptesParAntenne = {}
+        self.derniersDossardsCaptes = {}
 
-    def aEteCapteDepuisPeuParLaMêmeAntenne(self, nom_antenne, epc) :
-        if not nom_antenne in self.derniersDossardsCaptesParAntenne.keys() :
-            self.derniersDossardsCaptesParAntenne[nom_antenne] = {}
-            self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+    def aEteCapteDepuisPeuParUneAntennePrincipale(self, epc) :
+        """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de 30 secondes
+        False sinon"""
+        if self.listeAntennesSecondairesAReconstruire :
+            self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+            # on va traiter et conserver l'information.
             return False
-        else :
-            if not epc in self.derniersDossardsCaptesParAntenne[nom_antenne].keys() :
-                self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-                return False
+        # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter.
+        if epc in self.derniersDossardsCaptes.keys() :
+            if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
+                self.derniersDossardsCaptes[epc] = time.time()
+                return True
             else :
-                if time.time() - self.derniersDossardsCaptesParAntenne[nom_antenne][epc] < Parametres["delai_antennes_par_tag"] :
-                    self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-                    return True
-                else :
-                    self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-                    return False
+                self.derniersDossardsCaptes[epc] = time.time()
+                return False
+        else :
+            self.derniersDossardsCaptes[epc] = time.time()
+            return False
+        # if not nom_antenne in self.derniersDossardsCaptesParAntenne.keys() :
+        #     self.derniersDossardsCaptesParAntenne[nom_antenne] = {}
+        #     self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+        #     return False
+        # else :
+        #     if not epc in self.derniersDossardsCaptesParAntenne[nom_antenne].keys() :
+        #         self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+        #         return False
+        #     else :
+        #         if time.time() - self.derniersDossardsCaptesParAntenne[nom_antenne][epc] < Parametres["delai_antennes_par_tag"] :
+        #             self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+        #             return True
+        #         else :
+        #             self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+        #             return False
         
     def add_lecteur(self, nomLecteur, nomAntenne) :
         """ ajoute un lecteur et-ou son antenne si besoin."""
@@ -1814,7 +1833,7 @@ class InfosRFID(dict) :
             if lecteur == nom :
                 return self[lecteur]
         return None
-    def listeAntennes(self, departUniquement = False, arriveeUniquement = False, checkPointUniquement = False) :
+    def listeAntennes(self, departUniquement = False, arriveeUniquement = False, checkPointUniquement = False, role="All") :
         # print("self",self)
         # print("self.lecteurs_antennes",self.lecteurs_antennes)
         retour = []
@@ -1822,8 +1841,16 @@ class InfosRFID(dict) :
         for i,lecteur in enumerate(self.values()) :
             for antenne in lecteur.values() :
                 if (not departUniquement and not arriveeUniquement and not checkPointUniquement) or (departUniquement and antenne["depart"]) or (arriveeUniquement and antenne["arrivee"]) or (checkPointUniquement and antenne["checkPoint"]) :
-                    retour.append(antenne)
-                    retourNoms.append(str(lecteur.nom)+"-"+str(antenne["nom"]))
+                    if role == "All" :
+                        retour.append(antenne)
+                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                    elif role == "principale" and antenne["principale"] :
+                        retour.append(antenne)
+                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                    elif role == "secondaire" and not antenne["principale"] :
+                        retour.append(antenne)
+                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                    # retourNoms.append(str(lecteur.nom)+"-"+str(antenne["nom"]))
         # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
         if retour :
             retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))

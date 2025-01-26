@@ -119,10 +119,11 @@ Pbs persistants urgents :
 Travail du 26/91/2025 :
 - import des données depuis les fichiers txt chronologique afin d'être sûr de pouvoir rejouer toujours la séquence des instructions chonologiquement.
 - le passage en mode configuration RFID posait problème ensuite au serveur web pour importer les données de course.
-- suppression des doublons RFID captés par la même antenne depuis moins de 30 secondes.
+- suppression des doublons RFID captés par la même antenne principale depuis moins de 30 secondes. Les antennes secondaires ne doivent pas intervenir et doivent toujours amener à un traitement.
 - création de class dédiées pour ArriveeDossards, ArriveeTemps, ArriveeTempsAffecte afin de pouvoir ultérieurement étendre les possibilités du logiciel
   à des courses à étapes, etc... Compatibilité ascendante conservée.
 - correctif dans traiterToutesLesDonneesNG qui testait mal si la demande était locale. La désaffectation d'un dossard à un temps depuis l'interface ne pouvait plus fonctionner.
+
 
 Travail du 25/01/2025 :
 - interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.
