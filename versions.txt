@@ -106,7 +106,14 @@ Il faudra prévoir la suppression d'une antenne affichée... Pas urgent.
 Pbs persistants urgents :
 - les données multiples RFID ne sont pas gérées.
 - on ne peut pas avancer un dossard quand tous les dossards sont affectés à un temps. Si c'est le cas, que faire ?
+	pour permuter un dossardPrecedent et un dossard, je prendrais le fonctionnement suivant :
+	1. je récupère les temps des deux coureurs.
+	2. si au moins une affectation, je remplacerai l'affectation au temps par celle de l'autre (que ce soit une vraie affectation ou 0A) et réciproquement?
+	3. je ferais la permutation dans ArriveeDossards comme actuellement.
+- vérifier si toutes les corrections depuis l'interface graphique restent fonctionnelles avec les dossards ajoutés en RFID : 
+	je pense que le problème ci-dessus va se retrouver dans beaucoup de boutons.
 - pouvoir régler le délai de suppression des doublons RFID captés par la même antenne depuis l'interface
+- affichage une seconde de n'importe quoi dans l'interface à l'ouverture. Why ?
 
 
 Travail du 26/91/2025 :
@@ -115,6 +122,7 @@ Travail du 26/91/2025 :
 - suppression des doublons RFID captés par la même antenne depuis moins de 30 secondes.
 - création de class dédiées pour ArriveeDossards, ArriveeTemps, ArriveeTempsAffecte afin de pouvoir ultérieurement étendre les possibilités du logiciel
   à des courses à étapes, etc... Compatibilité ascendante conservée.
+- correctif dans traiterToutesLesDonneesNG qui testait mal si la demande était locale. La désaffectation d'un dossard à un temps depuis l'interface ne pouvait plus fonctionner.
 
 Travail du 25/01/2025 :
 - interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.

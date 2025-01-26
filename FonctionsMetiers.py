@@ -2640,7 +2640,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
         indiceMin = IndiceDuPlusPetitNombreNonNul(listeDesTpsServeurDesPremiersElements)
         RFIDtag = "RFID" in listeDesFichiersAAnalyser[indiceMin]
-        LocalTag = "Locales" in listeDesFichiersAAnalyser[indiceMin]
+        LocalTag = "Locale" in listeDesFichiersAAnalyser[indiceMin]
         # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
         ligne = listeDesDonneesATraiter[indiceMin].pop(0)
         if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
