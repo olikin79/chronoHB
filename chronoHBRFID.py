@@ -12,6 +12,8 @@ class Popup(tk.Toplevel):
         # Maximiser la fenêtre
         self.state('zoomed')
 
+        Parametres["popupRFID"]=True
+
         self.infos = []
         self.listeDossardsCHB = Coureurs.listeDossards()
 
@@ -50,7 +52,16 @@ class Popup(tk.Toplevel):
         self.infos_RFID.insert(tk.END, "Ici, apparaitront les dernières données reçues depuis les lecteurs RFID...")
         self.infos_RFID.pack(fill="both", expand=True)
         self.infos_RFID.config(state="disabled")
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+    def on_closing(self):
+        # Code à exécuter lors de la fermeture
+        print("Fermeture du popup")
+        # Supprimer les références à l'objet popup (si nécessaire)
+        global popup
+        popup = None
+        self.destroy()
+        Parametres["popupRFID"]=False
 
     def buildTabs(self):
         # Créer les widgets pour chaque onglet
@@ -658,7 +669,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
         # print("self.detectionSuccessive.get()", self.detectionSuccessive.get())
         message = ""
         try :
-            print("Traitement de données reçues par le popup de configuration RFID : ", data)
+            # print("Traitement de données reçues par le popup de configuration RFID : ", data)
             reader_name, tags, json_timestamp_epoch = extractionDonneesCommunesDeDataRFID(data)
             def messageErreurDetectionMultiple(tags):
                 # extraire les epc des tags
