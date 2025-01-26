@@ -1980,6 +1980,8 @@ class ArriveeTempsClass(list):
     def remove(self, element) :
         # utiliser la méthode remove de la classe mère
         super().remove(element)
+    def clear(self):
+        return super().clear()
 
 class ArriveeDossardClass(list):
     def __init__(self, listeDesDossards = []):
@@ -1995,6 +1997,8 @@ class ArriveeDossardClass(list):
     def remove(self, element) :
         # utiliser la méthode remove de la classe mère
         super().remove(element)
+    def clear(self):
+        return super().clear()
 
 class ArriveeTempsAffecteClass(list):
     def __init__(self, listeDesTempsAffectes = []):
@@ -2010,7 +2014,8 @@ class ArriveeTempsAffecteClass(list):
     def remove(self, element) :
         # utiliser la méthode remove de la classe mère
         super().remove(element)
-    
+    def clear(self):
+        return super().clear()
 
 
 # setup the database

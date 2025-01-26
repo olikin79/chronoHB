@@ -203,6 +203,9 @@ class MonTableau(Frame):
             self.hsb.destroy()
         except :
             print("Première exécution")
+            ArriveeDossards.clear()
+            ArriveeTemps.clear()
+            ArriveeTempsAffectes.clear()
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
         self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
