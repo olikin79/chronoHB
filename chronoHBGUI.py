@@ -3169,7 +3169,7 @@ class Clock():
         
     def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
-        global tableauGUI,traitementSmartphone,traitementLocal,traitementDonneesRecuperees
+        global tableauGUI,traitementDonneesRecuperees
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
         
@@ -3188,24 +3188,32 @@ class Clock():
         # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
 
         #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
-        if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
-            self.auMoinsUnImport = True
+        listeFichiersDonnees = ["donneesSmartphone.txt","donneesRFID.txt","donneesModifLocale.txt"]
+        for i, fichier in enumerate(listeFichiersDonnees) :
+            if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
+                print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
+                # if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesRFIDRecente("donneesRFID.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
+                self.auMoinsUnImport = True
+                break
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
-        # print("traitementSmartphone",traitementSmartphone)
-        traitementSmartphonePiques = traiterDonneesSmartphonePiques()
-        # print("traitementSmartphonePiques",traitementSmartphonePiques)
-        traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
+        # traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
+        # # print("traitementSmartphone",traitementSmartphone)
+        # traitementSmartphonePiques = traiterDonneesSmartphonePiques()
+        # # print("traitementSmartphonePiques",traitementSmartphonePiques)
+        # traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
+        # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
+        traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
-        if traitementSmartphone + traitementSmartphonePiques + traitementLocal :
+        if traitementToutesDonnees :
+            # print(ArriveeTemps)
             # il y a des erreurs qui peuvent se corriger sans action depuis les smartphones, on doit tout retraiter tant qu'il y en a.
             traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
         else :
             # si traitementDonneesRecuperees n'est pas définie, la créer
             if "traitementDonneesRecuperees" not in locals() :
                 traitementDonneesRecuperees = []
-        listeNouvellesErreursATraiter = traitementSmartphone + traitementSmartphonePiques + traitementLocal + traitementDonneesRecuperees
+        listeNouvellesErreursATraiter = traitementToutesDonnees + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
@@ -4173,7 +4181,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
         """Handle POST requests for JSON data or delegate to CGI."""
         if self.path == "/rfid-json":
             # Récupération de l'heure exacte actuelle en secondes depuis l'époque
-            heureReceptionServeur = time.time()
+            heureReceptionServeur = str(time.time())
             
             try:
                 # Récupérer la longueur du contenu
@@ -4184,12 +4192,16 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                 data = json.loads(post_data)
 
                 try :
-                    # si le popup RFID est actif on lui envoie toutes les infos : on est en phase de configuration des puces RFID (hors course)
-                    popup.setInfo(data)
-                    print("Fin du traitement des données RFID reçues par le popup de configuration.")
-                except :
-                    # traiter les données dans le logiciel chronoHB car on est en configuration de course
-                    print("Début du traitement des données RFID reçues en configuration de course.")
+                    if Parametres["popupRFID"] :
+                        # si le popup RFID est actif on lui envoie toutes les infos : on est en phase de configuration des puces RFID (hors course)
+                        popup.setInfo(data)
+                        print("Fin du traitement des données RFID reçues par le popup de configuration.")
+                    else :
+                        # traiter les données dans le logiciel chronoHB car on est en configuration de course
+                        print("Traitement des données RFID reçues en configuration de course.")
+                        traiterDonneesRFID(data, heureReceptionServeur)
+                except: 
+                    print("Traitement des données RFID reçues en configuration de course.")
                     traiterDonneesRFID(data, heureReceptionServeur)
                 
                 # Répondre au client
@@ -4225,6 +4237,10 @@ def start_server(path, port=8888):
     httpd = server(server_address, handler)
     httpd.serve_forever()
 
+# tag pour savoir si le popup est ouvert ou non.
+if not "popupRFID" in Parametres :
+    Parametres["popupRFID"]=False
+
 # Start the server in a new thread
 port = 8888
 #start_server("/",8888)
@@ -4233,14 +4249,16 @@ daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thre
 daemon.start()
 #time.sleep(1)
 
-global popup
+
+# global popup
+# popup = Popup()
 
 def lancerPopupRFID() :
     global popup
     # Créer une instance du popup
     popup = Popup()
     # Afficher le popup (vous pouvez le déclencher à un événement précis)
-    popup.mainloop() 
+    # popup.mainloop() 
 
 
 # def popupRFID(info) :

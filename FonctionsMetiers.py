@@ -1872,7 +1872,7 @@ def extractionDonneesCommunesDeDataRFID(data) :
     # Récupération des données spécifiques de data
     reader_name = data.get("readerName", "UnknownReader")
     tags = data.get("tags", [])
-    json_timestamp_epoch = convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z")))
     return reader_name, tags, json_timestamp_epoch
     
 def extractionDonneesDUnTagRFID(tag, reader_name) :
@@ -1880,10 +1880,10 @@ def extractionDonneesDUnTagRFID(tag, reader_name) :
     antenna_port = tag.get("antennaPort", "UnknownPort")
     if reader_name and antenna_port != "UnknownPort":
         actualiseListeDesAntennes(reader_name, antenna_port)
-    rssi = tag.get("rssi", 0)
-    seen_count = tag.get("seenCount", 0)
+    rssi = tag.get("rssi", "0")
+    seen_count = tag.get("seenCount", "0")
     tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
-    return {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch}
+    return {"epc":str(epc), "reader":str(reader_name), "antenna" :str(antenna_port), "rssi":str(rssi), "seen_count":str(seen_count)  ,"tag_timestamp_epoch":str(tag_timestamp_epoch)}
     # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
 
 def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenna_port, rssi, seen_count, tag_timestamp_epoch, heureReceptionServeur, json_timestamp_epoch) :
@@ -1898,12 +1898,13 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
         # # reader_name_antenna = f"{reader_name}-{antenna_port}"
         # # si le popup RFID est actif on lui envoie toutes les infos
         # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
-        chaineAAjouterDansFichierTexte += "tps,add,{"+info["epc"]+"},{"+info["tag_timestamp_epoch"]+"},{"+info["json_timestamp_epoch"]+"},{"+info["heureReceptionServeur"]+"},0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
-        chaineAAjouterDansFichierTexte += "dossard,add,{"+info["epc"]+"},-1,0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
+        chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+",0,0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+        chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,0," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
         # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
     with open("donneesRFID.txt", "a") as file:
         # Écrire les lignes dans le fichier en une seule fois.
         file.write(chaineAAjouterDansFichierTexte)
+        file.close()
 
 def actualiseListeDesAntennes(reader_name, antenne) :
     # print("Actualisation de la liste des antennes", reader_name, antenne)
@@ -1920,7 +1921,7 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID
+           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID, ligneDerniereRecuperation
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1993,12 +1994,18 @@ def chargerDonnees() :
     if not "ligneDerniereRecuperationSmartphone" in Parametres :
         Parametres["ligneDerniereRecuperationSmartphone"]=1
     ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+    if not "tempsDerniereRecuperation" in Parametres :
+        Parametres["tempsDerniereRecuperation"] = [0,0,0]
+    tempsDerniereRecuperation = Parametres["tempsDerniereRecuperation"]
     if not "tempsDerniereRecuperationRFID" in Parametres :
         Parametres["tempsDerniereRecuperationRFID"]=0
     tempsDerniereRecuperationRFID = Parametres["tempsDerniereRecuperationRFID"]
-    if not "ligneDerniereRecuperationRFID" in Parametres :
+    if not "ligneDerniereRecuperationRFID" in Parametres : ### OBSOLETE
         Parametres["ligneDerniereRecuperationRFID"]=1
     ligneDerniereRecuperationRFID = Parametres["ligneDerniereRecuperationRFID"]
+    if not "ligneDerniereRecuperation" in Parametres :
+        Parametres["ligneDerniereRecuperation"]=[1,1,1] # stocke dans l'ordre la ligne dans donneesSmartphone.txt, donneesRFID.txt puis donneesLocales.txt
+    ligneDerniereRecuperation = Parametres["ligneDerniereRecuperation"]
     if not "tempsDerniereRecuperationLocale" in Parametres :
         Parametres["tempsDerniereRecuperationLocale"]=0
     tempsDerniereRecuperationLocale = Parametres["tempsDerniereRecuperationLocale"]
@@ -2472,6 +2479,143 @@ def traiterToutesDonnees():
     traiterDonneesLocales(True,False)
     traiterDonneesSmartphonePiques()
     
+def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
+    """Reprend le fonctionnement de traiterToutesDonnees mais en ne traitant les données Smartphone, RFID et Locales en parallèle.
+    Il ouvre tous les fichiers, récupère les lignes ayant éventuellement été ajoutées pour chacun des fichiers et
+    les traite en prenant en compte heureArriveeServeur en 5ème position pour les temps et en 6ème position pour les dossard"""
+    retour = []
+    if DepuisLeDebut :
+        #root["ArriveeTemps"] = []
+        #root["ArriveeTempsAffectes"] = []
+        #root["ArriveeDossards"] = []
+        # Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
+        # Parametres["tempsDerniereRecuperationSmartphone"] = 0
+        # Parametres["ligneDerniereRecuperationRFID"] = 1
+        # Parametres["tempsDerniereRecuperationRFID"] = 0
+        Parametres["compteurReceptionRFID"] = 0
+        # Parametres["ligneDerniereRecuperationLocale"] = 1
+        # Parametres["tempsDerniereRecuperationLocale"] = 0
+        Parametres["tempsDerniereRecuperation"] = [0,0,0]
+        Parametres["DerniereRecuperationSmartphonePiques"] = {}
+        Parametres["ligneDerniereRecuperation"] = [1,1,1]
+        Parametres["calculateAll"] = True
+        dictUIDPrecedents.clear()
+    # on liste les fichiers à analyser
+    fichierDonneesSmartphone = "donneesSmartphone.txt"
+    fichierDonneesRFID = "donneesRFID.txt"
+    fichierDonneesLocales = "donneesModifLocale.txt"
+    listeDesFichiersAAnalyser = [fichierDonneesSmartphone, fichierDonneesRFID, fichierDonneesLocales]
+
+    # on récupère les données des fichiers à traiter
+    listeDesDonneesATraiter = []
+    listeDesTpsServeurDesPremiersElements = []
+    listeLignesDerniereRecuperation = Parametres["ligneDerniereRecuperation"]
+    
+    listeDerniereModifFichierDonnees = [] # #[derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID), derniereModifFichierDonnneesLocalesRecente(fichierDonneesLocales)]
+    for i, fichier in enumerate(listeDesFichiersAAnalyser) :
+        listeDerniereModifFichierDonnees.append(derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]))
+        if os.path.exists(fichier) :
+            Parametres["tempsDerniereRecuperation"][i] = os.path.getmtime(fichier)
+    # on mémorise les nouveaux paramètres : tempsDerniereRecuperation
+
+    for indice, fichier in enumerate(listeDesFichiersAAnalyser) :
+        if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
+            listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
+            listeDesDonneesATraiter.append(listeLigne)
+        else :
+            listeLigne = []
+            listeDesDonneesATraiter.append([])
+
+        tpsServeur = retourneLeTempsDUneListeDeLignes(listeLigne, indice)
+        listeDesTpsServeurDesPremiersElements.append(tpsServeur)
+            # print("Le fichier", fichier, "n'existe pas ou n'a pas été modifié récemment.")
+    # on analyse les données dans l'ordre du tpsServeur de chaque ligne.
+    # tant que toutes les listes de listeDesDonneesATraiter ne sont pas vides, on traite les données
+    poursuivre = False
+    for liste in listeDesDonneesATraiter :
+        if liste :
+            poursuivre = True
+            break
+    if DEBUG and poursuivre :
+        print("listeDerniereModifFichierDonnees",listeDerniereModifFichierDonnees)
+        print("listeDesTpsServeurDesPremiersElements", listeDesTpsServeurDesPremiersElements)
+        print("listeDesDonneesATraiter", listeDesDonneesATraiter)
+    while poursuivre :
+        # print(listeDesTpsServeurDesPremiersElements)
+        # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
+        indiceMin = IndiceDuPlusPetitNombreNonNul(listeDesTpsServeurDesPremiersElements)
+        RFIDtag = "RFID" in listeDesFichiersAAnalyser[indiceMin]
+        LocalTag = "Locales" in listeDesFichiersAAnalyser[indiceMin]
+        # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
+        ligne = listeDesDonneesATraiter[indiceMin].pop(0)
+        if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
+            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
+            if codeErreur.numero :
+                # une erreur s'est produite
+                print("Code erreur :", codeErreur.numero)
+                print(ligne)
+            retour.append(codeErreur)
+            if indiceMin < len(Parametres["ligneDerniereRecuperation"]) :
+                Parametres["ligneDerniereRecuperation"][indiceMin] += 1
+            else :
+                print("Problème de mise à jour de Parametres[ligneDerniereRecuperation]")
+                # on complète Parametres["ligneDerniereRecuperation"] avec des 1 jusqu'à la taille de indiceMin et on y place le nombre 2
+                while len(Parametres["ligneDerniereRecuperation"]) < indiceMin :
+                    Parametres["ligneDerniereRecuperation"].append(1)
+                Parametres["ligneDerniereRecuperation"].append(2)
+        else :
+            #pasDErreur = False
+            print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+        # on récupère le nouveau tspServeur du premier élément de la liste indiceMin
+        tpsServeur = retourneLeTempsDUneListeDeLignes(listeDesDonneesATraiter[indiceMin], indice)
+        listeDesTpsServeurDesPremiersElements[indiceMin] = tpsServeur
+        # si toutes les listes de listeDesDonneesATraiter sont vides, on quitte le processus
+        # tester si toutes les listes sont vides
+        poursuivre = False
+        for liste in listeDesDonneesATraiter :
+            if liste :
+                poursuivre = True
+                break
+
+    # on met à jour les paramètres
+    # Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+    # Parametres["tempsDerniereRecuperationRFID"] = time.time()
+    # Parametres["tempsDerniereRecuperationLocale"] = time.time()
+    # Parametres["tempsDerniereRecuperation"] = [time.time(), time.time(), time.time()]
+
+    # on traite les données des piques après coup
+    retour += traiterDonneesSmartphonePiques()
+    # print("retour traitement", retour)
+    return retour 
+
+def retourneLeTempsDUneListeDeLignes(liste, indice) :
+    """Pour garder une compatibilité ascendante, les lignes qui n'ont pas de tpsServeur sont gérées 
+    dans l'ordre initial : smartphones, RFID, locales"""
+    if liste :
+        ligne = liste[0]
+        listeAction = ligne.split(",")
+        try :
+            if listeAction[0] == "tps" :
+                retour = float(listeAction[5])
+            else :
+                retour = float(listeAction[6])
+        except :
+            retour = (indice + 1)/1000
+    else :
+        retour = 0
+    return retour 
+
+def IndiceDuPlusPetitNombreNonNul(liste) :
+    """Retourne l'indice du plus petit nombre non nul de la liste non vide fournie"""
+    indice = 0
+    ### plusPetitNombre doit prendre une valeur la plus grande possible pour un nombre python
+    plusPetitNombre = 1e100
+    for i, nombre in enumerate(liste) :
+        if nombre != 0 and nombre < plusPetitNombre :
+            plusPetitNombre = nombre
+            indice = i
+    return indice
+
 
 def traiterDonneesSmartphonePiques():
     """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
@@ -2541,7 +2685,8 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         #root["ArriveeTemps"] = []
         #root["ArriveeTempsAffectes"] = []
         #root["ArriveeDossards"] = []
-        Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
+        Parametres["ligneDerniereRecuperation"] = [1,1,1]
+        Parametres["ligneDerniereRecuperationSmartphone"] = 1
         Parametres["tempsDerniereRecuperationSmartphone"] = 0
         Parametres["ligneDerniereRecuperationRFID"] = 1
         Parametres["tempsDerniereRecuperationRFID"] = 0
@@ -2550,12 +2695,12 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         dictUIDPrecedents.clear()
         # print("Réimport de toutes les données smartphone et RFID")
     listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
+    retour = [] # si aucune ligne à traiter, on retourne []
     for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
         # print("Import depuis de le début :", DepuisLeDebut)
         RFIDtag = "RFID" in fichier
         listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
         # listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
-        retour = [] # si aucune ligne à traiter, on retourne []
         # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
         # print(os.path.exists(fichier), listeDerniereModifFichierDonnees[indice])
         if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
@@ -2573,6 +2718,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                         # une erreur s'est produite
                         print("Code erreur :", codeErreur.numero)
                         print(ligne)
+                        retour.append(codeErreur)
     ##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
     ##                        print("Erreur ignorée")
     ##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
@@ -2592,8 +2738,9 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                 else :
                     #pasDErreur = False
                     print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+                    # codeErreur = Erreur(0, courteDescription="Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
                 i += 1
-                retour.append(codeErreur)
+                # retour.append(codeErreur)
             #print("Erreurs retournées :",retour)
             if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
                 if indice == 0 :
@@ -2644,6 +2791,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
                     # une erreur s'est produite
                     print("Code erreur : ", codeErreur.numero)
                     print(ligne)
+                    retour.append(codeErreur)
 ##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationLocale"] in LignesIgnoreesLocal :
 ##                        print("Erreur ignorée")
 ##                        Parametres["ligneDerniereRecuperationLocale"] += 1
@@ -2660,7 +2808,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
                 #pasDErreur = False
                 print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
             i += 1
-            retour.append(codeErreur)
+            # retour.append(codeErreur)
         if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
             Parametres["tempsDerniereRecuperationLocale"] = time.time()
     else :
@@ -2786,6 +2934,10 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             noTransmission = int(listeAction[5])
         except :
             noTransmission = 0
+        # try :
+        #     tpsServeur = float(listeAction[6])
+        # except :
+        #     tpsServeur = 0
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
         if not noTransmission in UIDPrecedents[uid] :
@@ -2880,6 +3032,16 @@ def derniereModifFichierDonnneesRFIDRecente(fichier):
     retour = False
     if os.path.exists(fichier) :
         diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationRFID"]
+        if diff > 0 :
+            retour = True
+    return retour
+
+def derniereModifFichierDonnneesRecente(fichier, tpsDerniereRecuperation):
+    """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
+    #print( "Fichier modif :",os.path.getmtime(fichier), "Dernier Import :",Parametres["tempsDerniereRecuperationSmartphone"])
+    retour = False
+    if os.path.exists(fichier) :
+        diff = os.path.getmtime(fichier) - tpsDerniereRecuperation
         if diff > 0 :
             retour = True
     return retour
@@ -5555,7 +5717,9 @@ def dupliqueTemps(tps):
         return nouveauTps
     else :
         print("Le temps",nouveauTps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
+        temp = tps.tempsReel
         nouveauTps = tps.tempsPlusUnCentieme()
+        tempAugmente = nouveauTps.tempsReel
         return dupliqueTemps(nouveauTps)
 
 
@@ -6632,6 +6796,8 @@ def delDossardsEtTemps():
     Parametres["ligneDerniereRecuperationLocal"]=1
     Parametres["tempsDerniereRecuperationRFID"]=0
     Parametres["ligneDerniereRecuperationRFID"]=1
+    Parametres["tempsDerniereRecuperation"] = [0,0,0]
+    Parametres["ligneDerniereRecuperation"]=[1,1,1]
     delArriveeDossards()
     delArriveeTempss()
     delTousLesDeparts()
