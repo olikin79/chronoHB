@@ -1766,12 +1766,33 @@ class EquipeClasse():
 
 class InfosRFID(dict) :
     def __init__(self):
+        self.derniersDossardsCaptesParAntenne = {}
         self.antenne_frame_a_reconstruire = False
         # self.lecteurs = []
         # self.lecteurs_antennes = []
     # def effacerTout(self) :
     #     self.lecteurs = []
     #     self.lecteurs_antennes = []
+    def clear(self) :
+        self.derniersDossardsCaptesParAntenne = {}
+
+    def aEteCapteDepuisPeuParLaMêmeAntenne(self, nom_antenne, epc) :
+        if not nom_antenne in self.derniersDossardsCaptesParAntenne.keys() :
+            self.derniersDossardsCaptesParAntenne[nom_antenne] = {}
+            self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+            return False
+        else :
+            if not epc in self.derniersDossardsCaptesParAntenne[nom_antenne].keys() :
+                self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+                return False
+            else :
+                if time.time() - self.derniersDossardsCaptesParAntenne[nom_antenne][epc] < Parametres["delai_antennes_par_tag"] :
+                    self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+                    return True
+                else :
+                    self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
+                    return False
+        
     def add_lecteur(self, nomLecteur, nomAntenne) :
         """ ajoute un lecteur et-ou son antenne si besoin."""
         l = self.lecteur_exists(nomLecteur)
@@ -1895,12 +1916,19 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
         # epc, antenna_port, rssi, seen_count, tag_timestamp_epoch 
         info = extractionDonneesDUnTagRFID(tag, reader_name)
         print("Info",info)
-        # # reader_name_antenna = f"{reader_name}-{antenna_port}"
-        # # si le popup RFID est actif on lui envoie toutes les infos
-        # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
-        chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+",0,0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
-        chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,0," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
-        # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
+
+        # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
+        nom_antenne = info["reader"]+"-"+info["antenna"]
+        if not aEteCapteDepuisPeuParLaMêmeAntenne(nom_antenne, info["epc"]) :
+            Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
+            # # reader_name_antenna = f"{reader_name}-{antenna_port}"
+            # # si le popup RFID est actif on lui envoie toutes les infos
+            # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
+            chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+",0,0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+            chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,0," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+            # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
+        else :
+            print("Le tag", info["epc"], "a été capté depuis moins de", Parametres["delai_antennes_par_tag"], "secondes par la même antenne.")
     with open("donneesRFID.txt", "a") as file:
         # Écrire les lignes dans le fichier en une seule fois.
         file.write(chaineAAjouterDansFichierTexte)
@@ -1921,7 +1949,8 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID, ligneDerniereRecuperation
+           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID, ligneDerniereRecuperation, \
+           delai_antennes_par_tag
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -2162,6 +2191,9 @@ def chargerDonnees() :
     if not "donneesRFID" in Parametres :
         Parametres["donneesRFID"] = InfosRFID()
     donneesRFID = Parametres["donneesRFID"]
+    if not "delai_antennes_par_tag" in Parametres :
+        Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
+    delai_antennes_par_tag = Parametres["delai_antennes_par_tag"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()

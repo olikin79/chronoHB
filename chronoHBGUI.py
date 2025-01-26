@@ -3592,6 +3592,7 @@ def effaceDonneesCoursesGUI ():
         #actualiseEtatBoutonsRadioConfig()
         reponse = showinfo("DONNEES EFFACEES","Les données de courses ont été effacées, il reste celles sur les coureurs.\nLes données précédentes ont été sauvegardées dans le fichier "+fichier+".")
         print("Données effacées et affichage initialisé.")
+        Parametres["donneesRFID"].clear()
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
 
 def effaceToutesDonnees() :
@@ -3599,6 +3600,7 @@ def effaceToutesDonnees() :
         genereResultatsCoursesEtClasses(True)
         tableau.reinit()
         actualiseToutLAffichage()
+        Parametres["donneesRFID"].clear()
         retour = nettoyerTousLesFichiersGeneres()
         for texte in retour :
             if texte :

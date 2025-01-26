@@ -91,7 +91,7 @@ Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop long
 Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
 Le test pourra être réinitialisé.
 
-Les popups showinfo font revenir la fenêtre principale au premier plan. Ajouter une possibilité d'interagir avec elle peut solutionner ou non le pb.
+
 ##############################################
 
 Il faudrait horodater tous les évènements (issus des smartphones, RFID et local dans les fichiers car, actuellement,
@@ -100,16 +100,19 @@ dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas le
 Si trois temps arrivent au millième de seconde en même temps, cela buggue : voir dans addArriveeTemps 
 et dupliqueTemps qui ne semble pas pleinement remplir son office pour le 3ème temps ajouté (malgré la récursivité apparente).
 
+Il faudra prévoir la suppression d'une antenne affichée... Pas urgent.
 ##############################################
 
-Pbs persistants :
+Pbs persistants urgents :
 - les données multiples RFID ne sont pas gérées.
 - on ne peut pas avancer un dossard quand tous les dossards sont affectés à un temps. Si c'est le cas, que faire ?
+- pouvoir régler le délai de suppression des doublons RFID captés par la même antenne depuis l'interface
 
 
 Travail du 26/91/2025 :
 - import des données depuis les fichiers txt chronologique afin d'être sûr de pouvoir rejouer toujours la séquence des instructions chonologiquement.
-- le passage en mode configuration RFID pose problème ensuite au serveur web pour importer les données de course.
+- le passage en mode configuration RFID posait problème ensuite au serveur web pour importer les données de course.
+- suppression des doublons RFID captés par la même antenne depuis moins de 30 secondes.
 
 Travail du 25/01/2025 :
 - interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.
