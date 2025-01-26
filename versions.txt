@@ -103,14 +103,13 @@ et dupliqueTemps qui ne semble pas pleinement remplir son office pour le 3ème t
 ##############################################
 
 Pbs persistants :
-- le passage en mode configuration RFID pose problème ensuite au serveur web pour importer les données de course.
 - les données multiples RFID ne sont pas gérées.
 - on ne peut pas avancer un dossard quand tous les dossards sont affectés à un temps. Si c'est le cas, que faire ?
 
 
 Travail du 26/91/2025 :
 - import des données depuis les fichiers txt chronologique afin d'être sûr de pouvoir rejouer toujours la séquence des instructions chonologiquement.
-
+- le passage en mode configuration RFID pose problème ensuite au serveur web pour importer les données de course.
 
 Travail du 25/01/2025 :
 - interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.

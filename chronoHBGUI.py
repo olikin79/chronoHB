@@ -4177,7 +4177,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
     """Custom HTTP Request Handler supporting both CGI and JSON handling."""
     
     def do_POST(self):
-        global popup
+        # global popup
         """Handle POST requests for JSON data or delegate to CGI."""
         if self.path == "/rfid-json":
             # Récupération de l'heure exacte actuelle en secondes depuis l'époque
@@ -4192,6 +4192,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                 data = json.loads(post_data)
 
                 try :
+                    # print("Présence du popup", Parametres["popupRFID"])
                     if Parametres["popupRFID"] :
                         # si le popup RFID est actif on lui envoie toutes les infos : on est en phase de configuration des puces RFID (hors course)
                         popup.setInfo(data)
@@ -4259,6 +4260,8 @@ def lancerPopupRFID() :
     popup = Popup()
     # Afficher le popup (vous pouvez le déclencher à un événement précis)
     # popup.mainloop() 
+    # Parametres["popupRFID"]=False
+    # print("Présence du popup", Parametres["popupRFID"])
 
 
 # def popupRFID(info) :
