@@ -1770,22 +1770,24 @@ class InfosRFID(dict) :
         self.antenne_frame_a_reconstruire = False
         self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
         self.listeAntennesSecondairesAReconstruire = False
-        # self.lecteurs = []
-        # self.lecteurs_antennes = []
-    # def effacerTout(self) :
-    #     self.lecteurs = []
-    #     self.lecteurs_antennes = []
+
     def clear(self) :
+        """Efface uniquement les données RFID temporaires (pas les antennes et les associations epc<->dossards) """
         self.derniersDossardsCaptes = {}
 
-    def aEteCapteDepuisPeuParUneAntennePrincipale(self, epc) :
+    def aEteCapteDepuisPeuParUneAntennePrincipale(self, nom_antenne, epc) :
         """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de 30 secondes
         False sinon"""
+        try : 
+            self.listeAntennesSecondairesAReconstruire
+        except :
+            self.listeAntennesSecondairesAReconstruire = False
         if self.listeAntennesSecondairesAReconstruire :
-            self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+            x, self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
             # on va traiter et conserver l'information.
+        if nom_antenne in self.listeAntennesSecondaires :
             return False
-        # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter.
+        # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter si elle a 
         if epc in self.derniersDossardsCaptes.keys() :
             if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
                 self.derniersDossardsCaptes[epc] = time.time()
@@ -1826,8 +1828,10 @@ class InfosRFID(dict) :
     #     return str(nomLecteur)+"-"+str(nomAntenne) in self.keys()
     # def lecteur_antenne_add(self, nomLecteur, nomAntenne) :
     #     # if not self.lecteur_antenne_exists(nomLecteur, nomAntenne) 
-    def reconstruire_antenne_frame(self) :
-        self.antenne_frame_a_reconstruire = True     
+    def nouvelleAntenne(self) :
+        """Modification tous les flags qui nécessite une recontrauction des données relatives à la liste des antennes"""
+        self.antenne_frame_a_reconstruire = True 
+        self.listeAntennesSecondairesAReconstruire = False
     def lecteur_exists(self, nom) :
         for lecteur in self.keys() :
             if lecteur == nom :
@@ -1867,7 +1871,7 @@ class LecteurRFID(dict):
         if antenne not in self.keys() :
             self[antenne] = AntenneRFID(self.nom, antenne, principale, depart, checkPoint, arrivee)
             print("Détection d'une nouvelle antenne :", antenne, "pour le lecteur", self.nom)
-            Parametres["donneesRFID"].reconstruire_antenne_frame()
+            Parametres["donneesRFID"].nouvelleAntenne()
     def antenne_exists(self, nom) :
         for antenne in self.values() :
             if antenne["nom"] == nom :
@@ -1946,7 +1950,7 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
 
         # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
         nom_antenne = info["reader"]+"-"+info["antenna"]
-        if not Parametres["donneesRFID"].aEteCapteDepuisPeuParLaMêmeAntenne(nom_antenne, info["epc"]) :
+        if not Parametres["donneesRFID"].aEteCapteDepuisPeuParUneAntennePrincipale(nom_antenne, info["epc"]) :
             Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
             # # reader_name_antenna = f"{reader_name}-{antenna_port}"
             # # si le popup RFID est actif on lui envoie toutes les infos
@@ -1968,24 +1972,41 @@ def actualiseListeDesAntennes(reader_name, antenne) :
 class ArriveeTempsClass(list):
     def __init__(self, listeDesTemps = []):
         super().__init__(listeDesTemps)
+    def __getitem__(self, index):
+        # Redéfinir l'accès à un élément
+        # print(f"Accès à l'élément d'indice {index}")
+        return super().__getitem__(index)
+    def __setitem__(self, index, value):
+        # Redéfinir l'affectation à un indice
+        # print(f"Modification de l'élément d'indice {index} avec la valeur {value}")
+        super().__setitem__(index, value)
     def append(self,element) :
         super().append(element)
     def insert(self, index, element) :
         super().insert(index, element)
-    def index(self, element) :
-        return super().index(element)
-    def pop(self, index) :
-        # utiliser la méthode pop de la classe mère
-        return super().pop(index)
-    def remove(self, element) :
-        # utiliser la méthode remove de la classe mère
-        super().remove(element)
-    def clear(self):
-        return super().clear()
+    # Pour l'instant, le reste du code n'utilise aucune des méthodes ci-dessous. Inutile de les charger.
+    # def index(self, element) :
+    #     return super().index(element)
+    # def pop(self, index) :
+    #     # utiliser la méthode pop de la classe mère
+    #     return super().pop(index)
+    # def remove(self, element) :
+    #     # utiliser la méthode remove de la classe mère
+    #     super().remove(element)
+    # def clear(self):
+    #     return super().clear()
 
 class ArriveeDossardClass(list):
     def __init__(self, listeDesDossards = []):
         super().__init__(listeDesDossards)
+    def __getitem__(self, index):
+        # Redéfinir l'accès à un élément
+        # print(f"Accès à l'élément d'indice {index}")
+        return super().__getitem__(index)
+    def __setitem__(self, index, value):
+        # Redéfinir l'affectation à un indice
+        # print(f"Modification de l'élément d'indice {index} avec la valeur {value}")
+        super().__setitem__(index, value)
     def append(self,element) :
         super().append(element)
     def insert(self, index, element) :
@@ -2003,19 +2024,28 @@ class ArriveeDossardClass(list):
 class ArriveeTempsAffecteClass(list):
     def __init__(self, listeDesTempsAffectes = []):
         super().__init__(listeDesTempsAffectes)
+    def __getitem__(self, index):
+        # Redéfinir l'accès à un élément
+        # print(f"Accès à l'élément d'indice {index}")
+        return super().__getitem__(index)
+    def __setitem__(self, index, value):
+        # Redéfinir l'affectation à un indice
+        # print(f"Modification de l'élément d'indice {index} avec la valeur {value}")
+        super().__setitem__(index, value)
     def append(self,element) :
         super().append(element)
     def insert(self, index, element) :
         super().insert(index, element)
-    def index(self, element) :
-        return super().index(element)
-    def pop(self, index) :
-        return super().pop(index)
-    def remove(self, element) :
-        # utiliser la méthode remove de la classe mère
-        super().remove(element)
-    def clear(self):
-        return super().clear()
+    # Pour l'instant, le reste du code n'utilise aucune des méthodes ci-dessous. Inutile de les charger.
+    # def index(self, element) :
+    #     return super().index(element)
+    # def pop(self, index) :
+    #     return super().pop(index)
+    # def remove(self, element) :
+    #     # utiliser la méthode remove de la classe mère
+    #     super().remove(element)
+    # def clear(self):
+    #     return super().clear()
 
 
 # setup the database
