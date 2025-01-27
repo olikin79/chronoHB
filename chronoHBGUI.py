@@ -560,13 +560,14 @@ class MonTableau(Frame):
         self.treeview.delete(item)
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
-    def maj (self, TableauGUI) :
+    def maj(self, TableauGUI) :
         #print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
             self.reinit()
         else :
+            # print("tableauGUI", TableauGUI)
             if TableauGUI :
                 ##print("mise à jour du tableau avec ", TableauGUI)
                 # il y a des lignes à actualiser
@@ -3208,7 +3209,7 @@ class Clock():
         # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
-        if traitementToutesDonnees :
+        if traitementToutesDonnees or self.premiereExecution :
             # print(ArriveeTemps)
             # il y a des erreurs qui peuvent se corriger sans action depuis les smartphones, on doit tout retraiter tant qu'il y en a.
             traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
@@ -3224,8 +3225,9 @@ class Clock():
 ##                print("retour en erreur n°", err.numero, ":", err.description)
 
         # maj affichage.
-##        if tableauGUI :
-##            print("tableauGUI transmis", tableauGUI)
+##        if tableauGUI : 
+##            
+        # print("tableauGUI transmis", tableauGUI)
 ##        else :
 ##            print("pas de maj de tableau GUI")
         eval(self.MAJfunction + "(tableauGUI)")
