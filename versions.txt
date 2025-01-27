@@ -114,6 +114,11 @@ Pbs persistants urgents :
 - pouvoir régler le délai de suppression des doublons RFID captés par la même antenne depuis l'interface
 
 
+A faire : 
+affichage de l'erreur 701 : envoi des diplomes en cours...
+
+### 
+
 Travail du 27/01/2025 :
 - correctif lors d'un nouveau lancement de chronoHB, le treeview était sans cesse réinitialisé.
 

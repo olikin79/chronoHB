@@ -208,6 +208,8 @@ class MonTableau(Frame):
             ArriveeTempsAffectes.clear()
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
+        # tag pour les coureurs qui ont sauté un checkpoint : on les affiche en orange très clair
+        self.treeview.tag_configure(tagname="sauts", background="#ffcc99") # sauts en orange clair
         self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
@@ -631,9 +633,14 @@ class MonTableau(Frame):
 
     def metsEnEvidenceErreurs(self, listeDesErreursEnCours, reinitialise = True) :
         listeDesDossardsConcernees = []
+        listeDesDossardsConcernesParSautDeCheckPoint = [] # cela provoquera l'erreur 461
         for err in listeDesErreursEnCours :
             if err.dossard :
-                listeDesDossardsConcernees.append(err.dossard)
+                if err.code == 461 :
+                    listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
+                else :
+                    # pour toutes les autres erreurs, on affiche du orange plus foncé.
+                    listeDesDossardsConcernees.append(err.dossard)
             # else :
             #     print("Erreur sans dossard", err.affiche())
         # print("dossards concernés",listeDesDossardsConcernees)
@@ -646,6 +653,8 @@ class MonTableau(Frame):
             if doss in listeDesDossardsConcernees :
                 self.treeview.item(iid, tags="erreurs")
                 #indDansListeDesLignesConcernees += 1
+            elif doss in listeDesDossardsConcernesParSautDeCheckPoint :
+                self.treeview.item(iid, tags="sauts")
             elif Coureurs.recuperer(doss).rang == 1 :
                 self.treeview.item(iid, tags="premiers")
             elif reinitialise :
@@ -783,9 +792,6 @@ class MonTableau(Frame):
                     itemPrec = "I" + self.formateSurNChiffres(itemPrecNum,3)
                     dossPrec = self.treeview.item(itemPrec, "values")[self.colonneDossard]
                     # print("dossPrec", dossPrec)
-
-
-            
             #print(dossSelect, dossPrec)
             return dossSelect, dossPrec
 
@@ -3209,7 +3215,8 @@ class Clock():
         # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
-        if traitementToutesDonnees or self.premiereExecution :
+        # print(traitementToutesDonnees, self.premiereExecution)
+        if traitementToutesDonnees or self.premiereExecution or tableauGUI:
             # print(ArriveeTemps)
             # il y a des erreurs qui peuvent se corriger sans action depuis les smartphones, on doit tout retraiter tant qu'il y en a.
             traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
@@ -3217,6 +3224,7 @@ class Clock():
             # si traitementDonneesRecuperees n'est pas définie, la créer
             if "traitementDonneesRecuperees" not in locals() :
                 traitementDonneesRecuperees = []
+
         listeNouvellesErreursATraiter = traitementToutesDonnees + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
