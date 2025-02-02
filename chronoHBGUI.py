@@ -571,14 +571,22 @@ class MonTableau(Frame):
         else :
             # print("tableauGUI", TableauGUI)
             if TableauGUI :
-                ##print("mise à jour du tableau avec ", TableauGUI)
+                print("mise à jour du tableau avec ", TableauGUI)
                 # il y a des lignes à actualiser
                 ligneInitiale = TableauGUI[0][0]
+                print("test")
                 #ligneAjoutee = ligneTableauGUI[0]
                 derniereLigneStabilisee = ligneTableauGUI[1]
+                print("avant get_children()")
+                print(f"Treeview ID: {self.treeview}")
                 #print("ligneInitiale :" , ligneInitiale)
-                items = self.treeview.get_children()
-                #print(ligneTableauGUI)
+                try:
+                    items = self.treeview.get_children()
+                    print(f"Children: {items}")
+                except Exception as e :
+                    print(f"Erreur détectée : {e}")
+                print("après get_children()")
+                # print(ligneTableauGUI)
                 for donnee in TableauGUI :
                     #print("ajout de ", ligne, "")
                     self.majLigne(ligneInitiale, donnee, items)
@@ -682,9 +690,9 @@ class MonTableau(Frame):
             actualiseToutLAffichage()
                 
     def majLigne(self, ligne, donnee, items) :
-        #print(donnee[1], items)
+        print(donnee, items)
         #index = int(donnee[0])
-        #print("ligne", ligne, "effectif", len(items))
+        print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
         if donnee[self.colonneDossard] == "" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
@@ -3183,8 +3191,7 @@ class Clock():
     # def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementDonneesRecuperees
-        # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
-        tableau.setLargeurColonnesAuto()
+        
         
         # print("Courses",Courses)
         # debug pour afficher les coureurs qui n'ont pas une lettre de dossard correspondant au nomStandard de la course dans laquelle ils ont couru
@@ -3216,12 +3223,14 @@ class Clock():
         # # print("traitementSmartphonePiques",traitementSmartphonePiques)
         # traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
         # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
+        print("Traitement des données NG")
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
         # print(traitementToutesDonnees, self.premiereExecution)
         if traitementToutesDonnees or self.premiereExecution or tableauGUI:
             # print(ArriveeTemps)
             # il y a des erreurs qui peuvent se corriger sans action depuis les smartphones, on doit tout retraiter tant qu'il y en a.
+            print("On recalcule les résultats des courses.")
             traitementDonneesRecuperees = genereResultatsCoursesEtClasses(self.premiereExecution)
         else :
             # si traitementDonneesRecuperees n'est pas définie, la créer
@@ -3241,7 +3250,11 @@ class Clock():
         # print("tableauGUI transmis", tableauGUI)
 ##        else :
 ##            print("pas de maj de tableau GUI")
+        print("Actualisation du tableau GUI dans le thread principal")
+        # self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI)"))
         eval(self.MAJfunction + "(tableauGUI)")
+
+        print("Fin de l'actualisation du tableau")
         tableau.makeDefilementAuto()
 
         ########## GESTION DU MESSAGE D'INFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
@@ -3282,10 +3295,14 @@ class Clock():
 
         # se relance dans un temps prédéfini.
         self.premiereExecution = False
+        # print("Fin de timer.traiterDonnees().")
     
     def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         # global tableauGUI,traitementDonneesRecuperees
+        # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
+        tableau.setLargeurColonnesAuto()
+
         if self.premiereExecution :
             print("Première exécution: mise à jour de l'affichage.")
             self.traiterDonnees()
@@ -4230,11 +4247,13 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                         # traiter les données dans le logiciel chronoHB car on est en configuration de course
                         print("Traitement des données RFID reçues en configuration de course.")
                         traiterDonneesRFID(data, heureReceptionServeur)
-                        timer.traiterDonnees()
+                        # timer.traiterDonnees()
+                        root.after(0, lambda: timer.traiterDonnees())
                 except: 
                     print("Traitement des données RFID reçues en configuration de course.")
                     traiterDonneesRFID(data, heureReceptionServeur)
-                    timer.traiterDonnees()
+                    # timer.traiterDonnees()
+                    root.after(0, lambda: timer.traiterDonnees())
                 
                 # Répondre au client
                 self.send_response(200)
@@ -4255,7 +4274,8 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests for HTML, CGI, or static files."""
         super().do_GET()
-        timer.traiterDonnees()
+        print("Traitement des données suite à requête GET")
+        self.after(0, lambda: timer.traiterDonnees())
     
 
 def start_server(path, port=8888):

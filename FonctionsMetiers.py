@@ -1971,7 +1971,7 @@ class ArriveeTempsClass(list):
         if isinstance(index, tuple):
             if len(index) == 2:
                 index, nom_antenne = index
-                print(f"Lecture avec option : index={index}, mode={mode} à implémenter")
+                print(f"Lecture avec option : index={index}, antenne={nom_antenne} à implémenter")
                 if nom_antenne == "":
                     return super().__getitem__(index)  # Comportement classique
                 else:

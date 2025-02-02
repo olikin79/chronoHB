@@ -120,10 +120,12 @@ A faire rapidement côté développements :
 
 ### 
 
+Travail du 03/02/2025 :
+- correctif pour actualiser l'interface en dehors du thread du serveur web : cela faisait planter les modifications issues de l'interface elle-même.
+
 Travail du 02/02/2025 :
 - le handler du serveur web active le traitement instantané des données, suite à leur réception.
 Dans le timer, ne reste que les fonctions à activer à intervalle régulier.
-
 
 Travail du 27/01/2025 :
 - correctif lors d'un nouveau lancement de chronoHB, le treeview était sans cesse réinitialisé.
