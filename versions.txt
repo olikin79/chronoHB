@@ -114,10 +114,16 @@ Pbs persistants urgents :
 - pouvoir régler le délai de suppression des doublons RFID captés par la même antenne depuis l'interface
 
 
-A faire : 
-affichage de l'erreur 701 : envoi des diplomes en cours...
+A faire rapidement côté développements : 
+- affichage de l'erreur 701 : envoi des diplomes en cours...
+- ôter du timer le traitement des fichiers qui ont changé. Créer une méthode qui exécute les fonctions de traitement quand le serveur web reçoit un message.
 
 ### 
+
+Travail du 02/02/2025 :
+- le handler du serveur web active le traitement instantané des données, suite à leur réception.
+Dans le timer, ne reste que les fonctions à activer à intervalle régulier.
+
 
 Travail du 27/01/2025 :
 - correctif lors d'un nouveau lancement de chronoHB, le treeview était sans cesse réinitialisé.

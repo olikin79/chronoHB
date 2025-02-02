@@ -1779,16 +1779,24 @@ class InfosRFID(dict) :
         """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de 30 secondes
         False sinon"""
         try : 
-            self.listeAntennesSecondairesAReconstruire
+            self.listeAntennesSecondaires
+            self.derniersDossardsCaptes
         except :
+            self.derniersDossardsCaptes = {}
+            self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
             self.listeAntennesSecondairesAReconstruire = False
         if self.listeAntennesSecondairesAReconstruire :
             x, self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
             # on va traiter et conserver l'information.
         if nom_antenne in self.listeAntennesSecondaires :
             return False
+        print("nom_antenne",nom_antenne)
+        print("clés", self.derniersDossardsCaptes.keys())
+        # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
         # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter si elle a 
         if epc in self.derniersDossardsCaptes.keys() :
+            print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
+            print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
             if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
                 self.derniersDossardsCaptes[epc] = time.time()
                 return True
@@ -1798,21 +1806,6 @@ class InfosRFID(dict) :
         else :
             self.derniersDossardsCaptes[epc] = time.time()
             return False
-        # if not nom_antenne in self.derniersDossardsCaptesParAntenne.keys() :
-        #     self.derniersDossardsCaptesParAntenne[nom_antenne] = {}
-        #     self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-        #     return False
-        # else :
-        #     if not epc in self.derniersDossardsCaptesParAntenne[nom_antenne].keys() :
-        #         self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-        #         return False
-        #     else :
-        #         if time.time() - self.derniersDossardsCaptesParAntenne[nom_antenne][epc] < Parametres["delai_antennes_par_tag"] :
-        #             self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-        #             return True
-        #         else :
-        #             self.derniersDossardsCaptesParAntenne[nom_antenne][epc] = time.time()
-        #             return False
         
     def add_lecteur(self, nomLecteur, nomAntenne) :
         """ ajoute un lecteur et-ou son antenne si besoin."""
@@ -1951,7 +1944,8 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
         # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
         nom_antenne = info["reader"]+"-"+info["antenna"]
         if not Parametres["donneesRFID"].aEteCapteDepuisPeuParUneAntennePrincipale(nom_antenne, info["epc"]) :
-            Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
+            print("Le tag", info["epc"], "est utilisé (non capté récemment par ", nom_antenne, ").")
+            # Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
             # # reader_name_antenna = f"{reader_name}-{antenna_port}"
             # # si le popup RFID est actif on lui envoie toutes les infos
             # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
@@ -1973,17 +1967,27 @@ class ArriveeTempsClass(list):
     def __init__(self, listeDesTemps = []):
         super().__init__(listeDesTemps)
     def __getitem__(self, index):
-        # Redéfinir l'accès à un élément
-        # print(f"Accès à l'élément d'indice {index}")
+        """Permet d'utiliser un index simple ou un tuple (index, mode)."""
+        if isinstance(index, tuple):
+            if len(index) == 2:
+                index, nom_antenne = index
+                print(f"Lecture avec option : index={index}, mode={mode} à implémenter")
+                if nom_antenne == "":
+                    return super().__getitem__(index)  # Comportement classique
+                else:
+                    print("Lecture de l'index", index, "avec l'option", nom_antenne)
+            else:
+                raise ValueError("Le tuple doit contenir exactement deux éléments (index, mode).")
+        # Comportement classique si index est un entier
         return super().__getitem__(index)
-    def __setitem__(self, index, value):
-        # Redéfinir l'affectation à un indice
-        # print(f"Modification de l'élément d'indice {index} avec la valeur {value}")
-        super().__setitem__(index, value)
     def append(self,element) :
         super().append(element)
     def insert(self, index, element) :
         super().insert(index, element)
+    def clear(self):
+        return super().clear()
+    def __len__(self):
+        return super().__len__()
     # Pour l'instant, le reste du code n'utilise aucune des méthodes ci-dessous. Inutile de les charger.
     # def index(self, element) :
     #     return super().index(element)
@@ -2004,9 +2008,12 @@ class ArriveeDossardClass(list):
         # print(f"Accès à l'élément d'indice {index}")
         return super().__getitem__(index)
     def __setitem__(self, index, value):
-        # Redéfinir l'affectation à un indice
-        # print(f"Modification de l'élément d'indice {index} avec la valeur {value}")
-        super().__setitem__(index, value)
+        if isinstance(value, tuple):
+            value, option = value
+            print(f"Modification de l'élément {index} avec valeur {value} et option {option} à implémenter")
+        else:
+            print(f"Modification de l'élément {index} avec valeur {value}")
+            super().__setitem__(index, value)
     def append(self,element) :
         super().append(element)
     def insert(self, index, element) :
@@ -2020,6 +2027,8 @@ class ArriveeDossardClass(list):
         super().remove(element)
     def clear(self):
         return super().clear()
+    def __len__(self):
+        return super().__len__()
 
 class ArriveeTempsAffecteClass(list):
     def __init__(self, listeDesTempsAffectes = []):
@@ -2036,6 +2045,10 @@ class ArriveeTempsAffecteClass(list):
         super().append(element)
     def insert(self, index, element) :
         super().insert(index, element)
+    def clear(self):
+        return super().clear()
+    def __len__(self):
+        return super().__len__()
     # Pour l'instant, le reste du code n'utilise aucune des méthodes ci-dessous. Inutile de les charger.
     # def index(self, element) :
     #     return super().index(element)

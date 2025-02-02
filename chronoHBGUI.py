@@ -636,14 +636,14 @@ class MonTableau(Frame):
         listeDesDossardsConcernesParSautDeCheckPoint = [] # cela provoquera l'erreur 461
         for err in listeDesErreursEnCours :
             if err.dossard :
-                if err.code == 461 :
+                if err.numero == 461 :
                     listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
                 else :
                     # pour toutes les autres erreurs, on affiche du orange plus foncé.
                     listeDesDossardsConcernees.append(err.dossard)
             # else :
             #     print("Erreur sans dossard", err.affiche())
-        # print("dossards concernés",listeDesDossardsConcernees)
+        print("dossards concernés",listeDesDossardsConcernees)
         #indDansListeDesLignesConcernees = 0
         #noLigneDansTreeview = 1
         for iid in self.treeview.get_children() :
@@ -3177,7 +3177,10 @@ class Clock():
         except :
             print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
-    def update_clock(self):
+    def traiterDonnees(self) :
+        # global tableauGUI
+
+    # def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementDonneesRecuperees
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
@@ -3241,17 +3244,7 @@ class Clock():
         eval(self.MAJfunction + "(tableauGUI)")
         tableau.makeDefilementAuto()
 
-        # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
-        if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
-            # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
-            # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
-            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
-            DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-            DownloadDaemon.start()
-            self.compteurTelechargementURLGoogleSheet = 0
-        self.compteurTelechargementURLGoogleSheet += 1
-
-        ########## GESTION DU MESSAGE D'INOFFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
+        ########## GESTION DU MESSAGE D'INFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
         # si des dossards de certains coureurs n'ont pas encore été imprimés, proposer l'impression via une erreur spcifique à ajouter dans listeNouvellesErreursATraiter
         # print("Dossards à imprimer à signaler dans l'interface : ", listeDesDossardsAImprimer)
         nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
@@ -3286,6 +3279,26 @@ class Clock():
 
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(listeNouvellesErreursATraiter)
+
+        # se relance dans un temps prédéfini.
+        self.premiereExecution = False
+    
+    def update_clock(self):
+        #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
+        # global tableauGUI,traitementDonneesRecuperees
+        if self.premiereExecution :
+            print("Première exécution: mise à jour de l'affichage.")
+            self.traiterDonnees()
+        
+        # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
+        if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
+            # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
+            # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
+            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
+            DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+            DownloadDaemon.start()
+            self.compteurTelechargementURLGoogleSheet = 0
+        self.compteurTelechargementURLGoogleSheet += 1
 
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -3340,10 +3353,11 @@ class Clock():
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
             depotFTPResultats() # exécute le dépot FTP dans un thread.
-        
+
         self.auMoinsUnImport = False
-        # se relance dans un temps prédéfini.
-        self.premiereExecution = False
+
+        # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
+        tableau.setLargeurColonnesAuto()
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 
     def actualiserAffichageDeDroite(self, val) :
@@ -4216,9 +4230,11 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                         # traiter les données dans le logiciel chronoHB car on est en configuration de course
                         print("Traitement des données RFID reçues en configuration de course.")
                         traiterDonneesRFID(data, heureReceptionServeur)
+                        timer.traiterDonnees()
                 except: 
                     print("Traitement des données RFID reçues en configuration de course.")
                     traiterDonneesRFID(data, heureReceptionServeur)
+                    timer.traiterDonnees()
                 
                 # Répondre au client
                 self.send_response(200)
@@ -4234,10 +4250,12 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
         else:
             # For all other POST requests, delegate to the parent handler (CGI handling)
             super().do_POST()
+        
 
     def do_GET(self):
         """Handle GET requests for HTML, CGI, or static files."""
         super().do_GET()
+        timer.traiterDonnees()
     
 
 def start_server(path, port=8888):
