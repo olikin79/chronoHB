@@ -3045,7 +3045,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             # on pourrait éliminer les rssi trop faibles à voir.
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
-        print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
+        # print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
         if noTransmission in UIDPrecedents[uid] and not RFID : # on ne filtre pas les doublons RFID via le numéro de transmission qui n'existe pas.
             print("Fichier smartphone avec UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
             retour = Erreur(451)
@@ -5858,27 +5858,37 @@ def tempsClientIsNotInArriveeTemps(newTps) :
             if tpsDejaPresent.tempsReel == newTps.tempsReel :
                 print("Temps déjà ajouté à l'arrivée. Temps Coureur sur téléphone :", newTps.tempsCoureur, ". Temps réel sur serveur:", newTps.tempsReel,"(non ajouté)." )
                 retour= False
-                #break
-            #if  tpsDejaPresent.tempsReel + 60 < newTps.tempsReel :
-    ##        if  tpsDejaPresent.tempsReel < newTps.tempsReel :
-    ##            print("Temps supérieur de plus de 60 s par rapport à celui examiné. On stoppe la recherche.")
-    ##            break
             i -= 1
             tpsDejaPresent = ArriveeTemps[i-1]
     return retour
 
+# def tempsAfficheIsNotInArriveeTemps(newTps) :
+#     """ retourne True si le tempsAffiche sur l'interface GUI n'est pas présent dans ArriveeTemps."""
+#     retour = True
+#     i = len(ArriveeTemps)
+#     if i > 0 :
+#         tpsDejaPresent = ArriveeTemps[i-1]
+#         while i > 0 and tpsDejaPresent.tempsReel <= newTps.tempsReel :
+#             #print("comparaison de ",tpsDejaPresent.tempsCoureur, " et ",  newTps.tempsCoureur )
+#             if tpsDejaPresent.tempsReel == newTps.tempsReel :
+#                 print("Temps déjà ajouté à l'arrivée. Temps Coureur sur téléphone :", newTps.tempsCoureur, ". Temps réel sur serveur:", newTps.tempsReel,"(non ajouté)." )
+#                 retour= False
+#             i -= 1
+#             tpsDejaPresent = ArriveeTemps[i-1]
+#     return retour
+
 def dupliqueTemps(tps):
     """ argument : une instance de la classe Temps.
         Retourne un temps disponible dans la liste des temps arrivés (le même temps que celui fourni plus quelques centièmes (en tempsReel calculé)."""
-    nouveauTps = tps
-    if tempsClientIsNotInArriveeTemps(nouveauTps) :
-        #print("Un nouveau temps disponible a été trouvé. On le retourne :",nouveauTps.tempsReelFormateDateHeure())
-        return nouveauTps
+    # nouveauTps = tps
+    if tempsClientIsNotInArriveeTemps(tps) :
+        print("On retourne :",tps.tempsReelFormateDateHeure())
+        return tps
     else :
-        print("Le temps",nouveauTps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
-        temp = tps.tempsReel
+        print("Le temps",tps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
+        # temp = tps.tempsReel
         nouveauTps = tps.tempsPlusUnCentieme()
-        tempAugmente = nouveauTps.tempsReel
+        # tempAugmente = tps.tempsReel
         return dupliqueTemps(nouveauTps)
 
 
@@ -5886,7 +5896,7 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0A") :
     """ ajoute un temps dans la liste par ordre croissant pour que ArriveeTemps reste toujours croissante
     par rapport au tempsReel (heure d'arrivée du coureur sur le serveur (pour gérer plusieurs clients en décalage horaire).
     Doit prendre garde au temps mesuré sur le smartphone pour qu'un temps ne soit pas importé deux fois."""
-    CodeRetour = Erreur(201)
+    CodeRetour = Erreur(201, "Erreur non prévue (ignorée) dans addArriveeTemps :\n" + str(tempsCoureur)+","+str(tempsClient)+","+str(tempsServeur)+"," + dossard)
     newTps = dupliqueTemps(Temps(tempsCoureur, tempsClient, tempsServeur))
 ##    if tempsClientIsNotInArriveeTemps(newTps) :
     doss = formateDossardNG(dossard)
@@ -5913,7 +5923,7 @@ def addArriveeTemps(tempsCoureur, tempsClient, tempsServeur, dossard="0A") :
             ArriveeTemps.insert(0,newTps)
             ArriveeTempsAffectes.insert(0,doss)
             CodeRetour = Erreur(0)
-    if dossard != "0" :# si on affecte un dossard, cela peut avoir des conséquences sur des associations temps-coureur antérieures. On recalculera tout.
+    if dossard != "0A" or dossard != "0" :# si on affecte un dossard, cela peut avoir des conséquences sur des associations temps-coureur antérieures. On recalculera tout.
         Parametres["calculateAll"] = True
 ##    else :
 ##        CodeRetour = "Le temps à ajouter est déjà dans la liste des temps d'arrivée. Situation impossible avec les smartphones et l'interface normalement."

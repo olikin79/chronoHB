@@ -574,18 +574,15 @@ class MonTableau(Frame):
                 print("mise à jour du tableau avec ", TableauGUI)
                 # il y a des lignes à actualiser
                 ligneInitiale = TableauGUI[0][0]
-                print("test")
                 #ligneAjoutee = ligneTableauGUI[0]
                 derniereLigneStabilisee = ligneTableauGUI[1]
-                print("avant get_children()")
-                print(f"Treeview ID: {self.treeview}")
                 #print("ligneInitiale :" , ligneInitiale)
                 try:
                     items = self.treeview.get_children()
                     print(f"Children: {items}")
                 except Exception as e :
                     print(f"Erreur détectée : {e}")
-                print("après get_children()")
+                # print("après get_children()")
                 # print(ligneTableauGUI)
                 for donnee in TableauGUI :
                     #print("ajout de ", ligne, "")
@@ -651,7 +648,8 @@ class MonTableau(Frame):
                     listeDesDossardsConcernees.append(err.dossard)
             # else :
             #     print("Erreur sans dossard", err.affiche())
-        print("dossards concernés",listeDesDossardsConcernees)
+        if listeDesDossardsConcernees :
+            print("dossards concernés par un affichage spécial :",listeDesDossardsConcernees)
         #indDansListeDesLignesConcernees = 0
         #noLigneDansTreeview = 1
         for iid in self.treeview.get_children() :
@@ -690,9 +688,9 @@ class MonTableau(Frame):
             actualiseToutLAffichage()
                 
     def majLigne(self, ligne, donnee, items) :
-        print(donnee, items)
+        # print(donnee, items)
         #index = int(donnee[0])
-        print("ligne", ligne, "effectif", len(items))
+        # print("ligne", ligne, "effectif", len(items))
         # adaptation à l'arrache : si le dossard vaut 0, mettre un "-"
         if donnee[self.colonneDossard] == "" : # si pas de coureur, pas de dossard à l'affichage.
             self.noDernierTempsSansCorrespondance = int(donnee[0])
@@ -2073,7 +2071,8 @@ def dupliquerTempsAction() :
         print("Ajout du temps disponible", tempsReel)
         print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-        regenereAffichageGUI()
+        # regenereAffichageGUI()
+        root.after(100, lambda: timer.traiterDonnees())
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à dupliquer."
@@ -2171,6 +2170,8 @@ def supprimerDossardAction() :
 
 def envoiEmailDeTestLanceur():
     mon_thread_Diplomes = Thread(target=envoiEmailDeTest)
+    mon_thread_Diplomes.envoi_en_cours = True
+    mon_thread_Diplomes.nom_prenom = "en cours"
     mon_thread_Diplomes.start()
 
 def envoiEmailDeTest() :
@@ -2633,33 +2634,53 @@ la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards 
     else :
         print("Erreur non encore référencée",err.numero,"dans l'interface. A voir comment on pourrait aider à la corriger rapidement.")
 
+listErreursPrecedente = []
 
+def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCours=False):
+    global lblListE, listErreursPrecedente
+    listErreursEnCours = listErreursEnCoursOriginale.copy()
+    # 701 est une erreur qui indique qu'un envoi de diplomes est en cours. Elle doit être renouvelée à chaque fois pour justifier son affichage.
+    if tagEnvoiDiplomeEnCours :
+        # insère l'erreur 701 en première position
+        listErreursEnCours.insert(0,Erreur(701, "Envoi de diplôme en cours : " + mon_thread_Diplomes.nom_prenom + "..."))
+        # listErreursEnCours.append(Erreur(701, "Envoi des diplômes en cours..."))
 
-def actualiseAffichageErreurs(listErreursEnCours):
-    global lblListE
-    for bouton in lblListE :
-        #print("Destruction de ",bouton)
-        bouton.destroy()
-    #print("Liste des erreurs en cours : ",listErreursEnCours)
-    lblListE = []
-    if len(listErreursEnCours) > 11 :
-        listErreursEnCoursTronquee = listErreursEnCours[:10]
+    # comparaison de listErreursEnCours et listErreursPrecedente
+    auMoinsUnChangement = False
+    i = 0
+    if len(listErreursEnCours) != len(listErreursPrecedente) :
+        auMoinsUnChangement = True
     else :
-        listErreursEnCoursTronquee = listErreursEnCours
-    if listErreursEnCours :
-        for grp in listErreursEnCoursTronquee :
-                lblFrE = Frame(zoneAffichageErreurs)
-                #lblLegende = Label(lblFrE, text= " : ")
-                #print("bouton avec commande : onClick(",grp,")")
-                errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
-                #lblLegende.pack(side=LEFT)
-                errBouton.pack(side=TOP)
-                #lblFrE.pack(side=TOP)
-                lblListE.append(errBouton)#[lblTemps,lblFrE]
-        zoneAffichageErreurs.pack(side=TOP,fill=X)
-    else :
-        zoneAffichageErreurs.forget()
-    tableau.metsEnEvidenceErreurs(listErreursEnCours)
+        while i < len(listErreursEnCours) :
+            if listErreursEnCours[i] != listErreursPrecedente[i] :
+                auMoinsUnChangement = True
+                break
+            i += 1
+    # si toutes les erreurs sont identiques, on ne fait rien. Si au moins une différence, on actualise tout.
+    if auMoinsUnChangement :
+        for bouton in lblListE :
+            #print("Destruction de ",bouton)
+            bouton.destroy()
+        #print("Liste des erreurs en cours : ",listErreursEnCours)
+        lblListE = []
+        if len(listErreursEnCours) > 11 :
+            listErreursEnCoursTronquee = listErreursEnCours[:10]
+        else :
+            listErreursEnCoursTronquee = listErreursEnCours
+        if listErreursEnCours :
+            for grp in listErreursEnCoursTronquee :
+                    lblFrE = Frame(zoneAffichageErreurs)
+                    #lblLegende = Label(lblFrE, text= " : ")
+                    #print("bouton avec commande : onClick(",grp,")")
+                    errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
+                    #lblLegende.pack(side=LEFT)
+                    errBouton.pack(side=TOP)
+                    #lblFrE.pack(side=TOP)
+                    lblListE.append(errBouton)#[lblTemps,lblFrE]
+            zoneAffichageErreurs.pack(side=TOP,fill=X)
+        else :
+            zoneAffichageErreurs.forget()
+        tableau.metsEnEvidenceErreurs(listErreursEnCours)
 
 
 
@@ -2960,6 +2981,85 @@ def construireMenuAnnulDepart():
 ### fonctions d'envoi des diplomes
 tagEnvoiDiplomeEnCours = False
 
+def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
+    ''' diffuse les diplomes non encore envoyés aux coureurs '''
+    global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMails
+    if not diplomeEmailQuotaDepasse :
+        # pour les tests
+        if diplomeImpose != "" :
+            nomModele = diplomeImpose
+        else :
+            nomModele = Parametres["diplomeModele"]
+            # charger le modèle de diplome des paramètres
+        # modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
+        #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
+        # with open(modeleDiplome , 'r') as f :
+        #     modele = f.read()
+        # f.close()
+        # n = 0 
+        for c in Coureurs.liste() :
+            if not diplomeEmailQuotaDepasse and mon_thread_Diplomes.envoi_en_cours :
+                # if DEBUG :
+                    # print("Coureur", c.nom, "examiné email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2, "dossard" , c.dossard, "nbreenvois", c.emailNombreDEnvois, "nbreenvois2", c.emailNombreDEnvois2, "email", c.email, "email2", c.email2)
+                try :
+                    c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailNombreDEnvois
+                    c.emailEnvoiEffectue2 # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailNombreDEnvois2
+                except :
+                    c.setEmailEnvoiEffectue(False)
+                    c.setEmailEnvoiEffectue2(False)
+
+                mon_thread_Diplomes.nom_prenom = c.nom + " " + c.prenom
+                ### CORRECTIF TEMPORAIRE POUR RENVOYER TOUS LES MAILS VERS LES ADRESSES HOTMAIL
+                ### A SUPPRIMER UNE FOIS QUE LES MAILS SERONT CORRECTEMENT ENVOYES
+                # tag = False 
+                # if c.email and "hotmail" in c.email :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue(False)
+                # if c.email2 and "hotmail" in c.email2 :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue2(False)
+                # if tag : # si on doit renvoyer le mail, on attend 60 secondes pour éviter d'être considéré comme un spammer
+                #     n += 1 # compteur de mails renvoyés
+                #     print("Mail n°",n,"renvoyé pour le coureur",c.nom,c.dossard,"sur",c.email,"et",c.email2,"à",time.strftime("%H:%M:%S", time.localtime()),"car adresse hotmail.")
+                #     time.sleep(60)
+                ### FIN DU CORRECTIF TEMPORAIRE
+        ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
+        ##            c.setEmail("lax.olivier@gmail.com")
+                    #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
+                    #c.setEmailEnvoiEffectue(False)
+                # print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
+                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(diplomeDiffusionApresNMin) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
+                    genereDiplome(c, nomModele)
+                    if envoiDiplomeParMail(c) :
+                        # c.setEmailEnvoiEffectue(True)
+                        if DEBUG : 
+                            print("Envoi du diplome pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
+                # else :
+                #     print("Mail déjà envoyé pour le coureur :", c.nom, c.prenom, "classe :", c.classe)
+                
+                # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
+                #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
+                #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
+
+                ### pour les tests !
+                # elif __name__ == '__main__' and c.dossard == "1A" :
+                #     genereDiplome(modele, c, nomModele)
+                # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
+                #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
+                #else : #if c.dossard == "1A" :
+                #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
+                # else :
+                #     print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,">", 60*diplomeDiffusionApresNMin)
+            else :
+                break
+    else :
+        if DEBUG and not tagMessageQuotaDepasseDejaAffiche :
+            print("Le quota d'envoi d'email a été dépassé pour aujourd'hui. Pas d'envoi de diplome possible.")
+            tagMessageQuotaDepasseDejaAffiche = True
+
+
 def envoiDiplomesMessageFinal():
     global tagEnvoiDiplomeEnCours
     # print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
@@ -2973,7 +3073,7 @@ def envoiDiplomesSansMessageFinal():
     tagEnvoiDiplomeEnCours = False
 
 def envoiDiplomes(avecQuestion = True):
-    global tagEnvoiDiplomeEnCours
+    global tagEnvoiDiplomeEnCours, mon_thread_Diplomes
     if not tagEnvoiDiplomeEnCours :
         if avecQuestion :
             reponse = askokcancel("OPERATION LONGUE", "Opération très longue en fonction de votre débit internet et du nombre de diplôme à générer.\n\
@@ -2982,12 +3082,16 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
                 print("Début d'envoi de diplômes manuellement demandé via le menu...")
                 tagEnvoiDiplomeEnCours = True
                 mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
+                mon_thread_Diplomes.envoi_en_cours = True
+                mon_thread_Diplomes.nom_prenom = "initialisation"
                 mon_thread_Diplomes.start()
         else :
             tagEnvoiDiplomeEnCours = True
             # if DEBUG :
             #     print("Début d'envoi de diplômes automatisé...")
             mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes.envoi_en_cours = True
+            mon_thread_Diplomes.nom_prenom = "initialisation"
             mon_thread_Diplomes.start()
             # envoiDiplomesSansMessageFinal("Thread1", Coureurs)
 ##    else :
@@ -3237,7 +3341,7 @@ class Clock():
             if "traitementDonneesRecuperees" not in locals() :
                 traitementDonneesRecuperees = []
 
-        listeNouvellesErreursATraiter = traitementToutesDonnees + traitementDonneesRecuperees
+        self.listeNouvellesErreursATraiter = traitementToutesDonnees + traitementDonneesRecuperees
 
         #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
@@ -3264,7 +3368,7 @@ class Clock():
         if Parametres["utilisationDesDossardsDeChronoHB"] :
             # le logiciel gère les dossards du cross
             # tant qu'il y a des dossards à imprimer, on le signale.
-            listeNouvellesErreursATraiter.append(erreur)
+            self.listeNouvellesErreursATraiter.append(erreur)
         else :
             # le logiciel ne gère pas l'impression des dossards du trail. 
             # On signale l'import mais on permet d'un clic de supprimer l'information
@@ -3278,7 +3382,7 @@ class Clock():
                 # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
                     # le message doit se réafficher 
                 # print("On affiche l'information")
-                listeNouvellesErreursATraiter.append(erreur)
+                self.listeNouvellesErreursATraiter.append(erreur)
             # else :
             #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
             #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
@@ -3291,7 +3395,7 @@ class Clock():
         #     Parametres["nbreAImprimerAncien"] = nbreAImprimerActuel
 
         # création des boutons pour traitement des erreurs
-        self.erreursATraiter(listeNouvellesErreursATraiter)
+        self.erreursATraiter(self.listeNouvellesErreursATraiter)
 
         # se relance dans un temps prédéfini.
         self.premiereExecution = False
@@ -3341,11 +3445,28 @@ class Clock():
             self.auMoinsUnImportPourSauvegarde = False
         self.compteurSauvegarde += 1
 
-
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["diplomeDiffusionAutomatique"] :
-            # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
-            envoiDiplomes(avecQuestion = False)
+            if not "mon_thread_Diplomes" in globals() and not "mon_thread_Diplomes" in locals() :
+                envoiDiplomes(avecQuestion = False)
+            else :
+                if not mon_thread_Diplomes.envoi_en_cours :
+                    # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+                    envoiDiplomes(avecQuestion = False)
+        # actualise la variable envoi_en_cours du thread qui envoie les diplomes afin de pouvoir l'interrompre
+        print(not envoiAutoDesEMails.get() )
+        try :
+            if mon_thread_Diplomes.envoi_en_cours and not envoiAutoDesEMails.get() :
+            # if "mon_thread_Diplomes" in globals() or "mon_thread_Diplomes" in locals() :
+                print("on stoppe l'envoi des diplomes.")
+                mon_thread_Diplomes.envoi_en_cours = False
+        except :
+            pass
+        actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
+        # if tagEnvoiDiplomeEnCours :
+        #     # self.listeNouvellesErreursATraiter.append(Erreur(701, "Envoi des diplômes en cours..."))
+        #     self.erreursATraiter(self.listeNouvellesErreursATraiter)
+
         # fin sauvegarde des données
 
 ##        # actualisation de l'affichage après les départs ou si départ annulé récemment.
@@ -3386,6 +3507,7 @@ class Clock():
         self.premiereExecution = True
         
     def erreursATraiter(self,listeNouvellesErreursATraiter):
+        global tagEnvoiDiplomeEnCours
         # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
         # 601 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone pique.
@@ -3428,9 +3550,9 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
-        #print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
+        print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
-        actualiseAffichageErreurs(self.erreursEnCours)
+        actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
 
         #print("erreurs en cours",self.erreursEnCours, "deja des erreurs",self.dejaDesErreurs)
         # actualisation de l'affichage si première exécution OU changement d'état des erreurs en cours (il y en avait et il n'y en a plus OU l'inverse).
@@ -3456,15 +3578,7 @@ timer=Clock(root, "tableau.maj")
 rejouerToutesLesActionsMemorisees()
 
 
-##def regenereAffichageGUI() :
-##    rejouerToutesLesActionsMemorisees()
-####    Parametres["calculateAll"] = True
-####    traiterDonneesLocales()
-####    genereResultatsCoursesEtClasses(True)
-####    #print(tableauGUI)
-####    #print(len(tableauGUI), "lignes actualisés sur l'affichage.")
-####    tableau.maj(tableauGUI)
-##
+
 ##
 ##
 ##def importSIECLEAction() :
@@ -3787,6 +3901,8 @@ dossardsZone = DossardsFrame(GaucheFrameDossards)
 
 def envoiDiplomeIndividuelsLanceur():
     mon_thread_Diplomes = Thread(target=envoiDiplomeIndividuels)
+    mon_thread_Diplomes.envoi_en_cours = True
+    mon_thread_Diplomes.nom_prenom = "en cours"
     mon_thread_Diplomes.start()
 
 def envoiDiplomeIndividuels() :
@@ -4274,8 +4390,8 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
     def do_GET(self):
         """Handle GET requests for HTML, CGI, or static files."""
         super().do_GET()
-        print("Traitement des données suite à requête GET")
-        self.after(0, lambda: timer.traiterDonnees())
+        # print("Traitement des données suite à requête GET")
+        # root.after(0, lambda: timer.traiterDonnees())
     
 
 def start_server(path, port=8888):

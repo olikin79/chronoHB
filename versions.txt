@@ -115,10 +115,18 @@ Pbs persistants urgents :
 
 
 A faire rapidement côté développements : 
-- affichage de l'erreur 701 : envoi des diplomes en cours...
-- ôter du timer le traitement des fichiers qui ont changé. Créer une méthode qui exécute les fonctions de traitement quand le serveur web reçoit un message.
+- le fait de dupliquer un temps crée un temps avant le temps dupliqué au lieu d'après.
+C'est la méthode tempsClientIsNotInArriveeTemps(tps) qui devrait retourner False avec le temps de l'interface mais qui ne le fait pas.
+Du coup, la fonction dupliqueTemps(tps) ne fonctionne pas et ne duplique pas le temps de l'interface.
 
 ### 
+
+
+
+Travail du 05/02/2025 :
+- implémentation de l'affichage "Envoi de diplomes en cours...".
+- amélioration de l'affichage des erreurs : ne s'actualise que s'il y a un changement.
+- arrêt immédiat de l'envoi des diplomes si la case est décochée.
 
 Travail du 03/02/2025 :
 - correctif pour actualiser l'interface en dehors du thread du serveur web : cela faisait planter les modifications issues de l'interface elle-même.
