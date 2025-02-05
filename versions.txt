@@ -127,6 +127,7 @@ Travail du 05/02/2025 :
 - implémentation de l'affichage "Envoi de diplomes en cours...".
 - amélioration de l'affichage des erreurs : ne s'actualise que s'il y a un changement.
 - arrêt immédiat de l'envoi des diplomes si la case est décochée.
+- ajout dans l'interface GUI de la possibilité de régler le paramètre delai_antennes_par_tag permettant d'ignorer un tag reçu pendant un certain nombre de secondes.
 
 Travail du 03/02/2025 :
 - correctif pour actualiser l'interface en dehors du thread du serveur web : cela faisait planter les modifications issues de l'interface elle-même.

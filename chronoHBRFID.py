@@ -3,6 +3,7 @@ import tkinter as tk
 # import pour les messagebox
 from tkinter import messagebox
 from FonctionsMetiers import *
+from chronoHBGUIclass import * # pour des widgets personnalisés.
 from functools import partial
 
 class Popup(tk.Toplevel):
@@ -138,9 +139,19 @@ class Popup(tk.Toplevel):
         if self.listeAntennes :
             print("Liste des antennes connues:", self.listeNomsAntennes)
             nbreAntennes = len(self.listeNomsAntennes)
-            # label d'information
-            label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
-            label.grid(row=0, column=0, sticky="w")
+            # réglage du délai entre deux captations RFID d'un même tag.
+            frameDoublonsReglage = tk.Frame(frame)
+            # label = tk.Label(frameDoublonsReglage, text="Délai de suppression des doublons RFID captés par les antennes :", justify="left")
+            # label.pack(side=tk.LEFT)
+            self.doublons = tk.StringVar()
+            # self.doublons.set(str(Parametres["delai_antennes_par_tag"]))
+            self.doublonsEntry = EntryParam("delai_antennes_par_tag", "Délai de suppression des doublons RFID captés par les antennes", parent=frameDoublonsReglage, largeur=5, nombre = True)
+            #IntegerEntry(frameDoublonsReglage, value=Parametres["delai_antennes_par_tag"], textvariable=self.doublons, width=5)
+            self.doublonsEntry.pack(side=tk.LEFT)
+            tk.Label(frameDoublonsReglage, text="secondes", justify="left").pack(side=tk.LEFT)
+            frameDoublonsReglage.grid(row=0, column=0, sticky="w")
+            # label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
+            # label.grid(row=0, column=0, sticky="w")
             # temporaire : message indiquant que les antennes au départ et sur des étapes seront prises en compte plus tard.
             label = tk.Label(frame, text="Pour le moment, les antennes au départ et sur des étapes ne sont pas prises en compte.", justify="left")
             label.grid(row=1, column=0, sticky="w")
