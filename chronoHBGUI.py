@@ -3454,7 +3454,6 @@ class Clock():
                     # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
                     envoiDiplomes(avecQuestion = False)
         # actualise la variable envoi_en_cours du thread qui envoie les diplomes afin de pouvoir l'interrompre
-        print(not envoiAutoDesEMails.get() )
         try :
             if mon_thread_Diplomes.envoi_en_cours and not envoiAutoDesEMails.get() :
             # if "mon_thread_Diplomes" in globals() or "mon_thread_Diplomes" in locals() :

@@ -1840,13 +1840,15 @@ class InfosRFID(dict) :
                 if (not departUniquement and not arriveeUniquement and not checkPointUniquement) or (departUniquement and antenne["depart"]) or (arriveeUniquement and antenne["arrivee"]) or (checkPointUniquement and antenne["checkPoint"]) :
                     if role == "All" :
                         retour.append(antenne)
-                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                        # print("antenne",antenne)
+                        # print("lecteur", lecteur)
+                        retourNoms.append(self[antenne["lecteur"]][antenne["nom"]].get_nom_complet())
                     elif role == "principale" and antenne["principale"] :
                         retour.append(antenne)
-                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                        retourNoms.append(self[antenne["lecteur"]][antenne["nom"]].get_nom_complet())
                     elif role == "secondaire" and not antenne["principale"] :
                         retour.append(antenne)
-                        retourNoms.append(self[lecteur][antenne].get_nom_complet())
+                        retourNoms.append(self[antenne["lecteur"]][antenne["nom"]].get_nom_complet())
                     # retourNoms.append(str(lecteur.nom)+"-"+str(antenne["nom"]))
         # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
         if retour :
