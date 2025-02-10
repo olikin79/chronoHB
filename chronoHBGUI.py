@@ -51,7 +51,48 @@ from resultatsDiffusion import * # création puis diffusion des diplomes par ema
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
+# import queue # pour transmettre des infos entre processus : entre le thread principal et le serveur web par exemple.
+# File d'attente partagée pour les messages
+# message_queue_affichage_temps_reel = queue.Queue()
+# # Liste des connexions ouvertes pour l'affichage des résultats par le serveur web.
+# connections_affichage_temps_reel = []
+# clients_lock = threading.Lock()
 
+# Fonction pour diffuser les mises à jour via le serveur web
+# Fonction de diffusion des messages
+# def broadcast_messages():
+#     while True:
+#         try:
+#             # Attendre un message à envoyer
+#             message = message_queue_affichage_temps_reel.get()# block=True)
+#             print(f"Diffusion du message : {message}")
+#             disconnected_clients = []
+            
+#             # Envoyer le message à chaque client
+#             for client in connections_affichage_temps_reel:
+#                 try:
+#                     client.write(f"data: {message}\n\n".encode("utf-8"))
+#                     client.flush()
+#                 except Exception:
+#                     # Marquer les clients déconnectés
+#                     disconnected_clients.append(client)
+            
+#             # Retirer les clients déconnectés
+#             for client in disconnected_clients:
+#                 connections_affichage_temps_reel.remove(client)
+#                 print(f"Client retiré ({len(connections_affichage_temps_reel)} clients restants)")
+#             message_queue_affichage_temps_reel.task_done()
+#         except Exception as e:
+#             print(f"Erreur lors du broadcast : {e}")
+# def broadcast_update_affichage_temps_reel(message):
+#     print("Broadcasting update:", message)
+#     for connection in connections_affichage_temps_reel:
+#         try:
+#             connection.wfile.write(f"data: {message}\n\n".encode('utf-8'))
+#             connection.wfile.flush()
+#         except BrokenPipeError:
+#             # Si une connexion est fermée, elle sera retirée plus tard
+#             pass  
 # def mainGUI() :
 # version="2.1.1"
 
@@ -167,7 +208,157 @@ class ScrollFrame(Frame):
             self.canvas.unbind_all("<Button-5>")
         else:
             self.canvas.unbind_all("<MouseWheel>")
-            
+
+
+
+####### serveur web chargé des connexions SSE asynchrone
+
+import asyncio
+from aiohttp import web
+import threading
+import time
+
+connections = []  # Liste des connexions clients (SSE)
+event_queue = None  # File d'attente pour les événements
+main_loop = None  # Stocke la boucle d'événement asyncio principale
+
+async def handle_events(request):
+    """
+    Handler pour gérer les connexions SSE.
+    """
+    response = web.StreamResponse(
+        status=200,
+        reason="OK",
+        headers={
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
+    await response.prepare(request)
+
+    connections.append(response)
+    print("Nouvelle connexion SSE ajoutée.")
+
+    try:
+        # Garder la connexion ouverte
+        while True:
+            await asyncio.sleep(10)  # Ping périodique pour garder la connexion
+    except asyncio.CancelledError:
+        print("Connexion SSE fermée.")
+    finally:
+        # Nettoyer la connexion à la fermeture
+        connections.remove(response)
+        await response.write_eof()
+
+    return response
+
+
+async def broadcast_events():
+    """
+    Diffuser les événements à tous les clients connectés via SSE.
+    """
+    while True:
+        # Récupérer un message de la file d'attente (file d'attente asynchrone)
+        message = await event_queue.get()
+
+        # Diffuser le message à toutes les connexions actives
+        for connection in connections:
+            try:
+                await connection.write(f"data: {message}\n\n".encode("utf-8"))
+                await connection.drain()  # S'assurer que les données sont bien envoyées
+            except Exception as e:
+                print(f"Erreur de diffusion : {e}")
+                connections.remove(connection)
+
+
+async def handle_index(request):
+    """
+    Servir une page HTML simple qui se connecte aux événements SSE.
+    """
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>SSE Demo</title>
+    </head>
+    <body>
+        <h1>Résultats en temps réel</h1>
+        <h2><div id="events"></div></h2>
+        <script>
+            const eventSource = new EventSource('/events');
+            const eventsDiv = document.getElementById('events');
+            eventSource.onmessage = function(event) {
+                const newEvent = document.createElement('p');
+                newEvent.textContent = event.data;
+                eventsDiv.prepend(newEvent); // Ajouter les nouveaux événements en haut
+            };
+        </script>
+    </body>
+    </html>
+    """
+    return web.Response(text=html, content_type="text/html")
+
+
+# def generate_events():
+#     """
+#     Générer des événements depuis un thread séparé.
+#     """
+#     global main_loop
+#     counter = 1
+#     while True:
+#         time.sleep(5)  # Simuler un nouvel événement toutes les 5 secondes
+#         message = f"Événement {counter} généré."
+#         print(f"Ajout à la file : {message}")
+#         asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
+#         counter += 1
+
+
+# loop = asyncio.get_event_loop()
+
+async def main():
+    global event_queue, main_loop
+
+    # Créer la file d'attente dans la boucle d'événement principale
+    event_queue = asyncio.Queue()
+
+    # Démarrer la tâche de diffusion des événements
+    asyncio.create_task(broadcast_events())
+
+    # Configurer l'application web
+    app = web.Application()
+    app.router.add_get("/", handle_index)
+    app.router.add_get("/events", handle_events)
+
+    # Lancer le serveur
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8887)
+    print("Serveur actif sur http://localhost:8087")
+    await site.start()
+
+    # Lancer un thread séparé pour simuler des événements
+    main_loop = asyncio.get_event_loop()
+    # thread = threading.Thread(target=generate_events)
+    # thread.daemon = True  # Le thread s'arrête avec le programme principal
+    # thread.start()
+
+    # Garder le serveur actif
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    except KeyboardInterrupt:
+        print("Arrêt du serveur.")
+
+
+# if __name__ == "__main__":
+
+# on lance le serveur web asynchrone dans un thread
+# asyncio.run(main())
+Thread(name="Serveur web SSE",target=asyncio.run, args=(main(),)).start()
+
+
+############ fin du serveur web sse asynchrone ##########           
 
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
@@ -534,11 +725,11 @@ class MonTableau(Frame):
         if self.defilementAuto :
             self.treeview.yview_moveto('1.0')
         
-    def reinit(self):
+    def reinit(self, Reordonner = False):
         self.listeDesTemps = []
         self.effectif = 0
         self.delTreeviewFrom(1)
-        self.initTreeview(Reordonner = False)
+        self.initTreeview(Reordonner = Reordonner)
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
@@ -565,10 +756,10 @@ class MonTableau(Frame):
         
     def maj(self, TableauGUI) :
         #print("tableauGUI", tableauGUI)
-        global ligneTableauGUI, ArriveeTemps
+        global ligneTableauGUI, ArriveeTemps, main_loop
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
-            self.reinit()
+            self.reinit(Reordonner=True)
         else :
             # print("tableauGUI", TableauGUI)
             if TableauGUI :
@@ -577,7 +768,8 @@ class MonTableau(Frame):
                 ligneInitiale = TableauGUI[0][0]
                 #ligneAjoutee = ligneTableauGUI[0]
                 derniereLigneStabilisee = ligneTableauGUI[1]
-                #print("ligneInitiale :" , ligneInitiale)
+                print("ligneInitiale :" , ligneInitiale)
+                print("dernière ligne stabilisée :", derniereLigneStabilisee)
                 try:
                     items = self.treeview.get_children()
                     print(f"Children: {items}")
@@ -586,7 +778,6 @@ class MonTableau(Frame):
                 # print("après get_children()")
                 # print(ligneTableauGUI)
                 for donnee in TableauGUI :
-                    #print("ajout de ", ligne, "")
                     self.majLigne(ligneInitiale, donnee, items)
                     ligneInitiale += 1
                 ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
@@ -649,8 +840,8 @@ class MonTableau(Frame):
                     listeDesDossardsConcernees.append(err.dossard)
             # else :
             #     print("Erreur sans dossard", err.affiche())
-        if listeDesDossardsConcernees :
-            print("dossards concernés par un affichage spécial :",listeDesDossardsConcernees)
+        # if listeDesDossardsConcernees :
+        #     print("dossards concernés par un affichage spécial :",listeDesDossardsConcernees)
         #indDansListeDesLignesConcernees = 0
         #noLigneDansTreeview = 1
         for iid in self.treeview.get_children() :
@@ -664,7 +855,7 @@ class MonTableau(Frame):
                 self.treeview.item(iid, tags="sauts")
             elif Coureurs.recuperer(doss).rang == 1 :
                 self.treeview.item(iid, tags="premiers")
-            elif reinitialise :
+            else : #if reinitialise :
                 self.treeview.item(iid, tags=())
             #noLigneDansTreeview += 1
 
@@ -734,6 +925,14 @@ class MonTableau(Frame):
             self.listeDesTemps.append(donnee[1]) # ajout du temps.
             #print("ajout en ligne", self.effectif +1 , "avec", donnee)
             self.treeview.insert('', self.effectif, values=tuple(ligneAAjouter))
+            #### diffusion du message immédiate pour la ligne d'arrivée.
+            if ligneAAjouter[9] != "-":#ligneInitiale > derniereLigneStabilisee :
+                # print("ligneInitiale",ligneInitiale,"derniereLigneStabilisee",derniereLigneStabilisee)
+                message = str(ligneAAjouter[9]) + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
+                print("diffusion de ", message, ".")
+                asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
+            else :
+                print("ligne ignorée, non transmise :", donnee)
             self.effectif += 1
             
     def formateSurNChiffres(self,nbre,nbreChiffres) :
@@ -4239,10 +4438,40 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
 
     def do_GET(self):
         """Handle GET requests for HTML, CGI, or static files."""
+        # if self.path == '/events':
+        #     self.send_response(200)
+        #     self.send_header('Content-type', 'text/event-stream')
+        #     self.send_header('Cache-Control', 'no-cache')
+        #     self.send_header('Connection', 'keep-alive')
+        #     self.end_headers()
+
+        #     # Ajouter le client à la liste
+        #     # with clients_lock:
+        #         # connected_clients.append(self.wfile)
+        #     connections_affichage_temps_reel.append(self.wfile)
+        #     print(f"Nouvelle connexion client ({len(connections_affichage_temps_reel)} clients connectés)")
+        #     # on démarre un thread pour exécuter handle_client_sse
+        #     threading.Thread(target=self.handle_client_sse).start()
+        # else:
+            # Appelle la méthode par défaut pour les autres chemins
         super().do_GET()
         # print("Traitement des données suite à requête GET")
         # root.after(0, lambda: timer.traiterDonnees())
-    
+
+    # def handle_client_sse(self):
+    #     """Gère la connexion SSE pour un client."""
+    #     try:
+    #         while True:
+    #             # Attendre un message dans la file d'attente
+    #             # message = message_queue_affichage_temps_reel.get()
+    #             self.wfile.write("test\n\n".encode('utf-8'))
+    #             self.wfile.flush()
+    #             # on conserve la connexion avec le client.
+    #             time.wait(1)
+    #     except Exception:
+    #         # Arrêter le thread en cas d'erreur (client déconnecté)
+    #         print("Client déconnecté")
+ 
 
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''
@@ -4257,6 +4486,7 @@ def start_server(path, port=8888):
     httpd = server(server_address, handler)
     httpd.serve_forever()
 
+
 # tag pour savoir si le popup est ouvert ou non.
 if not "popupRFID" in Parametres :
     Parametres["popupRFID"]=False
@@ -4269,6 +4499,10 @@ daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thre
 daemon.start()
 #time.sleep(1)
 
+
+
+# broadcast_thread = threading.Thread(name='broadcast_thread',target=broadcast_messages, daemon=True)
+# broadcast_thread.start()
 
 # global popup
 # popup = Popup()
