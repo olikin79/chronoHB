@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Derniers passages sur la ligne d'arrivée :</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tableau des Résultats</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Heure</th>
+                <th>Message</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            <!-- Les nouvelles lignes seront ajoutées ici -->
+        </tbody>
+    </table>
+
+    <script>
+        // Ouvrir la connexion avec le serveur via SSE
+        const eventSource = new EventSource('/events');
+
+        // Sélectionner le corps du tableau
+        const tableBody = document.getElementById('table-body');
+
+        // Fonction pour ajouter une ligne au tableau
+        function ajouterLigne(message) {
+            // Créer une nouvelle ligne (tr)
+            const newRow = document.createElement('tr');
+
+            // Ajouter la colonne pour l'heure actuelle
+            const timeCell = document.createElement('td');
+            const now = new Date().toLocaleTimeString(); // Obtenir l'heure actuelle
+            timeCell.textContent = now;
+
+            // Ajouter la colonne pour le message reçu
+            const messageCell = document.createElement('td');
+            messageCell.textContent = message;
+
+            // Ajouter les colonnes à la ligne
+            newRow.appendChild(timeCell);
+            newRow.appendChild(messageCell);
+
+            // Ajouter la nouvelle ligne au début du tableau
+            tableBody.prepend(newRow); // prepend insère au début du tableau
+        }
+
+        // Gestion des messages envoyés par le serveur
+        eventSource.onmessage = function(event) {
+            ajouterLigne(event.data); // Appeler la fonction pour ajouter la ligne
+        };
+
+        // Gestion des erreurs
+        eventSource.onerror = function() {
+            console.error('Erreur de connexion au serveur.');
+            eventSource.close(); // Fermer la connexion si le serveur n'est pas disponible
+        };
+    </script>
+</body>
+</html>
+
