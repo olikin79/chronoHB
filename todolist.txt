@@ -1,26 +1,66 @@
+FAIT pour le raspberry pi :
+- mise à jour système automatisée (unattended).
+
+A FAIRE pour le raspberry pi :
+- script de mise à jour de l'application automatisé.
+- montage effectif dans la boite.
+- terminer app_raspberry.py :
+	* (FAIT) renvoi des données en cas de déconnexion.
+	* (FAIT)
+	* réglage WIFI à corriger.
+	* Renvoyer toutes les données vers le serveur (à implémenter)
+	* mise à jour logicielle chronoHB.
+	* Assistance à distance (VPN).
+	* Etat des antennes : si données reçues depuis le dernier allumage.
+
+BUGS DECOUVERTS :
+1. tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
+Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
+2. si on efface toutes les données, les Erreurs restent à droite sauf si on redémarre. Il faut donc juste vider la liste des erreurs quand on réinitailise.
+3. (FAIT) Les boutons AvancerDossard et ReculerDossard ne fonctionnaient plus depuis l'implémentation de traiterDonneesNG() : factorisation et correction du code.
+4. (FAIT) Correctif : l'ajout d'un temps manuellement dans l'interface se faisait uniquement avec la date du jour.
+Aucun ajout de temps ne pouvait fonctionner les jours suivants.
+
+
+DEVELOPPEMENTS AVANT VENTE
+- processus de mise à jour avec contrôle du paiement.
+- dossards à rétablir avec la création de pdf sans texlive.
+- sortir tous les fichiers de données du dossier d'installation.
+- limitations logicielles dans la version de test à créer : import limité à 20 coureurs.
+- processus de mise à jour à rendre plus simple :
+1. pour le msi distribué (fichiers python compilés distribués).
+2. pour gérer des versions majeures-mineures, sans tout retélécharger à chaque mise à
+- mise en place d'un site internet avec : 
+1. page de contact (renseignement achat, signalement de bug via le logiciel).
+2. page de présentation dont vidéos d'explication du fonctionnement + documentation détaillée.
+3. page de paiement de l'application.
+
 
 PERSPECTIVES DEVELOPPEMENTS RFID (dans l'ordre)
-
 - tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
-
 - création d'une interface minimale sur le raspberry pi
-
-- prévoir une interface (html ?) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
+- prévoir une interface (html ? ou sur le raspberry pi avec vnc) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
  d'ajouter un coureur ou un temps.
 En attendant une solution pleinement HTML, étudier la possibilité d'utiliser le mode pique en ajoutant un bouton pour réinitialiser ?
-
 - fabrication du matériel : gabarit, batterie, écran, boitier étanche à la pluie, bouton d'allumage.
+
+#### Pour le trail de Rieutort de mai 2025 :
+- Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
+
 
 
 #### Pour le cross du collège 2025 :
+- (FAIT) refaire les diplomes HB 2023, 2024 au nouveau format.
+- terminer la création de tous les pdf sans texlive (dossards compris)
+- Gérer les noms de famille très longs sur les diplomes.
 - l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
 et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
 
-- terminer la création de tous les pdf sans texlive.
+
+
 
 #### A plus long terme :
 - courses à étapes implémentées avec RFID uniquement.
-
 
 #################### 
 

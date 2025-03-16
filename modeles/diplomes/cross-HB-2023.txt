@@ -1,16 +1,15 @@
-[{"type": "text", "text": "@nomCourse@", "x": 30, "y": 255, "taille": 60, "police": "", "color" : "white"},
- {"type": "text", "text": "@date@", "x": 550, "y": 275, "taille": 40, "police": "", "color" : "white", "style" : "italic"},
- {"type" : "multitexts", "x": 30, "y": 370, "list" : [
-	{"type": "text", "text": "@rang@", "taille": 80, "police": "", "color" : "white"},
- 	{"type": "text", "text": " / @nbreTotal@ participants", "taille": 40, "police": "", "color" :  "white"}
+[
+ {"type": "text", "text": "@nom@", "x": 580, "y": 330, "taille": 40, "police": "", "style" : "bold", "color" : "black"},
+ {"type": "text", "text": "@prenom@", "x": 580, "y": 380, "taille": 40, "police": "", "style" : "bold", "color" : "black"},
+ {"type" : "multitexts", "x": 520, "y": 460, "list" : [
+	{"type": "text", "text": "@rang@", "taille": 40, "police": "", "color" : "black"},
+ 	{"type": "text", "text": " / @nbreTotal@ participants", "taille": 20, "police": "", "color" :  "black"}
  	]
  },
- {"type": "text", "text": "@nom@ @prenom@", "x": 30, "y": 450, "taille": 50, "police": "", "style" : "bold", "color" : "white"},
- {"type": "multiobjects", "y": 500, "marge": 30, "list": [
-	 {"type": "img-text", "file": "media/chronometre-blanc.png", "scale": 0.1, "text": "@temps@", "taille": 30, "color" : "white", "ecart" : 10},
-	 {"type": "img-text", "file": "media/vitesse-blanc.png", "scale": 0.19, "text": " @vitesse@", "taille": 30, "color" : "white", "ecart" : 10, "style" : "italic"},
-	 {"type": "img-text", "file": "media/symbole-@logoSexe@-blanc.png", "scale": 0.12, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 30, "color" : "white", "ecart" : 10}
-	 ]
- }
+ 
+	 {"type": "img-text", "x": 650, "y": 525, "file": "media/chronometre-noir.png", "scale": 0.1, "text": "@temps@", "taille": 30, "color" : "black", "ecart" : 10},
+	 {"type": "img-text", "x": 450, "y": 575,  "file": "media/vitesse-noir.png", "scale": 0.19, "text": " @vitesse@", "taille": 30, "color" : "black", "ecart" : 10, "style" : "italic"},
+	 {"type": "img-text", "x": 450, "y": 525,  "file": "media/symbole-@logoSexe@-noir.png", "scale": 0.12, "text": " @rangSexe@ / @nbreTotalSexe@", "taille": 30, "color" : "black", "ecart" : 10}
+ 
 ]
 
