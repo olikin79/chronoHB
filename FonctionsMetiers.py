@@ -1570,8 +1570,8 @@ class Temps():#persistent.Persistent):
         else :
             ch = "-"
         return ch
-    def tempsPlusUnCentieme (self) :
-        tempsARetourner = Temps(self.tempsCoureur+0.03, self.tempsClient, self.tempsServeur)
+    def tempsPlusUnDixieme (self) :
+        tempsARetourner = Temps(self.tempsCoureur+0.1, self.tempsClient, self.tempsServeur)
         return tempsARetourner
     def tempsMoinsUnDixieme(self) :
         tempsARetourner = Temps(self.tempsCoureur-0.1, self.tempsClient, self.tempsServeur)
