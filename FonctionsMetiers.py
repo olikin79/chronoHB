@@ -1571,8 +1571,14 @@ class Temps():#persistent.Persistent):
             ch = "-"
         return ch
     def tempsPlusUnCentieme (self) :
-        tempsARetourner = Temps(self.tempsCoureur+0.01, self.tempsClient, self.tempsServeur)
+        tempsARetourner = Temps(self.tempsCoureur+0.03, self.tempsClient, self.tempsServeur)
         return tempsARetourner
+    def tempsMoinsUnDixieme(self) :
+        tempsARetourner = Temps(self.tempsCoureur-0.1, self.tempsClient, self.tempsServeur)
+        return tempsARetourner
+    def dateEpreuve(self) :
+        """Retourne la date au format %m/%d/%y basée sur le tempsServeur"""
+        return time.strftime("%m/%d/%y",time.localtime(self.tempsServeur))
 ##        self.dossardProvisoire = None
 ##    def setDossard(self, dossard):
 ##        if dossard != None :
@@ -1776,7 +1782,7 @@ class InfosRFID(dict) :
         self.derniersDossardsCaptes = {}
 
     def aEteCapteDepuisPeuParUneAntennePrincipale(self, nom_antenne, epc) :
-        """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de 30 secondes
+        """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de x secondes
         False sinon"""
         try : 
             self.listeAntennesSecondaires
@@ -1919,7 +1925,9 @@ def extractionDonneesCommunesDeDataRFID(data) :
     # Récupération des données spécifiques de data
     reader_name = data.get("readerName", "UnknownReader")
     tags = data.get("tags", [])
-    json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z")))
+    # convertion de l'horodatage en secondes depuis l'époque depuis une datetime.now().isoformat()
+    json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
+    # json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z")))
     return reader_name, tags, json_timestamp_epoch
     
 def extractionDonneesDUnTagRFID(tag, reader_name) :
@@ -1929,7 +1937,8 @@ def extractionDonneesDUnTagRFID(tag, reader_name) :
         actualiseListeDesAntennes(reader_name, antenna_port)
     rssi = tag.get("rssi", "0")
     seen_count = tag.get("seenCount", "0")
-    tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    tag_timestamp_epoch = str(convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
+    # tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
     return {"epc":str(epc), "reader":str(reader_name), "antenna" :str(antenna_port), "rssi":str(rssi), "seen_count":str(seen_count)  ,"tag_timestamp_epoch":str(tag_timestamp_epoch)}
     # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
 
@@ -2701,6 +2710,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         tpsServeur = retourneLeTempsDUneListeDeLignes(listeLigne, indice)
         listeDesTpsServeurDesPremiersElements.append(tpsServeur)
             # print("Le fichier", fichier, "n'existe pas ou n'a pas été modifié récemment.")
+    print("LISTE DES TEMPS SERVEUR DE CHACUN DES ACTIONS", listeDesTpsServeurDesPremiersElements)
     # on analyse les données dans l'ordre du tpsServeur de chaque ligne.
     # tant que toutes les listes de listeDesDonneesATraiter ne sont pas vides, on traite les données
     poursuivre = False
@@ -5878,6 +5888,21 @@ def tempsClientIsNotInArriveeTemps(newTps) :
 #             i -= 1
 #             tpsDejaPresent = ArriveeTemps[i-1]
 #     return retour
+
+def IndiceTempsAfficheDansArriveeTemps(TpsHMS) :
+    """ retourne l'indice du tempsAffiche sur l'interface GUI s'il est présent dans ArriveeTemps.
+    Dans l'interface, le tempsReelFormate est affiché (sans la date, qu'on doit donc ignorer lors de la recherche)
+    retourne -1 sinon"""
+    retour = -1
+    i = len(ArriveeTemps)
+    if i > 0 :
+        while i > 0 and retour == -1:
+            # print("comparaison de ", ArriveeTemps[i-1].tempsReel, " et ",  TpsHMS.tempsReel )
+            if ArriveeTemps[i-1].tempsReel == TpsHMS.tempsReel :
+                print("Temps",TpsHMS, "trouvé dans ArriveeTemps")
+                retour= i-1
+            i -= 1
+    return retour
 
 def dupliqueTemps(tps):
     """ argument : une instance de la classe Temps.

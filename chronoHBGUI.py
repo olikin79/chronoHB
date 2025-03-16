@@ -358,7 +358,44 @@ async def main():
 Thread(name="Serveur web SSE",target=asyncio.run, args=(main(),)).start()
 
 
-############ fin du serveur web sse asynchrone ##########           
+############ fin du serveur web sse asynchrone ##########   
+
+def conversionTempsRequetesHTTP(temps) :
+    if isinstance(temps, Temps) :
+        return temps.tempsReelFormateDateHeure()
+    else :
+        return temps
+
+def local_ajoute_dossard(dossard, dossardPrecedent) :
+    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+    print("requete :", requete)
+    r = requests.get(requete)
+
+def local_supprime_dossard(dossard, dossardPrecedent) :
+    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+    print("requete :", requete)
+    r = requests.get(requete)
+
+def local_affecte_dossard(temps, dossard) :
+    temps = conversionTempsRequetesHTTP(temps)
+    print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+dossard+'&tpsCoureur='+str(temps))
+    r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+dossard+'&tpsCoureur='+str(temps))
+
+def local_modifie_temps(tempsInitial, tempsFinal, dossard="0") :
+    local_efface_temps(tempsInitial, dossard)
+    local_ajoute_temps(tempsFinal, dossard)
+
+def local_efface_temps(temps, dossard="0") :
+    temps = conversionTempsRequetesHTTP(temps)
+    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard='+dossard+'&tpsCoureur='+str(temps)
+    print("Temps précédent effacé :", requete)
+    r = requests.get(requete)
+
+def local_ajoute_temps(temps, dossard="0") :
+    temps = conversionTempsRequetesHTTP(temps)
+    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard='+dossard+'&tpsCoureur='+str(temps)
+    print("Temps modifié ajouté :", requete)
+    r = requests.get(requete)
 
 class MonTableau(Frame):
     def __init__(self, titres = [] , donneesEditables=[], largeursColonnes = [], parent=None , defilementAuto = False, **kw):
@@ -580,12 +617,7 @@ class MonTableau(Frame):
                                     heureFinaleFormate = time.strftime("%m/%d/%y-%H:%M:%S:",time.localtime(heureFinale))+contenuFinal[-2:]
                                     # print("Heure initiale : ", heure, "Heure Finale :", heureFinaleFormate)
                                     if heure != "-" :
-                                        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+heure
-                                        print("Temps précédent effacé :", requete)
-                                        r = requests.get(requete)
-                                        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+heureFinaleFormate
-                                        print("Temps modifié ajouté (sans report du dossard affecté pour éviter tout risque) :", requete)
-                                        r = requests.get(requete)
+                                        local_modifie_temps(heure, heureFinaleFormate)
         ##                                self.change = True
                                         self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
         ##                                traiterDonneesLocales()
@@ -595,8 +627,7 @@ class MonTableau(Frame):
                                     print("Saisie invalide. Impossible d'ajouter cette heure :", heure)
                             if column == "#3" :
                                 if heure != "-" :
-                                    print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
-                                    r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+contenuFinal+'&tpsCoureur='+heure)
+                                    local_affecte_dossard(heure, contenuFinal)
                                     self.change = True
                                     self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
                                     traiterDonneesLocales()
@@ -872,8 +903,9 @@ class MonTableau(Frame):
             while i > 0 :
                 tempsReel = tpsDisponible.tempsReelFormateDateHeure()
                 print("Ajout du temps disponible", tempsReel)
-                print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-                r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                local_ajoute_temps(tempsReel)
+                # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+                # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
                 tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
                 i -= 1
             rejouerToutesLesActionsMemorisees()
@@ -943,6 +975,15 @@ class MonTableau(Frame):
             retour = "0" + retour
             nbreAAjouter -= 1
         return retour
+
+    # def getIndiceDuTempsSelectionne(self) :
+    #     item_text = ""
+    #     for item in self.treeview.selection():
+    #         item_text = self.treeview.item(item, "values")
+    #     if item_text == "" :
+    #         return ""
+    #     else :
+    #         return int(item_text[0])-1
 
     def getTemps(self) :
         item_text = "-"
@@ -2092,13 +2133,17 @@ def ajouterTempsOKAction() :
     p = re.compile('[0-9][0-9]:[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')
     if p.match(ajouterTempsEntry.get()) :
         ##### A CORRIGER : cela ne devrait pas être la date du jour mais la date de l'épreuve (regarder le premier ou le dernier temps ou alors la sélection du tableau
-        tpsClientSTR = dateDuJour()+"-"+ajouterTempsEntry.get()
+        dateEpreuve = dateDuJour()
+        if tableau.listeDesTemps :
+            dateEpreuve = tableau.listeDesTemps[0].dateEpreuve()
+        tpsClientSTR = dateEpreuve + "-" + ajouterTempsEntry.get()
         tpsReelSaisi = time.mktime(time.strptime(tpsClientSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsClientSTR[-2:])/100)
         tps = Temps(tpsReelSaisi,0,0)
         if tempsClientIsNotInArriveeTemps(tps) :
             print("ajout du temps saisi", tpsReelSaisi, "car valide et pas déjà dans la liste des temps d'arrivée")
-            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
-            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
+            local_ajoute_temps(tps.tempsReelFormateDateHeure())
+            # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
+            # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
             if not traiterDonneesLocales() :
                 genereResultatsCoursesEtClasses()
             annulerTempsDossards()
@@ -2119,8 +2164,9 @@ def dupliquerTempsAction() :
         tpsDisponible = dupliqueTemps(tempsSelectionne)
         tempsReel = tpsDisponible.tempsReelFormateDateHeure()
         print("Ajout du temps disponible", tempsReel)
-        print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
-        r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+        local_ajoute_temps(tempsReel)
+        # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
+        # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         # regenereAffichageGUI()
         root.after(100, lambda: timer.traiterDonnees())
         # pas de retour au menu initial annulerTempsDossards()
@@ -2139,8 +2185,9 @@ def supprimerTempsAction() :
         tempsReel = test.tempsReelFormateDateHeure()
         print("suppression du temps", tempsReel)
         if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
-            print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-            r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+            local_efface_temps(tempsReel)
+            # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
+            # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
             regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()
     else :
@@ -2180,9 +2227,10 @@ def ajouterDossardApresOKAction() :
         dossard = ajouterDossardApresEntry.get()
         dossardPrecedent = tableau.getDossard()
         print("ajout du dossard saisi", dossard, "si valide après le dossard", dossardPrecedent )
-        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
-        print("requete :", requete)
-        r = requests.get(requete)
+        local_ajoute_dossard(dossard, dossardPrecedent)
+        # requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+        # print("requete :", requete)
+        # r = requests.get(requete)
         regenereAffichageGUI()
         annulerTempsDossards()
     else :
@@ -2196,17 +2244,16 @@ def supprimerDossardAction() :
     dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
-        print("requete :", requete)
-        r = requests.get(requete)
+        local_supprime_dossard(dossard)
         # si la ligne sélectionnée était affectée à un dossard, on supprime cette affectation (ce serait très gênant de le conserver pour le RFID)
         test = tableau.getTemps()
         if test :
             tempsReel = test.tempsReelFormateDateHeure()
             print("Déaffectation du temps", tempsReel, "du dossard", dossard)
             if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
-                print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
-                r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
+                local_affecte_dossard(tempsReel, "0")
+                # print("requete:", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
+                # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
                 # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=aff&dossard=0&tpsCoureur='+tempsReel)
                 # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
                 regenereAffichageGUI()
@@ -2239,22 +2286,35 @@ def envoiEmailDeTest() :
     else :
         message = "Aucun dossard sélectionné dans le tableau."
         reponse = showinfo("ERREUR",message)
-        
+
+
+
 def avancerDossardAction() :
     avancerDossardButton.configure(state=DISABLED)
     dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
+    # indiceDuTempsSelectionne = tableau.getIndiceDuTempsSelectionne()
+    tempsSelectionne = tableau.getTemps()
+    indiceDuTempsSelectionne = IndiceTempsAfficheDansArriveeTemps(tempsSelectionne)
+    print("TEMPS SELECTIONNE DANS LE TABLEAU", tempsSelectionne, "INDICE dans ArriveeTemps", indiceDuTempsSelectionne)
     if dossardSelectionne :
         dossardEncoreAvant = dossardPrecedentDansArriveeDossards(dossardPrecedent)
-        if dossardPrecedent != "" :
-            #dossardPrecedent = str(i)
-            #dossardSelectionne = str(dossardSelectionne)
-            print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardPrecedent+'&dossardPrecedent=' + dossardEncoreAvant
-            print("requete :", requete)
-            r = requests.get(requete)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardPrecedent+'&dossardPrecedent='+dossardSelectionne
-            print("requete :", requete)
-            r = requests.get(requete)
+        if dossardPrecedent != "0" and dossardPrecedent != "-1" and indiceDuTempsSelectionne !=0 :
+            # dans tous les cas le temps selectionne va se retrouver orphelin de son dossard :
+            # s'il était affecté à ce dossard, il est impératif d'enlever l'affectation
+            local_affecte_dossard(tempsSelectionne, "0")
+            # dans un fonctionnement RFID, pour faire avancer un dossard, le plus logique est d'ajouter un temps juste avant celui de dossardPrecedent
+            # de désaffecter le dossard du temps initial.
+            # si on est dans du RFID, tous les dossards sont affectés à un temps, donc on ne peut pas avancer un dossard sans désaffecter le précédent.
+            RFID = False
+            if indiceDuTempsSelectionne != -1 and ArriveeTempsAffectes[indiceDuTempsSelectionne] == dossardSelectionne and ArriveeTempsAffectes[indiceDuTempsSelectionne-1] == dossardPrecedent :
+                RFID = True
+                print("Cas RFID : on ajoute un temps juste devant celui de dossardPrecedent puis on enlève l'affectation de dossardSelectionne")
+                tempsAjouteArtificiellement = ArriveeTemps[indiceDuTempsSelectionne-1].tempsMoinsUnDixieme()
+                local_ajoute_temps(tempsAjouteArtificiellement, dossardSelectionne)
+                # print("On ajoute un temps juste devant celui de dossardPrecedent puis on enlève l'affectation de dossardSelectionne")
+                # print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
+            local_supprime_dossard(dossardSelectionne, dossardPrecedent)
+            local_ajoute_dossard(dossardSelectionne, dossardEncoreAvant)
             regenereAffichageGUI()
         else :
             print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",dossardEncoreAvant)
@@ -2266,19 +2326,34 @@ def avancerDossardAction() :
 def reculerDossardAction() :
     reculerDossardButton.configure(state=DISABLED)
     dossardSelectionne, dossardPrecedent = tableau.getDossardEtPredecesseur()
+    tempsSelectionne = tableau.getTemps()
+    indiceDuTempsSelectionne = IndiceTempsAfficheDansArriveeTemps(tempsSelectionne)
+    print("TEMPS SELECTIONNE DANS LE TABLEAU", tempsSelectionne, "INDICE dans ArriveeTemps", indiceDuTempsSelectionne)
     if dossardSelectionne :
         dossardSuivant = dossardSuivantDansArriveeDossards(dossardSelectionne)
-        if dossardSuivant != "0" or dossardSuivant != "-1" :
-            #dossardSuivant = str(i)
-            #dossardSelectionne = str(dossardSelectionne)
-            print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",dossardSuivant)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardPrecedent
-            print("requete :", requete)
-            r = requests.get(requete)
-            requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
-            print("requete :", requete)
-            r = requests.get(requete)
+        if dossardSuivant != "0" and dossardSuivant != "-1" :
+            # dans tous les cas le temps selectionne va se retrouver orphelin de son dossard :
+            # s'il était affecté à ce dossard, il est impératif d'enlever l'affectation
+            local_affecte_dossard(tempsSelectionne, "0")
+            # RFID = False
+            # if indiceDuTempsSelectionne != -1 and ArriveeTempsAffectes[indiceDuTempsSelectionne] == dossardSelectionne and ArriveeTempsAffectes[indiceDuTempsSelectionne-1] == dossardPrecedent :
+            #     RFID = True
+            #     print("Cas RFID : on ajoute un temps juste devant celui de dossardPrecedent puis on enlève l'affectation de dossardSelectionne")
+            #     tempsAjouteArtificiellement = ArriveeTemps[indiceDuTempsSelectionne-1].tempsMoinsUnDixieme()
+            #     local_ajoute_temps(tempsAjouteArtificiellement, dossardSelectionne)
+                # print("On ajoute un temps juste devant celui de dossardPrecedent puis on enlève l'affectation de dossardSelectionne")
+                # print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
+            local_supprime_dossard(dossardSelectionne, dossardPrecedent)
+            local_ajoute_dossard(dossardSelectionne, dossardSuivant)
             regenereAffichageGUI()
+            # print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",dossardSuivant)
+            # requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardPrecedent
+            # print("requete :", requete)
+            # r = requests.get(requete)
+            # requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardSuivant
+            # print("requete :", requete)
+            # r = requests.get(requete)
+            # regenereAffichageGUI()
         else :
             print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible).")
             reponse = showinfo("ERREUR","Impossible de reculer le dernier dossard.")
@@ -3579,7 +3654,7 @@ class Clock():
 
         for erreur in listeNouvellesErreursATraiter :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 401, 411, 441, 451]:
+            if not erreur.numero in [0, 311, 312, 321, 340, 401, 411, 441, 451]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
