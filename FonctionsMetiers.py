@@ -12,29 +12,45 @@ import os, sys, glob, subprocess
 import shutil
 import random
 import csv, re
+from pathlib import Path
 
 #import http.server
 from server import *
+import json
 import threading
-from threading import Thread
+from threading import Thread, Lock
 import requests
 
 import xlsxwriter # pour les exports excels des résultats
+import math # pour math.ceil
 
 ### A décommenter plus tard pour la mise en place des imports NG.
 from openpyxl import load_workbook
 
-from tkinter.messagebox import *
+# afin de télécharger un fichier avec urllib
+import urllib.request
 
-#### DEBUG
-DEBUG = False
+# from tkinter.messagebox import *
 
-version = "1.8"
+# pour créer des sauvegardes et les décompresser. v2.0
+import zipfile
 
-LOGDIR="logs"
+# #### DEBUG
+# DEBUG = False
+
+#### pour la diffusion des résultats sur internet , sur serveur FTP, FTPS.
+from config import *
+from ftplib import FTP
+import paramiko
+
+# version = "2.1.0"
+
+from FonctionsGenerationPDF import *
+
+# LOGDIR="logs"
 
 def windows():
-    if os.sep == "\\" :
+    if platform.system() == "Windows" :
         return True
     else :
         return False
@@ -81,109 +97,384 @@ def dump_sauvegarde() :
     pickle.dump(root, d)
     d.close()
 
-# récupère les données de sauvegarde
-def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
-    #global noSauvegarde
-    #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
-    #d = shelve.open(sauvegarde)
-    #creerDir(sauvegarde)
-    if avecVideos :
-        destination = sauvegarde
-        sauvegarde = os.path.basename(sauvegarde) # dans ce cas sauvegarde est un dossier et non un fichier. La flemme de refaire plus propre.
-    else :
+# # récupère les données de sauvegarde
+# def ecrire_sauvegarde(sauvegarde, commentaire="", surCle=False, avecVideos=False) :
+#     #global noSauvegarde
+#     #print("sauvegarde", sauvegarde+".db", "noSauvegarde:", noSauvegarde)
+#     #d = shelve.open(sauvegarde)
+#     #creerDir(sauvegarde)
+#     if avecVideos :
+#         destination = sauvegarde
+#         sauvegarde = os.path.basename(sauvegarde) # dans ce cas sauvegarde est un dossier et non un fichier. La flemme de refaire plus propre.
+#     else :
+#         if surCle :
+#             # ajout d'une sauvegarde sur clé très régulière
+#             destination = Parametres["cheminSauvegardeUSB"]
+#             try :
+#                 creerDir(destination)
+#             except :
+#                 if os.sep == "/" :
+#                     print("Impossible de créer le dossier fixé en paramètre ", destination)
+#                 else :
+#                     print("Le lecteur", destination[:3] ,"n'existe pas")
+#         else :
+#             destination = "db"
+#     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+#     nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
+#     dump_sauvegarde()
+#     if os.path.exists("Courses.db") :
+#         if destination != "" and creerDir(destination) :
+#             print("Création de la sauvegarde", nomFichierCopie)
+#             if os.path.exists("Courses.db") :
+#                 shutil.copy2("Courses.db",  nomFichierCopie + ".db")
+#             if os.path.exists("donneesModifLocale.txt"):
+#                 shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
+#             else :
+#                 print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+#                 open("donneesModifLocale.txt", 'a').close()
+#             if os.path.exists("donneesSmartphone.txt"):
+#                 shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
+#             else :
+#                 print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
+#                 open("donneesSmartphone.txt", 'a').close()
+#             creerDir("videos")
+#             if avecVideos or surCle :
+#                 creerDir(destination + os.sep + "chronoHBvideos")
+#                 files = glob.glob("videos/*.avi")
+#                 for file in files :
+#                     dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
+#                     if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
+#                         # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
+#                         shutil.copy2(file, dest)
+#             listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+#             for fichier in listeFichiersPiques :
+#                 numeroPique = fichier[24:-4]
+#                 shutil.copy2(fichier, destination + os.sep + os.path.basename(fichier)+"_"+ date + commentaire + "-"+ numeroPique + ".txt")
+#             #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
+#             # désormais, on sauvegarde snas overwrite pour limiter les les flux
+#                 #shutil.copytree("videos", "chronoHBvideos")
+#         elif destination != "" :
+#             print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
+#             nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
+#         else :
+#             nomFichierCopie = "Pas de SAUVEGARDE CREEE : paramètre spécifié vide"
+# ##        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
+# ##            noSauvegarde += 1
+# ##        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
+# ##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
+#         return nomFichierCopie
+
+def creer_dossier_si_inexistant(chemin):
+    # Créer un objet Path pour gérer les chemins de manière indépendante du système
+    chemin_obj = Path(chemin)
+    
+    # Vérifier si le lecteur (ou la première partie du chemin) existe
+    if chemin_obj.drive:
+        # Pour Windows, vérifier le lecteur
+        lecteur = chemin_obj.drive
+        if not os.path.exists(lecteur):
+            print(f"Le lecteur {lecteur} n'existe pas.")
+            return False
+    
+    # Vérifier si le dossier (ou le chemin complet) existe
+    if chemin_obj.exists():
+        # print(f"Le chemin {chemin} existe déjà.")
+        return True
+    
+    # Créer le dossier (et les parents si nécessaire)
+    try:
+        chemin_obj.mkdir(parents=True, exist_ok=True)
+        print(f"Le dossier {chemin} a été créé avec succès.")
+        return True
+    except Exception as e:
+        print(f"Erreur lors de la création du dossier : {e}")
+        return False
+
+def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False, avecLogs = False):
+    # print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
+    # Extraire le nom de dossier et le nom de fichier à partir du chemin complet
+    dossier, nomFichier = os.path.split(cheminFichier)
+    
+    # Vérifier si le dossier existe, sinon le créer
+    creer_dossier_si_inexistant(dossier)
+
+    # Ajouter l'extension .chb si elle n'est pas déjà présente
+    if not nomFichier.endswith(".chb"):
+        cheminFichier += ".chb"
+    if os.path.exists(dossier):
+        # Créer le fichier zip (extension .chb)
+        with zipfile.ZipFile(cheminFichier, 'w', zipfile.ZIP_DEFLATED) as sauvegardeZip:
+            # Ajouter Courses.db au fichier zip
+            if os.path.exists("Courses.db"):
+                sauvegardeZip.write("Courses.db", "Courses.db")
+            else:
+                print("Le fichier Courses.db est absent.")
+
+            # Ajouter les fichiers de données au fichier zip
+            for file in ["donneesModifLocale.txt", "donneesSmartphone.txt", "donneesRFID.txt"]:
+                if os.path.exists(file):
+                    sauvegardeZip.write(file, file)
+                else:
+                    print(f"Le fichier {file} est absent. On le crée.")
+                    open(file, 'a').close()
+                    sauvegardeZip.write(file, file)
+
+            # Ajouter les fichiers logs au fichier zip
+            if avecLogs:
+                # LOGDIR = "logs"
+                if os.path.exists(LOGDIR):
+                    logs = glob.glob(os.path.join(LOGDIR, "*.log"))
+                    for log in logs:
+                        sauvegardeZip.write(log, os.path.join(LOGDIR, os.path.basename(log)))
+                else:
+                    print("Pas de fichiers de logs à sauvegarder.")
+            # if os.path.exists("donneesSmartphone.txt"):
+            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            # else:
+            #     print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
+            #     open("donneesSmartphone.txt", 'a').close()
+            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+
+            # Si avecVideos est True, ajouter les fichiers .avi du dossier videos/
+            if avecVideos:
+                if os.path.exists("videos"):
+                    extensions_video = ["*.avi", "*.mkv"]
+                    fichiers_videos = []
+                    for ext in extensions_video:
+                        fichiers_videos.extend(glob.glob(os.path.join("videos", ext)))
+                    # fichiers_videos = glob.glob("videos/*.mkv")
+                    for fichier in fichiers_videos:
+                        sauvegardeZip.write(fichier, os.path.join("videos", os.path.basename(fichier)))
+                        print("Sauvegarde de la vidéo",fichier, os.path.join("videos", os.path.basename(fichier)))
+                else:
+                    print("Aucune vidéo à sauvegarder.")
+
+            # Sauvegarde des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
+            listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+            for fichier in listeFichiersPiques:
+                sauvegardeZip.write(fichier, os.path.basename(fichier))
+        # copie du fichier créé localement vers la clé USB paramétrée
         if surCle :
-            # ajout d'une sauvegarde sur clé très régulière
             destination = Parametres["cheminSauvegardeUSB"]
             try :
-                creerDir(destination)
+                creer_dossier_si_inexistant(destination)
             except :
                 if os.sep == "/" :
                     print("Impossible de créer le dossier fixé en paramètre ", destination)
                 else :
                     print("Le lecteur", destination[:3] ,"n'existe pas")
-        else :
-            destination = "db"
-    date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-    nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
-    dump_sauvegarde()
-    if os.path.exists("Courses.db") :
-        if destination != "" and creerDir(destination) :
-            print("Création de la sauvegarde", nomFichierCopie)
-            if os.path.exists("Courses.db") :
-                shutil.copy2("Courses.db",  nomFichierCopie + ".db")
-            if os.path.exists("donneesModifLocale.txt"):
-                shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
-            else :
-                print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-                open("donneesModifLocale.txt", 'a').close()
-            if os.path.exists("donneesSmartphone.txt"):
-                shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
-            else :
-                print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-                open("donneesSmartphone.txt", 'a').close()
-            creerDir("videos")
-            if avecVideos or surCle :
-                creerDir(destination + os.sep + "chronoHBvideos")
-                files = glob.glob("videos/*.avi")
-                for file in files :
-                    dest = destination + os.sep + "chronoHBvideos" + os.sep + os.path.basename(file)
-                    if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
-                        # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
-                        shutil.copy2(file, dest)
-            #if avecVideos and os.path.exists("videos") : # par défaut, on ne sauvegardait pas les vidéos. Seulement à vocation d'archivage.
-            # désormais, on sauvegarde snas overwrite pour limiter les les flux
-                #shutil.copytree("videos", "chronoHBvideos")
-        elif destination != "" :
-            print("Pas de SAUVEGARDE CREE : chemin spécifié incorrect (" +destination+")")
-            nomFichierCopie = "Pas de SAUVEGARDE CREEE : chemin spécifié incorrect : " +destination
-        else :
-            nomFichierCopie = "Pas de SAUVEGARDE CREEE : paramètre spécifié vide"
-##        while os.path.exists(sauvegarde+"_"+ str(noSauvegarde)+".db"):
-##            noSauvegarde += 1
-##        print("Sauvegarde vers", sauvegarde+"_"+ str(noSauvegarde) +".db")
-##        shutil.copy2(sauvegarde+".db", sauvegarde+"_"+ str(noSauvegarde) +".db")
-        return nomFichierCopie
-
-
-# enregistre les données de sauvegarde
-# récupère les données de sauvegarde
-def recupere_sauvegarde(sauvegardeChoisie) :
-    global sauvegarde
-    #nomFichier = os.path.basename(sauvegardeChoisie)[:-3]
-    #rep = os.path.dirname(sauvegardeChoisie)
-    #fichierDonnees = sauvegardeChoisie
-    #print("Sauvegarde choisie",sauvegardeChoisie,"Fichier:",nomFichier,"Dossier",rep)
-    fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
-    fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
-    dossierVideos = os.path.dirname(sauvegardeChoisie) + os.sep + "chronoHBvideos"
-    tousPresents = True
-    ### tester si les trois fichiers existent.
-    for fichier in [sauvegardeChoisie ,fichierML , fichierDS] :
-        if not os.path.exists(fichier) :
-            #print("Fichier",fichier,"absent")
-            tousPresents = False
-            break
-    ### avertir sinon
-    if not tousPresents :
-        message = "Le fichier " + fichier + " est absent. La sauvegarde est incomplète. Import annulé."
-        print(message)
-        showinfo("ERREUR",message)
+            if os.path.exists(destination) and os.path.exists(cheminFichier):
+                shutil.copy2(cheminFichier, destination)
+                print(f"Sauvegarde créée avec succès sur la clé USB: {cheminFichier}")
+            else:
+                print("Le dossier de destination", destination, "n'existe pas.")
+        print(f"Sauvegarde locale créée avec succès: {cheminFichier}")
     else :
-        ### sauvegarder les données actuelles de façon automatique avec ecrire_sauvegarde(...)
-        ecrire_sauvegarde(sauvegarde, "-avant-import-autres-donnees",surCle=False)
-        ### copier les trois fichiers : celui db à la place de l'ancien + 2 fichiers textes finissant par ML et DS
-        shutil.copy2(sauvegardeChoisie,  sauvegarde+".db")
-        shutil.copy2(fichierML, "donneesModifLocale.txt")
-        shutil.copy2(fichierDS, "donneesSmartphone.txt")
-        # restauration des vidéos sauvegardées
-        if os.path.exists("videos") :
-            shutil.rmtree("videos")
-        if os.path.exists(dossierVideos) :
-            shutil.copytree(dossierVideos,"videos")
-        ### restaurer la base de données avec chargerDonnees() afin de charger les données en mémoire.
-        retour = chargerDonnees()
-        setParametres() # fichier à destination du smartphone à regéréner.
-        return retour
+        print(f"Le dossier {dossier} n'existe pas.")
+    return cheminFichier
+
+
+
+#### catégories d'athlétisme
+
+def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLAnnee = False) :
+    # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
+    # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
+    # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
+    # PrecisionSurLAnne permet de retourner des catégories comme JU2 ou JU1 pour le cas où on en a besoin. (Challenge UNSS)
+    # PAr défaut le programme retourne des catégories comme BE, MI, CA, JU sans la précision sur l'année.
+    categorie = ""
+    if CategorieDAge :
+        correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU2" ], [2005, "JU1" ], [2006, "CA2" ], [2007, "CA1" ], [2008, "MI2" ], [2009, "MI1" ], [2010, "BE2" ], [2011, "BE1" ], [2012, "PO3" ],  [2013, "PO2" ],  [2014, "PO1" ], [2015, "EA" ], [3000, "BB" ]]
+        try :
+            anneeNaissance = int(anneeNaissance)
+            currentDateTime = datetime.datetime.now()
+            date = currentDateTime.date()
+            year = currentDateTime.year
+            if currentDateTime.month > 8 :
+                #changement d'année sportive au premier septembre.
+                year += 1
+            ecart2022 = year - 2023
+            anneeCherchee = anneeNaissance - ecart2022
+            i = 0
+            continuer = True
+            while i< len(correspondanceAnneeCategories) and continuer :
+                if anneeCherchee <= correspondanceAnneeCategories[i][0] :
+                    continuer = False
+                    categorie = correspondanceAnneeCategories[i][1]
+                i += 1
+            # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens
+            if not precisionSurLAnnee :
+                # si on ne demande pas de précision sur l'année, c'est uniquement pour savoir qui coure où en UNSS
+                # Ainsi, les collégiens courent avec les collégiens et inversement. On modifie artificiellement leur catégorie pour déterminer la course
+                # par contre, en cas de demande de précision sur l'année (calcul du challenge UNSS), on ne modifie pas la catégorie réelle.
+                if Parametres["CategorieDAge"] == 2 :
+                    if etablissementNature == "CLG" and categorie[:2] == "CA" : # le cadet a redoublé
+                        categorie = "MI"
+                    elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
+                        categorie = "CA"
+                    elif Parametres["crossUNSScollegeLycee"] and categorie[:2] == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                        categorie = "BE"
+            # return categorie
+        except :
+            print("argument fourni incorrect : pas au format nombre entier")
+    if not precisionSurLAnnee :
+        # on ne garde que deux caractère pour la catégorie sauf pour les M10, qui comportent 3 caractères et doivent les conserver
+        if categorie != "M10" :
+            categorie = categorie[:2]
+    return categorie
+
+
+def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
+    global sauvegarde
+    retour = []
+    # Si le fichier sélectionné est un fichier .chb (zip)
+    if sauvegardeChoisie.endswith('.chb'):
+        # Chemin temporaire pour extraire le fichier zip
+        temp_dir = os.path.join(os.path.dirname(sauvegardeChoisie), 'temp_sauvegarde')
+
+        # Créer le dossier temporaire
+        if not os.path.exists(temp_dir):
+            os.makedirs(temp_dir)
+
+        # Extraire le contenu du fichier .chb
+        with zipfile.ZipFile(sauvegardeChoisie, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)
+
+        # Mettre à jour les chemins des fichiers à récupérer
+        fichierDB = os.path.join(temp_dir, "Courses.db")
+        fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
+        fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+        fichierRFID = os.path.join(temp_dir, "donneesRFID.txt")
+        # Récupération des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
+        listeFichiersPiques = glob.glob(os.path.join(temp_dir,"donneesSmartphone-pique-*.txt"))
+    else:
+        # Si c'est un fichier .db classique, on utilise les noms habituels
+        fichierDB = sauvegardeChoisie
+        fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+        fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+        fichierRFID = sauvegardeChoisie[:-3] + "_RFID.txt"
+        listeFichiersPiques = [] # ces fichiers n'existait pas avant les fichiers .chb
+
+    # Tester si les trois fichiers existent
+    tousPresents = True
+    for fichier in [fichierDB, fichierML, fichierDS, fichierRFID]:
+        if not os.path.exists(fichier):
+            tousPresents = False
+            message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
+            print(message)
+            return message
+            # showinfo("ERREUR", message)
+            break
+
+    if tousPresents:
+        # Sauvegarder les données actuelles de façon automatique
+        date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
+        ecrire_sauvegardeNG(nomFichierCopie, surCle=False, avecVideos=True)
+        retour = nettoyerTousLesFichiersGeneres()
+
+        # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
+        shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
+        shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
+        shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+        shutil.copy2(fichierRFID, os.path.join(os.getcwd(), "donneesRFID.txt"))
+        # on replace les fichiers piques au bon endroit avec le même nom.
+        for file in listeFichiersPiques :
+            shutil.copy2(file, os.path.join(os.getcwd(), os.path.basename(file)))
+
+        # Si un fichier .chb a été traité, récupérer les vidéos
+        if sauvegardeChoisie.endswith('.chb'):
+            # Extraire les vidéos si elles sont présentes
+            extensions_video = ["*.avi", "*.mkv"]
+            videos_dans_temp = []
+            for ext in extensions_video:
+                videos_dans_temp.extend(glob.glob(os.path.join(temp_dir, "videos", ext)))
+            if videos_dans_temp:
+                # Créer le dossier vidéos s'il n'existe pas
+                if not os.path.exists("videos"):
+                    os.makedirs("videos")
+
+                # Copier les vidéos dans le dossier racine du projet
+                for video in videos_dans_temp:
+                    shutil.copy2(video, os.path.join("videos", os.path.basename(video)))
+                    print(f"Vidéo {os.path.basename(video)} extraite vers le dossier 'videos'.")
+
+        # Nettoyer le dossier temporaire si un fichier .chb a été extrait
+        if sauvegardeChoisie.endswith('.chb'):
+            shutil.rmtree(temp_dir)
+    return retour
+
+
+def recupere_sauvegardeNG(sauvegardeChoisie):
+    global sauvegarde
+
+    erreur = recupere_sauvegardeNG_horsGUI(sauvegardeChoisie)
+    # Charger les données restaurées
+    chargerDonnees()
+    setParametres()  # fichier à destination du smartphone à régénérer
+
+    return erreur
+
+
+# def recupere_sauvegardeNG(sauvegardeChoisie):
+#     global sauvegarde
+
+#     # Si le fichier sélectionné est un fichier .chb (zip)
+#     if sauvegardeChoisie.endswith('.chb'):
+#         # Chemin temporaire pour extraire le fichier zip
+#         temp_dir = os.path.join(os.path.dirname(sauvegardeChoisie), 'temp_sauvegarde')
+
+#         # Créer le dossier temporaire
+#         if not os.path.exists(temp_dir):
+#             os.makedirs(temp_dir)
+
+#         # Extraire le contenu du fichier .chb
+#         with zipfile.ZipFile(sauvegardeChoisie, 'r') as zip_ref:
+#             zip_ref.extractall(temp_dir)
+
+#         # Mettre à jour les chemins des fichiers à récupérer
+#         fichierDB = os.path.join(temp_dir, "Courses.db")
+#         fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
+#         fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+#     else:
+#         # Si c'est un fichier .db classique, on utilise les noms habituels
+#         fichierDB = sauvegardeChoisie
+#         fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
+#         fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
+
+#     # Tester si les trois fichiers existent
+#     tousPresents = True
+#     for fichier in [fichierDB, fichierML, fichierDS]:
+#         if not os.path.exists(fichier):
+#             tousPresents = False
+#             message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
+#             print(message)
+#             showinfo("ERREUR", message)
+#             break
+
+#     if tousPresents:
+#         # Sauvegarder les données actuelles de façon automatique
+#         ecrire_sauvegardeNG(sauvegarde, "-avant-import-autres-donnees", surCle=False)
+
+#         # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
+#         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
+#         shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
+#         shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+
+#         # Charger les données restaurées
+#         retour = chargerDonnees()
+#         setParametres()  # fichier à destination du smartphone à régénérer
+
+#         # Nettoyer le dossier temporaire si un fichier .chb a été extrait
+#         if sauvegardeChoisie.endswith('.chb'):
+#             shutil.rmtree(temp_dir)
+
+#         return retour
+#     else:
+#         return None
+
+
 
 
 ##    d = open(sauvegarde+".db","wb")
@@ -218,10 +509,17 @@ def recupere_sauvegarde(sauvegardeChoisie) :
 ##        return nomFichierCopie
 
 def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, sexe, evolution = 1) :
+    """Correctif pour ne plus déclasser les coureurs battus par les catégories infférieures.
+    Un master qui battrait un senior ne déclasse plus le senior d'un rang dans sa catégorie alors que c'était initialement prévu ainsi.
+    Initialement, si le meilleur master battait le meilleur senior, le senior était 2ème de sa catégorie senior.
+    Idem pour les jeunes dans l'autre sens.
+    J'annule tout au niveau du correctif indiqué ci-dessous.
+    """
     # en théorie inutile puisque toutes les catégories sont présentes. rangDansCategorie = 0
     for L in DecompteParCategoriesDAge : # on fait le test pour les petites catégories puis pour les vétérans.
         # on considère que les séniors doivent être meilleurs que toutes les autres catégories (au dessus et en dessous).
         ## tester d'abord si la catégorie existe dans la liste.
+        rangDansCategorie = 0
         present = False
         for el in L :
             if el[0] == catFFA:
@@ -231,16 +529,26 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
         ## sinon, ne rien faire.
         if present :
             for couple in L :
-                if sexe == "F" :
-                    couple[2] += evolution
-                else :
-                    couple[1] += evolution
+                # VERSION CORRIGEE : on ne déclasse plus les coureurs battus par les catégories inférieures.
                 if catFFA == couple[0] :
                     if sexe == "F" :
+                        couple[2] += evolution
                         rangDansCategorie = couple[2]
                     else :
+                        couple[1] += evolution
                         rangDansCategorie = couple[1]
                     break
+                # VERSION INITIALE : on déclasse les coureurs battus par les catégories inférieures.
+                # if sexe == "F" :
+                #     couple[2] += evolution
+                # else :
+                #     couple[1] += evolution
+                # if catFFA == couple[0] :
+                #     if sexe == "F" :
+                #         rangDansCategorie = couple[2]
+                #     else :
+                #         rangDansCategorie = couple[1]
+                #     break
             # pour éviter de compter deux fois la catégorie sénior (et pour les autres catégories, de faire un 2ème parcours inutile.
             break
     return rangDansCategorie
@@ -252,6 +560,12 @@ class DictionnaireDeCoureurs(dict) :
         self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+    def repareCourseUNSS(self) :
+        for coureur in self.liste() :
+            coureur.actualiseCategorie()
+            # print(coureur.nom , coureur.categorie(Parametres["CategorieDAge"]))
+            # print(Parametres["CategorieDAge"])
+        # self.initEffectifs()
     def initEffectifs(self):
         """ permet de connaître le nombre total de coureurs de chaque sexe et de chaque catégorie : pour les catégories, on considère ceux qui sont inférieurs qui doivent être battus."""
         self.nombreDeCoureursParSexe = [0,0]
@@ -263,16 +577,44 @@ class DictionnaireDeCoureurs(dict) :
                 self.nombreDeCoureursParSexe[1] += 1
             else :
                 self.nombreDeCoureursParSexe[0] += 1
-            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
+            if Parametres["CategorieDAge"] > 0 :
+                incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
     def evolutionDUnAuxEffectifsTotaux(self, coureur, evolution=1):
         self.nombreDeCoureurs += evolution
         if coureur.sexe == "F" :
             self.nombreDeCoureursParSexe[1] += evolution
         else :
             self.nombreDeCoureursParSexe[0] += evolution
-        incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
-    def getTotalParCategorie(self,catFFA, sexe):
-        return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
+        if Parametres["CategorieDAge"] > 0 :
+            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+    # def getTotalParCategorie(self,catFFA, sexe):
+    #     return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
+    def getTotalDeLaCourse(self, coureur) :
+        """Retoune le nombre total de coureurs de la course du coureur fourni."""
+        total = 0
+        course = coureur.categorie(Parametres["CategorieDAge"])
+        # if Parametres["CategorieDAge"] == 0 : # cross du collège
+        if Parametres["CoursesManuelles"] : # courses manuelles activées
+            print("ATTENTION : à implémenter total de la course en mode manuel. Remarque obsolète ?")
+            course = coureur.dossard[-1].upper()
+            if course in self.keys() :
+                for c in self[course] :
+                    if not c.absent and not c.dispense :
+                        total += 1
+                # on a obtenu le nombre de coureurs non absents et non dispensés en comptant les coureurs vides liés à 
+                # des suppressions de coureurs après import ou à des numéros non attribués
+                # on doit donc retrancher les indices libres.
+                total -= len(self["CoureursElimines"][course])
+        else :
+            for c in self.liste() :
+                # print("Coureur", c.nom, "examiné", c.categorie(Parametres["CategorieDAge"]) )
+                if c.categorie(Parametres["CategorieDAge"]) == course and (not c.absent) and (not c.dispense):
+                    total += 1
+            print("catégorie cherchée :", course , "total", total)
+        return total
+        # else :
+        #     else :
+        #         print("ATTENTION : à implémenter total de la course en mode automatique")
     def importerAncienneListe(self,AncienneListeAImporter) : # pour convertir l'ancienne liste en ce dictionnaire.
         self["A"]=AncienneListeAImporter
         # actualiser les dossards de tous les coureurs déjà présents 
@@ -293,6 +635,20 @@ class DictionnaireDeCoureurs(dict) :
         except :
             c = Coureur("","","") # on retourne un objet Coureur mais vide.
         return c
+
+    def listeDossards(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
+        L = []
+        for e in self.cles() :
+            #print(self["CoureursElimines"][e])
+            i = 0
+            indicesLibres = self["CoureursElimines"][e]
+            for c in self[e] :
+                if not i in indicesLibres :
+                    L.append(c.dossard)
+                    #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
+                i += 1
+        return L
+    
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
         for e in self.cles() :
@@ -304,6 +660,13 @@ class DictionnaireDeCoureurs(dict) :
                     L.append(c)
                     #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
                 i += 1
+        return L
+    def listeParCouleurDeDossard(self) :
+        L = self.liste()
+        # tri de la liste de coureurs par couleur de dossard
+        # chaque coureur possède un attribut .course qui correspond au nomStandard du groupement dans lequel il coure. Ce groupement possède un attribut .couleur.
+        # on trie les coureurs par couleur de dossard.
+        L.sort(key=lambda x: groupementAPartirDeSonNom(x.course, nomStandard=True).getCouleur())
         return L
     def effacerTout(self) :
         self.clear()
@@ -331,6 +694,7 @@ class DictionnaireDeCoureurs(dict) :
                 self[course].append(coureur)
                 #self.nombreDeCoureurs += 1
                 self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+                return dossard
             else : # le dossard affecté n'est pas spécifié, on affecte le coureur créé au premier dossard libre.
                 if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
                     premierIndiceLibre = self["CoureursElimines"][course].pop(0)
@@ -374,7 +738,8 @@ class DictionnaireDeCoureurs(dict) :
                 indice = int(doss)-1
             if cle in self.cles() and indice not in self["CoureursElimines"][cle] and indice < len(self[cle]):
                 retour = self[cle][indice].dossard
-        #print("Le coureur ", element, "existe",retour)
+        # if DEBUG :
+        #     print("Le coureur ", element, "existe",retour)
         return retour
     def effacer(self,element) :
         try :
@@ -413,7 +778,7 @@ class DictionnaireDeCoureurs(dict) :
             i = 0
             for coureur in self[course] :
                 if not i in indicesLibres :
-                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe)
+                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.course)
                 i += 1
     def reindexer(self,transcription) :
         """ réindexe les entrées de ce dictionnaire et tous les dossards qu'ils contiennent"""
@@ -434,9 +799,11 @@ class DictionnaireDeCoureurs(dict) :
 
 class Erreur():
     """ Une erreur de chronoHB"""
-    def __init__(self, numero, courteDescription="", elementConcerne=""):
+    def __init__(self, numero, courteDescription="", elementConcerne="", listeDesDossardsConcernes=[], smartphone=0):
         self.numero = numero
         self.description = courteDescription
+        self.listeDesDossardsConcernes = listeDesDossardsConcernes
+        self.smartphone = smartphone
         if isinstance(elementConcerne,str) : # c'est un dossard.
             self.dossard = elementConcerne
             self.temps = 0.0
@@ -446,6 +813,8 @@ class Erreur():
         else :
             self.dossard = "0A"
             self.temps = 0.0
+    def affiche(self) :
+        print("Erreur", self.numero, ":", self.description, "pour le dossard", self.dossard, "avec le temps", self.temps)
 
 
 class ErreursATraiter():
@@ -464,19 +833,23 @@ class ErreursATraiter():
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
 def naissanceValide(naissance) :
-    try:
-        #print("annee")
-        annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
-        #print("mois")
-        mois = naissance[3:5]
-        jour = naissance[0:2]
-        correctDate = None
-        newDate = datetime.datetime(int(annee),int(mois),int(jour))
+    resultat = convertir_nombre_en_date(naissance)
+    if resultat != naissance :
         correctDate = True
-        #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
-    except :
-        correctDate = False
-        #print("La date de naissance fournie est INVALIDE :",naissance)
+    else :
+        try:
+            print("annee")
+            annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
+            print("mois")
+            mois = naissance[3:5]
+            jour = naissance[0:2]
+            correctDate = False
+            newDate = datetime.datetime(int(annee),int(mois),int(jour))
+            correctDate = True
+            #print("La date de naissance fournie est valide :",jour,"/",mois,"/", annee)
+        except :
+            correctDate = False
+            #print("La date de naissance fournie est INVALIDE :",naissance)
     return correctDate
 
 def emailEstValide(email) :
@@ -486,26 +859,44 @@ def emailEstValide(email) :
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
         return re.fullmatch(regex, str(email))
 
+def convertir_nombre_en_date(chaine):
+    try:
+        # Convertir la chaîne en nombre flottant
+        nombre = float(chaine)
+        # La date de référence (30 décembre 1899)
+        date_reference = datetime.datetime(1899, 12, 30)
+        # Ajouter le nombre de jours à la date de référence
+        date_resultat = date_reference + datetime.timedelta(days=nombre)
+        # Retourner la date au format 'jour/mois/année'
+        return date_resultat.strftime('%d/%m/%Y')
+    except ValueError:
+        # Si la chaîne ne peut pas être convertie en nombre, retourner la chaîne inchangée
+        return chaine
+
 class Coureur():#persistent.Persistent):
     """Un Coureur"""
     def __init__(self, nom, prenom, sexe, dossard="", classe="", naissance="", etablissement="", etablissementNature="", absent=None, dispense=None, temps=0,\
-                 commentaireArrivee="", VMA=0, aImprimer=False, scoreUNSS=1000000, course="", licence="", email=""):
+                 commentaireArrivee="", VMA=0, aImprimer=True, scoreUNSS=1000000, course="", licence="", email="", email2=""):
         self.setDossard(dossard)
         self.nom = self.formateNomPrenom(nom)
         self.prenom = self.formateNomPrenom(prenom)
         self.setSexe(sexe)
         self.classe = str(classe)
         self.naissance = ""
-        self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
+        if naissance != "" :
+            self.setNaissance(naissance) # traiter la chaine fournie et l'utiliser ou non.
         self.etablissement = etablissement
         self.etablissementNature = etablissementNature
-        self.absent = bool(absent)
+        # pour gérer les actualisations des coureurs sans modification des absences si non souhaité.
+        if absent == None :
+            self.absent = False
+        else :
+            self.absent = bool(absent)
         self.dispense = bool(dispense)
         self.temps = float(temps)
         self.VMA = float(VMA)
         self.vitesse = 0
         self.rang = 0
-        self.scoreUNSS = scoreUNSS 
         self.rangCat = 0
         self.rangSexe = 0
         self.commentaireArrivee = commentaireArrivee
@@ -514,11 +905,17 @@ class Coureur():#persistent.Persistent):
         self.categorieAuto = True
         self.course = course
         self.setLicence(licence)
-        self.email = ""
-        self.emailNombreDEnvois = 0
-        self.tempsDerniereModif = 0
-        self.setEmailEnvoiEffectue(False)
+        self.email=""
         self.setEmail(email)
+        self.email2=""
+        self.setEmail2(email2)
+        self.emailEnvoiEffectue = False
+        self.emailEnvoiEffectue2 = False
+        self.setEmailEnvoiEffectue(False)
+        self.setEmailEnvoiEffectue2(False)
+        self.emailNombreDEnvois = 0
+        self.emailNombreDEnvois2 = 0
+        self.tempsDerniereModif = 0
         self.categorie(CategorieDAge)
         self.__private_categorie = None
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
@@ -528,6 +925,12 @@ class Coureur():#persistent.Persistent):
         self.nom = self.formateNomPrenom(self.nom)
         self.prenom = self.formateNomPrenom(self.prenom)
     
+    def getEPC(self) :
+        try :
+            return Parametres["dictDossardsEPC"][formateDossardNG(self.dossard)]
+        except :
+            return ""
+
     def formateNomPrenom(self, chaine) :
         chaineRetour = ""
         i = 0
@@ -544,8 +947,7 @@ class Coureur():#persistent.Persistent):
         return self.categorie(CategorieDAge)
 
 
-
-    def categorie(self, CategorieDAge=False):
+    def categorie(self, CategorieDAge=0, precisionSurLAnnee=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
         except:
@@ -560,18 +962,24 @@ class Coureur():#persistent.Persistent):
         except :
             self.course = ""
         #if not Parametres["CoursesManuelles"] :
+        
+        # print(self.__private_categorie)
+        # print("naissance",self.naissance)
         if self.__private_categorie == None :
             if CategorieDAge > 0 :
                 if len(self.naissance) != 0 :
                     anneeNaissance = self.naissance[6:]
                     if CategorieDAge == 2 : ## UNSS
-                         ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
-                         ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
-                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature)
-                        if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
-                            cat = "MI"
-                        elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
-                            cat = "CA"
+                            ### La catégorie d'athlétisme est utilisée sauf pour les élèvesà la limite entre collège et lycée
+                            ###(un 3ème ayant redoublé est cadet : il coure en minimes / un minime en lycée ayant sauté une classe coure avec les cadets.)
+                        cat = categorieAthletisme(anneeNaissance, etablissementNature = self.etablissementNature, precisionSurLAnnee=precisionSurLAnnee)
+                        ### INUTILE car FAIT DANS categorieAthletisme :
+                        # if self.etablissementNature == "CLG" and cat == "CA" : # le cadet a redoublé
+                        #     cat = "MI"
+                        # elif self.etablissementNature and self.etablissementNature[0] == "L" and cat == "MI" : # le minime a sauté une classe.
+                        #     cat = "CA"
+                        # elif Parametres["crossUNSScollegeLycee"] and cat == "PO" : # le poussin a sauté une classe et ce n'est pas un cross incluant des primaires.
+                        #     cat = "BE"
                         self.__private_categorie = cat + "-" + self.sexe
                     else: ## catégories FFA
                         #print("calcul des catégories poussines, benjamins, junior, ... en fonction de la date de naissance codé. TESTE OK")
@@ -581,6 +989,12 @@ class Coureur():#persistent.Persistent):
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
         if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
             self.course = self.__private_categorie
+        # if "217" in self.dossard :
+        #     print("catégorie", self.__private_categorie, self.course)
+        # if "277" in self.dossard : 
+        #     anneeNaissance = self.naissance[6:]
+        #     print('Parametres["crossUNSScollegeLycee"]',Parametres["crossUNSScollegeLycee"])
+        #     print("catégorie du dossard 277", self.__private_categorie, self.course, categorieAthletisme(anneeNaissance, precisionSurLAnnee=False), categorieAthletisme(anneeNaissance, precisionSurLAnnee=True))
         return self.__private_categorie
 
     def categorieSansSexe(self) :
@@ -588,7 +1002,7 @@ class Coureur():#persistent.Persistent):
     def setLicence(self,licence):
         self.licence = str(licence)
         try :
-            self.etablissementNoUNSS  = self.licence[:7]
+            self.etablissementNoUNSS  = self.licence[2:7]
         except :
             self.etablissementNoUNSS = ""
     def setEmail(self,email):
@@ -601,29 +1015,63 @@ class Coureur():#persistent.Persistent):
             self.email = ""
             self.setEmailEnvoiEffectue(False)
             self.emailNombreDEnvois = 0
+    def setEmail2(self,email2):
+        if email2 :
+            if emailEstValide(email2) and self.email2 != email2 : # si valide et différent de l'actuel, on remplace l'email existant, sinon, on ne remplace pas la valeur actuelle.
+                self.email2 = str(email2)
+                self.setEmailEnvoiEffectue2(False)
+                self.emailNombreDEnvois2 = 0
+        else :
+            self.email2 = ""
+            self.setEmailEnvoiEffectue(False)
+            self.emailNombreDEnvois2 = 0
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
-            print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
+        else :
+            self.emailEnvoiEffectue = False
+            # print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
         # compatbilité ascendante avec vieilles sauvegardes
         try : 
             self.email
         except :
             self.email = ""
         try :
-            self.emailNombreDEnvois += 1 
+            self.emailNombreDEnvois
+            if val :
+                self.emailNombreDEnvois += 1 
         except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
             if bool(val) : # initialisation correcte en fonction de l'action demandée.
                 self.emailNombreDEnvois = 1
             else :
                 self.emailNombreDEnvois = 0
-    def categorieFFA(self) :
-        return categorieAthletisme(self.naissance[6:])
-    def scoreUNSSFormate(self) :
+    def setEmailEnvoiEffectue2(self, val = True) :
+        if self.dossard :
+            self.emailEnvoiEffectue2 = bool(val)
+            # print("emailEnvoiEffectue2 pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue2)
+        # compatbilité ascendante avec vieilles sauvegardes
+        try : 
+            self.email2
+        except :
+            self.email2 = ""
+        try :
+            self.emailNombreDEnvois2
+            if val :
+                self.emailNombreDEnvois2 += 1 
+        except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
+            if bool(val) : # initialisation correcte en fonction de l'action demandée.
+                self.emailNombreDEnvois2 = 1
+            else :
+                self.emailNombreDEnvois2 = 0
+    def categorieFFA(self, precisionSurLAnnee=False) :
+        return categorieAthletisme(self.naissance[6:], precisionSurLAnnee=precisionSurLAnnee)
+    def scoreUNSSFormate(self, avecVirgule = True) :
         if int(self.scoreUNSS) == self.scoreUNSS : # scoreUNSS est un entier au type float.
             retour = str(int(self.scoreUNSS))
         else :
-            retour = str(round(self.scoreUNSS,1)).replace(".",",")
+            retour = str(round(self.scoreUNSS,1))
+        if avecVirgule :
+            retour = retour.replace(".",",")
         return retour
     def nombreDeSecondesDepuisDerniereModif(self) :
         try :
@@ -636,6 +1084,7 @@ class Coureur():#persistent.Persistent):
         if CoursesManuelles and self.course != c : # si la course change, on renvoie l'email. Sinon, on ne fait rien.
             self.course = c
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
         else :
             print("Mode courses automatiques : aucune actualisation de la course pour le coureur", self.nom, "vers le nom de course", c)
@@ -663,6 +1112,7 @@ class Coureur():#persistent.Persistent):
         self.etablissementNature = "CLG"
         if nature == "LG" or nature == "LP" :
             self.etablissementNature = nature
+        self.__private_categorie = None # réinit
     def setDossard(self, dossard) :
         try :
             if dossard != "" :
@@ -690,17 +1140,35 @@ class Coureur():#persistent.Persistent):
             self.VMA = 0
     def setNaissance(self, naissance) :
         if naissance != "" :
-            chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
-            if naissanceValide(chNaissance) :
-                self.naissance = chNaissance
+            result = convertir_nombre_en_date(naissance)
+            if naissance != result :
+                print("Date de naissance fournie en nombre entier depuis 1899 (tableur)", result)
+                self.naissance = result
+                self.__private_categorie = None # réinit
             else :
-                chNaissance = None
-##            if len(chNaissance) > 8 :
-##                self.naissance = time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
-##            else :
-##                self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
-##        else :
-##            self.naissance = None
+                # print("Autre tentative de décodage de date de naissance :", naissance)
+                try :
+                    # print("Tentative de décodage de date de naissance ", naissance)
+                    chNaissance = str(naissance)[:10] # garder uniquement les 10 premiers caractères de la chaine.
+                    # print("chNaissance",chNaissance)
+                    if naissanceValide(chNaissance) :
+                        self.naissance = chNaissance
+                        self.__private_categorie = None # réinit
+                        # print("TEMPORAIRE, CoursesManuelles:",CoursesManuelles,self.course, self.etablissementNature)
+                    else :
+                        if len(chNaissance) > 8 :
+                            print("Date de naissance année à 4 chiffres " + chNaissance)
+                            self.naissance = chNaissance[0:2] + "/" + chNaissance[3:5] + "/" + chNaissance[6:10] # on s'assure que c'est bien une date valide correspondant à l'algorithme de naissanceValide() 
+                            # time.strptime(chNaissance, "%d/%m/%Y") # année sur 4 chiffres
+                        else :
+                            print("Date de naissance année à 2 chiffres " + chNaissance)
+                            self.naissance = time.strptime(chNaissance, "%d/%m/%y") # année sur 2 chiffres
+                        self.__private_categorie = None # réinit
+                except :
+                    self.naissance = ""
+        # print(time.strptime("04/03/2011", "%d/%m/%Y").strftime('%d/%m/%Y'))
+        print("Valeur affectée à naissance :",self.naissance)
+
     def setCommentaire(self, commentaire):
         self.commentaireArrivee = str(commentaire)
     def setClasse(self, classe) :
@@ -715,13 +1183,11 @@ class Coureur():#persistent.Persistent):
     def setAbsent(self, absent) :
         if absent :
             self.absent = True
-            self.dispense = False
         else :
             self.absent = False
     def setDispense(self, dispense) :
         if dispense :
             self.dispense = True
-            self.absent = False
         else :
             self.dispense = False
     def setTemps(self, temps=0, distance=0):
@@ -729,6 +1195,7 @@ class Coureur():#persistent.Persistent):
             if self.temps != float(temps) : # si le temps change, on renvoie l'email, sinon, on ne fait rien.
                 self.temps = float(temps)
                 self.setEmailEnvoiEffectue(False)
+                self.setEmailEnvoiEffectue2(False)
                 self.tempsDerniereModif = time.time()
         except :
             self.temps = 0
@@ -736,6 +1203,8 @@ class Coureur():#persistent.Persistent):
             self.vitesse = distance *3600 / self.temps
         else :
             self.vitesse = 0
+            self.setRang(0)
+            self.setRangCat(0)
     def tempsHMS(self) :
         # réglement FFA , arrondir à la seconde supérieure.
         if self.temps - int(self.temps) == 0 : # cas rarissime où il n'y a pas de partie décimale
@@ -752,7 +1221,11 @@ class Coureur():#persistent.Persistent):
             minu = "0" + minu
         if len(sec) == 1 :
             sec = "0" + sec
-        return heures + ":" + minu + ":" + sec
+        if heures == "00" :
+            retour = minu + ":" + sec
+        else :
+            retour = heures + ":" + minu + ":" + sec
+        return retour
     def tempsFormate(self) :
         #print(self.dossard,self.nom,self.temps)
         if self.temps > 0 : # ajouté suite au coureurVide utile pour affiché le temps potentiel du prochain coureur. 
@@ -778,12 +1251,13 @@ class Coureur():#persistent.Persistent):
         else :
             ch = "Pas de temps"
         return ch
-    def vitesseFormatee(self) :
-        if self.vitesse >=100 :
-            ch = str(int(self.vitesse)) + " km/h"
-        else :
-            ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
-        return ch
+    def vitesseFormatee(self) : 
+        """Vitesse finalement arrondie à l'entier le plus proche en km/h"""
+        # if self.vitesse >=10 :
+        ch = str(round(self.vitesse,1)) + " km/h"
+        # else :
+        #     ch = str(round(self.vitesse, 1)).replace(".",",") + " km/h"
+        return ch.replace(".",",")
     def vitesseFormateeAvecVMA(self) :
         if self.VMA and self.VMA > self.vitesse :
             supplVMA = " (" + str(int(self.vitesse/self.VMA*100)) + "% VMA)"
@@ -796,22 +1270,32 @@ class Coureur():#persistent.Persistent):
         else :
             pourcVMA = "-"
         return pourcVMA
-    def vitesseFormateeAvecVMAtex(self) :
-        return self.vitesseFormateeAvecVMA().replace("%","\%")
+    def vitesseFormateeAvecVMAtex(self, retourALaLigne=False) :
+        retour = self.vitesseFormateeAvecVMA().replace("%","\%")
+        if retourALaLigne :
+            retour = retour.replace("(","\\\\").replace(")","")# sur le diplôme, on supprime les parenthèses et on met le % de VMA à la ligne.
+        return retour
     def setRang(self, rang) :
         if int(rang) != self.rang :
             self.rang = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setRangCat(self, rang) :
         if int(rang) != self.rangCat :
             self.rangCat = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setRangSexe(self, rang) :
+        try :
+            self.rangSexe
+        except :
+            self.rangSexe = 0 
         if int(rang) != self.rangSexe :
             self.rangSexe = int(rang)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setAImprimer(self, valeur) :
         self.aImprimer = bool(valeur)
@@ -819,11 +1303,13 @@ class Coureur():#persistent.Persistent):
         if self.nom != str(valeur) : # si la valeur change, on envoie un diplome correctif
             self.nom = str(valeur)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
     def setPrenom(self, valeur) :
         if self.prenom != str(valeur) :
             self.prenom = str(valeur)
             self.setEmailEnvoiEffectue(False)
+            self.setEmailEnvoiEffectue2(False)
             self.tempsDerniereModif = time.time()
 
 
@@ -834,7 +1320,10 @@ class Course():#persistent.Persistent):
         if Parametres["CategorieDAge"] :
             self.label = categorie
         else :
-            self.label = categorie[0] + "ème " + categorie[2]
+            if len(categorie) > 2 :
+                self.label = categorie[0] + "ème " + categorie[2]
+            else :
+                self.label = categorie[0] + "ème "
         self.depart=depart
         self.temps=float(temps)
         self.description = categorie
@@ -890,9 +1379,9 @@ class Course():#persistent.Persistent):
 ##        self.equipesClasses.append(equipe)
 ##    def delEquipesClasses() :
 ##        self.equipesClasses.clear()
-    def addResultat(coureur) :
+    def addResultat(self, coureur) :
         self.resultats.append(coureur)
-    def delResultat(coureur) :
+    def delResultat(self, coureur) :
         i = 0
         while i < len(self.resultats) :
             if self.resultats[i].dossard == coureur.dossard :
@@ -954,6 +1443,7 @@ class Groupement():
         self.actualiseNom()
         self.aRegenererPourImpression = False
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+        self.couleur = "white"
 ##        self.equipesClasses = []
     def initEffectifs(self):
         self.nombreDeCoureursGTotal = 0
@@ -972,6 +1462,13 @@ class Groupement():
             incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
     def getTotalParCategorie(self,catFFA, sexe):
         return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA, self.nombreDeCoureursParCategorie, sexe)
+    def setCouleur(self, couleur) :
+        self.couleur = couleur
+    def getCouleur(self):
+        try :
+            return self.couleur
+        except :
+            return "white"
     def setARegenererPourImpression (self, val):
         self.aRegenererPourImpression = bool(val)
     def setNombreDeCoureursTotal(self, nbreG, nbreF) :
@@ -1181,16 +1678,29 @@ def formaterDuree(tps, HMS=True) :
 ##            ch = str(int(time.strftime("%j",time.gmtime(tps)))-1) + " j " + time.strftime("%H:%M:%S",time.gmtime(tps))# + partieDecimale
     return ch
 
+def enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(rang, rangsDSDENFG) :
+    """On compte combien de rangs de la liste rangsDSDENFG, ordonnée par ordre croissant de rang, sont inférieurs à rang. On retourne ce nombre """
+    i = 0
+    while i < len(rangsDSDENFG) and rangsDSDENFG[i] < rang :
+        i += 1
+    return i
+
 class EquipeClasse():
     """Un objet permettant de contenir les informations pour le challenge par classe"""
-    def __init__(self, nom, listeCG, listeCF, ponderation=False):
+    def __init__(self, nom, listeCG, listeCF, ponderation=False, dictrangsDSDEN={}):
         self.nom = nom
         self.listeCG = listeCG
         self.listeCF = listeCF
         self.score = 0
-        for c in listeCG + listeCF :
-            self.score += c.scoreUNSS
+        # ajout des scores des garçons
+        for c in listeCG + listeCF:
+            if Parametres["CategorieDAge"] == 0 :
+                # print("enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(",c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement],")=",enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement]))
+                self.score += c.rang - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement])
+            else:
+                self.score += c.scoreUNSS
         self.ponderation = ponderation
+        self.dictrangsDSDEN = dictrangsDSDEN
         if ponderation :
             self.score = self.score * Parametres["nbreDeCoureursPrisEnCompte"]*2/(len(listeCG) + len(listeCF))
         #self.scoreNonPondere = score
@@ -1216,16 +1726,21 @@ class EquipeClasse():
 ##            print("Application d'une pondération à la classe", self.nom, "pour cause d'un nombre insuffisant de coureurs à l'arrivée :",ng + nf)
 ##            self.score = self.score * 2*nbreDeCoureursPrisEnCompte / (ng + nf)
 ##        print(nom, listeOrdonneeParTempsDesDossardsDeLaClasse, listeDesCoureurs, nbreDeCoureursPrisEnCompte)
-    def scoreFormate(self) :
+    def scoreFormate(self, avecVirgule=True) :
         if int(self.score) == self.score :
             retour = str(self.score)
         else :
-            retour = str(round(self.score,1)).replace(".",",")
+            retour = str(round(self.score,1))
+        if avecVirgule :
+            retour = retour.replace(".",",")
         return retour
     def listeDesRangs(self) :
         listeRangs = []
         for c in self.listeCG + self.listeCF :
-            listeRangs.append(c.scoreUNSS) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+            if Parametres['CategorieDAge'] == 0 :
+                listeRangs.append(c.rang)
+            else:
+                listeRangs.append(c.scoreUNSS) # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
         return listeRangs.sort()
     def complet(self) :
         if Parametres["CategorieDAge"] == 2 :
@@ -1234,10 +1749,166 @@ class EquipeClasse():
             else :
                 return False
         else : # cas Parametres["CategorieDAge"] == 0 (cross du collège)
-            if len(self.listeCG) + len(self.listeCF) >= Parametres["nbreDeCoureursPrisEnCompte"]*2 :
+            if len(self.listeCG) + len(self.listeCF) >= int(Parametres["nbreDeCoureursPrisEnCompte"])*2 :
                 return True
             else :
                 return False
+    def scoreFormatePourOPUSS(self) :
+        ''' exemple : 6 pts (1+2+1+2+0)'''
+        retour = str(self.scoreFormate(avecVirgule=False)) + " pts ("
+        for c in self.listeCG + self.listeCF :
+            if Parametres['CategorieDAge'] == 0 :
+                retour += str(c.rang) + "+"
+            else:
+                retour += str(c.scoreUNSSFormate(avecVirgule = False)) + "+" # en collège, le score est le rang du coureur / en lycée, c'est une formule pour l'UNSS : 100 * place / nbre de coureurs
+        retour = retour[:-1] + ")"
+        return retour
+
+class InfosRFID(dict) :
+    def __init__(self):
+        self.antenne_frame_a_reconstruire = False
+        # self.lecteurs = []
+        # self.lecteurs_antennes = []
+    # def effacerTout(self) :
+    #     self.lecteurs = []
+    #     self.lecteurs_antennes = []
+    def add_lecteur(self, nomLecteur, nomAntenne) :
+        """ ajoute un lecteur et-ou son antenne si besoin."""
+        l = self.lecteur_exists(nomLecteur)
+        if l :
+            # on ajoute l'antenne si elle n'existe pas.
+            l.add_antenne(nomLecteur, nomAntenne)
+        else :
+            self[nomLecteur] = LecteurRFID(nomLecteur, nomAntenne)
+            print("Détection d'un nouveau lecteur :", nomLecteur, "avec l'antenne :", nomAntenne, ".")
+            # self.lecteurs_antennes.append()
+    # def lecteur_antenne_exists(self, nomLecteur, nomAntenne) :
+    #     return str(nomLecteur)+"-"+str(nomAntenne) in self.keys()
+    # def lecteur_antenne_add(self, nomLecteur, nomAntenne) :
+    #     # if not self.lecteur_antenne_exists(nomLecteur, nomAntenne) 
+    def reconstruire_antenne_frame(self) :
+        self.antenne_frame_a_reconstruire = True     
+    def lecteur_exists(self, nom) :
+        for lecteur in self.keys() :
+            if lecteur == nom :
+                return self[lecteur]
+        return None
+    def listeAntennes(self, departUniquement = False, arriveeUniquement = False, checkPointUniquement = False) :
+        # print("self",self)
+        # print("self.lecteurs_antennes",self.lecteurs_antennes)
+        retour = []
+        retourNoms = []
+        for i,lecteur in enumerate(self.values()) :
+            for antenne in lecteur.values() :
+                if (not departUniquement and not arriveeUniquement and not checkPointUniquement) or (departUniquement and antenne["depart"]) or (arriveeUniquement and antenne["arrivee"]) or (checkPointUniquement and antenne["checkPoint"]) :
+                    retour.append(antenne)
+                    retourNoms.append(str(lecteur.nom)+"-"+str(antenne["nom"]))
+        # on trie les listes par ordre alphabétique de retourNoms. On déplace les éléments de retour de la même manière
+        if retour :
+            retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
+            # print("listeAntennes", retour, retourNoms)
+        # retour, retourNoms = zip(*sorted(zip(retour, retourNoms), key=lambda x: x[1]))
+        return retour, retourNoms
+
+class LecteurRFID(dict):
+    def __init__(self, nom, antenne):
+        self.nom = nom
+        # self.antennes = []
+        self.add_antenne(nom, antenne)
+    def add_antenne(self, nom, antenne, principale=True, depart=False, checkPoint=False, arrivee=True) :
+        if antenne not in self.keys() :
+            self[antenne] = AntenneRFID(self.nom, antenne, principale, depart, checkPoint, arrivee)
+            print("Détection d'une nouvelle antenne :", antenne, "pour le lecteur", self.nom)
+            Parametres["donneesRFID"].reconstruire_antenne_frame()
+    def antenne_exists(self, nom) :
+        for antenne in self.values() :
+            if antenne["nom"] == nom :
+                return antenne
+        return None
+
+
+class AntenneRFID(dict):
+    def __init__(self, lecteur, nom, principale=True, depart=False, checkPoint=False, arrivee=True):
+        self["lecteur"] = lecteur
+        self["nom"] = nom
+        self["principale"] = principale
+        self["depart"] = depart
+        self["checkPoint"] = checkPoint
+        self["listeDesCheckPointsOuElleEstPresente"] = []
+        self["arrivee"] = arrivee
+    def change_role(self, principale):
+        self["principale"] = principale
+        print(self["lecteur"], self["nom"], "basculé sur principale=", principale)
+    def change_lieu(self, depart=None, checkPoint=None, arrivee=None, numeroCheckPoint=None):
+        print("change_lieu",self)
+        if depart != None :
+            self["depart"] = depart
+            print(self["lecteur"], self["nom"], "basculé sur depart=", depart)
+        if (checkPoint == True and numeroCheckPoint != None) or checkPoint == False :
+            self["checkPoint"] = checkPoint
+            if numeroCheckPoint not in self["listeDesCheckPointsOuElleEstPresente"] :
+                self["listeDesCheckPointsOuElleEstPresente"] = numeroCheckPoint
+                print(self["lecteur"], self["nom"], "basculé sur checkPoint=", checkPoint, "numéro=", numeroCheckPoint)
+        if arrivee != None :
+            self["arrivee"] = arrivee
+            print(self["lecteur"], self["nom"], "basculé sur arrivee=", arrivee)
+    def get_nom_complet(self):
+        return str(self["lecteur"])+"-"+str(self["nom"])
+
+def convert_timestamp_to_epoch(timestamp):
+        """
+        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
+        Retourne un float pour inclure les millisecondes.
+        """
+        try:
+            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
+            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
+            return float(time.mktime(dt) + int(millisecondes) / 1000)
+        except Exception as e:
+            print(f"Error converting timestamp: {timestamp}, Error: {e}")
+            return -1.0
+          
+def extractionDonneesCommunesDeDataRFID(data) :
+    # Récupération des données spécifiques de data
+    reader_name = data.get("readerName", "UnknownReader")
+    tags = data.get("tags", [])
+    json_timestamp_epoch = convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    return reader_name, tags, json_timestamp_epoch
+    
+def extractionDonneesDUnTagRFID(tag, reader_name) :
+    epc = tag.get("epc", "UnknownEPC")
+    antenna_port = tag.get("antennaPort", "UnknownPort")
+    if reader_name and antenna_port != "UnknownPort":
+        actualiseListeDesAntennes(reader_name, antenna_port)
+    rssi = tag.get("rssi", 0)
+    seen_count = tag.get("seenCount", 0)
+    tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    return {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch}
+    # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
+
+def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenna_port, rssi, seen_count, tag_timestamp_epoch, heureReceptionServeur, json_timestamp_epoch) :
+    # Récupération des données spécifiques de data
+    reader_name, tags, json_timestamp_epoch = extractionDonneesCommunesDeDataRFID(data)
+    chaineAAjouterDansFichierTexte = ""
+    # Traitement des tags reçus
+    for tag in tags:
+        # epc, antenna_port, rssi, seen_count, tag_timestamp_epoch 
+        info = extractionDonneesDUnTagRFID(tag, reader_name)
+        print("Info",info)
+        # # reader_name_antenna = f"{reader_name}-{antenna_port}"
+        # # si le popup RFID est actif on lui envoie toutes les infos
+        # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
+        chaineAAjouterDansFichierTexte += "tps,add,{"+info["epc"]+"},{"+info["tag_timestamp_epoch"]+"},{"+info["json_timestamp_epoch"]+"},{"+info["heureReceptionServeur"]+"},0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
+        chaineAAjouterDansFichierTexte += "dossard,add,{"+info["epc"]+"},-1,0,0,{"+info["rssi"]+"},{"+info["reader_name"]+"},{"+info["antenna_port"]+"},END\n"
+        # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
+    with open("donneesRFID.txt", "a") as file:
+        # Écrire les lignes dans le fichier en une seule fois.
+        file.write(chaineAAjouterDansFichierTexte)
+
+def actualiseListeDesAntennes(reader_name, antenne) :
+    # print("Actualisation de la liste des antennes", reader_name, antenne)
+    Parametres["donneesRFID"].add_lecteur(reader_name, antenne)
+
 
 # setup the database
 def chargerDonnees() :
@@ -1245,10 +1916,11 @@ def chargerDonnees() :
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPURL
+           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
+           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
+           seuilRSSI, tempsDerniereRecuperationRFID, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID
     noSauvegarde = 1
     sauvegarde="Courses"
     if os.path.exists(sauvegarde+".db") :
@@ -1261,14 +1933,7 @@ def chargerDonnees() :
         root = {}
     #print("Sauvegarde récupérée:", root)
     # get the data, creating an empty mapping if necessary
-    if not "Coureurs" in root:
-        #root["Coureurs"] = persistent.list.PersistentList()
-        root["Coureurs"] = DictionnaireDeCoureurs()
-    Coureurs=root["Coureurs"]
-    tagConvertionEnCours = False
-    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
-        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
-        tagConvertionEnCours = True
+    ### Coureurs déplacés en fin de fichiers.
     if not "Courses" in root :
         #print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
@@ -1287,7 +1952,7 @@ def chargerDonnees() :
                     estPresent = True
                     break
             if not estPresent:
-                print("Création du groupement ", cat)
+                print("Création du groupement à partir de la catégorie", cat)
                 root["Groupements"].append(Groupement(cat,[cat])) # on crée les groupements de même nom que les catégories existantes.
     Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
@@ -1299,21 +1964,6 @@ def chargerDonnees() :
     if not "ArriveeDossards" in root :
         root["ArriveeDossards"] = []
     ArriveeDossards=root["ArriveeDossards"]
-    if tagConvertionEnCours :
-        ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
-        i = 0
-        while i < len(ArriveeDossards) :
-            if not str(ArriveeDossards[i])[-1].isalpha() : # sécurité si lancé plusieurs fois
-                ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
-            i += 1
-        i = 0
-        while i < len(ArriveeTempsAffectes) :
-            if str(ArriveeTempsAffectes[i]) != 0 and not str(ArriveeTempsAffectes[i])[-1].isalpha() :
-                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
-            else :
-                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
-            i += 1
-
     if not "LignesIgnoreesSmartphone" in root :
         root["LignesIgnoreesSmartphone"] = []
     LignesIgnoreesSmartphone=root["LignesIgnoreesSmartphone"]
@@ -1331,12 +1981,24 @@ def chargerDonnees() :
     if not "Parametres" in root :
         root["Parametres"] = {}
     Parametres=root["Parametres"]
+    if not "dictDossardsEPC" in Parametres :
+        Parametres["dictDossardsEPC"] = {}
+    dictDossardsEPC=Parametres["dictDossardsEPC"]
+    if not "dictEPCDossards" in Parametres :
+        Parametres["dictEPCDossards"] = {}
+    dictEPCDossards=Parametres["dictEPCDossards"]
     if not "tempsDerniereRecuperationSmartphone" in Parametres :
         Parametres["tempsDerniereRecuperationSmartphone"]=0
     tempsDerniereRecuperationSmartphone = Parametres["tempsDerniereRecuperationSmartphone"]
     if not "ligneDerniereRecuperationSmartphone" in Parametres :
         Parametres["ligneDerniereRecuperationSmartphone"]=1
     ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+    if not "tempsDerniereRecuperationRFID" in Parametres :
+        Parametres["tempsDerniereRecuperationRFID"]=0
+    tempsDerniereRecuperationRFID = Parametres["tempsDerniereRecuperationRFID"]
+    if not "ligneDerniereRecuperationRFID" in Parametres :
+        Parametres["ligneDerniereRecuperationRFID"]=1
+    ligneDerniereRecuperationRFID = Parametres["ligneDerniereRecuperationRFID"]
     if not "tempsDerniereRecuperationLocale" in Parametres :
         Parametres["tempsDerniereRecuperationLocale"]=0
     tempsDerniereRecuperationLocale = Parametres["tempsDerniereRecuperationLocale"]
@@ -1371,7 +2033,7 @@ def chargerDonnees() :
         Parametres["lieu"]="Stade Mirandol"
     lieu=Parametres["lieu"]
     if not "messageDefaut" in Parametres :
-        Parametres["messageDefaut"]="<prenom> de <classe>. Pour éla, merci beaucoup !"
+        Parametres["messageDefaut"]="<prenom>, bravo !"
     messageDefaut=Parametres["messageDefaut"]
     if not "cheminSauvegardeUSB" in Parametres :
         Parametres["cheminSauvegardeUSB"]="N:"
@@ -1413,7 +2075,7 @@ def chargerDonnees() :
         Parametres["diplomeModele"] = "Randon-Trail"
     diplomeModele=Parametres["diplomeModele"]
     if not "diplomeDiffusionApresNMin" in Parametres :
-        Parametres["diplomeDiffusionApresNMin"] = 2
+        Parametres["diplomeDiffusionApresNMin"] = 15
     diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
     if not "diplomeEmailExpediteur" in Parametres :
         Parametres["diplomeEmailExpediteur"] = "lax.olivier@gmail.com"
@@ -1428,25 +2090,106 @@ def chargerDonnees() :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     if not "FTPlogin" in Parametres :
-        Parametres["FTPlogin"] = "mathlacroix@free.fr"
+        Parametres["FTPlogin"] = "chronohb"
     FTPlogin=Parametres["FTPlogin"]
     if not "FTPmdp" in Parametres :
         Parametres["FTPmdp"] = "mdp"
     FTPmdp=Parametres["FTPmdp"]
-    if not "FTPURL" in Parametres :
-        Parametres["FTPURL"] = "ftp://mathlacroix.free.fr"
-    FTPURL=Parametres["FTPURL"]
+    if not "HTTPSserveur" in Parametres :
+        Parametres["HTTPSserveur"] = "https://monserveur.fr/dossierExportResultatsTempsReel"
+    HTTPSserveur=Parametres["HTTPSserveur"]
+    if not "FTPserveur" in Parametres :
+        Parametres["FTPserveur"] = "" # "monserveur.fr"
+    FTPserveur=Parametres["FTPserveur"]
+    if not "FTPdir" in Parametres :
+        Parametres["FTPdir"] = "" # "dossierExportResultatsTempsReel"
+    FTPdir=Parametres["FTPdir"]
+    if not "email" in Parametres :
+        Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com;chronoHB3@gmail.com"
+    email=Parametres["email"]
+    if not "emailMDP" in Parametres :
+        Parametres["emailMDP"] = "mdp;mdp;mdp"
+    emailMDP=Parametres["emailMDP"]
+    if not "emailNombreDEnvoisMax" in Parametres :
+        Parametres["emailNombreDEnvoisMax"] = "500;500;500"
+    emailNombreDEnvoisMax=Parametres["emailNombreDEnvoisMax"]
+    if not "emailNombreDEnvoisDuJour" in Parametres :
+        Parametres["emailNombreDEnvoisDuJour"] = {}
+    emailNombreDEnvoisDuJour=Parametres["emailNombreDEnvoisDuJour"]
+    if not "emailMessage" in Parametres :
+        Parametres["emailMessage"] = """<h1>Bravo pour ta participation !</h1>
+<a href="<urlresultats>">Lien vers tous les résultats.</a>
+<p>Voici ton diplôme <i></i> :</p>
+<img src="<diplome>" width=100%><br>"""
+    emailMessage=Parametres["emailMessage"]
+    if not "emailMessageObjet" in Parametres :
+        Parametres["emailMessageObjet"] = "Résultats du Cross du collège H. Bourrillon"
+    emailMessageObjet=Parametres["emailMessageObjet"]
+    if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
+        Parametres["crossUNSScollegeLycee"] = True
+    crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]
+    if not "URLGoogleSheetAImporter" in Parametres :
+        Parametres["URLGoogleSheetAImporter"] = ""
+    URLGoogleSheetAImporter=Parametres["URLGoogleSheetAImporter"]
+    if not "telechargerDonnees" in Parametres :
+        Parametres["telechargerDonnees"] = 0
+    telechargerDonnees=Parametres["telechargerDonnees"]
+    if not "classeIgnoreesPourChallenge" in Parametres :
+        Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
+    classeIgnoreesPourChallenge=Parametres["classeIgnoreesPourChallenge"]
+    if not "urlMiseAJour" in Parametres :
+        Parametres["urlMiseAJour"] = "http://mathlacroix.free.fr/chronoHB/maj"
+    urlMiseAJour=Parametres["urlMiseAJour"]
+    if not "urlMiseAJourPrefixeZip" in Parametres :
+        Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
+    urlMiseAJourPrefixeZip=Parametres["urlMiseAJourPrefixeZip"]
+    if not "utilisationDesDossardsDeChronoHB" in Parametres :
+        Parametres["utilisationDesDossardsDeChronoHB"] = True
+    utilisationDesDossardsDeChronoHB = Parametres["utilisationDesDossardsDeChronoHB"]
+    if not "informationNouveauxDossardsImportesAEffacer" in Parametres :
+        Parametres["informationNouveauxDossardsImportesAEffacer"] = False
+    informationNouveauxDossardsImportesAEffacer = Parametres["informationNouveauxDossardsImportesAEffacer"]
+    if not "seuilRSSI" in Parametres :
+        Parametres["seuilRSSI"] = -100
+    seuilRSSI = Parametres["seuilRSSI"]
+    if not "donneesRFID" in Parametres :
+        Parametres["donneesRFID"] = InfosRFID()
+    donneesRFID = Parametres["donneesRFID"]
     ##transaction.commit()
+    if not "Coureurs" in root:
+        #root["Coureurs"] = persistent.list.PersistentList()
+        root["Coureurs"] = DictionnaireDeCoureurs()
+    Coureurs=root["Coureurs"]
+    tagConvertionEnCours = False
+    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
+        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
+        tagConvertionEnCours = True
+    if tagConvertionEnCours :
+        ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
+        i = 0
+        while i < len(ArriveeDossards) :
+            if not str(ArriveeDossards[i])[-1].isalpha() : # sécurité si lancé plusieurs fois
+                ArriveeDossards[i] = str(ArriveeDossards[i]) + "A"
+            i += 1
+        i = 0
+        while i < len(ArriveeTempsAffectes) :
+            if str(ArriveeTempsAffectes[i]) != 0 and not str(ArriveeTempsAffectes[i])[-1].isalpha() :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i]) + "A"
+            else :
+                ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
+            i += 1
+    ### ajout important pour que le fichier "messageDefaut.txt" soit disponible pour les smartphones
+    if not os.path.exists("messageDefaut.txt") :
+        setParam("messageDefaut", Parametres["messageDefaut"])
     return globals()
     
 chargerDonnees()
 
-if os.name=="posix" :
-    sep="/"
-    compilateur = "/Library/TeX/texbin/pdflatex"
-else :
-    sep="\\"
-    compilateur = 'start "" /I /wait /min /D .\\@dossier@\\tex .\\texlive\\2020\\bin\\win32\\pdflatex.exe -synctex=1 -no-shell-escape -interaction=nonstopmode -output-directory=.. '#
+
+# Parametres["donneesRFID"] = InfosRFID()
+# n'execute qu'une seule fois cette commande TEMPORAIRE
+# Coureurs.repareCourseUNSS()
+
 
     ### commande fonctionnelle mais pas propre car le logo doit se trouver dans la distribution, dans win32
     ## start "" /I /wait /min /D ".\dossards\tex\" ".\texlive\2020\bin\win32\pdflatex.exe" -synctex=1 -interaction=nonstopmode -output-directory=".." "3-F.tex"
@@ -1727,6 +2470,65 @@ coureurVide = Coureur("", "", "")
 def traiterToutesDonnees():
     traiterDonneesSmartphone(True, False)
     traiterDonneesLocales(True,False)
+    traiterDonneesSmartphonePiques()
+    
+
+def traiterDonneesSmartphonePiques():
+    """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
+        - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
+            Chaque fichier modifié est considéré comme une pique. Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
+                - si le premier dossard est présent dans la liste ArriveeDossards, il faut intégrer les données dans le tableau ArriveeDossard en vérifiant qu'elles n'y sont pas déjà.
+                - si le premier dossard n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
+                Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
+                retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+                - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
+    """
+    listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+    if not "DerniereRecuperationSmartphonePiques" in Parametres :
+        Parametres["DerniereRecuperationSmartphonePiques"] = {}
+    retour = []
+    for fichier in listeFichiersPiques :
+        listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
+        if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
+            print("Fichier pique", fichier, "modifié récemment")
+            try :
+                premierDossardDeLaPique = listeLigne[0].split(",")[2]
+            except :
+                premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
+            if premierDossardDeLaPique in ArriveeDossards :
+                print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
+                dossardPrecedent = premierDossardDeLaPique
+                for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
+                    ligneT = ligne.split(",")
+                    action = ligneT[1]
+                    if action == "add" :
+                        ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
+                    nouvelle_ligne = ",".join(ligneT)
+                    print("Ligne en cours de traitement", nouvelle_ligne)
+                    codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
+                    if codeErreur.numero :
+                        print("Code erreur :", codeErreur.numero)
+                        print(nouvelle_ligne)
+                    # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
+                    retour.append(codeErreur)
+                    dossardPrecedent = ligneT[2]
+                Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
+            else :
+                noSmartphone = fichier[24:-4]
+                listeDossardsPique = []
+                for ligne in listeLigne :
+                    listeDossardsPique.append(ligne.split(",")[2])
+                if DEBUG :
+                    print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
+
+                erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
+                retour.append(erreur)
+                # print("Code erreur :", erreur.numero, erreur.description)
+            
+        # else :
+        #     print("Fichier pique", fichier, "déjà traité à cette heure")
+    return retour
+
 
 def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
     """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
@@ -1734,55 +2536,79 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
     """
     fichierDonneesSmartphone = "donneesSmartphone.txt"
-    #print("Import depuis de le début :", DepuisLeDebut)
+    fichierDonneesRFID = "donneesRFID.txt"
     if DepuisLeDebut :
         #root["ArriveeTemps"] = []
         #root["ArriveeTempsAffectes"] = []
         #root["ArriveeDossards"] = []
-        Parametres["ligneDerniereRecuperationSmartphone"] = 1
+        Parametres["ligneDerniereRecuperationSmar=tphone"] = 1
         Parametres["tempsDerniereRecuperationSmartphone"] = 0
+        Parametres["ligneDerniereRecuperationRFID"] = 1
+        Parametres["tempsDerniereRecuperationRFID"] = 0
+        Parametres["compteurReceptionRFID"] = 0
         Parametres["calculateAll"] = True
         dictUIDPrecedents.clear()
-    retour = [] # si aucune ligne à traiter, on retourne []
-    # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
-    if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone) :
-        listeLigne = lignesAPartirDe(fichierDonneesSmartphone, Parametres["ligneDerniereRecuperationSmartphone"])
-        i = 0
-        #pasDErreur = True
-        while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
-            ligne = listeLigne[i]
-            #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
-            #print(ligne[-4:])
-            if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents)
-                if codeErreur.numero :
-                    # une erreur s'est produite
-                    print("Code erreur :", codeErreur.numero)
-                    print(ligne)
-##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
-##                        print("Erreur ignorée")
-##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
-##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                    #else :
-                        #pasDErreur = False
-##                else :
-                    #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
-                ### désormais, même s'il y a une erreur, on poursuit les imports.
-                Parametres["ligneDerniereRecuperationSmartphone"] += 1
+        # print("Réimport de toutes les données smartphone et RFID")
+    listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
+    for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
+        # print("Import depuis de le début :", DepuisLeDebut)
+        RFIDtag = "RFID" in fichier
+        listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
+        # listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
+        retour = [] # si aucune ligne à traiter, on retourne []
+        # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+        # print(os.path.exists(fichier), listeDerniereModifFichierDonnees[indice])
+        if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
+            listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
+            # print("Fichier", fichier, "modifié récemment. Import de", listeLigne)
+            i = 0
+            #pasDErreur = True
+            while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
+                ligne = listeLigne[i]
+                # print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
+                #print(ligne[-4:])
+                if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
+                    codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
+                    if codeErreur.numero :
+                        # une erreur s'est produite
+                        print("Code erreur :", codeErreur.numero)
+                        print(ligne)
+    ##                    if ignorerErreurs or Parametres["ligneDerniereRecuperationSmartphone"] in LignesIgnoreesSmartphone :
+    ##                        print("Erreur ignorée")
+    ##                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
+    ##                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                        #else :
+                            #pasDErreur = False
+    ##                else :
+                        #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
+                    ### désormais, même s'il y a une erreur, on poursuit les imports.
+                    if indice == 0 :
+                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
+                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                    elif indice == 1 :
+                        Parametres["ligneDerniereRecuperationRFID"] += 1
+                        Parametres["tempsDerniereRecuperationRFID"] = time.time()
+                        ##transaction.commit()
+                else :
+                    #pasDErreur = False
+                    print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+                i += 1
+                retour.append(codeErreur)
+            #print("Erreurs retournées :",retour)
+            if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+                if indice == 0 :
+                    Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+                elif indice == 1 :
+                    Parametres["tempsDerniereRecuperationRFID"] = time.time()
+        else :
+            # if not os.path.exists(fichier) :
+            #     print("Fichier", fichier, "n'existe pas.")
+            if indice == 0 :
                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                    ##transaction.commit()
-            else :
-                #pasDErreur = False
-                print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
-            i += 1
-            retour.append(codeErreur)
-        #print("Erreurs retournées :",retour)
-        if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
-            Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-    else :
-        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-    #    print("Fichier du smartphone déjà traité à cette heure")
-##        retour = "RAS"
+            elif indice == 1 :
+                Parametres["tempsDerniereRecuperationRFID"] = time.time()
+            # print("Fichier", fichier, "déjà traité à cette heure")
+    ##        retour = "RAS"
     return retour
 
 
@@ -1843,14 +2669,53 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
 ##        retour = "RAS"
     return retour
 
+def EPCtoDossard(epc) :
+    try :
+        return Parametres['dictEPCDossards'][epc]
+    except :
+        return ""
+    
+def DossardtoREPC(dossard) :
+    try :
+        return Parametres['dictDossardsEPC'][formateDossardNG(dossard)]
+    except :
+        return ""
 
-def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
+def associe_dossard_epc(dossard, epc):
+    if epc and dossardValide(dossard) : 
+        dossard = formateDossardNG(dossard)
+        # éviter les doublons. Deux dossards ne peuvent pas être associés au même epc : on efface l'ancien et on remplace par le nouveau.
+        # Par contre, deux epc peuvent être associés au même dossard : cas où deux puces RFID sont collées sur un même dossard
+        # récupérer les valeurs
+        try :
+            dossardActuel = Parametres['dictEPCDossards'][epc]
+            print("La puce", epc, "est déjà affectée à", dossardActuel)
+            if dossardActuel :
+                del Parametres['dictDossardsEPC'][dossardActuel]
+                print("La puce", epc, "n'est plus associée au dossard :", dossardActuel, ". On l'affecte à :", dossard)
+        except :
+            pass
+        Parametres['dictEPCDossards'][epc] = dossard
+        Parametres['dictDossardsEPC'][dossard] = epc
+        print("Association du dossard", dossard, "à la puce", epc, "réalisée avec succès.")
+        return True
+    else :
+        print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")
+        return False
+
+def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
     listeAction = ligne.split(",")
     action = listeAction[1]
-    dossard = str(listeAction[2])
-    if dossard != "0" and dossard != "-1" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
+    if RFID :
+        dossard = EPCtoDossard(listeAction[2])
+        print("Traitement RFID", ligne, "dossard=", dossard)
+        if not dossard :
+            return Erreur(340, courteDescription="Dossard non trouvé pour l'EPC " + listeAction[2], elementConcerne=listeAction[2])
+    else :
+        dossard = formateDossardNG(str(listeAction[2]))
+    if dossard != "-1A" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
         selectionnerCoursesEtGroupementsARegenererPourImpression(dossard)
     if listeAction[0] == "tps" :
         tpsCoureur = float(listeAction[3])
@@ -1864,10 +2729,23 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
             noTransmission = int(listeAction[7])
         except :
             noTransmission = 0
+        try :
+            rssi = int(listeAction[8])
+        except :
+            rssi = 0
+            # le rssi est négatif. 
+            # plus le rssi est proche de zéro, plus le signal reçu par l'antenne est fort.
+            # on pourrait éliminer les rssi trop faibles à voir.
         if uid not in UIDPrecedents :
             UIDPrecedents[uid]=[]
-        #print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
-        if not noTransmission in UIDPrecedents[uid] :
+        print("uid transmission",uid, "no ", noTransmission, "UIDPRECEDENTS", UIDPrecedents)
+        if noTransmission in UIDPrecedents[uid] and not RFID : # on ne filtre pas les doublons RFID via le numéro de transmission qui n'existe pas.
+            print("Fichier smartphone avec UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
+            retour = Erreur(451)
+        elif rssi < Parametres["seuilRSSI"] :
+            print("Signal trop faible : entrée RFID ignorée. Probable tag scanné de trop loin et n'ayant pas franchi l'arrivée.\nLigne = ",ligne)
+            retour = Erreur(452)
+        else :
             if action == "add" :
                 retour = addArriveeTemps(tpsCoureur, tpsClient, tpsServeur, dossard)
             elif action =="del" :
@@ -1898,11 +2776,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
                 retour = Erreur(301)
             if uid and noTransmission :
                 UIDPrecedents[uid].append(noTransmission)
-        else :
-            print("UID et noTransmission déjà utilisés : entrée ignorée. Probable problème de communication WIFI.\nLigne = ",ligne)
-            retour = Erreur(451)
     elif listeAction[0] =="dossard" :
-        dossardPrecedent = str(listeAction[3])
+        dossardPrecedent = formateDossardNG(str(listeAction[3]))
         try :
             uid = int(listeAction[4])
         except :
@@ -1929,6 +2804,8 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}) :
     else :
         print("Type d'action venant du smartphone incorrecte", ligne)
         retour = Erreur(301)
+    # print("ligne", ligne, "\nretour", retour.numero, retour.description)
+    # Parametres["calculateAll"] = True
     #print('Parametres["calculateAll"] après decodeAction... : ',Parametres["calculateAll"])
     return retour
 
@@ -1952,6 +2829,21 @@ def effacerFichierDonnneesSmartphone() :
     file = "donneesSmartphone.txt"
     if os.path.exists(file) :
         os.remove(file)
+    files = glob.glob("donneesSmartphone-pique-*.txt")
+    for file in files :
+        os.remove(file)
+
+def effacerDonneesRFID() :
+    file = "donneesRFID.txt"
+    if os.path.exists(file) :
+        os.remove(file)
+    print("Effacement des données RFID  effectué")
+
+def effacerFichierDonnneesRFID() :
+    print("Effacement des données RFID  effectué")
+    file = "donneesRFID.txt"
+    if os.path.exists(file) :
+        os.remove(file)
 
 def effacerFichierDonnneesLocales() :
     print("Effacement des modifications locales  effectué")
@@ -1970,6 +2862,27 @@ def lignesAPartirDe(fichier, noLigne):
                 L.append(line)
                 #print("FONCTION A VERIFIER : doit retourner les lignes après la ligne n°", noLigne)
     return L
+
+def derniereModifFichierDonnneesSmartphonePiqueRecente(fichier):
+    """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
+    #print( "Fichier modif :",os.path.getmtime(fichier), "Dernier Import :",Parametres["tempsDerniereRecuperationSmartphone"])
+    retour = False
+    if os.path.exists(fichier) :
+        if fichier not in Parametres["DerniereRecuperationSmartphonePiques"] :
+            Parametres["DerniereRecuperationSmartphonePiques"][fichier] = 0
+        diff = os.path.getmtime(fichier) - Parametres["DerniereRecuperationSmartphonePiques"][fichier]
+        if diff > 0 :
+            retour = True
+    return retour
+
+def derniereModifFichierDonnneesRFIDRecente(fichier):
+    """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
+    retour = False
+    if os.path.exists(fichier) :
+        diff = os.path.getmtime(fichier) - Parametres["tempsDerniereRecuperationRFID"]
+        if diff > 0 :
+            retour = True
+    return retour
 
 def derniereModifFichierDonnneesSmartphoneRecente(fichier):
     """ retourne true si le fichier a été complété par le serveur web depuis la dernière récupération."""
@@ -2025,7 +2938,8 @@ def listCategories(nomStandard=True):
                 nom = groupementAPartirDUneCategorie(coureur.course).nom
             if nom not in retour :
                 retour.append(nom)
-        retour.sort()
+        retour = sorted(retour, key=lambda x: (x is None, x))
+        # retour.sort()
     return retour
 
 def listClasses():
@@ -2035,7 +2949,8 @@ def listClasses():
         for coureur in Coureurs.liste() :
             if coureur.classe not in retour :
                 retour.append(coureur.classe)
-        retour.sort()
+        retour = sorted(retour, key=lambda x: (x is None, x))
+        #retour.sort()
     return retour
 
 def listDossardsDUneClasse(classe):
@@ -2091,7 +3006,7 @@ def listCoureursDUneCategorie(categorie):
 
 def listCoureursDUnEtablissement(etablissement):
     retour = []
-    for coureur in Coureurs :
+    for coureur in Coureurs.liste() :
         if coureur.etablissement == etablissement :
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
@@ -2110,29 +3025,32 @@ def listChallenges():
     listeCourses = []
     retour = []
     if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
-        print("There are Courses.", Courses)
-        print("Coureurs", Coureurs.afficher())
+        # print("There are Courses.", Courses)
+        # print("Coureurs", Coureurs.afficher())
         for cat in Courses :
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
             listeCourses.append(Courses[cat].categorie)
+        # print("liste des courses examinées", listeCourses)
         for cat in listeCourses :
             if Parametres["CategorieDAge"]== 0 :
                 NomDuChallenge = cat[0]
             else :
                 NomDuChallenge = cat[:2] 
-            #print("nom de challenge potentiel", NomDuChallenge)
+            # print("nom de challenge potentiel", NomDuChallenge)
             if NomDuChallenge + "-F" in listeCourses and NomDuChallenge + "-G" in listeCourses :
                 ### en théorie, il faudrait créer le challenge même s'il n'y a que des filles cadettes et des garçons juniors. 
                 ### Actuellement, c'est un "bug" qui n'apparaitra jamais car il y a toujours des coureurs en cadets et junior dans les deux sexes.
                 if Parametres["CategorieDAge"]== 2 and \
-                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
+                   NomDuChallenge in [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA"] : # cas du challenge UNSS lycée qui mélange tous les lycéens au dessus de Cadet !
                     # on ajoute les deux challenges LP et LG violemment.
                     if "LP" not in retour :
                         retour.append("LP")
                     NomDuChallenge = "LG"
                 if NomDuChallenge not in retour :
+                    # print("nom de challenge ajouté :", NomDuChallenge)
                     retour.append(NomDuChallenge)
+    # print("liste des challenges", retour)
     return retour
 
 def listCoursesEtChallenges():
@@ -2142,11 +3060,12 @@ def listCoursesEtChallenges():
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
             retour.append(Courses[cat].categorie)
-        if not Parametres["CategorieDAge"] :
-            for cat in retour :
-                NomDuChallenge = cat[0]
-                if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
-                    retour.append(NomDuChallenge)
+        retour += listChallenges()
+        # if not Parametres["CategorieDAge"] :
+        #     for cat in retour :
+        #         NomDuChallenge = cat[0]
+        #         if NomDuChallenge + "-F" in retour and NomDuChallenge + "-G" in retour and NomDuChallenge not in retour :
+        #             retour.append(NomDuChallenge)
     return retour
     ##transaction.commit()
 
@@ -2174,7 +3093,7 @@ def listNomsGroupementsCommences(nomStandard = True):
     for groupement in Groupements :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -2187,9 +3106,11 @@ def listNomsGroupementsNonCommences(nomStandard = True):
     for groupement in Groupements :
         if groupement.listeDesCourses :
             #print("groupement.listeDesCourses",groupement.listeDesCourses)
+            #print(groupement)
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             #print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            #print("C:",Courses)
+            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -2220,7 +3141,10 @@ def listNomsGroupementsEtChallenges(nomStandard = False):
 
 def listNomGroupements():
     retour = []
+    # tri par ordre alphabétique de nomStandard (en cas de créations inversée)
+    Groupements.sort(key=lambda x: x.nomStandard)
     for groupement in Groupements :
+        # print("Nom des groupements", groupement.nomStandard)
         retour.append(groupement.nom)
     return retour
 
@@ -2267,6 +3191,7 @@ def generateListCoureursPourSmartphone() :
     fichierDonneesSmartphone = "Coureurs"
     print("Catégorie d'age paramétrée : ",Parametres["CategorieDAge"])
     fComplet = open(fichierDonneesSmartphoneAvecTousLesCoureurs, 'w')
+    print("Clés coureurs ", Coureurs.cles())
     for lettre in Coureurs.cles() :
         with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
             for coureur in Coureurs[lettre] :
@@ -2304,25 +3229,76 @@ def generateListCoureursPourSmartphone() :
         f.close()
     fComplet.close()
 
-def generateQRcode(n) :
-    osCWD = os.getcwd()
-    chemin = "dossards" + os.sep + "QRcodes" + os.sep
-    if not os.path.exists(chemin + str(n) + ".pdf") :
-        #if n < 2 : # pour les tests
-        print("création du QR-code" , n)
-        with open("./modeles/QRcode.tex", 'r') as f :
-            contenu = f.read()
-        f.close()
-        contenu = contenu.replace("@dossard@",str(n))
-        TEXDIR = "dossards"+os.sep+"QRcodes"+os.sep+"tex"+os.sep
-        creerDir(TEXDIR)
-        with open(TEXDIR+str(n)+ ".tex", 'w') as f :
-            f.write(contenu)
-        f.close()
-        compilateurComplete = compilateur.replace("@dossier@","dossards"+os.sep+"QRcodes")#.replace('-output-directory=".."','-output-directory=".."'+os.sep+"QRcodes")
-        compiler(compilateurComplete, TEXDIR, str(n) + ".tex" , 1)
-    ##else :
-     #   print("le QR-code existe déjà")
+# ancienne génération des QR-codes avec latex.
+# def generateQRcode(n) :
+#     osCWD = os.getcwd()
+#     chemin = "dossards" + os.sep + "QRcodes" + os.sep
+#     if not os.path.exists(chemin + str(n) + ".pdf") :
+#         #if n < 2 : # pour les tests
+#         print("création du QR-code" , n)
+#         with open("./modeles/QRcode.tex", 'r') as f :
+#             contenu = f.read()
+#         f.close()
+#         contenu = contenu.replace("@dossard@",str(n))
+#         TEXDIR = "dossards"+os.sep+"QRcodes"+os.sep+"tex"+os.sep
+#         creerDir(TEXDIR)
+#         with open(TEXDIR+str(n)+ ".tex", 'w') as f :
+#             f.write(contenu)
+#         f.close()
+#         compilateurComplete = compilateur.replace("@dossier@","dossards"+os.sep+"QRcodes")#.replace('-output-directory=".."','-output-directory=".."'+os.sep+"QRcodes")
+#         compiler(compilateurComplete, TEXDIR, str(n) + ".tex" , 1)
+#     ##else :
+#      #   print("le QR-code existe déjà")
+
+import qrcode 
+from reportlab.pdfgen import canvas
+
+def generateQRcode(n):
+    # Dossier de destination
+    folder = "dossards" + os.sep + "QRcodes"
+    os.makedirs(folder, exist_ok=True)  # Crée les dossiers s'ils n'existent pas
+
+    # # Nom du fichier PDF final
+    # pdf_file = os.path.join(folder, f"{n}.pdf")
+    png_file = os.path.join(folder, f"{n}.png")
+    # Vérifier si le fichier existe déjà
+    if not os.path.exists(png_file):   
+        # Fichier PNG temporaire pour le QR code
+        # temp_png = os.path.join(folder, f"temp_{n}.png")
+        
+        # Générer le QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=1,
+        )
+        qr.add_data(str(n))  # Ajouter la valeur au QR code
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
+
+        # Rendre le fond transparent
+        data = img.getdata()
+        new_data = []
+        for item in data:
+            # Si la couleur est blanche (255, 255, 255), rendre transparent
+            if item[:3] == (255, 255, 255):
+                new_data.append((255, 255, 255, 0))  # Transparent
+            else:
+                new_data.append(item)  # Conserver les autres couleurs
+        img.putdata(new_data)
+        img.save(png_file)  # Sauvegarder en PNG
+
+        # Générer le PDF avec ReportLab
+        # c = canvas.Canvas(pdf_file)
+        # c.drawImage(temp_png, 100, 500, width=200, height=200)  # Position et taille du QR code
+        # c.save()
+
+        # # Supprimer le fichier PNG temporaire
+        # os.remove(temp_png)
+        print(f"QR code pour '{n}' généré dans : {png_file}")
+
+
 
 def generateQRcodes() :
     print("Création des QR-codes nécessaires")
@@ -2344,6 +3320,9 @@ def generateQRcodesCoursesManuelles() :
     print("Fin de la création des QR-codes.")
 
 def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True) :
+    """Retourne une chaine Latex permettant l'impression des dossards.
+    Retourne comme deuxième élément une liste de cette forme : [[3,"white"],[2,"yellow"],[1,"green"]]
+    pour indiquer que l'opérateur doit ajouter 3 pages de couleur "white" puis 2 pages de couleur "yellow" puis 1 page de couleur "green" etc..."""
     retour = ""
     # utilisation du modèle de dossard.
     modeleDosssard = "./modeles/dossards/" + dossardModele + ".tex"
@@ -2351,9 +3330,31 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
         modele = f.read()
     f.close()
     ## génération du code tex pour le(s) dossard(s)
-    for coureur in listeDeCoureurs :
+    premierParcours = True
+    couleurPrecedente = ""
+    totalCouleurActuelle = 0
+    listeRetour = []
+    for information in listeDeCoureurs :
+        # listeDeCoureurs peut être vraiment une liste de coureurs ou une liste de [coureur, couleurActuelle]
+        # conservation de la compatibilité ascendante.
+        if isinstance(information, Coureur) :
+            coureur = information
+            couleurActuelle = "white"
+        else :
+            coureur = information[0]
+            couleurActuelle = information[1]
         if imprimerLesAbsentsEtDispenses or (not coureur.dispense and not coureur.absent) :
             print("Création du dossard de ", coureur.nom, coureur.dossard, "pour la course" , coureur.course)
+            # on change de page à chaque changement de couleur.
+            if couleurActuelle != couleurPrecedente and not premierParcours :
+                print("Changement de couleur pour le dossard suivant.", couleurActuelle)
+                retour += "\\newpage\n" # le newpage est ignoré par latex en début de document. Chouette.
+                listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurPrecedente])
+                totalCouleurActuelle = 0
+            if not premierParcours and totalCouleurActuelle % 2 == 0 : # le nombre de dossards est pair.
+                retour += "\\newpage\n"
+            totalCouleurActuelle += 1
+            couleurPrecedente = couleurActuelle
             groupementNom = groupementAPartirDeSonNom(coureur.course, nomStandard = True).nom
             chaineComplete = replaceDansDossardEnFonctionDesParametres(modele, coureur)
             if completeFichierParCategorie :
@@ -2364,7 +3365,9 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
                     fileCat.write(chaineComplete+ "\n\n")
                 fileCat.close()
             retour += chaineComplete
-    return retour
+            premierParcours = False
+    listeRetour.append([math.ceil(totalCouleurActuelle/2),couleurActuelle])
+    return retour, listeRetour
     
 def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
     # gestion des logos personnalisés
@@ -2391,7 +3394,7 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
                 .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise).replace("@lettreCourse@",coureur.course)
     if CategorieDAge == 0 : # cas du cross du collège : seuls les noms de classe sont importants
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
-                       .replace("@groupement@","").replace("@etablissement@","")
+                       .replace("@groupement@",groupement).replace("@etablissement@","")
     elif CategorieDAge == 1 :
         if CoursesManuelles : # cas de courses personnalisées : trail Randon
             retour = modele.replace("@classe@","").replace("@categorie@","")\
@@ -2447,7 +3450,12 @@ def generateDossardsNG() :
         f.close()
     ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
-        f.write(retourneDossardsNG(Coureurs.liste(), completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False))
+        listeDeCoureurs = Coureurs.liste()
+        codeLatex, listeCouleurs = retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False)
+        # la génération globale de tous les dossards implique son impression par l'opérateur. On suppose que cela sera effectué.
+        for c in listeDeCoureurs :
+            c.setAImprimer(False)
+        f.write(codeLatex)
     f.close()
     ### ajout du enddocument à la fin de tous les fichiers de dossards générés
     for file  in listeCategories :
@@ -2481,25 +3489,25 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
-    # if CoursesManuelles and genererQRcodesPourCourseManuelles :
-        # with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
-            # enteteQR = f.read()
-        # f.close()
-        # generateQRcodesCoursesManuelles()
-        # fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
-        # ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
-        # with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
-            # fL.write(enteteQR + "\n\n")
-            # L = Coureurs.cles()
-            # Coureurs.afficher()
-            # print("Affichage des Coureurs pour comprendre")
-            # print("Clés",Coureurs.cles())
-            # for nomCourse in L :
-                # alimenteListingPourCourse(nomCourse, fL)
-                # if nomCourse != L[:-1] :
-                    # fL.write("\n\\newpage\n\n")
-            # fL.write("\\end{document}")
-        # fL.close()
+    if CoursesManuelles and genererQRcodesPourCourseManuelles :
+        with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
+            enteteQR = f.read()
+        f.close()
+        generateQRcodesCoursesManuelles()
+        fichier  = "0-QR-codes-pour-ajout-sur-dossards-existants"
+        ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
+        with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
+            fL.write(enteteQR + "\n\n")
+            L = Coureurs.cles()
+            Coureurs.afficher()
+            print("Affichage des Coureurs pour comprendre")
+            print("Clés",Coureurs.cles())
+            for nomCourse in L :
+                alimenteListingPourCourse(nomCourse, fL)
+                if nomCourse != L[:-1] :
+                    fL.write("\n\\newpage\n\n")
+            fL.write("\\end{document}")
+        fL.close()
     ### compilation de tous les fichier sprésents 
     compilerTousLesTex(TEXDIR, "dossards")
     #print(listeCategories)
@@ -2513,12 +3521,33 @@ def generateDossardsNG() :
         # compilateurComplete = compilateur.replace("@dossier@","dossards")
         # compilerDossards(compilateurComplete, ".", file + ".tex" , 1)
 
+def CombienYATIlDossardsAImprimer() :
+    """ retourne True s'il y a des dossards à imprimer"""
+    retour = 0
+    for coureur in Coureurs.liste() :
+        if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
+            retour += 1
+    if retour :
+        if utilisationDesDossardsDeChronoHB :
+            if retour > 1 :
+                erreur = Erreur(190, "Il y a "+str(retour)+" dossards non encore imprimés. Cliquer ici pour les imprimer.")
+            elif retour == 1 :
+                erreur = Erreur(190, "Il y a un dossard non encore imprimé. Cliquer ici pour l'imprimer.")
+        else :
+            if retour > 1 :
+                erreur = Erreur(190, "Import de " + str(retour) + " coureurs effectué en arrière plan.\nCliquer ici pour faire disparaître ce message.")
+            else :
+                erreur = Erreur(190, "Import d'un coureur effectué en arrière plan.\nCliquer ici pour faire disparaître ce message.")
+    else :
+        # print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
+        erreur = Erreur(0)
+    return retour, erreur
 
 def generateDossardsAImprimer() :
     """ générer tous les dossards non encore imprimés (créés manuellement) dans un fichier pdf spécifique.
         Retourne la liste des numéros de dossards qui ont été ajoutés dans le pdf à imprimer."""
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
-    #print("Utilisation de generateDossardsAImprimer")
+    generateQRcodes()
     retour=[]
     entete = getEnTetePersonnalise()
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
@@ -2534,23 +3563,22 @@ def generateDossardsAImprimer() :
 ##    f.close()
     ##  génère la liste des coureurs concernés par l'impression
     listeAImprimer = []
-    for coureur in Coureurs.liste() :
+    for coureur in Coureurs.listeParCouleurDeDossard() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
-            listeAImprimer.append(coureur)
+            listeAImprimer.append([coureur,groupementAPartirDeSonNom(coureur.course, nomStandard=True).getCouleur()])
             retour.append(coureur.dossard)
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     if listeAImprimer :
         with open(TEXDIR+"A-imprimer.tex", 'w',encoding="utf-8") as f :
             f.write(entete + "\n\n")
-            f.write(retourneDossardsNG(listeAImprimer, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=False))
+            codeLatex, listeCouleurs = retourneDossardsNG(listeAImprimer, completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=False)
+            f.write(codeLatex)
             f.write("\\end{document}")
         f.close()
         compilateurComplete = compilateur.replace("@dossier@","dossards")
         print(compilerDossards(compilateurComplete, ".", "A-imprimer.tex" , 1))
-    else :
-        print("Il n'y a aucun dossard à imprimer qui ne l'ait pas déjà été.")
-    return retour
+    return retour, listeCouleurs
 
 def generateDossard(coureur) :
     """ générer un dossard dans un fichier et l'ouvrir dans le lecteur pdf par défaut"""
@@ -2570,7 +3598,8 @@ def generateDossard(coureur) :
     file = coureur.nom.replace(" ","-") + "-" + coureur.prenom.replace(" ","-")
     with open(TEXDIR+file+ ".tex", 'w',encoding="utf-8") as f :
         f.write(entete + "\n\n")
-        f.write(retourneDossardsNG([coureur], completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True)+ "\n\n")
+        codeLatex, ListeCouleurs = retourneDossardsNG([coureur], completeFichierParCategorie=False, imprimerLesAbsentsEtDispenses=True)
+        f.write(codeLatex + "\n\n")
         f.write("\\end{document}")
     f.close()
     generateQRcode(coureur.dossard)
@@ -2656,7 +3685,7 @@ def alimenteListingPourCourse(nomCourse, file):
     partie2 = """ } {}\\hfill {}
     
 \\medskip
-{}\\hfill {} \\includegraphics[width=8cm]{QRcodes/"""
+{}\\hfill {} \\includegraphics[width=6.5cm]{QRcodes/"""
     partie3 = """.pdf} {}\\hfill {}
     
 \\vspace{0.8cm}
@@ -2800,15 +3829,17 @@ def testTMPStats():
     print(creerFichierClasse("36",entete))
 
 def supprimerFichier(file):
+    texte = ""
     try :
         os.remove(file)
         if DEBUG :
             print("suppression du fichier",file)
     except :
         texte = "Impossible de supprimer le fichier "+file+" car il est ouvert dans un autre programme.\nIl ne sera pas regénéré."
-        showinfo("ERREUR !",texte)
+        # showinfo("ERREUR !",texte)
         if DEBUG :
             print(texte)
+    return texte
 
 def selectPlusRecent(dossier,formatDuNom):
     fichierSelectionne = None
@@ -2821,6 +3852,7 @@ def selectPlusRecent(dossier,formatDuNom):
     return fichierSelectionne
 
 def nettoyerTousLesFichiersGeneres():
+    retour = []
     ## effacer les dossards et les fichiers les ayant générés.
     DOSSDIR = "dossards"+os.sep
     L1 =glob.glob(DOSSDIR+"tex"+os.sep+'*.tex',recursive = True)
@@ -2832,7 +3864,7 @@ def nettoyerTousLesFichiersGeneres():
     listeTotale = L1 + L2 + L3 + L4
     for file in listeTotale :
         try :
-            supprimerFichier(file)
+            retour.append(supprimerFichier(file))
         except :
             print("Impossible de supprimer:", file)
     ## effacer les videos.
@@ -2840,7 +3872,7 @@ def nettoyerTousLesFichiersGeneres():
         shutil.rmtree("videos")
     ## effacer les bases de donnees superflues : toutes sauf la dernière.
     L = []
-    for schema in ["*.db","*_DS.txt","*_ML.txt"] :
+    for schema in ["*.db","*_DS.txt","*_ML.txt","*.chb"] :
         fichierRecent = selectPlusRecent("db",schema)
         if fichierRecent :
             L.append(fichierRecent)
@@ -2849,17 +3881,383 @@ def nettoyerTousLesFichiersGeneres():
     L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
     L7 =glob.glob('logs'+os.sep+'*.txt',recursive = False)
     for file in L5 + L6 :
-        if not file in L :
+        if not file in L and not fichier_cree_aujourdhui(file) :
             try :
-                supprimerFichier(file)
+                retour.append(supprimerFichier(file))
             except :
                 print("Impossible de supprimer:", file)
+    # les fichiers de log sont conservés 7 jours.
+    for file in L7 :
+        if not file in L and not fichier_cree_moins_dune_semaine(file) :
+            try :
+                retour.append(supprimerFichier(file))
+            except :
+                print("Impossible de supprimer:", file)
+    return retour
+
+def fichier_cree_moins_dune_semaine(filepath):
+    # Récupérer la date de dernière modification
+    timestamp_modification = os.path.getmtime(filepath)
+    date_modification = datetime.date.fromtimestamp(timestamp_modification)
+    
+    # Récupérer la date d'aujourd'hui
+    date_aujourdhui = datetime.date.today()
+
+    # Calculer la date il y a une semaine
+    date_une_semaine_avant = date_aujourdhui - datetime.timedelta(days=7)
+
+    # Retourne True si la date de modification est dans les 7 derniers jours
+    return date_modification >= date_une_semaine_avant
+
+def fichier_cree_aujourdhui(filepath):
+    # Récupérer la date de dernière modification
+    timestamp_modification = os.path.getmtime(filepath)
+    date_modification = datetime.date.fromtimestamp(timestamp_modification)
+    
+    # Récupérer la date d'aujourd'hui
+    date_aujourdhui = datetime.date.today()
+
+    # Retourne True si la date de modification est aujourd'hui, sinon False
+    return date_modification == date_aujourdhui
 
 
-def generateImpressions() :
+
+def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
+    """ générer tous les fichiers tex des impressions possibles sans LaTeX """
+    retour = [] # en cas d'erreur, retourne les messages à afficher à l'utilisateur
+    listeDesFichiersACreer = []
+    listeDesContenus = []
+    pathImpressions = "Impressions"
+
+    StatsEffectifs = True ## à basculer dans les paramètres
+    ContenuLignesCategories = []
+    ContenuLignesGroupements = []
+    for DIR in [pathImpressions]:
+        if not os.path.exists(DIR) :
+            os.makedirs(DIR)
+    # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
+    with open("./modeles/impression-en-tete.txt", 'r',encoding="utf-8") as f :
+        entete = [f.read()]
+    f.close()
+    with open("./modeles/impression-en-teteC.txt", 'r',encoding="utf-8") as f :
+        enteteC = [f.read()]
+    f.close()
+    with open("./modeles/impression-en-teteS.txt", 'r',encoding="utf-8") as f :
+        if Parametres["CategorieDAge"] == 2 :
+            fstats = [f.read().replace("@categorie@","établissement")]
+        elif Parametres["CategorieDAge"] == 1 :
+            fstats = [f.read().replace("@categorie@","catégorie")]
+        else :
+            fstats = [f.read().replace("@categorie@","classe")]
+    f.close()
+    with open("./modeles/impression-en-teteSGpments.txt", 'r',encoding="utf-8") as f :
+        enteteSGpments = [f.read()]#.replace("@date",dateDuJour())
+    f.close()
+    with open("./modeles/stats-ligne.txt", 'r',encoding="utf-8") as f :
+        ligneStats = [f.read()]
+    f.close()
+    # TEXDIR = "impressions"+os.sep+"tex"+os.sep
+    ## effacer les tex existants
+    # liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
+    # for file in liste_fichiers_tex_complete :
+    #     os.remove(file) # on supprime tous les .tex
+
+    # effacer les fichiers pdf qui ont besoin d'être regénérés car une modification est intervenue.
+    liste_fichiers_pdf_complete=glob.glob("impressions"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
+    for file in liste_fichiers_pdf_complete : # on selectionne les pdf à supprimer
+        nomFichierPdfDecoupe = os.path.basename(file)[:-4].split("_")
+        try :
+            nomFichierPdfDecoupe.remove("")
+        except :
+            pass
+        #print(nomFichierPdfDecoupe, Courses)
+        if nomFichierPdfDecoupe[0] == "Classe" :
+            catG = nomFichierPdfDecoupe[1][0] + "-G"
+            catF = nomFichierPdfDecoupe[1][0] + "-F"
+            if catG in Courses.keys() :
+                aSupprimerG = Courses[catG].aRegenererPourImpression
+            else :
+                aSupprimerG = False
+            if catF in Courses.keys() :
+                aSupprimerF = Courses[catF].aRegenererPourImpression
+            else :
+                aSupprimerF = False
+            aSupprimer = aSupprimerG or aSupprimerF
+        else :
+            aSupprimer = False
+        try :
+            casOuOnSupprime = (aSupprimer) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
+        except :
+            casOuOnSupprime = True
+        if not casOuOnSupprime : #pas a virer car aucun changement , on conserve.
+            print("on conserve le fichier ", file, " car aucun resultat n'est survenu depuis la dernière génération.")
+        else : # si categorie ou groupement disparu ou à regénérer, on vire
+            # pour l'instant, on vire également les challenges par classe (problème mineur). Optimisation peu importante vu le travail.
+            retour.append(supprimerFichier(file))
+
+    # création du fichier de statistiques
+    print("Création du fichier de statistiques")
+    # fstats = open(TEXDIR+"_statistiques.tex", 'w', encoding="utf-8")
+    # fstats.write(enteteS)
+
+    ### générer les tex pour chaque classe + alimenter les statistiques de chacune
+    nbreArriveesTotal = 0
+    nbreDispensesTotal = 0
+    nbreAbsentsTotal = 0
+    nbreAbandonsTotal = 0
+    if Parametres["CategorieDAge"] == 2 :
+        denomination = "Eleves"
+    elif Parametres["CategorieDAge"] == 0 :
+        denomination = "Classe"
+    else :
+        denomination = "Categorie"
+#     if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
+#         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
+#         enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
+
+# \\begin{center}
+# \\begin{tabular}{|*{11}{c|}}
+# \hline
+
+# \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{@categorie@ }}}
+#   & 
+#   \multicolumn{2}{|c|}{\\textbf{Arrivés} } 
+#   & 
+#   \multicolumn{2}{|c|}{\\textbf{Dispensés} }
+#   & 
+#   \multicolumn{2}{|c|}{\\textbf{Absents} }
+#   & 
+#   \multicolumn{2}{|c|}{\\textbf{Abandons} }
+#   & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Moyenne}}} 
+#   & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Médiane}}} \\\\
+#   \cline{2-9}
+# \multicolumn{1}{|c|}{} & F & G & F & G &F & G &F & G & \multicolumn{1}{|c|}{} & \multicolumn{1}{|c|}{}
+#  \\\\
+# \hline""".replace("@categorie@", "Classes" if Parametres["CategorieDAge"] == 0 else "Catégories")
+#         fstats.write(enTeteDesStatistiquesParCategories)
+#         for classe in Resultats :  # doute lors d'une fusion manuelle de deux branches. Est ce "for classe in ResultatsPourImpressions:" ?
+#             #print(classe,"est traité pour création tex", Resultats[classe])
+#             # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
+#             if (Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G")) :
+#                 #print("Création du fichier de "+classe)
+#                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
+#                 nomFichier = classe.replace(" ","_").replace("__","_")
+#                 if ArrDispAbsAbandon[8] :
+#                     if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
+#                         # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
+#                         # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
+#                         print("coursesmanuelles", CoursesManuelles)
+#                         if not uniquementCoursesEtChallenge or CoursesManuelles==1 :
+#                             with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+#                                 f.write(contenu)
+#                                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
+#                             f.close()
+#                     # alimentation des statistiques
+#                     listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+#                     effTot = sum(ArrDispAbsAbandon[:-1])
+#                     effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+#                     effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+#                     moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+#                     mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+#                     ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+#                     if StatsEffectifs :
+#                         if effTotF :
+#                             FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
+#                         else :
+#                             FArr = "{-}"
+#                         if effTotG :
+#                             GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
+#                         else :
+#                             GArr = "{-}"
+#                         if effTotF :
+#                             FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
+#                         else :
+#                             FD = "{-}"
+#                         if effTotG :
+#                             GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
+#                         else :
+#                             GD = "{-}"
+#                         if effTotF :
+#                             FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
+#                         else :
+#                             FAba = "{-}"
+#                         if effTotG :
+#                             GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
+#                         else :
+#                             GAba = "{-}"
+#                         if effTotF :
+#                             FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
+#                         else :
+#                             FAbs = "{-}"
+#                         if effTotG :
+#                             GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
+#                         else :
+#                             GAbs = "{-}"
+#                     else :
+#                         FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+#                         GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+#                         FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+#                         GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+#                         FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+#                         GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+#                         FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+#                         GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+#                     # nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+#                     # nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+#                     # nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+#                     # nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+#                     #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+#                     ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
+#                                  .replace("@GArr",GArr).replace("@FD",FD)\
+#                                  .replace("@GD",GD).replace("@FAba",FAba)\
+#                                  .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+#                                  .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+#                                  .replace("@med",mediane)
+#                     ### la catégorie n'a plus à être regénérée sauf modification
+#                     if denomination != "Classe" :
+#                         try :
+#                             Courses[classe].setARegenererPourImpression(False)
+#                         except :
+#                             True
+#                         # si la classe a été générée, la catégorie également via les groupements ci-dessous
+
+    # création d'un fichier de statistiques par groupements
+    for classe in ResultatsGroupementsPourImpressions :
+        #print(classe,"est traité pour création tex", Resultats[classe])
+        # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
+        #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
+        if CoursesManuelles :
+            nomCourse = groupementAPartirDUneCategorie(classe).nom
+        else :
+            nomCourse = classe
+        print("Création du fichier de "+classe + " : " + nomCourse)
+
+        # on gardera finalement les groupements pour ne pas afficher les abandons, etc...
+        if (not estChallenge(classe)) :# and len(groupementAPartirDeSonNom(classe, nomStandard = True).listeDesCourses) > 1) : # si c'est un groupement ET qu'il comporte plus d'une catégorie, on génère un fichier dédié.
+            contenu, ArrDispAbsAbandon = creerFichierClasseNG(classe,entete, True)
+            nomFichier = nomCourse.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
+            if ArrDispAbsAbandon[8] :
+                if not os.path.exists("impressions"+os.sep+"Course_"+nomFichier+ ".pdf") :
+                    listeDesFichiersACreer.append(os.path.join(pathImpressions,"Course_"+nomFichier+ ".pdf"))
+                    listeDesContenus.append(contenu)
+
+                # alimentation des statistiques pour ce groupement
+                listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
+                effTot = sum(ArrDispAbsAbandon[:-1])
+                effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
+                effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
+                #print("listeDesTempsDeLaClasse",classe,":", listeDesTempsDeLaClasse)
+                moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
+                mediane = medianeDesTemps(listeDesTempsDeLaClasse)
+                ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
+                if StatsEffectifs :
+                    baliseFont = '<font size="-2">'
+                    if effTotF :
+                        FArr = str(ArrDispAbsAbandon[0]) + baliseFont + ' / ' + str(effTotF) + "</font>"
+                    else :
+                        FArr = "-"
+                    if effTotG :
+                        GArr = str(ArrDispAbsAbandon[1]) + baliseFont + ' / ' + str(effTotG) + "</font>"
+                    else :
+                        GArr = "-"
+                    if effTotF :
+                        FD = str(ArrDispAbsAbandon[2]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                    else :
+                        FD = "-"
+                    if effTotG :
+                        GD = str(ArrDispAbsAbandon[3]) + baliseFont + ' / ' + str( effTotG) + "</font>"
+                    else :
+                        GD = "-"
+                    if effTotF :
+                        FAba = str(ArrDispAbsAbandon[4]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                    else :
+                        FAba = "-"
+                    if effTotG :
+                        GAba = str(ArrDispAbsAbandon[5]) + baliseFont + ' / ' + str(effTotG) + "</font>"
+                    else :
+                        GAba = "-"
+                    if effTotF :
+                        FAbs = str(ArrDispAbsAbandon[6]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                    else :
+                        FAbs = "-"
+                    if effTotG :
+                        GAbs = str(ArrDispAbsAbandon[7]) + baliseFont + ' / ' + str( effTotG) + "</font>"
+                    else :
+                        GAbs = "-"
+                else :
+                    FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
+                    GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
+                    FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
+                    GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
+                    FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
+                    GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
+                    FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
+                    GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
+                nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
+                nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
+                nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
+                nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
+                #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
+                #if estNomDeGroupement(classe) :
+                # ligneActuelle = deep.copy(ligneStats)
+                ContenuLignesGroupements += [ligneStats[0].replace("@classe",groupementAPartirDeSonNom(classe).nom).replace("@FArr",FArr)\
+                             .replace("@GArr",GArr).replace("@FD",FD)\
+                             .replace("@GD",GD).replace("@FAba",FAba)\
+                             .replace("@GAba",GAba).replace("@FAbs",FAbs)\
+                             .replace("@GAbs",GAbs).replace("@moy",moyenne)\
+                             .replace("@med",mediane)]
+                
+                ### le groupement et toutes les catégories incluses n'ont plus à être regénérés sauf modification ultérieure
+                groupementAPartirDeSonNom(classe).setARegenererPourImpression(False)
+                for c in groupementAPartirDeSonNom(classe).listeDesCourses :
+                    Courses[c].setARegenererPourImpression(False)
+
+
+        # on ferme le fichier de statistiques des classes
+    # fstats.write(ContenuLignesCategories)
+    # fstats.write("\n\\end{tabular}\\end{center}\n ")
+
+    fstats += enteteSGpments
+    fstats += ContenuLignesGroupements
+    fstats += ["<p>"]
+    fstats += ["<b>Nombre total d'arrivées : </b>" + str(nbreArriveesTotal)+ "<br>"]
+    if not CoursesManuelles :
+        fstats += ["<b>Nombre total de dispensés : </b>" + str(nbreDispensesTotal)+ "<br>"]
+        fstats += ["<b>Nombre total d'abandons : : </b>" + str(nbreAbandonsTotal)+ "<br>"]
+        fstats += ["<b>Nombre total d'absents : : </b>" + str(nbreAbsentsTotal)+ "<br>"]
+    fstats += [PageBreak(), absentsDispensesAbandonsEnTex()]
+
+    # à décommenter pour créer le fichier de statistiques.
+    # listeDesFichiersACreer.append(os.path.join(pathImpressions, "_statistiques.pdf"))
+    # listeDesContenus.append(fstats)
+
+    ### générer les tex pour chaque challenge
+    # if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
+    #     listeChallenges = listChallenges()
+    #     print("liste des challenges", listeChallenges)
+    #     for challenge  in listeChallenges :
+    #         try :
+    #             print(ResultatsGroupements[challenge])
+    #             if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
+    #                 print("Création du fichier du challenge", challenge)
+    #                 with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
+    #                     f.write(creerFichierChallenge(challenge,enteteC))
+    #                     f.write("\n\\end{longtable}\\end{center}\\end{document}")
+    #                 f.close()
+    #         except :
+    #             print("Aucun résultat pour le challenge", challenge)
+    creerTousLesPdf(listeDesFichiersACreer, listeDesContenus)
+    return retour
+
+
+def generateImpressions(uniquementCoursesEtChallenge = False) :
     """ générer tous les fichiers tex des impressions possibles et les compiler """
     #print("Resultats avant impressions", ResultatsPourImpressions)
     #print("Courses",Courses)
+    retour = []
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
@@ -2903,7 +4301,15 @@ def generateImpressions() :
         if nomFichierPdfDecoupe[0] == "Classe" :
             catG = nomFichierPdfDecoupe[1][0] + "-G"
             catF = nomFichierPdfDecoupe[1][0] + "-F"
-            aSupprimer = Courses[catG].aRegenererPourImpression or Courses[catF].aRegenererPourImpression
+            if catG in Courses.keys() :
+                aSupprimerG = Courses[catG].aRegenererPourImpression
+            else :
+                aSupprimerG = False
+            if catF in Courses.keys() :
+                aSupprimerF = Courses[catF].aRegenererPourImpression
+            else :
+                aSupprimerF = False
+            aSupprimer = aSupprimerG or aSupprimerF
         else :
             aSupprimer = False
         try :
@@ -2917,7 +4323,7 @@ def generateImpressions() :
             print("on conserve le fichier ", file, " car aucun resultat n'est survenu depuis la dernière génération.")
         else : # si categorie ou groupement disparu ou à regénérer, on vire
             # pour l'instant, on vire également les challenges par classe (problème mineur). Optimisation peu importante vu le travail.
-            supprimerFichier(file)
+            retour.append(supprimerFichier(file))
     ## générer de nouveaux en-têtes.
     #osCWD = os.getcwd()
     #os.chdir("impressions")
@@ -2939,27 +4345,27 @@ def generateImpressions() :
         denomination = "Categorie"
     if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
-        enTeteDesStatistiquesParCategories = """\textbf{Statistiques par @categorie@ :}
+        enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
-\begin{center}
-\begin{tabular}{|*{11}{c|}}
+\\begin{center}
+\\begin{tabular}{|*{11}{c|}}
 \hline
 
-\multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{@categorie@ }}}
+\multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{@categorie@ }}}
   & 
-  \multicolumn{2}{|c|}{\textbf{Arrivés} } 
+  \multicolumn{2}{|c|}{\\textbf{Arrivés} } 
   & 
-  \multicolumn{2}{|c|}{\textbf{Dispensés} }
+  \multicolumn{2}{|c|}{\\textbf{Dispensés} }
   & 
-  \multicolumn{2}{|c|}{\textbf{Absents} }
+  \multicolumn{2}{|c|}{\\textbf{Absents} }
   & 
-  \multicolumn{2}{|c|}{\textbf{Abandons} }
-  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Moyenne}}} 
-  & \multicolumn{1}{|c|}{\multirow{2}{*}{\textbf{Médiane}}} \\
+  \multicolumn{2}{|c|}{\\textbf{Abandons} }
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Moyenne}}} 
+  & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Médiane}}} \\\\
   \cline{2-9}
 \multicolumn{1}{|c|}{} & F & G & F & G &F & G &F & G & \multicolumn{1}{|c|}{} & \multicolumn{1}{|c|}{}
- \\
-\hline"""
+ \\\\
+\hline""".replace("@categorie@", "Classes" if Parametres["CategorieDAge"] == 0 else "Catégories")
         fstats.write(enTeteDesStatistiquesParCategories)
         for classe in Resultats :  # doute lors d'une fusion manuelle de deux branches. Est ce "for classe in ResultatsPourImpressions:" ?
             #print(classe,"est traité pour création tex", Resultats[classe])
@@ -2970,10 +4376,14 @@ def generateImpressions() :
                 nomFichier = classe.replace(" ","_").replace("__","_")
                 if ArrDispAbsAbandon[8] :
                     if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
-                        with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-                            f.write(contenu)
-                            f.write("\n\\end{longtable}\\end{center}\\end{document}")
-                        f.close()
+                        # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
+                        # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
+                        print("coursesmanuelles", CoursesManuelles)
+                        if not uniquementCoursesEtChallenge or CoursesManuelles==1 :
+                            with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
+                                f.write(contenu)
+                                f.write("\n\\end{longtable}\\end{center}\\end{document}")
+                            f.close()
                     # alimentation des statistiques
                     listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
                     effTot = sum(ArrDispAbsAbandon[:-1])
@@ -3157,10 +4567,10 @@ def generateImpressions() :
     ### générer les tex pour chaque challenge
     if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
         listeChallenges = listChallenges()
-        #print("liste des challenges", listeChallenges)
+        print("liste des challenges", listeChallenges)
         for challenge  in listeChallenges :
-            #print(ResultatsGroupements[challenge])
             try :
+                print(ResultatsGroupements[challenge])
                 if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
                     print("Création du fichier du challenge", challenge)
                     with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
@@ -3192,6 +4602,7 @@ def generateImpressions() :
 
     # pour chaque fichier dans impressions , compiler.
     compilerTousLesTex(TEXDIR, "impressions")
+    return retour
 
 
 def compilerTousLesTex(TEXDIR, PDFDIR):
@@ -3221,7 +4632,7 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     ### il me faudrait changer tous les appels aux groupements partout dans le code pour optimiser.
     for groupement in Groupements :
         if nomStandard :
-            if groupement.nomStandard == nomGroupement :
+            if groupement.nomStandard == nomGroupement or nomGroupement in groupement.listeDesCourses : ### ajout UNSS
                 retour = groupement
                 break
         else :
@@ -3248,7 +4659,11 @@ def ancienGroupementAPartirDUneCategorie(categorie):
 
 def nomGroupementAPartirDUneCategorie(categorie, nomStandard = True):
     """ retourne un str nom du groupement à partir d'un nom de catégorie"""
-    return groupementAPartirDUneCategorie(categorie).nomStandard
+    nom = groupementAPartirDUneCategorie(categorie)
+    if nom :
+        return nom.nomStandard
+    else :
+        return ""
     # try :
         # retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     # except :
@@ -3276,7 +4691,11 @@ def groupementAPartirDUneCategorie(categorie):
         #print("nomGroupement",Courses[categorie].nomGroupement)
         retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
-        retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
+        try :
+            retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
+        except:
+            retour = None
+            print("ERREUR : groupementAPartirDUneCategorie", categorie, "n'a pas de groupement")
     return retour
 
 def findIndex(nom, L):
@@ -3544,8 +4963,8 @@ def formateTemps(temps):
 
 #print(formateTemps(124.715563659667969))
 
-def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nbreDeCoureursPrisEnCompte):
-    score = 0
+def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nbreDeCoureursPrisEnCompte, dictrangsDSDEN={}):
+    # score = 0
     nf = 0
     ng = 0
     i = 0
@@ -3553,22 +4972,25 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     listeCF = []
     #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
-    while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
-        doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
-        coureur = Coureurs.recuperer(doss)
-        if coureur.temps != 0 :
-            if ng < nbreDeCoureursPrisEnCompte and coureur.sexe == "G" :
-                #print("le coureur",coureur.prenom,"est en rang",coureur.rang," ng=",ng)
-                listeCG.append(coureur)
-                score += coureur.rang
-                ng += 1
-            if nf < nbreDeCoureursPrisEnCompte and coureur.sexe == "F" :
-                #print("le coureur",coureur.prenom,"est en rang",coureur.rang," nf=",nf)
-                listeCF.append(coureur)
-                score += coureur.rang
-                nf += 1
-            #listeDesRangs.append(coureur.rang)
-        i+=1
+    # on ne classe pas l'équipe de la DSDEN dans les résultats.
+    # print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
+    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in classeIgnoreesPourChallenge.split(";") :
+        while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
+            doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
+            coureur = Coureurs.recuperer(doss)
+            if coureur.temps != 0 :
+                if ng < nbreDeCoureursPrisEnCompte and coureur.sexe == "G" :
+                    #print("le coureur",coureur.prenom,"est en rang",coureur.rang," ng=",ng)
+                    listeCG.append(coureur)
+                    # score += coureur.rang
+                    ng += 1
+                if nf < nbreDeCoureursPrisEnCompte and coureur.sexe == "F" :
+                    #print("le coureur",coureur.prenom,"est en rang",coureur.rang," nf=",nf)
+                    listeCF.append(coureur)
+                    # score += coureur.rang
+                    nf += 1
+                #listeDesRangs.append(coureur.rang)
+            i+=1
 ##    scoreNonPondere = score
 ##    if ng + nf < 2*nbreDeCoureursPrisEnCompte :
 ##        # correctif si le nombre nbreDeCoureursPrisEnCompte n'est pas atteint à l'arrivée.
@@ -3579,16 +5001,20 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
 ##    else :
 ##        complet = True
     #print(nom, score, listeCG, listeCF)
-    return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"])
+    return EquipeClasse(nom, listeCG, listeCF, Parametres["ponderationAcceptee"], dictrangsDSDEN=dictrangsDSDEN)
 
 def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClasse):
-    #print("nom cat-etab",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
+    # print("Challenge UNSS",nom,listeOrdonneeParScoreDesDossardsDeLaClasse)
     nbreDeCoureursNecessairesParEquipe = 5
     tousLesGars = []
     toutesLesFilles = []
     listeFSelect = []
     listeGSelect = []
-    unCoureurCategorieLimiteDejaSelectionne = False
+    ### permettait de ne sélectionner qu'un seul coureur par categoriesLimitees dans chaque équipe constituée.
+    ### Après 2024, les catégories autorisées le sont pleinement ou pas. 
+    ### En basculant à True, le script actuel interdit de fait toutes les categoriesLimitees
+    ### A réactiver si besoin en remettant True.
+    unCoureurCategorieLimiteDejaSelectionne = True
     complet = False
     listeDesEquipes = []
     # on sépare les filles des garçons dans listeCG et listeCF.
@@ -3601,16 +5027,21 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
             nbreDeFillesNecessairesParEquipe = 0
             nbreDeGarsNecessairesParEquipe = 0
             nbreMaxdUnSexe = 5
+            # En 2024, les lycées pro autorisent toutes les catégories d'âges, y compris séniors, sans mixité.
             categoriesLimitees = []# [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
         else :
             nbreDeFillesNecessairesParEquipe = 2
             nbreDeGarsNecessairesParEquipe = 2
             if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # le challenge est en lycée GT
                 nbreMaxdUnSexe = 3
-                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES"]
+                # En 2024, les lycées LGT autorisent toutes les catégories d'âges, de MI2 jusqu'à JU2 maximum, avec mixité obligatoire.
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "MI1", "BE2", "BE1", "PO3", "PO2", "PO1" ]
             else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
                 nbreMaxdUnSexe = 3
-                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA" ]
+                # En 2024, les collèges, courses Minimes autorisent toutes les catégories d'âges, de MI1 jusqu'à CA1 maximum, avec mixité obligatoire.
+                # En 2024, les collèges, courses Benjamins autorisent toutes les catégories d'âges, jusqu'à B2 maximum, avec mixité obligatoire.
+                # Ce dernier critère est automatique puisque les minimes de collège qui ont redoublé ne courent pas avec les benjamins.
+                categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA2" ]
         i = 0
         ### parcours de la liste ordonnée fournie pour la séparer par sexe
         while i < len(listeOrdonneeParScoreDesDossardsDeLaClasse):
@@ -3669,7 +5100,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
             # le coureur actuellement ajouté est sous-classé : un seul par équipe autorisé.
              #if DEBUG and coureurSelectionne.categorieSansSexe() != coureurSelectionne.categorieFFA() :
              #    print(coureurSelectionne.nom, "est inscrit en", coureurSelectionne.categorieSansSexe(),"mais de catégorie réelle", coureurSelectionne.categorieFFA())
-             if coureurSelectionne.categorieFFA() in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
+             if coureurSelectionne.categorieFFA(precisionSurLAnnee=True) in categoriesLimitees : # on regarde la catégorie réelle du coureur et non celle générée par la méthode coureur.categorie(...)
                  #print(coureurSelectionne.nom, " est de catégorie réelle", coureurSelectionne.categorieFFA()," et court avec des élèves de catégorie inférieure. On empêche la présence d'un autre dans ce cas pour l'équipe actuelle")
                  unCoureurCategorieLimiteDejaSelectionne = True
             # on alimente l'équipe avec celui sélectionné.
@@ -3681,7 +5112,8 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
                 # si une équipe est complète, on réinitialise les variables.
                  #print("Création d'une équipe pour le challenge",nom, [cour.nom for cour in listeGSelect], [cour.nom for cour in listeFSelect])
                  listeDesEquipes.append(EquipeClasse(nom, listeGSelect, listeFSelect))
-                 unCoureurCategorieLimiteDejaSelectionne = False
+                 # DEpuis 2024, il n'y a plus d'exception : c'est pas année uniquement.
+                 unCoureurCategorieLimiteDejaSelectionne = True
                  listeGSelect = []
                  listeFSelect = []
     return listeDesEquipes
@@ -3695,7 +5127,7 @@ def indicePremierCoureurAutoriseUNSS(listeDeCoureurs, categoriesInterdites, unCo
         retour = None
         i = 0
         for c in listeDeCoureurs :
-            if not c.categorieFFA() in categoriesInterdites :
+            if not c.categorieFFA(precisionSurLAnnee=True) in categoriesInterdites :
                 retour = i
                 break
             i += 1
@@ -3721,7 +5153,7 @@ def getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , DecompteParCategoriesDA
                     else :
                         return el[1] 
                     break
-    if not present :
+    if not present and Parametres["CategorieDAge"] : # pour le cross du collège, les catégories FFA sont inutiles.
         print("ANORMAL : on devrait toujours trouver un nombre de coureurs par catégorie")
 
 
@@ -3780,7 +5212,8 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                 Resultats[cat].append(doss)
             ResultatsPourImpressions[cat].append(doss)
         elif Parametres["CategorieDAge"] == 2 :
-            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : # cas du challenge UNSS lycée qui mélange tous les lycéens !
+            if coureur.etablissementNature and coureur.etablissementNature[0].upper() == "L" : 
+                # cas du challenge UNSS lycée qui mélange tous les lycéens !
                 ### cas particulier du challenge UNSS : on ajoute les résultats des LP et des LG même s'il n'y a aucun coureur.
                 ### Trop galère de tout changer sachant que les challenges ne correspondent pas à des catégories d'athlétisme du logiciel
                 if "LP-"  + str(etab) not in Resultats :
@@ -3811,59 +5244,70 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #### A SEPARER SOUS FORME D'UNE FONCTION EXECUTEE DANS PLUSIEURS THREADS=> gain de temps pour les tris sur plusieurs coeurs
     ### on traite les rangs dans les Groupements
     #keyList = []
+    root["dictrangsDSDEN"] = {}
+    dictRangsDSDEN = root["dictrangsDSDEN"]
     for nom in ResultatsGroupements :
-        groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
-        # on considère que la meilleure catégorie est SENIOR.
-        L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
-        L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
-        DecompteParCategoriesDAge = [L1, L2]
-        # rang par sexes
-        RangSexe = [0,0]
-        #keyList.append(nom)
-        ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
-        # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
-        #print("course ",nom,":",Resultats[nom])
-        ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
-            #print(nom, "est une course ou un groupement",Resultats[nom])
-        i = 0
-        nbreArriveesGroupement = len(ResultatsGroupements[nom])
-        #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
-        while i < nbreArriveesGroupement :
-            doss = ResultatsGroupements[nom][i]
-            coureur = Coureurs.recuperer(doss)
-            groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
-            #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
-            if coureur.temps > 0 :
-            ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
-                coureur.setRang(i+1)
-                if coureur.sexe == "F" :
-                    iSexe = 1 # rang dans la liste incrémentée.
-                else :
-                    iSexe = 0 # rang dans la liste incrémentée.
-                RangSexe[iSexe] += 1
-                ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
-                if Parametres["CategorieDAge"] == 2 :
-                    coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
-                if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
-                    catFFA = coureur.categorieFFA()
-                    coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
-                    coureur.setRangSexe(RangSexe[iSexe])
-            else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
-            # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
-                coureur.setRang(0)
-                coureur.setRangCat(0)
-                coureur.setRangSexe(0)
-            #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
-            i += 1
+        # print("Groupement",nom,":")
+        if nom :
+            groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
+            # on considère que la meilleure catégorie est SENIOR.
+            L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
+            L2 = [["SE",0,0 ] , ['M0', 0,0], ['M1', 0,0], ['M2', 0,0], ['M3', 0,0], ['M4', 0,0], ['M5', 0,0], ['M6', 0,0], ['M7', 0,0], ['M8', 0,0], ['M9', 0,0], ['M10', 0,0]]
+            DecompteParCategoriesDAge = [L1, L2]
+            # rang par sexes
+            RangSexe = [0,0]
+            dictRangsDSDEN[nom] = []
+            #keyList.append(nom)
+            ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
+            # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
+            #print("course ",nom,":",Resultats[nom])
+            ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
+                #print(nom, "est une course ou un groupement",Resultats[nom])
+            i = 0
+            nbreArriveesGroupement = len(ResultatsGroupements[nom])
+            #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
+            while i < nbreArriveesGroupement :
+                doss = ResultatsGroupements[nom][i]
+                coureur = Coureurs.recuperer(doss)
+                groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
+                #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
+                if coureur.temps > 0 :
+                ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
+                    coureur.setRang(i+1)
+                    if coureur.sexe == "F" :
+                        iSexe = 1 # rang dans la liste incrémentée.
+                    else :
+                        iSexe = 0 # rang dans la liste incrémentée.
+                    RangSexe[iSexe] += 1
+                    ### cas du score UNSS si c'est un lycée : on affecte le score de la formule de calcul
+                    if Parametres["CategorieDAge"] == 2 :
+                        coureur.setScoreUNSS(nbreArriveesGroupement) # on fournit le rang et le nombre total de coureurs arrivés dans le groupement.
+                    if Parametres["CategorieDAge"] : # cas où les catégories d'athlétisme sont utilisées (valeur 1 ou 2)
+                        catFFA = coureur.categorieFFA()
+                        coureur.setRangCat(incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCategoriesDAge, coureur.sexe))
+                        coureur.setRangSexe(RangSexe[iSexe])
+                    else :
+                        ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
+                        # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
+                        if coureur.classe in classeIgnoreesPourChallenge.split(";") :
+                            # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
+                            dictRangsDSDEN[nom].append(i+1)
+                else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
+                # avec "if not coureur.absent and not coureur.dispense and coureur.temps != -1 and coureur.temps != 0"
+                    coureur.setRang(0)
+                    coureur.setRangCat(0)
+                    coureur.setRangSexe(0)
+                #print("dossard",doss,"coureur",coureur.nom,coureur.tempsFormate(),coureur.rang)
+                i += 1
         # on définit combien de coureurs appartiennent à un groupement.
         ### inutile car fait au fur et à mesure par groupementAPartirDeSonNom(nom,nomStandard = True).setNombreDeCoureursTotal(RangSexe[0], RangSexe[1])
-    ### ETAPE 3 : On traite les rangs dans les classes ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
+    ### ETAPE 3 : On traite les rangs dans les classes (pour le cross HB) ou cat-établissment (pour l'UNSS), on trie les coureurs d'une même catégorie et d'un même établissement par score.
     keyList = []
     for nom in Resultats :
         keyList.append(nom)
         Resultats[nom] = triParTemps(Resultats[nom])
         # # on affecte son rang à chaque coureur dans sa Course.
-        # #print("course ",nom,":",Resultats[nom])
+        # print("course ",nom,":",Resultats[nom])
         # ### inutile car obligatoire vu ce qui précède : if estUneCourse(nom) :
         # i = 0
         # while i < len(Resultats[nom]) :
@@ -3883,14 +5327,16 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     #print("ResultatsGroupements avant calcul des challenges :",ResultatsGroupements)
     if Parametres["CategorieDAge"] == 0 or Parametres["CategorieDAge"] == 2 : # challenge uniquement pour le cross du collège et pour l'UNSS
         L = []
-        #print(keyList)
+        # print(keyList)
         for nom in keyList :
-            Resultats[nom] = triParScoreUNSS(Resultats[nom])
             ### inutile car obligatoire désormais : if estUneClasse(nom) :
             if Parametres["CategorieDAge"] == 0 :
                 challenge = nom[0]
+                #print(Resultats[nom])
+                # Resultats[nom] = triParScore(Resultats[nom])
             else :
                 challenge = nom[:2]
+                Resultats[nom] = triParScoreUNSS(Resultats[nom])
             # création du challenge pour ce niveau, si inexistant
             if challenge not in ResultatsGroupements :
                 ResultatsGroupements[challenge] = []
@@ -3898,10 +5344,12 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             # cas du cross du collège
             if Parametres["CategorieDAge"] == 0 :
                 # on alimente le challenge avec une EquipeClasse
-                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"])
+                # print("Création de l'équipe pour le challenge",challenge,"avec",nom,Resultats[nom])
+                equ = generateResultatsChallenge(nom, Resultats[nom], Parametres["nbreDeCoureursPrisEnCompte"], dictRangsDSDEN)
                 if Parametres["ponderationAcceptee"] :
                     ResultatsGroupements[challenge].append(equ)
-                elif equ.complet :
+                elif equ.complet() :
+                    # print("ajout de l'équipe complète",equ.nom,"dans le challenge",challenge)
                     ResultatsGroupements[challenge].append(equ)
             elif Parametres["CategorieDAge"] == 2 :
                 Lequ = generateResultatsChallengeUNSS(nom, Resultats[nom])
@@ -3966,6 +5414,7 @@ def estSuperieur(d1, d2):
 
 def estSuperieurS(E1, E2):
     ''' on trie par EquipeClasse.score puis en fonction de listeDesRangs()'''
+    # print(E1, E2)
     if E1.score == 0 :
         # si le score est nul, c'est que le challenge n'est pas jouable pour cette équipe.
         return True
@@ -4286,36 +5735,50 @@ def coureurExists(nom, prenom) :
         # i += 1
     # return retour
 
-def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course) :
+def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
-    return nom and prenom and sexe and \
+    # print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
+    #        "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
+    retour = nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and not Parametres["CoursesManuelles"] and naissanceValide(naissance)) \
              or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and len(course)) \
+             or (Parametres["CategorieDAge"] == 1 and Parametres["CoursesManuelles"] and naissanceValide(naissance) and dossardValide(dossard)) \
              or (Parametres["CategorieDAge"] == 2 and naissanceValide(naissance) and etablissement and etablissementNatureValide))
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
-             # 1 - cas de courses organisées en fonction des catégories de la FFA
+             # 1 - cas de courses organisées en fonction des catégories de la FFA. La naissance est obligatoire mais plusieurs cas se présentent :
+                    # * si les courses ne sont pas manuelles, on n'a besoin que de la naissance car la course dépend de la catégorie FFA
+                    # * si les courses sont choisies par les coureurs (cas du Trail du Randon), on a deux cas :
+                    #       - soit on a la naissance et la course (fournie dans le fichier tableur importé)
+                    #       - soit on a la naissance et le dossard (34B indique que le coureur courre la course B). On peut donc déduire la course du dossard fourni dans le tableur.
              # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+    return retour
 
-def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None,\
-               temps=0, commentaireArrivee="", VMA="0", aImprimer = False, licence = "", course="", dossard="", email="", CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
+def dossardValide(dossard) :
+    ### retourne True uniquement si la chaine dossard est constituée de chiffres suivis d'une lettre majuscule
+    return dossard and dossard[-1].isalpha() and dossard[:-1].isdigit()
+
+def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0,\
+                commentaireArrivee="", VMA="0", aImprimer = True, licence = "", course="", dossard="", email="", email2="",\
+                CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
     try :
-        #print(nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
+        # print("addCoureur", nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
     except :
         vma = "0"
     # si les données fournies sont valides ET 
     # si le dossard existe ou (si le dossard n'existe pas et qu'on le trouve par ses noms-prénoms), alors on modifie le coureur tel que spécifié.
     # sinon on crée le coureur
-    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course) :
+    if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
         dossardTrouve = coureurExists(nom, prenom)
         dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
         dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
-        if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent :
+        if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent : ##"commentaire en urgence" 
+            if dossard == "" :
+                dossard = dossardTrouve
             # # on empêche de créer plusieurs fois le même coureur avec des dossards différents.
-            # if (dossard != "" and dossardTrouve == dossard) or  :
-            print("On met à jour les caractéristiques du coureur au dossard", dossard)            
+            # if (dossard != "" and dossardTrouve == dossard) or  :            
             ### on actualise des propriétés du coureur.
             auMoinsUnChangement = False
             coureur = Coureurs.recuperer(dossard)
@@ -4323,6 +5786,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if coureur.sexe != sexe :
                 coureur.setSexe(sexe)
+                print("sexe changé de",coureur.sexe,"en",sexe)
                 auMoinsUnChangement = True
             if CoursesManuelles :
 ##                if courseDonneeSousSonNomStandard :
@@ -4330,49 +5794,76 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
 ##                    course = 
 ##                else :
                 lettreCourse = lettreCourseEnModeCoursesManuelles(course)#, avecCreation=False)
-                print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
+                # print("course",course, "et lettreCourse" , lettreCourse, "coureur.course",coureur.course)
 ##                nomStandard = estDansGroupementsEnModeManuel(course)
 ##                if not nomStandard :
 ##                    nomStandard = addCourse(course)
                 if lettreCourse != coureur.course :
                     addCourse(course, lettreCourse = lettreCourse) # création si besoin de la course
                     coureur.setCourse(lettreCourse)
+                    print("lettre course changée")
                     auMoinsUnChangement = True
-            if nom != coureur.nom :
+            if nom.upper() != coureur.nom.upper() :
                 coureur.setNom(nom)
+                print("nom changé de ", coureur.nom, "en", nom, "(", dossard, ")")
                 auMoinsUnChangement = True
-            if prenom != coureur.prenom :
+            if prenom.lower() != coureur.prenom.lower() :
                 coureur.setPrenom(prenom)
+                print("prenom changé")
                 auMoinsUnChangement = True
-            if email != coureur.email :
+            # print("email",email, "emailDeux", email2, "coureur.email",coureur.email, "coureur.email2",coureur.email2)
+            try :
+                emailActuel = coureur.email
+            except :
+                emailActuel = ""
+            if email != emailActuel :
                 coureur.setEmail(email)
+                print("email changé")
+                auMoinsUnChangement = True
+            try :
+                emailActuel2 = coureur.email2
+            except :
+                emailActuel2 = ""
+            if email2 != emailActuel2 :
+                coureur.setEmail2(email2)
+                print("email2 changé")
                 auMoinsUnChangement = True
             if dispense != None and coureur.dispense != dispense :
-                print("coureur",coureur.nom)
+                # print("coureur",coureur.nom)
                 coureur.setDispense(dispense)
+                print("dispense changée")
                 auMoinsUnChangement = True
             if absent != None and coureur.absent != absent :
                 coureur.setAbsent(absent)
+                print("absent changé")
                 auMoinsUnChangement = True
             if coureur.commentaireArrivee != commentaireArrivee :
                 coureur.setCommentaire(commentaireArrivee)
+                print("commentaire changé")
                 auMoinsUnChangement = True
             if coureur.classe != classe :
                 coureur.setClasse(classe)
+                print("classe changée")
                 auMoinsUnChangement = True
             if coureur.licence != licence :
                 coureur.setLicence(licence)
+                print("licence changée")
                 auMoinsUnChangement = True
             if coureur.VMA != vma :
                 coureur.setVMA(vma)
+                print("VMA changée")
                 auMoinsUnChangement = True
+            naissance = convertir_nombre_en_date(naissance)
             if coureur.naissance != naissance :
+                print("naissance changée : ", coureur.naissance, "en", naissance,".")
                 coureur.setNaissance(naissance)
                 auMoinsUnChangement = True
             if coureur.etablissement != etablissement or coureur.etablissementNature != etablissementNature :
                 coureur.setEtablissement(etablissement,etablissementNature)
+                print("etablissement changé")
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
+                print("On a mis à jour les caractéristiques du coureur au dossard", dossard)
                 if not CoursesManuelles :
                     addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
                     # pour toutes les courses automatiques, on doit actualiser la course si besoin.
@@ -4394,36 +5885,47 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettre = ""
                 if dossard : 
                     lettre = dossard[-1]
+                # pourquoi avais je commenté la ligne suivante ? Est ce pour le cross du collège ou pour l'UNSS ? Elle est utile en mode courses mnanuelles.
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
-                print("lettreCourse",lettreCourse)
+                # print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
                 # nomStandard = estDansGroupementsEnModeManuel(course)
                 # ne devrait jamais arriver puisque addCourse() a été exécuté ci-dessus if not nomStandard :
                     #nomStandard = addCourse(course)
             else :
                 lettreCourse = "A"
-                addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                # addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
                 # si oui, alors, on crée le coureur.
+                print("temp", not Coureurs.existe(dossard), lettreCourse, " == ", formateDossardNG(dossard)[-1])
                 if (not Coureurs.existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
                     # création avec le dossard imposé.
+                    print("c'est ici que l'on ajoute le coureur à mettre à jour.")
                     dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email), dossard = dossard)
+                                                course=lettreCourse, email=email, email2=email2), dossard = dossard)
                 else :
                     print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
             else :
+                # 
                 dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email), course = lettreCourse)
+                                                course=lettreCourse, email=email, email2=email2), course = lettreCourse)
+            # on crée la course après le coureur pour disposer de la catégorie quand elle est calculée par l'objet Coureur.
+            if CoursesManuelles :
+                # inutile ? car déjà fait 28 lignes au dessus. Le addCourse ne semble utile qu'en mode "not CoursesManuelles"
+                lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
+                # print("lettreCourse",lettreCourse)
+            else :
+                addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
-                  lettreCourse, " (",course,")")
+                  lettreCourse, " ",course,"\n")
             #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
             ## Coureurs[-1].setCourse(addCourse(course))
             retour, d = [1,0,0,0], dossard
@@ -4458,24 +5960,7 @@ def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
         print("La première lettre non encore utilisée est", retour)
     return retour
 
-        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-        estPresent = False
-        for grpment in Groupements :
-            if course in grpment.listeDesCourses :
-                estPresent = True
-                break
-        if not estPresent:
-            print("Création du groupement dans addCourse", course)
-            Groupements.append(Groupement(course,[course]))
-            #print("Groupements = ",[i.nom for i in Groupements])
-        # création de la course si elle n'existe pas.
-        #print(course, " est dans ", Courses,"?")
-        if course not in Courses :
-            print("Création de la course", course)
-            c = Course(course)
-            Courses.update({course : c})
-        return course
-        #print("cat",Courses[course].categorie)
+
 
 def estDansGroupementsEnModeManuel(course):
     retour = ""
@@ -4497,37 +5982,92 @@ def addCourse(course, lettreCourse="") :
 ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
-    if CoursesManuelles :
-        if not lettreCourse :
-            lettreCourse = lettreCourseEnModeCoursesManuelles(course)
-            print("La lettre attribuée manuellement à la course est :",lettreCourse)
-        #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
-        if not lettreCourse in Courses :
-            print("Création de la course manuelle", lettreCourse, "avec le nom :", course)
-            Groupements.append(Groupement(lettreCourse,[lettreCourse]))
-            Groupements[-1].setNom(course)
-            c = Course(course)
-            Courses.update({lettreCourse : c})
-        return lettreCourse
+    if course :
+        if CoursesManuelles :
+            if not lettreCourse :
+                lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+                print("La lettre attribuée manuellement à la course est :",lettreCourse)
+            #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+            if not lettreCourse in Courses :
+                print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
+                Groupements.append(Groupement(lettreCourse,[lettreCourse]))
+                Groupements[-1].setNom(course)
+                c = Course(course)
+                Courses.update({lettreCourse : c})
+            return lettreCourse
+        else :
+            # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+            estPresent = False
+            for grpment in Groupements :
+                if course in grpment.listeDesCourses :
+                    estPresent = True
+                    break
+            if not estPresent:
+                print("Création du groupement dans addCourse", course)
+                Groupements.append(Groupement(course,[course]))
+                #print("Groupements = ",[i.nom for i in Groupements])
+            # création de la course si elle n'existe pas.
+            #print(course, " est dans ", Courses,"?")
+            if course not in Courses :
+                print("Création de la course", course)
+                c = Course(course)
+                Courses.update({course : c})
+            return course
+            #print("cat",Courses[course].categorie)
     else :
-        # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-        estPresent = False
-        for grpment in Groupements :
-            if course in grpment.listeDesCourses :
-                estPresent = True
-                break
-        if not estPresent:
-            print("Création du groupement ", course)
-            Groupements.append(Groupement(course,[course]))
-            #print("Groupements = ",[i.nom for i in Groupements])
-        # création de la course si elle n'existe pas.
-        #print(course, " est dans ", Courses,"?")
-        if course not in Courses :
-            print("Création de la course", course)
-            c = Course(course)
-            Courses.update({course : c})
-        return course
-        #print("cat",Courses[course].categorie)
+        print("ERREUR qui ne devrait pas survenir, la course transmise vaut :", course)
+
+def estDansGroupementsEnModeManuel(course):
+    retour = ""
+    for g in Groupements :
+        if g.nomStandard == course :
+            retour = g.nomStandard
+            break
+    return retour
+    
+
+# def addCourse(course, lettreCourse="") :
+#     """ addCourse prend en argument le nom personnalisé de la course (obligatoire)
+#     En mode CoursesManuelles, la lettre que l'on veut attribuer à cette course peut être fourni (facultatif)
+#     Comportement :
+#     en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
+#     en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
+#     Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+#     et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
+# ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
+# ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
+# ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
+#     if CoursesManuelles :
+#         if not lettreCourse :
+#             lettreCourse = lettreCourseEnModeCoursesManuelles(course)
+#             print("La lettre attribuée manuellement à la course est :",lettreCourse)
+#         #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
+#         if not lettreCourse in Courses :
+#             print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
+#             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
+#             Groupements[-1].setNom(course)
+#             c = Course(course)
+#             Courses.update({lettreCourse : c})
+#         return lettreCourse
+#     else :
+#         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+#         estPresent = False
+#         for grpment in Groupements :
+#             if course in grpment.listeDesCourses :
+#                 estPresent = True
+#                 break
+#         if not estPresent:
+#             print("Création du groupement ", course)
+#             Groupements.append(Groupement(course,[course]))
+#             #print("Groupements = ",[i.nom for i in Groupements])
+#         # création de la course si elle n'existe pas.
+#         #print(course, " est dans ", Courses,"?")
+#         if course not in Courses :
+#             print("Création de la course", course)
+#             c = Course(course)
+#             Courses.update({course : c})
+#         return course
+#         #print("cat",Courses[course].categorie)
 
 def formateDossardNG(doss) :
     if doss :
@@ -4573,7 +6113,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
             message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
             print(message)
             retour=Erreur(421,message,elementConcerne=doss)
-        elif not Courses[Coureurs.recuperer(doss).course].depart :
+        elif Coureurs.recuperer(doss).course in Courses.keys() and not Courses[Coureurs.recuperer(doss).course].depart :
             message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
             print(message)
             retour=Erreur(431,message,elementConcerne=doss)
@@ -4593,6 +6133,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         else :
             # insère juste après le dossard dossardPrecedent , si on le trouve.
             try :
+                print("insertion du dossard", doss, "juste après", dossPrecedent, "dans ArriveeDossards", ArriveeDossards)
                 n = ArriveeDossards.index(dossPrecedent)
                 print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
                 #position = n+1
@@ -4609,9 +6150,19 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         retour=Erreur(411,message, elementConcerne=doss)
     return retour
 
+
 def imprimePDF(pdf_file_name) :
-    if os.path.exists(pdf_file_name) :
-        win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+    if os.path.exists(pdf_file_name) and os.sep=="\\" :
+        # try:
+        #     # Utiliser la commande Windows 'print' pour imprimer sur l'imprimante par défaut
+        #     # /d:lpt1 peut être remplacé par une autre imprimante si besoin
+        #     subprocess.run(['print', '/d:', pdf_file_name], check=True, shell=True)
+        # except subprocess.CalledProcessError as e:
+        #     print(f"Erreur lors de l'impression : {e}")
+        # win32api.ShellExecute (0, "print", pdf_file_name, None, ".", 0)
+        cmd = '.\\gsview\\gsprint.exe -ghostscript ".\\gs\\App\\bin\\gswin32c.exe" ' + pdf_file_name.replace("/","\\")
+        # print(cmd)
+        syscmd(cmd)
 ##        INCH = 1440
 ##        hDC = win32ui.CreateDC ()
 ##        hDC.CreatePrinterDC (win32print.GetDefaultPrinter ())
@@ -4623,7 +6174,7 @@ def imprimePDF(pdf_file_name) :
 ##        hDC.EndDoc ()
         return True
     else :
-        print("Le fichier", pdf_file_name, "n'existe pas.")
+        print("Le fichier", pdf_file_name, "n'existe pas ou nous ne sommes pas sous windows. Impression directe non implémentée.")
         return False
 
 def calculeTousLesTemps(reinitialise = False):
@@ -4745,7 +6296,7 @@ def calculeTousLesTemps(reinitialise = False):
     ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
     #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
     if Parametres["calculateAll"] :
-        #print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        # print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
@@ -4754,7 +6305,7 @@ def calculeTousLesTemps(reinitialise = False):
     return retour
 
 def categorieDuDernierDepart() :
-    ''' retourne l'heure du dernier départ lancé'''
+    ''' retourne la catégorie du dernier départ lancé'''
     cat = ""
     tempsMax = 0
     for nom in Courses :
@@ -4940,7 +6491,7 @@ def tupleEtablissement() :
 
 def delCoureur(dossard):
     if not Parametres["CourseCommencee"] :
-        course = Coureurs.recuperer(doss).course
+        course = Coureurs.recuperer(dossard).course
         Coureurs.efface(dossard)
         delCourse(course)
         print("Coureur effacé :", dossard,".")
@@ -4982,25 +6533,29 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
                 print(message)
                 retour = Erreur(441, doss, message) # la suppression d'un dossard dans l'interface peut constituer une correction d'erreur. Elle ne doit pas provoquer elle-même une erreur .
-        elif dossardPrecedent == "0" : # le dossard à supprimer est le premier de la liste, normalement.
-            if ArriveeDossards[0] == doss :
+        elif formateDossardNG(dossardPrecedent) == "0A" : # le dossard à supprimer est le premier de la liste, normalement.
+            if formateDossardNG(ArriveeDossards[0]) == doss :
                 # on supprime le premier élément de la liste.
-                print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
+                Coureurs.recuperer(doss).setTemps(0)
+                Parametres["calculateAll"] = True
                 ArriveeDossards.pop(0)
                 retour = Erreur(0)
             else :
                 message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
                 print(message)
                 retour = Erreur(441, doss, message)
-        elif len(dossardPrecedent) > 1 : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
+        else : # cas qui va devenir le plus classique via la nouvelle version 1.7 de l'interface et sur smartphone. 
         # Le dossard prédécesseur sera forcément spécifié pour ne pas supprimer n'importe lequel !
             i = 1
             pasTrouve = True
             while i < len(ArriveeDossards) and pasTrouve: 
                 #print(ArriveeDossards[i]," == ",doss," and ",ArriveeDossards[i-1]," == ",dossardPrec)
-                if ArriveeDossards[i] == doss and ArriveeDossards[i-1] == dossardPrec :
+                if formateDossardNG(ArriveeDossards[i]) == doss and formateDossardNG(ArriveeDossards[i-1]) == dossardPrec :
                     # suppression de l'élément i de la liste.
-                    print("Suppression du dossard", doss, "avec comme préécesseur", dossardPrec)
+                    print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
+                    Coureurs.recuperer(doss).setTemps(0)
+                    Parametres["calculateAll"] = True
                     ArriveeDossards.pop(i)
                     pasTrouve = False
                 i += 1
@@ -5010,8 +6565,8 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 retour = Erreur(441, doss, message)
             else :
                 retour = Erreur(0)
-        else :
-            print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
+        # else :
+        #     print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     else :
         print("ArriveeDossards est vide. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     return retour
@@ -5073,13 +6628,19 @@ def delDossardsEtTemps():
     Parametres["positionDansArriveeDossards"] = 0
     Parametres["tempsDerniereRecuperationSmartphone"]=0
     Parametres["ligneDerniereRecuperationSmartphone"]=1
+    Parametres["tempsDerniereRecuperationLocal"]=0
+    Parametres["ligneDerniereRecuperationLocal"]=1
+    Parametres["tempsDerniereRecuperationRFID"]=0
+    Parametres["ligneDerniereRecuperationRFID"]=1
     delArriveeDossards()
     delArriveeTempss()
     delTousLesDeparts()
     delTousLesTempsDesCoureurs()
     effacerFichierDonnneesSmartphone()
+    effacerDonneesRFID()
     effacerFichierDonnneesLocales()
     genereAffichageTV([])# on vide le fichier Affichage.html pour qu'il ne contienne pas de vieilles données de course.
+    genereAffichageWWW([])
     root["LignesIgnoreesSmartphone"] = []
     root["LignesIgnoreesLocal"] = []
     ligneTableauGUI = [1,0]
@@ -5139,7 +6700,7 @@ def nettoieCoursesManuelles():
     # nettoyage avec garbage collector
     Courses = newCourses
     Groupements = newGroupements
-    Coureurs.afficher()
+    # Coureurs.afficher()
     #print(newCourses, newGroupements, Courses, Groupements)
     return Courses, Groupements        
             
@@ -5200,27 +6761,6 @@ def delCourse(categorie) :
 ##    httpd.serve_forever()
 
 
-def start_server(path, port=8888):
-    '''Start a simple webserver serving path on port'''
-    PORT = 8888
-    server_address = (path, PORT)
-##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
-##    httpd.serve_forever()
-    server = HTTPServer
-    handler = CGIHTTPRequestHandler
-    handler.cgi_directories = ["/cgi"]
-    print("Serveur actif sur le port :", port)
-    httpd = server(server_address, handler)
-    httpd.serve_forever()
-
-# Start the server in a new thread
-port = 8888
-#start_server("/",8888)
-daemon = threading.Thread(name='daemon_server', target=start_server, args=('', port))
-daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
-daemon.start()
-#time.sleep(1)
-
 def simulateArriveesAleatoires():
     #listeDeCourses = [ '6-F', "6-G", '5-F', "5-G", '4-F', "4-G", '3-F', "3-G" ]
     #topDepart(listeDeCourses)
@@ -5259,7 +6799,9 @@ def estNomDeGroupement(nom):
     return nom in listNomsGroupements()
 
 def estChallenge(obj):
+    # print("est challenge", obj, isinstance(obj,str), "and", obj in listChallenges())
     return (isinstance(obj,str) and obj in listChallenges())
+
 
 def genereAffichageTV(listeDesGroupements) :
     with open("modeles/Affichage-Contenu.html","r", encoding='utf8') as f:
@@ -5308,16 +6850,20 @@ def genereHeureDepartHTML(groupement) :
     if estChallenge(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else :
-        c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
-        #print("TEST HTML :",c.label, c.temps)
-        if c.temps :
-            retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
+        # print("Coucou temp ",groupement)
+        if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True) and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
+            c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
+            #print("TEST HTML :",c.label, c.temps)
+            if c.temps :
+                retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
+            else :
+                retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
         else :
-            retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
+            retour = [0,0,0,0,0,0] # Courses est vide.
     return retour
 
 
-def genereEnTetesHTML(groupement, chrono=False) :
+def genereEnTetesHTML(groupement, chrono=False, avecFermetureTABLE = True) :
     if estChallenge(groupement) :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
         tableau += '<thead> <tr><th class="rangC"> Classement</th>'
@@ -5328,11 +6874,11 @@ def genereEnTetesHTML(groupement, chrono=False) :
         tableau += '<th class="detailCTitre">Détail : <i>  … + Nom Prénom (rang à l\'arrivée) + ... </i></th>'
         tableau += '<th class="totalC">Total</th>'
         #tableau += '<th class="moyC"><div class=moyC> Moy. des temps des premiers de chaque catégorie. </div></th>'
-        tableau += '</tr></thead> </table>'
+        tableau += '</tr></thead>'
     else :
         if chrono :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
-            tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead> </table>'
+            tableau += '<thead> <tr><th class="chronometre"> Chronomètre actuel</th> </tr></thead>'
         else :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
             tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
@@ -5343,11 +6889,17 @@ def genereEnTetesHTML(groupement, chrono=False) :
                     tableau += '<th class="etab">Etablissement</th>'
                 else :
                     tableau += '<th class="classe">Catégorie</th>'
-            tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead> </table>'
+            tableau += '<th class="chrono">TEMPS</th><th class="vitesse">VITESSE</th> </tr></thead>'
+    if avecFermetureTABLE :
+        tableau += '</table>'
     return tableau
 
-def genereTableauHTML(courseName, chrono = False) :
-    tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'><tbody>"
+def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True, affichageWWW=False) :
+    """numero indique quel doit être le nom du div chronotime : avec un numéro ou sans numéro."""
+    tableau = ""
+    if avecOuvertureTABLE :
+        tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'>"
+    tableau += "<tbody>"
     #titre = "Catégorie " + Courses[courseName].label
     if estChallenge(courseName) :
         if courseName in ResultatsGroupements.keys() : # on sécurise si le challenge est vide.
@@ -5376,7 +6928,10 @@ def genereTableauHTML(courseName, chrono = False) :
             print("Impossible d'afficher le challenge vide sur la TV :",courseName)
     else :
         if chrono :
-            tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
+            if affichageWWW :
+                tableau += "<tr><td class='chronometre'> </td></tr>"
+            else :
+                tableau += "<tr><td class='chronometre'> <h1><span id='chronotime'></span></h1></td></tr>"
         else :
             Dossards = ResultatsGroupements[courseName]
             #print("ArriveeDossards",ArriveeDossards)
@@ -5387,7 +6942,7 @@ def genereTableauHTML(courseName, chrono = False) :
 
 def yATIlUCoureurArrive(groupement) :
     retour = False
-    #print(ResultatsGroupements)
+    # print(ResultatsGroupements)
     try :
         # Fonctionne même si ResultatsGroupements contient les dossards des absents, dispensés et abandons... D'où la raison du parcours de ArriveeDossards.
         Dossards = ResultatsGroupements[groupement]
@@ -5410,6 +6965,8 @@ def creerFichierChallenge(challenge, entete):
         challengeNomAffiche = "minimes"
     elif challenge == "BE" :
         challengeNomAffiche = "benjamin(e)s"
+    else :
+        challengeNomAffiche = challenge
         
     titre = "{\\Large {} \\hfill Challenge " + challengeNomAffiche
     if Parametres["CategorieDAge"] == 0 :
@@ -5421,7 +6978,7 @@ def creerFichierChallenge(challenge, entete):
         chaineSub = "Classe"
     tableau = """
 \\begin{center}
-\\begin{longtable}{| p{2cm} | p{2cm} | p{18cm} | p{2cm} |}
+\\begin{longtable}{| p{1.5cm} | p{1.5cm} | p{10.5cm} | p{1.5cm} |}
 \\hline
 {}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{@classe@} \\hfill {} & {}\\hfill \\textbf{Détail :} \ldots Prénom Nom (rang à l'arrivée) \ldots \\hfill {} & {}\\hfill \\textbf{Total} \\hfill{} \\\\
 \\hline
@@ -5429,7 +6986,7 @@ def creerFichierChallenge(challenge, entete):
     i = 0
     while i < len(ResultatsGroupements[challenge]) :
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
-        score = ResultatsGroupements[challenge][i].score
+        # score = ResultatsGroupements[challenge][i].score
         classe = ResultatsGroupements[challenge][i].nom
         if CategorieDAge == 2 : ## pour l'UNSS , on ajoute le numéro d'établissement
             L = ResultatsGroupements[challenge][i].listeCG + ResultatsGroupements[challenge][i].listeCF
@@ -5439,7 +6996,7 @@ def creerFichierChallenge(challenge, entete):
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
         #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
-        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-2em}\\begin{center} "+ classe +"\\end{center}&  "
+        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-1em}\\begin{center} "+ classe +"\\end{center}&  "
         tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
         #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
         tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
@@ -5486,6 +7043,78 @@ def creerFichierCategories(groupement, entete):
     return entete + "\n\n" + titre + "\n\n" + tableau
 
 
+def creerFichierClasseNG(nom, entete, estGroupement):
+    # titre = '<b><p style="text-align: center;">@nom@ </p></b>'
+    # titre = "<center><b><h1> @nom@ </h1></b></center>"
+    # titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
+    colonneSuppl = ""
+    titreSuppl = ""
+    tableau = [[["<b> Nom Prénom</b>", 150]]]
+    if CategorieDAge == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+        tableau[0].append(["<b>Sexe</b>", 40])
+    tableau[0].append(["<b>Rang</b>", 80])
+    tableau[0].append(["<b>Temps</b>", 100])
+    tableau[0].append(["<b>Vitesse</b>", 120])
+    
+#     tableau = "\\begin{center}\n\
+# \\begin{longtable}{| p{6cm} | " + colonneSuppl + " p{3cm} | p{3.2cm} | p{4.3cm} |}\
+# \\hline\
+#  {} \\hfill \\textbf{Nom Prénom } \\hfill {} & " + titreSuppl + " {}\\hfill \\textbf{Rang} \\hfill {} & {}\\hfill \\textbf{Temps} \\hfill{} & \
+#  {}\\hfill \\textbf{Vitesse} \\hfill {}\n\\\\  \
+# \\hline \
+# \\endhead \
+# "
+    ### il faut tous les dossards d'une classe ou cétagorie ou groupement et non seulement ceux arrivés : Dossards = Resultats[classe]
+    #print(nom, estGroupement)
+    if estGroupement : #estNomDeGroupement(nom) :
+        denomination = "Catégorie " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
+        #print("Dossards du groupement :",Dossards)
+        rangCourse = False
+        if Parametres["CategorieDAge"] == 2 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
+            garderAbandons = True
+            garderAbsDispAbandons = True
+        elif Parametres["CategorieDAge"] == 1 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
+            garderAbandons = True
+            garderAbsDispAbandons = False
+        else :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
+            garderAbandons = False
+            garderAbsDispAbandons = False
+    else :
+        if Parametres["CategorieDAge"] == 2 :
+            garderAbandons = True
+            garderAbsDispAbandons = True
+            rangCourse = True
+            denomination = "Catégorie " + nom
+            Dossards = triParTemps(ResultatsPourImpressions[nom])### listDossardsDUneCategorie(nom))
+        elif Parametres["CategorieDAge"] == 1 :
+            garderAbandons = True
+            garderAbsDispAbandons = False
+            rangCourse = True
+            denomination = "Catégorie " + nom
+            Dossards = triParTemps(ResultatsPourImpressions[nom])### listDossardsDUneCategorie(nom))
+        else :
+            garderAbandons = True
+            garderAbsDispAbandons = True
+            rangCourse = False # pour une classe, on affiche le rang pour le cross du collège en général
+            denomination = "Classe " + nom
+            Dossards = triParNomPrenom(Resultats[nom]) # on trie par ordre alphabétique pour éviter le cas d'un import en plusieurs fois. listDossardsDUneClasse(nom)
+            # les classes ne sont pas triées par temps car c'est plus pratique de garder l'ordre alpha et tous les abs, disp, abandons pour les collègues d'EPS
+        #print("Dossards de l'établissement :",Dossards)
+    #VMApresente = yATIlUneVMA(Dossards)
+    ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
+    for dossard in Dossards :
+        if Coureurs.recuperer(dossard).temps >= 0 :
+            newline, ArrDispAbsAband = genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAband, rangCourse)
+            if Coureurs.recuperer(dossard).temps > 0 or garderAbsDispAbandons or \
+               (not Coureurs.recuperer(dossard).absent and not Coureurs.recuperer(dossard).dispense and garderAbandons) :
+            # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
+                tableau += [newline]
+    return [entete[0].replace("@nom@",denomination)] +  ["<p>"] + [tableau], ArrDispAbsAband
+
+
 def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     colonneSuppl = ""
@@ -5505,16 +7134,18 @@ def creerFichierClasse(nom, entete, estGroupement):
     #print(nom, estGroupement)
     if estGroupement : #estNomDeGroupement(nom) :
         denomination = "Catégorie " + groupementAPartirDeSonNom(nom, nomStandard = True).nom
-        Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
         #print("Dossards du groupement :",Dossards)
         rangCourse = False
         if Parametres["CategorieDAge"] == 2 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = True
             garderAbsDispAbandons = True
         elif Parametres["CategorieDAge"] == 1 :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = True
             garderAbsDispAbandons = False
         else :
+            Dossards = triParTemps(ResultatsGroupementsPourImpressions[nom])
             garderAbandons = False
             garderAbsDispAbandons = False
     else :
@@ -5561,6 +7192,66 @@ def yATIlUneVMA(listeDeDossards) :
     return not pasTrouveDeVMA
 
 
+def genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAbandon, rangCourse=False) :
+    # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
+    coureur = Coureurs.recuperer(dossard)
+    if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
+        contenuTemps = coureur.tempsFormate()
+        contenuVitesse = coureur.vitesseFormateeAvecVMA()# + supplVMA
+        if rangCourse :
+            contenuRang = str(coureur.rangCat)
+        else :
+            contenuRang = str(coureur.rang)
+        if coureur.sexe == "F" :
+            ArrDispAbsAbandon[0] = ArrDispAbsAbandon[0] + 1
+        else :
+            ArrDispAbsAbandon[1] = ArrDispAbsAbandon[1] + 1
+        ArrDispAbsAbandon[8].append(coureur.temps)
+    else :
+        contenuVitesse = "-"
+        contenuRang = "-"
+        if coureur.dispense :
+            contenuTemps = "Dispensé"
+            if coureur.sexe == "F" :
+                ArrDispAbsAbandon[2] = ArrDispAbsAbandon[2] + 1
+            else :
+                ArrDispAbsAbandon[3] = ArrDispAbsAbandon[3] + 1
+        elif coureur.absent :
+            contenuTemps = "Absent"
+            if coureur.sexe == "F" :
+                ArrDispAbsAbandon[4] = ArrDispAbsAbandon[4] + 1
+            else :
+                ArrDispAbsAbandon[5] = ArrDispAbsAbandon[5] + 1
+        else :
+            contenuTemps = "Abandon"
+            if coureur.sexe == "F" :
+                ArrDispAbsAbandon[6] = ArrDispAbsAbandon[6] + 1
+            else :
+                ArrDispAbsAbandon[7] = ArrDispAbsAbandon[7] + 1
+    if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
+        if coureur.rangCat == 1 :
+            if coureur.sexe == "G" :
+                chEME = "er "
+            else :
+                chEME = "ère "
+        else :
+            chEME = "ème "
+        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA(precisionSurLAnnee=True) + ")"
+    else :
+        contenuRangCat = ""
+    ligne = [coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-")]
+    if CategorieDAge == 1 :
+        ligne += [coureur.sexe]
+    ligne += [contenuRang + contenuRangCat, contenuTemps, contenuVitesse]
+    # ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} & " \
+    # + contenuSuppl \
+    # + " {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
+    # + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
+    # + " \\hfill {} \\\\\n"
+    if CategorieDAge == 2 : #cas du cross UNSS
+        ligne += [coureur.etablissement]
+    return ligne, ArrDispAbsAbandon
+
 def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
     coureur = Coureurs.recuperer(dossard)
@@ -5605,7 +7296,7 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
                 chEME = "ère "
         else :
             chEME = "ème "
-        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA() + ")"
+        contenuRangCat = " (" +str(coureur.rangCat) + chEME + coureur.categorieFFA(precisionSurLAnnee=True) + ")"
     else :
         contenuRangCat = ""
     contenuSuppl = ""
@@ -5632,7 +7323,7 @@ def genereLigneTableauTEX(dossard) :
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex() #+ supplVMA
         contenuRang = str(coureur.rang)
         if Parametres["CategorieDAge"] and coureur.rangCat < 4 and coureur.rangCat != coureur.rang : # un coureur est dans les 3 premiers de sa catégorie
-            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.categorieFFA() + ")"
+            contenuRangCat = " (" +str(coureur.rangCat) + " en " + coureur.categorieFFA(precisionSurLAnnee=True) + ")"
         else :
             contenuRangCat = ""
         ligne = " {} \\hfill " + contenuRang  + contenuRangCat + " \\hfill {} &  {} \\hfill " + coureur.prenom + " " + coureur.nom +\
@@ -5661,11 +7352,11 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
             retour += "</p><p>"
             i = 0
         #print("coureur", coureur.nom, coureur.prenom)
-        retour += coureur.nom + " " + coureur.prenom  + " ("
+        retour += coureur.nom + "~" + coureur.prenom  + "~("
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
             retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
         else :
-            retour += str(coureur.rang)
+            retour += str(coureur.rang  - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(coureur.rang, root["dictrangsDSDEN"][Courses[coureur.course].nomGroupement]))
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
         retour += "), "
         i += 1
@@ -5737,50 +7428,55 @@ def ajoutMedailleEnFonctionDuRang(r,masculin=True) :
                 ordinal = "1er"
             else :
                 ordinal = "1ère"
-            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="/media/or.webp" alt="(' + ordinal + ')">'
+            ligne += '<img style="vertical-align:middle" width="40" class="medailles" src="./media/or.webp" alt="(' + ordinal + ')">'
         elif r == 2 :
-            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/argent.webp" alt="(2ème)">'
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="./media/argent.webp" alt="(2ème)">'
         elif r == 3 :
-            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="/media/bronze.webp" alt="(3ème)">'
+            ligne += '<img style="vertical-align:middle" width="40"  class="medailles" src="./media/bronze.webp" alt="(3ème)">'
     return ligne
 
 
-#### catégories d'athlétisme
 
-def categorieAthletisme(anneeNaissance, etablissementNature = "") :
-    # pas de distinction dans les catégories Masters pour l'instant. Pas utile.
-    # Facile à rajouter à l'aide du tableau categories-athletisme-2022.png
-    # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
-    correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU" ], [2006, "CA" ], [2008, "MI" ], [2010, "BE" ], [2012, "PO" ], [2015, "EA" ], [3000, "BB" ]]
-    try :
-        anneeNaissance = int(anneeNaissance)
-        currentDateTime = datetime.datetime.now()
-        date = currentDateTime.date()
-        year = currentDateTime.year
-        if currentDateTime.month > 8 :
-            #changement d'année sportive au premier septembre.
-            year += 1
-        ecart2022 = year - 2022
-        anneeCherchee = anneeNaissance - ecart2022
-        i = 0
-        continuer = True
-        while i< len(correspondanceAnneeCategories) and continuer :
-            if anneeCherchee <= correspondanceAnneeCategories[i][0] :
-                continuer = False
-                categorie = correspondanceAnneeCategories[i][1]
-            i += 1
-        # patch pour les catégories UNSS :  les redoublants courrent dans la catégorie en dessous. Les élèves en avance (en 2nde) courrent avec les lycéens.
-        if Parametres["CategorieDAge"] == 2 :
-            if etablissementNature == "CLG" and categorie == "CA" : # le cadet a redoublé
-                categorie = "MI"
-            elif etablissementNature and etablissementNature[0] == "L" and categorie == "MI" : # le minime a sauté une classe.
-                categorie = "CA"
-        return categorie
-    except :
-        print("argument fourni incorrect : pas au format nombre entier")
-        return ""
 
 #print(categorieAthletisme(2003))
+### cross UNSS
+# coureur.etablissementNoUNSS donne le numéro d'AS
+def genereChainePourOPUSS(challenge, nombreQualifies) :
+    '''retourne une chaine de caractères de la forme suivante à partir du challenge, du nombre de qualifiés fournis en paramètres. Le challenge est celui du cross UNSS.
+    Les points attribués sont ceux du cross UNSS et les parenthèses contiennent le mode de calcul du total de points. Un Q indique les qualifiés en fonction du paramètre nombreQualifies
+    1	coureur.etablissementNoUNSS	1	6 pts (1+2+1+2+0)	Q
+    2	14771	2	14 pts (3+4+3+4+0)	Q
+    3	14785		28 pts (8+9+5+6+0)	
+    4	14758		30 pts (6+7+8+9+0)	
+    '''
+    chaine = ""
+    if challenge :
+        i = 0
+        for equipe in ResultatsGroupements[challenge] :
+            if equipe.complet() :
+                L = equipe.listeCG + equipe.listeCF
+                for coureur in L :
+                    if coureur.etablissementNoUNSS :
+                        break # on recherche le premier coureur qui a un numéro d'AS non vide.
+                # coureur = equipe.listeCG[0]
+                i += 1
+                chaine += str(i) + "\t" + coureur.etablissementNoUNSS + "\t" 
+                if i <= nombreQualifies : 
+                    chaine += str(i)
+                chaine += "\t" + equipe.scoreFormatePourOPUSS() + "\t"
+                if i <= nombreQualifies :
+                    chaine += "Q"
+                chaine += "\n"
+    # chaine = '''1	14771	1	6 pts (1+2+1+2+0)	Q
+    # 2	14771	2	14 pts (3+4+3+4+0)	Q
+    # 3	14785		28 pts (8+9+5+6+0)	
+    # 4	14758		30 pts (6+7+8+9+0)'''
+    return chaine
+
+
+
+#### fin cross UNSS
+
 
 #### Import des données nouvelle génération (post 2022) à tester...
 def traitementDesDonneesAImporter(donneesBrutes) :
@@ -5822,28 +7518,66 @@ def traitementDesDonneesAImporter(donneesBrutes) :
                  if retourCreationModifErreur[i] :
                     BilanCreationModifErreur[i] += 1
         i+=1
+    # if not 'd' in locals():
+    #     d = ''
     return BilanCreationModifErreur, d
 
 
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
-    BilanCreationModifErreur = [0,0,0,0]
-    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
-        if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
-        elif fichierSelectionne[-3:].lower() == "csv":
-            BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+    try :
+        BilanCreationModifErreur = [0,0,0,0]
+        d = ""
+        if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
+            if fichierSelectionne[-4:].lower() == "xlsx" :
+                BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
+            elif fichierSelectionne[-3:].lower() == "csv":
+                BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+    except : 
+        # cas où une erreur a été créée lors de la création d'un coureur.
+        BilanCreationModifErreur = [0,0,1,0]
+        print("ATTENTION : Exception non gérée dans recupXLSX() ou recupCSV().")
     #if retour :
     print("IMPORT CSV ou XLSX TERMINE")
     generateListCoureursPourSmartphone()
     CoureursParClasseUpdate()
     print("Liste des coureurs pour smartphone actualisée.")
-        # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-DONNEES")
+        # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegardeNG(sauvegarde, "-apres-IMPORT-DONNEES")
 ##    else :
 ##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
     return BilanCreationModifErreur, d
 
+def remplacer_edit_par_export(url):
+    # Trouver la position de "/edit"
+    if "/edit" in url:
+        # Garder tout avant "/edit" et ajouter "/export?format=xlsx"
+        nouvelle_url = url.split("/edit")[0] + "/export?format=xlsx"
+        return nouvelle_url
+    else:
+        return url  # Retourner l'URL inchangée si "/edit" n'est pas trouvé
+
+def importGoogleSheetAutomatique() :
+    '''Fonction qui importe les données d'un google sheet automatiquement téléchargé si l'URL est renseignée dans les paramètres'''
+    if Parametres["URLGoogleSheetAImporter"] :
+        try :
+            print("Import du google sheet automatique...")
+            URLATelecharger = remplacer_edit_par_export(Parametres["URLGoogleSheetAImporter"])
+            print("URL à télécharger :", URLATelecharger)
+            # télécharge le fichier et le place dans un dossier "import" à la racine du projet
+            if not os.path.exists("import") :
+                os.makedirs("import")
+            fichierTelecharge = "import/fichierGoogleSheetImporte.xlsx"
+            urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
+            print("Fichier téléchargé :", fichierTelecharge)
+            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge)
+            print("Import du google sheet terminé.")
+        except :
+            print("Erreur lors de l'import du google sheet.")
+    else :
+        print("Pas d'URL de google sheet renseignée dans les paramètres.")
+    # en mode automatique, pas de retour à l'utilisateur sur les données importées
+    # return BilanCreationModifErreur, d
 
 def recupXLSX(fichierSelectionne=""):
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
@@ -5859,6 +7593,10 @@ def recupXLSX(fichierSelectionne=""):
                 ligne.append("")
             else :
                 valeur = str(cell.value)
+                ### prétraitement pour les documents google sheets téléchargés automatiquement
+                # print("valeur avant traitement google sheet",valeur)
+                valeur = traiter_chaine_si_import_google_sheet(valeur)
+                # print("valeur après traitement google sheet",valeur)
                 ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
                 if len(valeur)> 18 :
                     if valeur[:8] == "datetime" : # cas datetime.datetime(20,08,2008)
@@ -5874,15 +7612,35 @@ def recupXLSX(fichierSelectionne=""):
                             True # on ne fait rien si une date n'est pas reconnue.
                             #print("Probablement pas une date. Valeur conservée :", valeur)
                 ligne.append(valeur)
-
-        #print(chaine)
-        donneesBrutes.append(ligne)
+        # si tous les éléments de la ligne ne sont pas vides, on les traitera
+        if not all(elt == "" for elt in ligne) : 
+            donneesBrutes.append(ligne)
+    # print("Données brutes récupérées du tableur", donneesBrutes)
     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
     BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
     wb_obj.close()
     #except :
     #    print("Erreur : probablement pas un fichier xlsx valide...")
     return BilanCreationModifErreur, d
+
+def traiter_chaine_si_import_google_sheet(chaine):
+    ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 
+    Filtre le contenu de la fonction IFERREUR de l'export google au cas où chaine ne soit pas la valeur attendue (celle visible dans le document google sheet)'''
+    # Vérifier si la chaîne commence par '=SIERREUR' ou '=IFERROR'
+    if chaine.startswith('=SIERREUR') or chaine.startswith('=IFERROR'):
+        # Essayer d'extraire la valeur entre guillemets après la virgule
+        match = re.search(r',\s*("[^"]*"|\d+(\.\d+)?)\)', chaine)
+        if match:
+            # Enlever les guillemets s'il s'agit d'une chaîne entre guillemets
+            valeur = match.group(1)
+            if valeur.startswith('"') and valeur.endswith('"'):
+                return valeur[1:-1]  # Retourner sans guillemets
+            return valeur  # Retourner la valeur telle quelle si c'est un nombre
+        else:
+            return chaine  # Si aucun match n'est trouvé
+    else:
+        # Retourner la chaîne originale si elle ne commence pas par '=SIERREUR' ou '=IFERROR'
+        return chaine
 
 
 def recupCSV(fichierSelectionne=""):
@@ -5947,17 +7705,17 @@ def recupCSV(fichierSelectionne=""):
 ##        print("Pas de fichier CSV trouvé. N'arrivera jamais avec l'interface graphique normalement.")
 ##        retour = False
 ##    print("IMPORT CSV SIECLE TERMINE")
-##    ecrire_sauvegarde(sauvegarde, "-apres-IMPORT-SIECLE")
+##    ecrire_sauvegardeNG(sauvegarde, "-apres-IMPORT-SIECLE")
 ##    if retour : # import effectué : on regénère la liste pour l'application smartphone.
 ##        generateListCoureursPourSmartphone()
 ##        CoureursParClasseUpdate()
 ##        print("Liste des coureurs pour smartphone créée.")
 ##    return retour
 
-def setDistances():
-    for nom in listeDeCourses :
-        print("ajout de la distance 1.2 km à", nom)
-        Courses[nom].setDistance(1.2)
+# def setDistances():
+#     for nom in listCourses() :
+#         print("ajout de la distance 1.2 km à", nom)
+#         Courses[nom].setDistance(1.2)
 
 def setDistanceToutesCourses(distance):
     for nom in listCourses() :
@@ -5994,19 +7752,28 @@ def creerCoureur(listePerso, informations) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     #print(infos)
+    nom=""
+    prenom=""
     sexe=""
     clas = ""
     naiss = ""
     etab = ""
     nature = ""
-    disp=False
-    abse=False
+    # ces valeurs restent à None si l'information n'est pas dans le tableur.
+    # Ainsi, ces caractéristiques ne sont pas actualisées lors des imports (si elles restent à None)
+    disp=None
+    abse=None
     vma = 0
     comment = ""
     lic = ""
     doss = ""
     email=""
+    emailDeux=""
     courseManuelle=""
+    if "nom" in informations :
+        nom = supprLF(infos["nom"])
+    if "prénom" in informations :
+        prenom = supprLF(infos["prénom"])
     if "sexe" in informations or "cat" in informations :
         try :
             sexe = supprLF(infos["sexe"])
@@ -6016,19 +7783,30 @@ def creerCoureur(listePerso, informations) :
                 ### dans les fichiers OPUS UNSS, le sexe n'est pas indiqué : on le déduit de la dernière lettre de la catégorie
             except :
                 sexe = ""
+    if sexe : # si spécifié, on transforme M en G
+        if sexe == "M" :
+            sexe = "G"
     if "dispensé" in informations :
         if infos["dispensé"] != "" :
             disp = True
-    if "absent" in informations and not disp :# on ne peut pas être dispensé et absent.
-        if infos["absent"] == "" :
-            abse = False
         else :
+            # le tableur contient une colonne dispensé et le coureur est décoché donc on doit le modifier dans la base.
+            disp = False
+    if "absent" in informations :
+        if infos["absent"] != "" :
             abse = True
+        else :
+            # le tableur contient une colonne absent et le coureur est décoché. On doit rectifier la base en ce sens.
+            abse = False
     if "classe" in informations :
         try :
             clas = supprLF(infos["classe"])
+            # si la classe est un entier (comme au collège bourrillon), on vire la partie décimale
+            # print("classe:", clas)
+            if float(clas) == float(int(float(clas))) :
+                clas = str(int(float(clas)))
         except :
-            clas = ""
+            clas = supprLF(infos["classe"])
     if "licence" in informations or "n° licence" in informations  :
         try :
             lic = supprLF(infos["licence"])
@@ -6053,6 +7831,8 @@ def creerCoureur(listePerso, informations) :
                 etab = supprLF(infos["nom étab."])
             except :
                 etab = ""
+        # filtrage des mots inutiles dans les noms d'établissements sur OPUSS
+        etab = etab.replace(" général et technologique","").replace(" (voie générale et technologique)","").replace(" général technologique et professionnel agricole","")
     if "établissementtype" in informations or "type" in informations or "type étab." in informations :
         try :
             nature = supprLF(infos["établissementtype"])
@@ -6065,11 +7845,21 @@ def creerCoureur(listePerso, informations) :
                 except :
                     nature = ""
     if "email" in informations and emailEstValide(supprLF(infos["email"])):
-        email = supprLF(infos["email"])
+        email = supprLF(str(infos["email"]))
+    if "email2" in informations and emailEstValide(supprLF(infos["email2"])):
+        emailDeux = supprLF(str(infos["email2"]))
+    ### traitement des emails afin de s'assurer que email soit bien le principal et email2 le secondaire.
+    ### que si email est égal à email2 alors, on vide email2.
+    ### que si email est vide et email2 n'est pas vide, alors, on transfère email2 dans email.
+    if email == "" and emailDeux != "" :
+        email = emailDeux
+        emailDeux = ""
+    if email == emailDeux :
+        emailDeux = ""
     #print("nature de " + supprLF(infos["nom"]) + ":" + nature + ".")
     if nature == "COL" :
         nature = "CLG"
-    if nature == "LYC" :
+    if nature == "LYC" or nature == "LPO" :
         nature = "LG"
     if "vma" in informations :
         try :
@@ -6086,21 +7876,27 @@ def creerCoureur(listePerso, informations) :
     if "dossard" in informations :
         doss = formateDossardNG(infos["dossard"])
         #print("Commentaire personnalisé :" + comment+ ".")
-    # on crée le coureur avec toutes les informations utiles.
-    #print('addCoureur(',supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , 'classe=',supprLF(infos["classe"]), 'naissance=',naiss, 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma)
-    if supprLF(infos["nom"]) and supprLF(infos["prénom"]) and supprLF(infos["sexe"]) : # trois informations essentielles OBLIGATOIRES
-        retourCreationModifErreur, d = addCoureur(supprLF(infos["nom"]), supprLF(infos["prénom"]), supprLF(infos["sexe"]) , classe=clas, \
-                                               naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
-                                               commentaireArrivee=supprLF(comment), VMA=vma, course=courseManuelle, licence = lic,\
-                                               CoureursParClasseUpdateActif = False, dossard = doss, email = email)
-        #print("retourCreationModifErreur",retourCreationModifErreur)
+    # try :
+    if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
+        # print("test 06102023", type(email), email, type(emailDeux))
+        # on crée le coureur avec toutes les informations utiles.
+        # print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',convertir_nombre_en_date(naiss), 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
+        retourCreationModifErreur, d = addCoureur(nom, prenom, sexe , classe=clas, \
+                                            naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
+                                            temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
+                                            dossard=doss, email=str(email), email2=str(emailDeux), CoureursParClasseUpdateActif=False)
+        # print("retourCreationModifErreur",retourCreationModifErreur)
     else :
         if not supprLF(infos["nom"]) and not supprLF(infos["prénom"]) :
             # print("Probablement une ligne inutile dans le tableur. Pas de retour ! Le Nom et le Prénom sont vides.
             retourCreationModifErreur, d = [0,0,0,0], "0"
         else :
+            print("########### ERREUR #################")
             print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe) : nom=",supprLF(infos["nom"]),"; prénom=", supprLF(infos["prénom"]),"; sexe=", sexe)
-            retourCreationModifErreur, d = [0,0,1,0] , "0"  
+            retourCreationModifErreur, d = [0,0,1,0] , "0"
+    # except :
+    #     retourCreationModifErreur, d = [0,0,1,0] , "0"
+    #     print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe).")
     return retourCreationModifErreur, d
 
 
@@ -6108,6 +7904,425 @@ def supprLF(ch) :
     # selon la dernière colonne du csv importée, choisie par l'utilisateur, on peut potentiellement avoir un LF dans n'importe quel champ.
     # tous les éléments importés passent donc dans ce filtre.
     return ch.replace("\n","")
+
+
+### Fonctions contenant les fonctions de :
+### - création des pages internet de résultats avec des onglets par course.
+### - diffusion vers un serveur FTP ou SFTP 
+
+# from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
+
+def ActualiseAffichageInternet(Groupements, depotInitial = False) :
+    ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
+        dépose les pages générées sur un serveur SFTP.'''
+    if depotInitial :
+        liste = ["www/jquery-3.6.0.js", "www/mystyle.css", "www/mystyleWeb.css", "www/mystyle_mode-sombre.css", "www/favicon.ico" , "www/media/or.webp", "www/media/argent.webp", "www/media/bronze.webp"]
+        deposePagesHTMLInternet(liste, remplacer=False)
+    liste = generePagesHTMLInternet(Groupements)
+    deposePagesHTMLInternet(liste)
+
+
+# def deposePagesHTMLInternet(liste) :
+#     '''Dépose via le protocole FTP ou SFTP les pages générées dont les noms de fichiers sont dans la variable liste.'''
+#     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+#     try :
+#         # print("dossierWWW",dossierWWW)
+#         if Parametres["FTPserveur"] and Parametres["FTPlogin"] and Parametres["FTPmdp"] :
+#             dossierWWW = Parametres["FTPdir"] # dossier sur le serveur FTP ou SFTP
+#             if not dossierWWW.endswith("/") :
+#                 dossierWWW += "/"
+#             with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp :
+#                 ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+#                 # Change directory to the remote directory where the file is located
+#                 # if not dossierWWW in ftp.dir() :
+#                 #     ftp.mkd(dossierWWW)
+#                 ftp.cwd(dossierWWW)
+#                 for file in liste :
+#                     # on stocke dans la variable fichier le nom du fichier à déposer en le séparant du chemin contenu dans file
+#                     fichier = file.split("/")[-1]
+#                     ftp.storbinary('STOR '+fichier, open(file, 'rb'))
+#                     if DEBUG :
+#                         print("dépot de ", file, " sur le serveur FTP ou SFTP dans", dossierWWW, "effectué")
+#                 ftp.close()
+#     except Exception as e :
+#         print(f"Erreur lors du dépôt des pages générées sur internet : {e}")
+#         return False
+
+
+def deposePagesHTMLInternet(liste, remplacer=True):
+    """
+    Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+    Si remplacer=False, les fichiers existants sur le serveur ne seront pas écrasés.
+    Les fichiers dans des sous-dossiers locaux seront copiés dans les mêmes sous-dossiers sur le serveur.
+    """
+    if not Parametres["FTPserveur"] or not Parametres["FTPlogin"] or not Parametres["FTPmdp"]:
+        print("Paramètres de connexion FTP manquants ou incomplets (serveur, login ou mdp).")
+        return 
+    if DEBUG :
+        print("Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.")
+        return
+    print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+    dossierWWW = Parametres["FTPdir"]
+    if not dossierWWW.endswith("/"):
+        dossierWWW += "/"
+
+    def fichier_existe_sftp(sftp, chemin):
+        try:
+            sftp.stat(chemin)
+            return True
+        except FileNotFoundError:
+            return False
+
+    def fichier_existe_ftp(ftp, fichier):
+        fichiers_sur_serveur = ftp.nlst()
+        return fichier in fichiers_sur_serveur
+
+    def creer_dossier_sftp(sftp, chemin):
+        """Crée récursivement des dossiers sur le serveur SFTP."""
+        dirs = chemin.strip('/').split('/')
+        chemin_courant = ""
+        for dossier in dirs:
+            chemin_courant += f"/{dossier}"
+            try:
+                sftp.chdir(chemin_courant)
+            except IOError:
+                sftp.mkdir(chemin_courant)
+                sftp.chdir(chemin_courant)
+
+    def creer_dossier_ftp(ftp, chemin):
+        """Crée récursivement des dossiers sur le serveur FTP."""
+        dirs = chemin.strip('/').split('/')
+        chemin_courant = ""
+        for dossier in dirs:
+            chemin_courant += f"/{dossier}"
+            try:
+                ftp.cwd(chemin_courant)
+            except Exception:
+                ftp.mkd(chemin_courant)
+                ftp.cwd(chemin_courant)
+
+    try:
+        # Tentative de connexion via SFTP
+        print("Tentative de connexion via SFTP...")
+        transport = paramiko.Transport((Parametres["FTPserveur"], 22))
+        transport.connect(username=Parametres["FTPlogin"], password=Parametres["FTPmdp"])
+        
+        sftp = paramiko.SFTPClient.from_transport(transport)
+
+        # Accepter automatiquement les clés d'hôte non approuvées
+        known_hosts_path = os.path.expanduser("~/.ssh/known_hosts")
+        host_key_policy = paramiko.AutoAddPolicy()
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(host_key_policy)
+        ssh.load_system_host_keys()
+
+        for file in liste:
+            chemin_relatif = os.path.relpath(file, "./www")  # Chemin relatif par rapport à "./www"
+            chemin_dist = dossierWWW + chemin_relatif.replace("\\", "/")  # Convertir pour compatibilité SFTP
+            dossier_dist = os.path.dirname(chemin_dist)
+
+            # Créer les dossiers distants si nécessaires
+            creer_dossier_sftp(sftp, dossier_dist)
+
+            # Vérifier si le fichier doit être écrasé
+            if not remplacer and fichier_existe_sftp(sftp, chemin_dist):
+                print(f"Le fichier {chemin_dist} existe déjà sur le serveur SFTP. Dépôt ignoré.")
+                continue
+
+            print(f"Transfert de {file} vers {chemin_dist} via SFTP...")
+            sftp.put(file, chemin_dist)
+            if DEBUG:
+                print(f"Dépôt de {file} sur le serveur SFTP effectué.")
+        
+        sftp.close()
+        transport.close()
+        print("Dépôt via SFTP terminé avec succès.")
+        return True
+
+    except Exception as e:
+        print(f"Connexion SFTP échouée : {e}. Tentative avec FTP...")
+
+    # Si SFTP échoue, basculement vers FTP
+    try:
+        with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
+            ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+            
+            for file in liste:
+                chemin_relatif = os.path.relpath(file, "./www")  # Chemin relatif par rapport à "./www"
+                chemin_dist = dossierWWW + chemin_relatif.replace("\\", "/")  # Convertir pour compatibilité FTP
+                dossier_dist = os.path.dirname(chemin_dist)
+
+                # Créer les dossiers distants si nécessaires
+                creer_dossier_ftp(ftp, dossier_dist)
+
+                fichier = os.path.basename(file)
+                if not remplacer and fichier_existe_ftp(ftp, fichier):
+                    print(f"Le fichier {chemin_dist} existe déjà sur le serveur FTP. Dépôt ignoré.")
+                    continue
+
+                print(f"Transfert de {file} vers {chemin_dist} via FTP...")
+                with open(file, 'rb') as f:
+                    ftp.storbinary('STOR ' + chemin_dist, f)
+                if DEBUG:
+                    print(f"Dépôt de {file} sur le serveur FTP effectué.")
+        
+        print("Dépôt via FTP terminé avec succès.")
+        return True
+
+    except Exception as e:
+        print(f"Erreur lors du dépôt via FTP : {e}")
+        return False
+
+
+# def deposePagesHTMLInternet(liste, remplacer=True):
+#     """
+#     Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+#     Si remplacer=False, les fichiers existants sur le serveur ne seront pas écrasés.
+#     """
+#     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+#     dossierWWW = Parametres["FTPdir"]
+#     if not dossierWWW.endswith("/"):
+#         dossierWWW += "/"
+
+#     def fichier_existe_sftp(sftp, chemin):
+#         try:
+#             sftp.stat(chemin)
+#             return True
+#         except FileNotFoundError:
+#             return False
+
+#     def fichier_existe_ftp(ftp, fichier):
+#         fichiers_sur_serveur = ftp.nlst()
+#         return fichier in fichiers_sur_serveur
+
+#     try:
+#         # Tentative de connexion via SFTP
+#         print("Tentative de connexion via SFTP...")
+#         transport = paramiko.Transport((Parametres["FTPserveur"], 22))
+#         transport.connect(username=Parametres["FTPlogin"], password=Parametres["FTPmdp"])
+        
+#         sftp = paramiko.SFTPClient.from_transport(transport)
+
+#         # Accepter automatiquement les clés d'hôte non approuvées
+#         known_hosts_path = os.path.expanduser("~/.ssh/known_hosts")
+#         host_key_policy = paramiko.AutoAddPolicy()
+#         ssh = paramiko.SSHClient()
+#         ssh.set_missing_host_key_policy(host_key_policy)
+#         ssh.load_system_host_keys()
+        
+#         # S'assurer que le dossier existe sur le serveur
+#         try:
+#             sftp.chdir(dossierWWW)
+#         except IOError:
+#             print(f"Création du dossier {dossierWWW} sur le serveur SFTP...")
+#             sftp.mkdir(dossierWWW)
+#             sftp.chdir(dossierWWW)
+        
+#         for file in liste:
+#             fichier = os.path.basename(file)
+#             chemin_dist = dossierWWW + fichier
+#             if not remplacer and fichier_existe_sftp(sftp, chemin_dist):
+#                 print(f"Le fichier {fichier} existe déjà sur le serveur SFTP. Dépôt ignoré.")
+#                 continue
+#             print(f"Transfert de {file} vers {chemin_dist} via SFTP...")
+#             sftp.put(file, chemin_dist)
+#             if DEBUG:
+#                 print(f"Dépôt de {file} sur le serveur SFTP effectué.")
+        
+#         sftp.close()
+#         transport.close()
+#         print("Dépôt via SFTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Connexion SFTP échouée : {e}. Tentative avec FTP...")
+
+#     # Si SFTP échoue, basculement vers FTP
+#     try:
+#         with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
+#             ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+#             ftp.cwd(dossierWWW)
+            
+#             for file in liste:
+#                 fichier = os.path.basename(file)
+#                 if not remplacer and fichier_existe_ftp(ftp, fichier):
+#                     print(f"Le fichier {fichier} existe déjà sur le serveur FTP. Dépôt ignoré.")
+#                     continue
+#                 print(f"Transfert de {file} vers {dossierWWW + fichier} via FTP...")
+#                 with open(file, 'rb') as f:
+#                     ftp.storbinary('STOR ' + fichier, f)
+#                 if DEBUG:
+#                     print(f"Dépôt de {file} sur le serveur FTP effectué.")
+        
+#         print("Dépôt via FTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Erreur lors du dépôt via FTP : {e}")
+#         return False
+
+
+# def deposePagesHTMLInternet(liste):
+#     """
+#     Dépose via le protocole SFTP (prioritaire) ou FTP les pages générées dont les noms de fichiers sont dans la variable liste.
+#     """
+#     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
+#     dossierWWW = Parametres["FTPdir"]
+#     if not dossierWWW.endswith("/"):
+#         dossierWWW += "/"
+
+#     try:
+#         # Tentative de connexion via SFTP
+#         print("Tentative de connexion via SFTP...")
+#         transport = paramiko.Transport((Parametres["FTPserveur"], 22))
+#         transport.connect(username=Parametres["FTPlogin"], password=Parametres["FTPmdp"])
+        
+#         sftp = paramiko.SFTPClient.from_transport(transport)
+
+#         # Accepter automatiquement les clés d'hôte non approuvées
+#         known_hosts_path = os.path.expanduser("~/.ssh/known_hosts")
+#         host_key_policy = paramiko.AutoAddPolicy()
+#         ssh = paramiko.SSHClient()
+#         ssh.set_missing_host_key_policy(host_key_policy)
+#         ssh.load_system_host_keys()
+        
+#         # S'assurer que le dossier existe sur le serveur
+#         try:
+#             sftp.chdir(dossierWWW)
+#         except IOError:
+#             print(f"Création du dossier {dossierWWW} sur le serveur SFTP...")
+#             sftp.mkdir(dossierWWW)
+#             sftp.chdir(dossierWWW)
+        
+#         for file in liste:
+#             fichier = os.path.basename(file)
+#             print(f"Transfert de {file} vers {dossierWWW + fichier} via SFTP...")
+#             sftp.put(file, dossierWWW + fichier)
+#             if DEBUG:
+#                 print(f"Dépôt de {file} sur le serveur SFTP effectué.")
+        
+#         sftp.close()
+#         transport.close()
+#         print("Dépôt via SFTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Connexion SFTP échouée : {e}. Tentative avec FTP...")
+
+#     # Si SFTP échoue, basculement vers FTP
+#     try:
+#         with FTP(Parametres["FTPserveur"], user=Parametres["FTPlogin"], passwd=Parametres["FTPmdp"]) as ftp:
+#             ftp.set_pasv(True)  # Forcer le mode passif pour FTP
+#             ftp.cwd(dossierWWW)
+            
+#             for file in liste:
+#                 fichier = os.path.basename(file)
+#                 print(f"Transfert de {file} vers {dossierWWW + fichier} via FTP...")
+#                 with open(file, 'rb') as f:
+#                     ftp.storbinary('STOR ' + fichier, f)
+#                 if DEBUG:
+#                     print(f"Dépôt de {file} sur le serveur FTP effectué.")
+        
+#         print("Dépôt via FTP terminé avec succès.")
+#         return True
+
+#     except Exception as e:
+#         print(f"Erreur lors du dépôt via FTP : {e}")
+#         return False
+
+
+def generePagesHTMLInternet(Groupements) :
+    '''crée les pages internet en HTML avec un onglet par course.
+    Retourne la liste des pages générées.'''
+    listeFichiers = genereAffichageWWW(Groupements)
+    # print("liste des pages générés pour internet : ", listeFichiers)
+    return listeFichiers
+
+def genereAffichageWWW(listeDesGroupements) :
+    """Génère toutes les pages html utiles pour l'affichage dynamique en temps réel depuis internet
+    Retourne la liste des fichiers générés.
+    """
+    retour = []
+    with open("modeles/index-en-ligne.html","r", encoding='utf8') as f:
+        contenu = f.read()
+    f.close()
+    ## modèle d'onglet
+    ongletModele = """
+    <div id=tab@@indicePartantDe1@@ > <a href="#tab@@indicePartantDe1@@">@@groupement@@</a>
+	  <div>
+		  <h2> @@groupementTitre@@ @@chronoSousCondition@@</h2>
+		  <div id="conteneurGlobal@@indicePartantDe0@@" >
+		  </div>
+	  </div>
+     </div>
+    """
+    # supprimé de la fin de h2> : 
+    ## à remettre dans onglet modèle, à côté du titre du groupement : 
+    ## affichage tab modèle
+    tabModele = """
+    <html><head></head><body>
+        @@tableauCourse@@
+    <div id="testCharge@@indicePartantDe0@@"></div>
+    <script>
+    chronometres[@@indicePartantDe0@@] = @@heureDepartGroupement@@ ;
+    </script>
+    </body></html>
+    """
+    ## suppression de les fichiers "Affichage-tab*.html" du dossier www
+    for fichier in os.listdir("./www") :
+        if "Affichage-tab" in fichier :
+            os.remove("./www/" + fichier)
+    ## création des contenus à partir des données de courses.
+    onglets = ""
+    heuresDeparts = []
+    timerID = []
+    dureesActualisation = []
+    i = 0
+    for groupement in listeDesGroupements :
+        chrono = not yATIlUCoureurArrive(groupement.nomStandard)
+        onglet = ongletModele.replace("@@chronoSousCondition@@","<span id='chronotime@@indicePartantDe0@@'></span>")
+        onglet = onglet.replace("@@indicePartantDe1@@",str(i+1)).replace("@@indicePartantDe0@@",str(i))
+        # print(groupement.nomStandard)
+        groupementNomStandard = groupement.nomStandard
+        if estChallenge(groupement) :
+            #print("C'est un challenge par niveau")
+            if Parametres["CategorieDAge"] == 2 :
+                groupementTitre = "Challenge entre les établissements : catégorie " + groupement.nom + "."
+            else :
+                groupementTitre = "Challenge entre les classes : niveau " + groupement.nom + "ème."
+        else :
+            groupementTitre = "Course " + groupement.nom
+            if not chrono :
+                groupementTitre += " <span id='chronotime'></span>"
+        onglet = onglet.replace("@@groupement@@",groupement.nom).replace("@@groupementTitre@@", groupementTitre)
+        onglets += onglet
+        hdep = genereHeureDepartHTML(groupementNomStandard)
+        heuresDeparts.append(hdep)
+        timerID.append(0)
+        dureesActualisation.append(10000) # actualisation par défaut de 10 secondes. Varie ensuite selon le contexte.
+        # création du fichier lié à l'onglet 
+        tableauComplet = genereEnTetesHTML(groupementNomStandard, chrono, avecFermetureTABLE=False) + genereTableauHTML(groupementNomStandard, chrono, avecOuvertureTABLE=False, affichageWWW=True)
+        tableauComplet.replace("Chronomètre actuel","") # inutile ?
+        tabActuel = tabModele.replace("@@heureDepartGroupement@@",str(hdep)).replace("@@indicePartantDe0@@",str(i))\
+            .replace("@@tableauCourse@@", tableauComplet).replace("Chronomètre actuel","Pas de coureur arrivé.")
+        fichierTabActuel = "./www/Affichage-tab" + str(i) + ".html"
+        with open(fichierTabActuel,"w", encoding='utf8') as f :
+            f.write(tabActuel)
+        f.close()
+        retour.append(fichierTabActuel)
+        i += 1
+    ### remplacement des données variables dans le modèle HTML (à partir de la BDD Parametres et des données de course).
+    contenu = contenu.replace("@@onglets@@",onglets).replace("@@dureesActualisation@@", str(dureesActualisation))\
+              .replace("@@heuresDeparts@@",str(heuresDeparts)).replace("@@timerID@@",str(timerID))
+    fichierIndex = "./www/index.html"
+    with open(fichierIndex,"w", encoding='utf8') as f :
+        f.write(contenu)
+    f.close()
+    retour.append(fichierIndex)
+    return retour
+
+if __name__ == '__main__':
+    deposePagesHTMLInternet(["./www/Affichage-Contenu.html"])
 
 
 ##
@@ -6269,40 +8484,42 @@ def supprLF(ch) :
 ##            root["LignesIgnoreesLocal"] = []
 ##        elif choice == "teststats" :
 ##            testTMPStats()
-##    ecrire_sauvegarde(sauvegarde)
+##    ecrire_sauvegardeNG(sauvegarde)
 ##    ##transaction.commit()
 ##    # close database
 ##    #connection.close()
 ##    #db.close()
 ##
-if __name__=="__main__":
-    print("création du dictionnaire")
-    C = DictionnaireDeCoureurs()
-    C.effacerTout()
-    print("ajout de coureurs")
-    #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
-    print("ArriveeDossards",ArriveeDossards)
-    print("ArriveeTempsAffectes",ArriveeTempsAffectes)
-    C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
-    C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
-    Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
-    C.ajouter(Cmath,"B")
-    C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
-    C.afficher()
-    print(C.recuperer("2B").prenom)
-    C.effacer(Cmath)
-    C.effacer("1B")
-    C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
-    C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
-    #print(C.liste())
-    C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
-    #C.effacer("1D")
-    C.afficher()
-    print(C.recuperer("3B").prenom)
-    print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
-    print(C.existe(3))
-    print(C.existe(7))
+# if __name__=="__main__":
+#     pdf_path = "./resultats/3A.pdf"
+#     imprimePDF(pdf_path)
+    # print("création du dictionnaire")
+    # C = DictionnaireDeCoureurs()
+    # C.effacerTout()
+    # print("ajout de coureurs")
+    # #ArriveeDossards = [Coureur("Lacroix","Olivier","G","21/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"), Coureur("Lacroix","Marielle","F","25/09/1979"))
+    # print("ArriveeDossards",ArriveeDossards)
+    # print("ArriveeTempsAffectes",ArriveeTempsAffectes)
+    # C.ajouter(Coureur("Lacroix","Olivier","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Marielle","F","25/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Mathieu","G","26/09/1979"),"A")
+    # C.ajouter(Coureur("Lacroix","Olivier2","G","21/09/1979"),"B")
+    # Cmath = Coureur("Lacroix","Marielle2","F","25/09/1979")
+    # C.ajouter(Cmath,"B")
+    # C.ajouter(Coureur("Lacroix","Mathieu2","G","26/09/1979"),"B")
+    # C.afficher()
+    # print(C.recuperer("2B").prenom)
+    # C.effacer(Cmath)
+    # C.effacer("1B")
+    # C.ajouter(Coureur("Lax","Olive","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lax","Olive2","G","21/09/1979"),"A")
+    # C.ajouter(Coureur("Lax","Olive3","G","21/09/1979"),"A")
+    # #print(C.liste())
+    # C.ajouter(Coureur("Lax","Olive4","G","21/09/1979"),"B")
+    # #C.effacer("1D")
+    # C.afficher()
+    # print(C.recuperer("3B").prenom)
+    # print(C.existe(Coureur("laX","oLIVE","F","23/09/1980")))
+    # print(C.existe(3))
+    # print(C.existe(7))
 

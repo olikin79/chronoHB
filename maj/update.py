@@ -1,0 +1,44 @@
+## script de mise à jour de chronoHB
+import requests,os
+
+
+print("mise à jour réussie")
+
+
+def majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee) :
+    ''' retourne la liste des fichiers nécessaires pour passer de la version x à la version y.
+        A implémenter.'''
+    return ["maj/version.txt"]
+
+
+def majScriptGenerique(URLracine, listeDesFichiersATelecharger) : # script de mise à jour en version 01.9
+    ''' retourne True si mise à jour réussie et False sinon'''
+    URLracine = "http://mathlacroix.free.fr/chronoHB/"
+    try :
+        retour = True
+        for f in listeDesFichiersATelecharger :
+            response = requests.get(URLracine + f)
+            open(os.basename(f), "wb").write(response.content)
+    except:
+        retour = False
+    return retour
+
+def majScript(versionActuelle,versionDeployee) :
+    URLracine = "http://mathlacroix.free.fr/chronoHB/"
+    reboot = False # valeur par défaut.
+    if versionActuelle != versionDeployee and versionDeployee != -1 :
+        listeDesFichiersATelecharger = majScriptDetermineFichiersUtiles(versionActuelle,versionDeployee)
+        if majScriptGenerique(URLracine, listeDesFichiersATelecharger) :
+            message = "Application des mises à jour réussie. Redémarrage de chronoHB."
+            reboot = True
+        else :
+            message = "Application des mises à jour en échec."
+    elif versionDeployee == -1 :
+        # message pour l'utilisateur du succès.
+        message = "La vérification de la dernière version disponible en ligne est impossible."
+    else :
+        # message pour l'utilisateur du succès.
+        message = "Le logiciel est à jour en version " + versionActuelle
+    return reboot, message
+    
+

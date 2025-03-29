@@ -1,7 +1,410 @@
-Manque pour la branche trail-rieutort :
-- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
-- tester toute la suite : impression des dossards, déroulement des courses,...
+A venir :
+- FAIT fichier de sauvegarde contenant tout zippé. OK
+- (DEJA IMPLEMENTE) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
+- (CORRIGE le 13/01/25) en cas de restauration des données, restaure les fichiers "donneesSmartphone-pique-*.txt"
+
+Avant diffusion plus large :
+- permettre le dépôt de diplomes personnalisés dans un dossier ~/Documents/chronoHB/diplomes.
+
+
+Après cross  2024 :
+- vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
+- déplacer les fichiers générés dans mes documents ou dossier %TMP% : diplomes, dossards, resultats.
+- enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
+- vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
+- alignement des boites de gauche dans paramètres des courses.
+- afficher les diplomes non encore envoyés.
+- voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
+Idem pour les cases à cocher des listings.
+- Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
+- faire en sorte que le nom soit prononcé plus tôt dans le haut parleur par le téléphone.
+- Afficher les coureurs en erreur en orange.
+- Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
+
+
+A finir :
+- ouverture depuis l'explorateur windows des fichiers *.chb.
+- recréer les modèles d'autres dossards en mode "sans latex".
+- FAIT ajout d'un paramètre utilisationDesDossardsDeChronoHB dans les paramètres généraux afin de bloquer l'avertissement si on n'utilise pas les dossards du logiciel
+- FAIT ajout d'une information en cas d'import à la place de "imprimer les dossards non imprimés". Un clic dessus la ferait disparaître jusqu'à ce que de nouveaux coureurs soient ajoutés.
+- rajouter une fenêtre d'attente lors de l'exécution initiale.
+- créer un script qui incrémente les versions automatiquement en fonction d'un choix x.y.z de l'utilisateur,
+  génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour,
+  voir les déposer sur le dépôt ftp...
+- actualiser les paramètres généraux dans l'interface après une récupération de sauvegarde. J'ai l'impression que cela n'est pas le cas.
+- envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
+- FAIT sur le smartphone, créer un bouton (un peu caché) permettant de renvoyer tous les résultats une deuxième fois.
+- FAIT dans le code python, sécuriser systématiquement l'absence d'un fichier pour que le fonctionnement principal perdure (messageDefault.txt, etc)
+- sécuriser les dates de naissance inférieures à 1900 en les considérant invalides.
+
+
+Bug constaté :
+si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
+- le clic sur l'heure de départ ne fonctionne plus pour la modifier. C'est sûrement dû au fait que l'on n'est plus la même date. Presque souhaitable ?
+- le temps depuis le départ clignote (se remet à 00:00:00 puis se règle),
+
+Avant le cross Rieutort :
+- Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
+- reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
+
+##########################################################
+Idées pour le RFID :
+Le handler du serveur http orienterait les données (temporaires) reçus vers le popup = TopLevel() dédié aux réglages RFID si présent.
+Sinon, les données reçus seront orientées vers donneesRFID.txt comme actuellement.
+Avant d'orienter les données, le handler alimenterait la liste des antennes connectées si nouvelle antenne.
+
+Sur le lecteur, il faut régler la période de scan par antenne à 50ms pour être sûr de ne pas rater de coureurs.
+En limitant la puissance (3m max), on élargit peut-être le champ et donc les capacités de détection.
+
+Pour le cross HB 2025 : 
+- Réfléchir comment rajouter les coureurs manquants : lecture RFID avec un scanner courte distance pouvant remplacer la saisie de numéro, peut-être suffisante.
+- récupération des dossards, passage devant un lecteur RFID courte distance prévu au moins tant que tout n'est pas validé de façon opérationnelle.
+
+L'affichage du temps du coureur en temps réel sera désormais possible : 
+on pourrait créer un affichage html des 10 derniers coureurs arrivés qui s'actualiserait toutes les 3 secondes, ne changerait pas en cas de coupure réseau.
+
+Prévoir une antenne très courte distance pour les paramétrages (qui ne détecterait pas loin).
+Il faut impérativement créer une variable dédiée à la correspondance entre puce RFID et dossard.
+Cette correspondance serait sauvegardée dans le fichier et jamais effacée lors des réinitialisations.
+Seul un remplacement volontaire de la puce affectée à un dossard permettrait de supprimer les valeurs précédentes.
+
+Le popup RFID aurait les fonctionnalités suivantes :
+0. Affichage en temps réel des réceptions RFID dans une fenêtre dédiée toujours visible : nom de l'antenne source, puce, rssi (en bas ?), 
+	afficherait la correspondance du numéro de dossard si présent dans la base.
++ une ligne de boutons en haut correspondant aux choix suivants :
+1. Réglages relatifs aux antennes sur la course. Afficher les antennes qui ont déjà envoyé une donnée à chronoHB.
+	Affecter les antennes en question à des rôles :
+	(Départ, Checkpoint1, CheckPoint2, Arrivée, Départ-Arrivée pour les courses en boucle, Arrivee-complément pour l'antenne latérale de secours complementaire du tapis)
+	si course en boucle, combien de passages pour chaque catégorie ? => on en déduit la taille d'une boucle.
+	Permettre le découpage de la distance totale en morceaux entre les checkpoints.
+Quid des relais entre coureurs à savoir gérer ?
+2. affecter une ou plusieurs puces RFID à un ou plusieurs dossards (successifs) :
+	* on connaitrait le numéro de la première puce (à saisir ou à scanner)
+	* on connaîtrait le nombre de dossards du rouleau à affecter.
+	On validerait si autorisé par le logiciel (si les dossards existent jusqu'au nombre choisi).
+	Cela affecterait toutes les puces dans l'ordre.
+ affecter à des successions de dossards des puces en les passant devant le lecteur RFID choisi. Passerait au dossard suivant dès que détecté.
+Eliminerait les doublons immédiats si on reste devant le lecteur RFID trop longtemps.
+3. Tester des dossards.
+4. Permettrait d'effectuer un test de tous les dossards d'une course globalement : cela indiquerait si tous les dossards de la course sont bien présents 
+(cela afficherait les numéros des dossards non scannés (donc potentiellement en panne) ainsi que les numéros de puces RFID non connus dans la base.
+Qu'il faudrait pouvoir affecter à des dossards sans correspondance (prioritairement) ou qui ont déjà une correspondance.
+Le test pourra être réinitialisé.
+
+Les popups showinfo font revenir la fenêtre principale au premier plan. Ajouter une possibilité d'interagir avec elle peut solutionner ou non le pb.
+##############################################
+
+Il faudrait horodater tous les évènements (issus des smartphones, RFID et local dans les fichiers car, actuellement,
+dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas les actions dans l'ordre.
+
+##############################################
+
+Travail du 25/01/2025 :
+- interface permettant de régler les antennes à l'arrivée fonctionnelle : choix antenne principale et secondaire ok.
+- correctif test individuel de dossards : on n'affiche un dossard qu'une seule fois, même s'il est détecté plusieurs fois par l'antenne RFID.
+
+Travail du 20/01/2025 :
+- avancement de l'interface antennes et des données associées. Non achevé.
+
+Travail du 18/01/2025 :
+- si on supprime un dossard d'un temps qui lui était affecté, on supprime l'affectation du dossard (indispensable pour le RFID)
+- le traitement du fichier issu du RFID est corrigé : ne s'effectuait pas depuis mon implémentation.
+
+Travail du 17/01/2025 :
+- affectation des dossards en masse fonctionnelle.
+- correctif test détection de tous les dossards d'une course (ceux connus mais pas dans la course sont désormais signalés.
+- empêche que deux dossard soient affectés à la même puce RFID. Remplace automatiquement par le plus récent dans les données.
+- affectation successive des dossards fonctionnelle sur des dossards qui ne sont pas encore présents dans la base.
+- menu de test de dossards un par un avec possibilité de modifier l'affectation à la volée.
+
+Travail du 15/01/2025 :
+- Implémentation de la coquille de l'interface RFID + ongler test de tous les dossards d'une course.
+- Premiers développements affectation en masse de puces RFID à des dossards. Non finalisé : l'affectation d'une puce à un dossard ne fonctionne pas.
+
+Travail du 14/01/2025 :
+- Mise à part de la correspondance Dossard-EPC pour conservation lors des réinitialisations d'année en année.
+
+Travail du 13/01/2025 :
+- ajout du fichier donneesRFID.txt dans la sauvegarde et dans la fonction de récupération de sauvegarde.
+- correction d'un oubli : les fichiers de piques sont restaurés lors de l'ouverture d'une sauvegarde. Ils étaient sauvegardés mais non restaurés.
+- implémentation de l'attribut EPC dans la class Coureur et DictionnaireDeCoureurs. Ajout du traitement de donneesRFID.txt dans les fonctions métiers.
+
+Travail du 12/01/2025 :
+- modification du serveur http pour recevoir des données json sur http://ip:8888/receive-json (depuis un lecteur RFID à venir)
+- récupération du RSSI transmis par le lecteur RFID (le rssi est négatif).
+Plus le rssi est proche de zéro, plus le signal reçu par l'antenne est fort.
+On pourrait envisager d'éliminer les rssi trop faibles à voir. Ceci pourrait être un réglage dans l'interface.
+Réglage qui pourrait donc être changé et appliqué aux données déjà captées pour savoir si on les conserve ou non.
+A voir si on prévoit l'affichage dans l'interface pour information.
+
+Travail du 04/01/2025 :
+- oubli de index.html pour l'affichage TV dans le msi déployé.
+- sécurisation si absence de messageDefaut.txt et pour que messageDefaut.txt ne soit plus jamais absent.
+
+Travail du 02/01/2025 : v 2.2.14
+- déport des options internet dans un menu dédié.
+- démarrage en plein écran.
+- ajout d'une case pour faire le choix de l'impression des dossards par chronoHB ou non.
+- utilisationDesDossardsDeChronoHB = True (par défaut)
+
+Travail du 02/01/2025 : v 2.2.13
+- information des imports en arrière plan dans l'interface même si l'impression n'est plus proposée.
+- correctif import win32 non présent dans le msi et bloquant sur certains windows.
+
+Travail du 01/01/2025 :
+- mise à jour de la documentation.
+- diffusion des diplômes NG au format jpg.
+- processus de génération automatisé des diplômes NG pour affichage dans l'application : il suffit d'exécuter FonctionsDiffusion.py
+
+
+Travail du 30/12/24 post 2.2.12 :
+- ajout d'un paramètre utilisationDesDossardsDeChronoHB = False par défaut pour ne pas afficher l'avertissement des dossards non imprimés si on ne les utilise pas.
+
+
+Travail du 30/12/24 :
+- création du msi 2.2.12 avec la génération des résultats en pdf hors texlive et l'ouverture de fichiers dans l'explorer windows ok.
+Manquent les créations de dossards, les statistiques de course afin d'éliminer totalement texlive.
+- Correctif : des messages vides s'affichaient quand il n'y avait pas d'erreur.
+
+Travail du 29/12/24 :
+- Correctif webcam qui ne se fermait pas quand l'humain était trop rapide.
+- Déplacement des fonctions de diffusion internet dans fonctions_metiers.py
+- Implémentation des dossards construits sans latex.
+- Implémentation d'une fonction pour générer les pdf des résultats à partir d'un contenu standardisé, flexible.
+
+Travail du 20/12/24 au 28/12/2024 : (objectif : suppression de latex pour alléger l'application et l'accélérer)
+- capacité à déployer l'application avec cx_freeze.
+- Changements dans run_cgi() de server.py afin d'assurer la compatibilité existante.
+- Génération de QR-codes en png sans latex et intégration à l'existant.
+
+Travail du 28/11/24 :
+- Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.
+- Correctif cas où on veut supprimer un dossard qui n'a pas un prédécesseur direct dans le tableau treeview.
+- séparation des fonctions GUI du lanceur (pour les futures MAJ). Séparation de la config (DEBUG etc...) dans config.py.
+
+Travail du 27/11/24 :
+- correctif poussins en benjamins pour l'UNSS mal implémenté depuis les correctifs du 25/11
+- sécurisation diverses dans le code.
+- arrêt des tentatives FTP si les paramètres sont incomplets.
+
+
+Travail du 26/11/24 :
+- A chaque import, on dump les données vers le disque pour ne pas avoir de perte en cas de plantage de l'application.
+- correctif marges d'impression des dossards UNSS (en bas de page)
+- correctif nombre de pages à imprimer mal arrondi pour les dossards de dernière minute.
+
+Travail du 25/11/24 :
+- Ajout de tous les fichiers log à la demande d'assistance.
+- Correctif case à cocher non fonctionnelle (pour générer le listing noms-dossards).
+- Adaptation pour challenge UNSS règles 2024.
+
+Travail du 24/11/24 :
+- challenge au format portrait pour impressions rapides efficaces.
+- ajout d'espaces insécables dans les challenges pour une plus belle présentation : nom~prénom~(classement)
+- sécurisation de la fonction effectuant le tri des impressions à regénérer dans le cas où la catégorie n'existerait pas dans les deux sexes.
+- impression rapide des résultats plus rapide : on ne compile plus les résultats par classe (cross établissement) ou par établissement (cross UNSS).
+- correctif quand on fermait la fenêtre de l'impression rapide, on n'obtenait pas tous les résultats si le thread n'avait pas terminé. Corrigé.
+
+
+Travail du 21/11/24 :
+- suppression de "from maj import *" problématique avec cx_freeze.
+- icone correctement affichée après installation du MSI.
+- suppression de la dépendance importlib devenue inutile.
+- Détecter l'OS et si c'est windows, si c'est une app distribué ou un script python exécuté.
+- Mode DEBUG=False automatique si application exécutée sur mon ordi; false sinon.
+- Fonctionnalité de détection de l'OS et du caractère exporté (msi ou app mac os)
+
+Travail du 20/11/24 :
+- envoi sur serveur SFTP désormais possible (par défaut) et FTP 
+- correction bug date de naissance non importée.
+- Ajout de paramiko pour serveur SFTP dans setup.py
+- transfert des images de www/media automatiquement, du fichier js et des fichiers css si absents.
+- renommage de index-en-ligne.html en index.html. (Plus logique pour afficher sur un site web standard sans préciser le fichier)
+
+Travail du 18/11/24 :
+- limitation du nombre d'erreurs en cours affichées : 10 maximum (même pour un grand écran).
+- préparatifs création d'un msi pour distribuer le programme.
+- ouverture d'un fichier sous windows via les associations de fichiers.
+- ajout de l'icone au MSI généré.
+
+Travail du 06/11/24 :
+- correctif bug envoi des diplômes (type de variable incorrect dans une comparaison).
+- correctif : tri possible dans l'interface (cela se remettait tout seul dans l'ordre des temps d'arrivée).
+
+Travail du 16/10/24 :
+- correctif pour import le matin des absents et des dispensés depuis un tableur modifié depuis un autre ordinateur.
+
+Travail du 15/10/24 :
+- modification de l'extension de la page index.html -> htm à cause de chrome qui ne le prend plus en compte
+
+
+Travail du 14/10/24 :
+- ajout d'un avertissement en cas de départ annulé.
+- ajout du recalcul lorsque l'on réinitialise les données.
+- application android : régler l'empêchement de la veille sur moins de 9 secondes.
+- on enlève le gras dans les absents-dispensés : cela n'a pas d'intérêt et c'est moche.
+
+
+Travail du 13/10/24 : 
+- implémentation du système de mise à jour à distance via l'interface.
+- implémentation d'un système d'assistance par email.
+- ajout des logs dans la sauvegarde, si présents.
+
+
+Travail du 12/10/24 :
+- création et récupération de sauvegardes chb (tous fichiers zippés dans un seul) implémentée.
+Conservation de la récupération d'anciennes sauvegardes testée : ok.
+Sauvegarde des vidéos dans le fichier de données exporté : ok (sauf pour les sauvegardes auto en cours de course).
+- Lors du réimport d'une sauvegarde, on sauve les vidéos actuellement présentes pour ne pas les perdre. Avant, elles étaient détruites.
+- impression rapide des résultats sans passer par un utilitaire pdf externe. Popup permettant une sélection rapide implémenté.
+
+
+Travail du 11/10/24 :
+- exclusion de certains groupes du challenge par classe paramétrable depuis l'interface.
+- ajout de gsprint pour imprimer en arrière plan les pdf. :-D
+- ajout de l'adresse IP du serveur sur l'écran principal.
+
+
+Travail du 08/10/24 :
+- FAIT Popup "Veuillez patienter" quand on génère des dossards non encore imprimés. Cela permet de comprendre le délai de réaction.
+- CORRECTIF Nom-Prénom qui débordent dans le diplôme si trop longs.
+- CORRECTIF barres verticales multiples dans la zone des départs lors de plusieurs changements de menus.
+- CORRECTIF Actualisation complète de l'interface inutile lors de la modification de l'intitulé d'un groupement.
+
+
+Travail du 07/10/24 :
+- CORRECTIF Envoi du diplome manuel pour un coureur n'était pas effectué si l'envoi auto avait déjà été effectué. L'envoi manuel s'effectue dans tous les cas.
+- CORRECTIF Le paramètre telechargerDonnees n'était pas pris en compte (parenthèses oubliée dans une combinaison de conditions.
+- FAIT les nouveaux paramètres de connectivité sont ajoutés dans l'interface : FTP, diplômes, etc...
+- Captures d'écran dans la documentation pour tenir compte de ces nouveautés.
+
+
+Travail du 06/10/24 : énorme mise à jour pour développer ce qui manque actuellement.
+- FAIT Théo et Alessio sont cités.
+- FAIT Faire en sorte que les inscriptions tardives soient automatiquement importées.
+- FAIT Les combobox permettant de modifier les groupements sont inactivés si le groupement a commencé.
+- FAIT ajout d'une case à cocher pour permettre l'import des saisies sur un formulaire google. Evite trop de téléchargements inutiles.
+Ce réglage est mémorisé à la fermeture pour réapplication à l'ouverture.
+- FAIT Faire en sorte que les inscriptions sur un formulaire google soient automatiquement téléchargées et imprimables :
+	* FAIT couleurs paramétrables par course, alignement à droite des frames de chaque course (plus joli)
+	* FAIT avertissement dans les messages d'avertissement de l'interface que un ou plusieurs dossards n'ont pas été imprimés.
+	* FAIT capacité à ne pas mélanger les dossards qui ne sont pas d'une même couleur sur latex
+	* FAIT capacité d'avertir l'opérateur des couleurs à insérer dans l'imprimante, dans l'ordre.
+- FAIT gain de place sur l'interface en supprimant les challenges de l'affichage possible sur la TV (inutile en pratique)
+- FAIT gain de place sur l'interface en plaçant les départs de courses sur deux colonnes au lieu d'une et en ajoutant un séparateur si besoin.
+- CORRIGE bug si import sans date de naissance alors que cela ne devrait pas être indispensable pour le cross du collège.
+- CORRIGE le bind sur la saisie de certains champs Entry ne s'exécutait qu'à la sortie de ce champ et non à chaque caractère saisi.
+Si on ne quittait pas le champ, la valeur n'était pas mémorisée. Exemple pour les noms de course personnalisés.
+
+
+Travail du 08/01/24 :
+- ajout d'une décimale aux vitesses calculées.
+
+
+Travail du 05/01/24 :
+-correction bug exception non gérée quand on faisait reculer un dossard depuis l'interface GUI.
+- amélioration de la clarté du fichier log d'import de coureurs.
+
+
+Travail du 04/10/24 :
+- correctif import pour les courses manuelles : on fournit soit le champ "course" soit le champ "dossard" mais pas les deux. A documenter.
+- correctif nombre total de coureurs pour le diplome des courses manuelles (n'était pas implémenté).
+- correctif pour que les classes catégories d'âges ne tiennent plus en compte des catégories d'âge "inférieures".
+Un master qui battrait un senior ne déclasse plus le senior d'un rang dans sa catégorie.
+
+
+Travail du 20/11/23 :
+- export vers OPUSS des équipes UNSS qualifiées (créé et interfacé).
+
+
+Travail du 19/11/23 :
+- on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
+- mise en page des absents et dispensés sur 5 colonnes, compactée quand le nom est trop long...
+- suppression des éléments en trop dans les noms d'établissement (pour dossards corrects et affichage lisible) : général et technologique, etc... supprimés.
+
+Travail du 22/10/23 :
+- l'envoi individuel des diplômes est dans un thread. Création d'une barre de bouton pour envois individuels.
+
+
+Travail du 21/10/23 :
+- en cas de réinitialisation des données, efface les fichiers "donneesSmartphone-pique-*.txt"
+- Bonne gestion de l'erreur 601 : smartphone "pique" fonctionnel et documenté.
+
+
+
+Travail du 19/10/23 :
+- empêcher la mise en veille des smartphones, même si le délai de mise en veille est court.
+- chemin relatif vers les images exportées sur serveur www
+- première implémentation des PICS dans Arrivee.pyw et dans chronoHB.apk (création de la case à cocher, ajout de "&pique=true" ssi pique activée.
+
+
+Travail du 18/10/23 :
+- Correctif DecompteParCategorieDAge() + tri par temps des courses du cross.
+- Taille des caractères pour saisie des absents dispensés augmentée uniquement pour le cross du collège.
+- fonction categorieAthletisme() non utile pour le cross du collège. Provoque une sortie à l'écran quand on n'a pas la date de naissance alors que celle-ci est facultative. Corrigé
+
+
+Travail du 17/10/23 :
+- le total des participants sur le diplôme ne tenait compte que des arrivées de la course et non de tous ceux qui ont pris le départ (ni absents, ni dispensés)
+-Affichage correct du menu des résultats en ligne sur deux lignes.
+
+
+Travail du 16/10/23 :
+- checkbox pour absents dispensés, placées à la verticale + ajout d'un cadre autour de chaque frame afin de bien distinguer les cases pour chaque coureur.
+- correctif dans le combobox des diplômes. Le nom du diplome paramétré était celui du dossard. Méchant copier-coller... Corrigé.
+- création d'un menu "Auto-envoi d'un diplôme de test du coureur sélectionné".
+- Lors de la suppression d'un dossard avec l'interface, cela ne remettait pas à 0 les temps, rangs du coureur. Cela créait un décalage dans les rangs des autres coureurs. Corrigé
+
+
+Travail du 15/10/23 :
+- checkbox par 4 dans la zone des départs et dans celle de l'affichage TV.
+- dépôt FTP automatisé.
+- sur le fichier des résultats en ligne : ne pas afficher le chronomètre quand la date est passée.
+- suppression de la boite de dialogue lors de l'impression d'un dossard individuel.
+- les classes importées sont des chaines de caractère (à Bourrillon) et non des float.
+- le dossard du cross du collège doit comporter le groupement.
+- correctif pdf de statistiques non fonctionnel
+- correctif chronomètre non fonctionnel si course en cours.
+- correctif affichage challenge collège sur la TV : calculait avec le score UNSS même en mode cross HB
+- correctif pdf généré pour le challenge du cross HB.
+- Vitesse finalement arrondie à l'entier le plus proche en km/h
+- correctif dans le pdf d'une classe, tri alphabétique restauré pour le cross HB.
+
+
+Travail du 14/10/23 :
+- ajout du pourcentage de VMA dans le diplôme, si pertinent.
+- correctif comptage du nombre d'emails envoyés vers email et vers email2.
+
+
+Travail du 13/10/23 :
+- checkbox implémentées pour les dispensés et absents. Il est désormais possible d'être dispensé et absent en même temps!
+Import fonctionnel, les statistiques considèreront avant tout le statut de dispensé.
+
+
+Travail du 12/10/23 :
+- correction bug delArriveeDossard : suppression impossible suite au passage aux dossards NG (le dossard "0" aurait dû être transformé en "0A" suite au nouveau formatage).
+- implémentation de l'envoi par plusieurs emails (pour dépasser la limite de 500 mails par jour).
+Gestion automatique des emails envoyés depuis une boite donnée dans la limite fixée. Fonctionnel.
+
+
+Travail du 08/10/23 :
+- document HTML généré pour affichage non défilant en ligne.
+
+
+Travail du 07/10/23 :
+- affichage des temps sur le diplome au format MM:SS si inférieur à 1H.
+
+
+Travail du 06/10/23 :
+- correctif bug si nom ou prénom ou sexe non présents.
+- correctif bug import si sexe="M" ("G" imposé en interne).
+- ajout du support de l'email2 (import, modification dans l'interface).
+- correctif interface de modification d'un coureur : les boutons n'apparaissaient plus en mode Parametre["CategorieDAge"]==0.
+
+
+Travail du 04/01/23 :
+- correctif bug import pour le cross du collège lié au fait que DictionnaireDeCoureurs traitait la catégorie d'âge 
+alors que la date de naissance n'est pas obligatoire lors de l'import pour le cross du collège.
 
 
 Travail du 16/09/23 :
