@@ -7891,6 +7891,32 @@ def genereChainePourOPUSS(challenge, nombreQualifies) :
 
 #### fin cross UNSS
 
+# Import de données au format varié : post 2025
+def renommerEnTetesSiBesoin(donneesBrutes) :
+    '''Fonction ayant pour vocation de modifier la première ligne (uniquement de donneesBrutes).
+    Elle modifiera les chaines de caractères de cette ligne afin de correspondre au formar originel de chronoHB.
+    Elle sera capable de reconnaître divers formats de données issus de divers types de fichiers : 
+    export OPUSS UNSS, export peyce = miles republic'''
+    dictOPUSS = {"nom":"Nom","prénom":"Prénom","sexe":"Sexe","classe":"Classe","naissance":"Naissance","course":"Course","établissement":"Etablissement","type":"Type"}
+    dictPeyce = {"nom":"Nom","prénom":"Prénom","sexe":"Sexe","classe":"Classe","naissance":"Naissance","course":"Course","établissement":"Etablissement","type":"Type"}
+    TypesEnTetes = [dictOPUSS, dictPeyce]
+    dictIdentifie = {}
+    for dictionnaire in TypesEnTetes :
+        # on parcourt chaque entrée du dictionnaire afin de voir si celle-ci est présente dans donneesBrutes[0].
+        # si c'est le cas, on a trouvé le type de fichiers qu'on nommera dictIdentifie puis break
+        toutesLesClesTrouvees = True
+        for entete in dictionnaire.keys() :
+            if entete not in donneesBrutes[0] :
+                toutesLesClesTrouvees = False
+                break
+        if toutesLesClesTrouvees :
+            dictIdentifie = dictionnaire
+            break
+    # si possible, on remplace chaque entree de donneesBrutes[0] par la valeur présente dans dictIdentifie
+    for val in donneesBrutes :
+        if val in dictIdentifie.keys() :
+            donneesBrutes[0][val] = dictIdentifie[val]
+    return donneesBrutes
 
 #### Import des données nouvelle génération (post 2022) à tester...
 def traitementDesDonneesAImporter(donneesBrutes) :
@@ -7899,6 +7925,7 @@ def traitementDesDonneesAImporter(donneesBrutes) :
     Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
     i=0
     #retour= False
+    renommerEnTetesSiBesoin(donneesBrutes)
     BilanCreationModifErreur = [0,0,0,0] # nbres de [création, modif, erreurs, identiques]
     for row in donneesBrutes:
         if i == 0 :
