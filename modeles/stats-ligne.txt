@@ -1,0 +1,2 @@
+@classe   &    @FArr   &    @GArr   &    @FD   &    @GD   &    @FAba   &    @GAba   &    @FAbs   &    @GAbs   &   @moy   &   @med    \\
+\hline

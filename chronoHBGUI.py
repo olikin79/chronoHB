@@ -2794,7 +2794,7 @@ def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCour
             listErreursEnCoursTronquee = listErreursEnCours
         if listErreursEnCours :
             for grp in listErreursEnCoursTronquee :
-                    lblFrE = Frame(zoneAffichageErreurs)
+                    # lblFrE = Frame(zoneAffichageErreurs)
                     #lblLegende = Label(lblFrE, text= " : ")
                     #print("bouton avec commande : onClick(",grp,")")
                     errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
@@ -3638,11 +3638,16 @@ class Clock():
         # on procède de même par un ménage.
         i = len(self.erreursEnCoursNumeros) - 1
         erreur190DejaRencontree = False
+        erreur462DejaRencontree = False
+        indiceErreur462DejaRencontree = -1
         while i >= 0 :
             # on supprime l'erreur 331 des erreurs précédentes
             if self.erreursEnCoursNumeros[i] in [331, 601, 190] :
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
+            elif self.erreursEnCoursNumeros[i] == 462 and not erreur462DejaRencontree :
+                erreur462DejaRencontree = True
+                indiceErreur462DejaRencontree = i
             # # on supprime l'erreur 190 uniquement si on l'a actualisée (càd qu'on l'a déjà rencontrée lors du parcours à rebours)
             # elif self.erreursEnCoursNumeros[i] == 190 :
             #     if erreur190DejaRencontree :
@@ -3652,14 +3657,33 @@ class Clock():
             #         erreur190DejaRencontree = True
             i -= 1
 
-        for erreur in listeNouvellesErreursATraiter :
+        indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter = -1
+        for n, erreur in enumerate(listeNouvellesErreursATraiter) :
             ajout = False
-            if not erreur.numero in [0, 311, 312, 321, 340, 401, 411, 441, 451]:
+            if not erreur.numero in [0, 311, 312, 321, 340, 401, 411, 441, 451, 462]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
                 ajout = True
             ### si c'est une erreur 401, qui a été corrigée, on l'ignore également.
             ### Le traitement strictement chronologique des fichiers de données impose ce post-traitement dans ce seul cas.
                 #print("Nombre de dossards", erreur.dossard ,":",ArriveeDossards.count(erreur.dossard))
+            elif erreur.numero == 462 :
+                # print("erreur462DejaRencontree", erreur462DejaRencontree)
+                # cas des dossards RFID détectés avant le lancement de leurs courses. Avertissement unique pour les dossards concernés.
+                # on met tous les dossards dans la première erreur, qui sera la seule conservée, pour un affichage unique qui concerne tous les coureurs dans ce cas.
+                if erreur462DejaRencontree :
+                    # on ajoute l'information à la bonne liste
+                    if indiceErreur462DejaRencontree >= 0 :
+                        # l'erreur a déjà été rencontrée dans self.erreursEnCours, on alimente self.erreursEnCours[indiceErreur462DejaRencontree] avec le dossard de l'erreur rencontrée.
+                        AlimenteErreur462(self.erreursEnCours[indiceErreur462DejaRencontree], erreur)
+                    else :
+                        # l'erreur n'a pas été rencontrée dans self.erreursEnCours mais dans listeDesNouvellesErreursATraiter, on alimente au bon endroit
+                        AlimenteErreur462(listeNouvellesErreursATraiter[indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter], erreur)
+                else :
+                    # print("Première rencontre de l'erreur 462", erreur462DejaRencontree)
+                    # on ajoute l'erreur à la liste des erreurs en cours
+                    erreur462DejaRencontree = True
+                    indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter = n
+                    ajout = True
             elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
                 ajout = True
             ## alimentation de la liste complète des erreurs à afficher de façon effective.
@@ -3674,7 +3698,7 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
-        print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
+        # print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
 
@@ -3686,6 +3710,9 @@ class Clock():
             self.affichageDeDroiteAActualiser = False
             self.dejaDesErreurs = bool(self.erreursEnCours)
 
+def AlimenteErreur462(Erreur462DejaRencontree, erreur462) :
+    print("AlimenteErreur462Precedente")
+    Erreur462DejaRencontree.addCoureurEtDossard(erreur462.coureurs, erreur462.listeDesDossardsConcernes)
 
 # pour compatibilité ascendante avec les anciennes sauvegardes
 # ajout d'une méthode pour dénombrer les effectifs pour les diplomes

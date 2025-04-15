@@ -799,11 +799,13 @@ class DictionnaireDeCoureurs(dict) :
 
 class Erreur():
     """ Une erreur de chronoHB"""
-    def __init__(self, numero, courteDescription="", elementConcerne="", listeDesDossardsConcernes=[], smartphone=0):
+    def __init__(self, numero, courteDescription="", elementConcerne="", listeDesDossardsConcernes=[], smartphone=0, listeDesEpc=[], coureurs=[]):
         self.numero = numero
         self.description = courteDescription
         self.listeDesDossardsConcernes = listeDesDossardsConcernes
         self.smartphone = smartphone
+        self.listeDesEpc = listeDesEpc
+        self.coureurs = coureurs
         if isinstance(elementConcerne,str) : # c'est un dossard.
             self.dossard = elementConcerne
             self.temps = 0.0
@@ -813,8 +815,48 @@ class Erreur():
         else :
             self.dossard = "0A"
             self.temps = 0.0
+        if numero == 462 : # erreur 462 : on doit avoir au moins un dossard et un coureur.
+            self.actualiseDescription462()
+    def addCoureurEtDossard(self, coureurs, listeDesDossardsConcernes) :
+        """ ajoute un dossard à la liste des dossards concernés par l'erreur"""
+        for n, dossard in enumerate(listeDesDossardsConcernes) :
+            doss = formateDossardNG(dossard)
+            if doss not in self.listeDesDossardsConcernes :
+                self.listeDesDossardsConcernes.append(doss)
+                self.coureurs.append(coureurs[n])
+                if self.numero == 462 : # erreur 462 : on doit avoir au moins un dossard et un coureur.
+                    self.actualiseDescription462()
+    def actualiseDescription462(self) :
+        """ modifie la description de l'erreur 462"""
+        if len(self.listeDesDossardsConcernes)> 1 :
+            self.description = "Les coureurs "
+            verbe = "ont été détectés"
+            article = "leur"
+        else :
+            self.description = "Le coureur "
+            verbe = "a été détecté"
+            article = "sa"
+
+        for n, dossard in enumerate(self.listeDesDossardsConcernes) :
+            if n < 4 :
+                coureur = self.coureurs[n]
+                self.description += coureur.nom + "(" + dossard + ")"
+                if n < len(self.listeDesDossardsConcernes) - 1 :
+                    self.description += ", "
+                else :
+                    self.description += " "
+            elif n == 4 :
+                self.description += "etc "
+        self.description += verbe + "\n par une antenne alors que " + article + " course n'est pas encore partie."
+    def setEPC(self, epc) :
+        """ ajoute un EPC à la liste des EPC concernés par l'erreur"""
+        if epc not in self.listeDesEpc :
+            self.listeDesEpc.append(epc)
     def affiche(self) :
-        print("Erreur", self.numero, ":", self.description, "pour le dossard", self.dossard, "avec le temps", self.temps)
+        if self.listeDesEpc :
+            print("Erreur", self.numero, ":", self.description, "pour les TAG RFID", self.listeDesEpc, ".")
+        else :
+            print("Erreur", self.numero, ":", self.description, "pour le dossard", self.dossard, "avec le temps", self.temps)
 
 
 class ErreursATraiter():
@@ -3032,6 +3074,16 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
         print("Traitement RFID", ligne, "dossard=", dossard)
         if not dossard :
             return Erreur(340, courteDescription="Dossard non trouvé pour l'EPC " + listeAction[2], elementConcerne=listeAction[2])
+        else :
+            dossard = formateDossardNG(dossard)
+            # si le coureur ayant ce dossard fait partie d'une course dont le départ n'a pas été donné,
+            # on utilise l'erreur 462 afin de créer un affichage temporaire dédié.
+            coureur = Coureurs.recuperer(dossard)
+            groupementAPartirDeSonNom(coureur.course, nomStandard = True)
+            if coureur.course and not Courses[coureur.course].depart :
+                err = Erreur(462, courteDescription="", elementConcerne=dossard, listeDesDossardsConcernes=[dossard], coureurs=[coureur])
+                err.actualiseDescription462()
+                return err
     else :
         dossard = formateDossardNG(str(listeAction[2]))
     if dossard != "-1A" and dossard != "0A" : # si le dossard est différent de 0 ou -1, il faudra regénérer un pdf d'une course.
@@ -6553,7 +6605,7 @@ def calculeTousLesTemps(reinitialise = False):
         print("on REINITIALISE")
         # print(globals())
         if 'tableau' in globals() :
-            tableau.delTreeviewFrom(ligneTableauGUI[0])
+            globals()['tableau'].delTreeviewFrom(ligneTableauGUI[0])
             print("on efface treeview jusqu'à la ligne",ligneTableauGUI[0])
     i = Parametres["positionDansArriveeTemps"]
     j = Parametres["positionDansArriveeDossards"]

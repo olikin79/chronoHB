@@ -1,17 +1,18 @@
 FAIT pour le raspberry pi :
-- mise à jour système automatisée (unattended).
+
 
 A FAIRE pour le raspberry pi :
-- script de mise à jour de l'application automatisé.
+- (FAIT) mise à jour système automatisée (unattended).
+- (FAIT) script de mise à jour de l'application app_raspberry4.py automatisé par un autre script au démarrage.
 - montage effectif dans la boite.
-- terminer app_raspberry.py :
+- terminer app_raspberry4.py :
 	* (FAIT) renvoi des données en cas de déconnexion.
 	* (FAIT)
-	* réglage WIFI à corriger.
-	* Renvoyer toutes les données vers le serveur (à implémenter)
+	* (EN COURS) réglage WIFI à corriger.
+	* (A TESTER) Renvoyer toutes les données vers le serveur
 	* mise à jour logicielle chronoHB.
 	* Assistance à distance (VPN).
-	* Etat des antennes : si données reçues depuis le dernier allumage.
+	* (A TESTER) Etat des antennes : si données reçues depuis le dernier allumage.
 
 BUGS DECOUVERTS :
 1. tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
@@ -29,7 +30,7 @@ DEVELOPPEMENTS AVANT VENTE
 - limitations logicielles dans la version de test à créer : import limité à 20 coureurs.
 - processus de mise à jour à rendre plus simple :
 1. pour le msi distribué (fichiers python compilés distribués).
-2. pour gérer des versions majeures-mineures, sans tout retélécharger à chaque mise à
+2. pour gérer des versions majeures-mineures, sans tout retélécharger à chaque mise à jour
 - mise en place d'un site internet avec : 
 1. page de contact (renseignement achat, signalement de bug via le logiciel).
 2. page de présentation dont vidéos d'explication du fonctionnement + documentation détaillée.
@@ -37,22 +38,25 @@ DEVELOPPEMENTS AVANT VENTE
 
 
 PERSPECTIVES DEVELOPPEMENTS RFID (dans l'ordre)
-- tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
-- création d'une interface minimale sur le raspberry pi
+- (EN COURS) tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
+- (EN COURS) création d'une interface minimale sur le raspberry pi
+- (EN COURS) filtrage sur chronoHB des puces RFID détectées avant le lancement de la course du coureur.
+Création d'une erreur dédiée qui disparaitra au clic après un popup d'explication.
 - prévoir une interface (html ? ou sur le raspberry pi avec vnc) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
  d'ajouter un coureur ou un temps.
 En attendant une solution pleinement HTML, étudier la possibilité d'utiliser le mode pique en ajoutant un bouton pour réinitialiser ?
-- fabrication du matériel : gabarit, batterie, écran, boitier étanche à la pluie, bouton d'allumage.
+- (FAIT) fabrication du matériel : gabarit, batterie, écran, boitier étanche à la pluie, bouton d'allumage.
 
 #### Pour le trail de Rieutort de mai 2025 :
 - Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
-
+- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué.
 
 
 #### Pour le cross du collège 2025 :
 - (FAIT) refaire les diplomes HB 2023, 2024 au nouveau format.
-- terminer la création de tous les pdf sans texlive (dossards compris)
-- Gérer les noms de famille très longs sur les diplomes.
+- (FAIT) terminer la création de tous les pdf sans texlive (dossards compris)
+- Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
+En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
 - l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
 et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
 
