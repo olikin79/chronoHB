@@ -2727,12 +2727,13 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
     fichierDonneesSmartphone = "donneesSmartphone.txt"
     fichierDonneesRFID = "donneesRFID.txt"
     fichierDonneesLocales = "donneesModifLocale.txt"
-    listeDesFichiersAAnalyser = [fichierDonneesSmartphone, fichierDonneesRFID, fichierDonneesLocales]
+    listeDesFichiersPique = glob.glob("donneesSmartphone-pique-*.txt")
+    listeDesFichiersAAnalyser = [fichierDonneesSmartphone, fichierDonneesRFID, fichierDonneesLocales] + listeDesFichiersPique
 
     # on récupère les données des fichiers à traiter
     listeDesDonneesATraiter = []
     listeDesTpsServeurDesPremiersElements = []
-    listeLignesDerniereRecuperation = Parametres["ligneDerniereRecuperation"]
+    listeLignesDerniereRecuperation = Parametres["ligneDerniereRecuperation"] + [1]*len(listeDesFichiersPique)
     
     listeDerniereModifFichierDonnees = [] # #[derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID), derniereModifFichierDonnneesLocalesRecente(fichierDonneesLocales)]
     for i, fichier in enumerate(listeDesFichiersAAnalyser) :
@@ -2764,16 +2765,22 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         print("listeDerniereModifFichierDonnees",listeDerniereModifFichierDonnees)
         print("listeDesTpsServeurDesPremiersElements", listeDesTpsServeurDesPremiersElements)
         print("listeDesDonneesATraiter", listeDesDonneesATraiter)
+    # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
+    dernierDossardDeLaPiquePresentDansArriveeDossards = {}
     while poursuivre :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
         indiceMin = IndiceDuPlusPetitNombreNonNul(listeDesTpsServeurDesPremiersElements)
         RFIDtag = "RFID" in listeDesFichiersAAnalyser[indiceMin]
         LocalTag = "Locale" in listeDesFichiersAAnalyser[indiceMin]
+        if "pique" in listeDesFichiersAAnalyser[indiceMin] :
+            PiqueTag = indiceMin
+        else :
+            PiqueTag = 0
         # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
         ligne = listeDesDonneesATraiter[indiceMin].pop(0)
         if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, RFID=RFIDtag)
+            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, RFID=RFIDtag, pique=PiqueTag, dernierDossardDeLaPiquePresentDansArriveeDossards=dernierDossardDeLaPiquePresentDansArriveeDossards)
             if codeErreur.numero :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
@@ -2807,8 +2814,9 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
     # Parametres["tempsDerniereRecuperationLocale"] = time.time()
     # Parametres["tempsDerniereRecuperation"] = [time.time(), time.time(), time.time()]
 
+    # Finalement, on traite les données des piques si elles existent comme les autres fichiers pour être certain d'une cohérence des données au redémarrage.
     # on traite les données des piques après coup
-    retour += traiterDonneesSmartphonePiques()
+    # retour += traiterDonneesSmartphonePiques()
     # print("retour traitement", retour)
     return retour 
 
@@ -2897,6 +2905,66 @@ def traiterDonneesSmartphonePiques():
         #     print("Fichier pique", fichier, "déjà traité à cette heure")
     return retour
 
+
+def traiterDonneesSmartphonePiquesNG():
+    """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
+        - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
+            Chaque fichier modifié correspond à un téléphone émetteur.
+            Le principe d'insertion des dossards dans arriveeDossard est le suivant : 
+
+            Implémentation :
+            Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
+                - si un dossard est présent dans la liste ArriveeDossards, il faut intégrer les dossards qui suivent dans le tableau ArriveeDossard juste derrière, tant qu'elles ne sont pas déjà dans ArriveeDossard
+                - si le premier dossard de la pique n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
+                Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
+                retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+                - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
+    """
+    listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+    if not "DerniereRecuperationSmartphonePiques" in Parametres :
+        Parametres["DerniereRecuperationSmartphonePiques"] = {}
+    retour = []
+    for fichier in listeFichiersPiques :
+        listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
+        if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
+            print("Fichier pique", fichier, "modifié récemment")
+            try :
+                premierDossardDeLaPique = listeLigne[0].split(",")[2]
+            except :
+                premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
+            if premierDossardDeLaPique in ArriveeDossards :
+                print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
+                dossardPrecedent = premierDossardDeLaPique
+                for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
+                    ligneT = ligne.split(",")
+                    action = ligneT[1]
+                    if action == "add" :
+                        ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
+                    nouvelle_ligne = ",".join(ligneT)
+                    print("Ligne en cours de traitement", nouvelle_ligne)
+                    codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
+                    if codeErreur.numero :
+                        print("Code erreur :", codeErreur.numero)
+                        print(nouvelle_ligne)
+                    # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
+                    retour.append(codeErreur)
+                    dossardPrecedent = ligneT[2]
+                Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
+            else :
+                noSmartphone = fichier[24:-4]
+                listeDossardsPique = []
+                for ligne in listeLigne :
+                    listeDossardsPique.append(ligne.split(",")[2])
+                if DEBUG :
+                    print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
+
+                erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
+                retour.append(erreur)
+                # print("Code erreur :", erreur.numero, erreur.description)
+            
+        # else :
+        #     print("Fichier pique", fichier, "déjà traité à cette heure")
+    return retour
 
 def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
     """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
@@ -3062,7 +3130,7 @@ def associe_dossard_epc(dossard, epc):
         print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")
         return False
 
-def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False) :
+def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False, pique=0, dernierDossardDeLaPiquePresentDansArriveeDossards={}) :
     ### A priori, UIDPrecedents est inutile car les doublons seront gérés par les instances de ArriveeDossards, ArriveeTemps, etc...
     ### A supprimer plus tard, quand les courses à étapes seront implémentées définitivement.
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
@@ -3165,7 +3233,15 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             UIDPrecedents[uid]=[]
         if not noTransmission in UIDPrecedents[uid] :
             if action == "add" :
-                retour = addArriveeDossard(dossard, dossardPrecedent)
+                if pique :
+                    # si le dossard est déjà présent dans la liste des arrivées, on ne l'ajoute pas. On le met juste à jour.
+                    if dossard in ArriveeDossards :
+                        dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)] = dossard
+                    else :
+                        # on ajoute le dossard juste après celui mémorisé dans ArriveeDossards
+                        retour = addArriveeDossard(dossard, dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)])
+                else :
+                    retour = addArriveeDossard(dossard, dossardPrecedent)
             elif action =="del" :
                 retour = delArriveeDossard(dossard, dossardPrecedent)
             else :
@@ -7897,25 +7973,48 @@ def renommerEnTetesSiBesoin(donneesBrutes) :
     Elle modifiera les chaines de caractères de cette ligne afin de correspondre au formar originel de chronoHB.
     Elle sera capable de reconnaître divers formats de données issus de divers types de fichiers : 
     export OPUSS UNSS, export peyce = miles republic'''
-    dictOPUSS = {"nom":"Nom","prénom":"Prénom","sexe":"Sexe","classe":"Classe","naissance":"Naissance","course":"Course","établissement":"Etablissement","type":"Type"}
-    dictPeyce = {"nom":"Nom","prénom":"Prénom","sexe":"Sexe","classe":"Classe","naissance":"Naissance","course":"Course","établissement":"Etablissement","type":"Type"}
-    TypesEnTetes = [dictOPUSS, dictPeyce]
-    dictIdentifie = {}
-    for dictionnaire in TypesEnTetes :
-        # on parcourt chaque entrée du dictionnaire afin de voir si celle-ci est présente dans donneesBrutes[0].
-        # si c'est le cas, on a trouvé le type de fichiers qu'on nommera dictIdentifie puis break
-        toutesLesClesTrouvees = True
-        for entete in dictionnaire.keys() :
-            if entete not in donneesBrutes[0] :
-                toutesLesClesTrouvees = False
+    try :
+        if DEBUG :
+            print(donneesBrutes[0])
+        dictPeyce = {"Nom de famille":"nom",
+                    "Prénom":"prénom",
+                    "Genre":"sexe",
+                    "Date de naissance":"naissance",
+                    "Course":"course",
+                    "Email":"email",
+                    "Licence":"licence"}
+        dictOPUSS = {"Nom":"nom",
+                    "Prénom":"prénom",
+                    "N° Licence":"licence",
+                    "Cat":"cat",
+                    "Date naiss.":"naissance",
+                    "Nom étab.":"établissement",
+                    "Type étab.":"type"}
+        TypesEnTetes = [dictOPUSS, dictPeyce]
+        dictIdentifie = {}
+        for dictionnaire in TypesEnTetes :
+            # on parcourt chaque entrée du dictionnaire afin de voir si celle-ci est présente dans donneesBrutes[0].
+            # si c'est le cas, on a trouvé le type de fichiers qu'on nommera dictIdentifie puis break
+            toutesLesClesTrouvees = True
+            for entete in dictionnaire.keys() :
+                if entete not in donneesBrutes[0] :
+                    toutesLesClesTrouvees = False
+                    break
+            if DEBUG :
+                print("clés", dictionnaire.keys(), "toutesLesClesTrouvees", toutesLesClesTrouvees)
+                print("dans", donneesBrutes[0])
+            if toutesLesClesTrouvees :
+                dictIdentifie = dictionnaire
                 break
-        if toutesLesClesTrouvees :
-            dictIdentifie = dictionnaire
-            break
-    # si possible, on remplace chaque entree de donneesBrutes[0] par la valeur présente dans dictIdentifie
-    for val in donneesBrutes :
-        if val in dictIdentifie.keys() :
-            donneesBrutes[0][val] = dictIdentifie[val]
+        # si possible, on remplace chaque entree de donneesBrutes[0] par la valeur présente dans dictIdentifie
+        if DEBUG :
+            print("dictIdentifie", dictIdentifie)
+        for i, val in enumerate(donneesBrutes) :
+            if val in dictIdentifie.keys() :
+                print("entrée", val , "remplacée par", dictIdentifie[val])
+                donneesBrutes[0][i] = dictIdentifie[val].lower()
+    except Exception as e :
+        print("Erreur dans la fonction renommerEnTetesSiBesoin", e)
     return donneesBrutes
 
 #### Import des données nouvelle génération (post 2022) à tester...
