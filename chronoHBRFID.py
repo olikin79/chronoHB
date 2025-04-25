@@ -453,7 +453,8 @@ class Popup(tk.Toplevel):
         Cela affecterait toutes les puces dans l'ordre des dossards en incrémentant les puces avec la méthode incremente_epc.
         """
         self.dossardEnAttenteDeDetection = ""
-        self.epcEnAttenteDeDetection = ""
+        self.epcEnAttenteDeDetection = False
+        self.epcInitialementDetecte = ""
         # label d'information
         # label = tk.Label(frame, text="Affecter des puces RFID aux dossards en masse :", justify="left")
         # label.grid(row=0, column=0, columnspan=2, sticky="w")
@@ -514,7 +515,8 @@ class Popup(tk.Toplevel):
             if self.epcActuel :
                 print("Affectation en masse de ", nbreDossards, " dossards à partir de ", self.dossardActuel, " avec la puce RFID ", self.epcActuel)
                 # on récupère le numéro de la dernière puce RFID à affecter
-                self.epcEnAttenteDeDetection = self.increment_epc(self.epcActuel, nbre=nbreDossards-1)
+                self.epcEnAttenteDeDetection = True
+                self.epcInitialementDetecte = self.epcActuel
                 # on affiche un popup demandant de passer le dernier dossard du rouleau devant l'antenne
                 # on récupère le numéro de dossard détecté par l'antenne
                 self.dossardEnAttenteDeDetection = self.increment_dossard(self.dossardActuel, nbre=nbreDossards-1)
@@ -719,8 +721,12 @@ Le test pourra être réinitialisé par un bouton dédié."""
                         for tag in tags :
                             info = extractionDonneesDUnTagRFID(tag, reader_name)
                             # on vérifie si l'EPC scanné est bien celui attendu
-                            if self.epcEnAttenteDeDetection and info["epc"] == self.epcEnAttenteDeDetection :
-                                print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection)
+                            # la fonction suivante permet d'éliminer des caractères en trop dans les puces commandées sur aliexpress
+                            # en détectant à quel rang se situe l'incrémentation hexadécimale
+                            epcActuelTronque, increment = self.detecteRangHexadecimal(info['epc'], int(self.nbreDossards.get()))
+                            if epcActuelTronque :
+                                self.epcActuel = epcActuelTronque
+                                print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection, self.epcInitialementDetecte)
                                 # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
                                 dossardInitial = self.dossardActuel
                                 epcInitial = self.epcActuel
@@ -728,13 +734,13 @@ Le test pourra être réinitialisé par un bouton dédié."""
                                     print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
                                     associe_dossard_epc(self.dossardActuel, self.epcActuel)
                                     self.dossardActuel = self.increment_dossard(self.dossardActuel)
-                                    self.epcActuel = self.increment_epc(self.epcActuel)
+                                    self.epcActuel = self.increment_epc(self.epcActuel, nbre=increment)
                                 # on indique la réussite de l'opération
                                 message = "Tous les dossards entre " + dossardInitial + " et " + self.increment_dossard(self.dossardActuel, nbre=-1) +" ont été affectés des puces RFID du rouleau entre " + epcInitial + " et " + self.increment_epc(self.epcActuel, nbre=-1) + "."
                                 bonDossardDetecte = True
                                 break
                         if not bonDossardDetecte :
-                            message = "Détection de puce(s) RFID non attendue : " + str([extractionDonneesDUnTagRFID(tag, reader_name)["epc"] for tag in tags]) + " au lieu de " + self.epcEnAttenteDeDetection + " pour le dossard " + self.dossardEnAttenteDeDetection
+                            message = "Détection de puce(s) RFID non attendue : " + str([extractionDonneesDUnTagRFID(tag, reader_name)["epc"] for tag in tags]) + " au lieu de celle attendue pour le dossard " + self.dossardEnAttenteDeDetection + " sachant que le dossard initial est " + self.epcInitialementDetecte + " et qu'il y en a " + str(self.nbreDossards.get())
                         # on ferme self.popup
                         self.popup.destroy()
                         print(message)
@@ -893,6 +899,35 @@ Le test pourra être réinitialisé par un bouton dédié."""
             # Afficher la ligne contenant l'erreur
             print("Erreur lors du traitement des données reçues par le popup de configuration RFID : ", e)
             traceback.print_exc()
+
+    def detecteRangHexadecimal(self, epcDetecteALInstant, nbreDossards) :
+        if self.epcEnAttenteDeDetection :
+            # and epcDetecte == self.epcEnAttenteDeDetection :
+            # parfois, les puces contiennent des caractères alphanumériques à la fin inutiles pour les différencier.
+            # en incrémentant les numéros à partir d'un certain nombre de caractères en élminant les derniers à droite,
+            # on obtient la liste incrémentée.
+            epcDetecteTronque = False
+            increment=0
+            longueurMin = min(len(epcDetecteALInstant), len(self.epcInitialementDetecte))
+            epcInitialementDetecteTronque = self.epcInitialementDetecte[:longueurMin]
+            epcDetecteALInstantTronque = epcDetecteALInstant[:longueurMin]
+            # on poursuit la recherche tant que :
+            # - qu'on n'a pas encore trouvé où tronquer : epcDetecteTronque est alors faux.
+            # - les chaines sont non vides, 
+            # - qu'elles sont différentes (si elles sont égales, c'est qu'on a trop tronqué)
+            while not epcDetecteTronque and epcInitialementDetecteTronque and epcInitialementDetecteTronque!= epcDetecteALInstantTronque :
+                if self.increment_epc(epcInitialementDetecteTronque, nbre=nbreDossards-1) == epcDetecteALInstantTronque :
+                    # on vient de trouver où tronquer
+                    epcDetecteTronque = epcDetecteALInstantTronque
+                    increment = nbreDossards-1
+                elif self.increment_epc(epcInitialementDetecteTronque, nbre=-nbreDossards+1) == epcDetecteALInstantTronque :
+                    # on vient de trouver où tronquer dans l'ordre inverse de la bande
+                    epcDetecteTronque = epcDetecteALInstantTronque
+                    increment = -nbreDossards+1
+                # self.increment_dossard(epcInitialementDetecteTronque, nbre=nbreDossards-1)
+            return epcDetecteTronque,increment
+        else :
+            return False,0
 
     def insererDansListeTriee(self, liste, element):
         """Insère un élément dans une liste triée de dossards (au format "123A" : un entier suivi d'une lettre) en conservant l'ordre des dossards :
