@@ -1,19 +1,67 @@
-FAIT pour le raspberry pi :
+Avant le 02 mai : test de course APPN :
+- association des dossards aux EPC de tests : 
+	* reste à tester le cas où les numéros sont à l'envers (à tester)
+	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse 
+- blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
+- préparer les dossards de test
+
+A faire avant le trail du 18 mai 2024 :
+- associer les dossards aux puces EPC
+- régler la puissance d'émission de l'antenne
+- (A TESTER) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
+en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui, ce serait comme une deuxième pique ?
+- recherche du serveur chronoHB sur le réseau local à faire en broadcast.
+- Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
+- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
+
+A faire avant les vacances de juillet :
+- commander les 800 dossards pour le cross du collège,
+- commander 1000 puces RFID autocollantes.
+- commander épingles à nourrice ?
+
+A faire avant début octobre 2025 :
+- commander 
+	* un long cable d'antenne : 10 mètres
+	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
+- import de la base du collège,
+- coller les 720 puces sur les 720 premiers dossards.
+- association des 720 puces aux 720 premiers dossards.
+
+A faire avant le cross du collège Bourrillon :
+- plusieurs antennes fonctionnelles et mode "antenne secondaire" à rendre fonctionnel (identique au mode pique ?).
+- Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
+En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
+- l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
+et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
+- 2ème malette à créer ?
+
+A faire à plus long terme pour un prochain cross du collège ?
+- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? Pourrait devenir utile à terme.
+- implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
+- (FAIT) installeur à terminer
+- possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
+- horodater les logs. Cela pourra être utile en cas de souci.
+- déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
+- refaire la capture d'écran de la page principale sur la documentation p 15.
+- deplacer les fichiers du serveur web dans www
+- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
+
 
 
 A FAIRE pour le raspberry pi :
 - (FAIT) mise à jour système automatisée (unattended).
 - (FAIT) script de mise à jour de l'application app_raspberry4.py automatisé par un autre script au démarrage.
-- montage effectif dans la boite.
+- (FAIT) montage effectif dans la boite.
 - terminer app_raspberry4.py :
 	* (FAIT) renvoi des données en cas de déconnexion.
 	* (FAIT)
 	* (EN COURS) réglage WIFI à corriger.
-	* (A TESTER) Renvoyer toutes les données vers le serveur
+	* (FAIT) Renvoyer toutes les données vers le serveur
 	* mise à jour logicielle chronoHB.
 	* Assistance à distance (VPN).
-	* (A TESTER) Etat des antennes : si données reçues depuis le dernier allumage.
+	* (OK pour Antenne 1) Etat des antennes : si données reçues depuis le dernier allumage.
 
+#######################################################
 BUGS DECOUVERTS :
 1. tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
 Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
@@ -24,6 +72,7 @@ Aucun ajout de temps ne pouvait fonctionner les jours suivants.
 
 
 DEVELOPPEMENTS AVANT VENTE
+- (MANQUE LES DOSSARDS) terminer la création de tous les pdf sans texlive (dossards compris)
 - processus de mise à jour avec contrôle du paiement.
 - dossards à rétablir avec la création de pdf sans texlive.
 - sortir tous les fichiers de données du dossier d'installation.
@@ -38,29 +87,14 @@ DEVELOPPEMENTS AVANT VENTE
 
 
 PERSPECTIVES DEVELOPPEMENTS RFID (dans l'ordre)
-- (EN COURS) tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
-- (EN COURS) création d'une interface minimale sur le raspberry pi
-- (EN COURS) filtrage sur chronoHB des puces RFID détectées avant le lancement de la course du coureur.
+- (FAIT) tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
+- (FAIT) création d'une interface minimale sur le raspberry pi
+- (EN COURS : manque la disparition après un certain temps) filtrage sur chronoHB des puces RFID détectées avant le lancement de la course du coureur.
 Création d'une erreur dédiée qui disparaitra au clic après un popup d'explication.
 - prévoir une interface (html ? ou sur le raspberry pi avec vnc) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
  d'ajouter un coureur ou un temps.
 En attendant une solution pleinement HTML, étudier la possibilité d'utiliser le mode pique en ajoutant un bouton pour réinitialiser ?
 - (FAIT) fabrication du matériel : gabarit, batterie, écran, boitier étanche à la pluie, bouton d'allumage.
-
-#### Pour le trail de Rieutort de mai 2025 :
-- Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
-- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué.
-
-
-#### Pour le cross du collège 2025 :
-- (FAIT) refaire les diplomes HB 2023, 2024 au nouveau format.
-- (FAIT) terminer la création de tous les pdf sans texlive (dossards compris)
-- Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
-En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
-- l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
-et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
-
-
 
 
 #### A plus long terme :
@@ -76,23 +110,6 @@ A défaut, traité dans la fonction python d'import du fichier de données "piqu
 Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprimer les données".
 - FAIT export vers OPUSS
 
-
-Todoliste post cross HB 2024 :
-- application android : vérifier pourquoi l'IP trouvée par Aurélie était un de plus que l'IP de mon serveur. Est ce explicable ?
-Pas vraiment : ce sont deux threads qui se sont exécutés concomitamment.
-Extrêmement peu probable vu le positionnement du test de réception et le fait de passer à l'IP n+1 juste derrière.
-
-- implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
-- (FAIT) installeur à terminer
-- possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
-- horodater les logs. Cela pourra être utile en cas de souci.
-
-
-TodoListe pour le cross Bourrillon 2024 :
-- déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
-- refaire la capture d'écran de la page principale sur la documentation p 15.
-- deplacer les fichiers du serveur web dans www
-- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
 
 
 Todolist pour le cross HB 2023 :
