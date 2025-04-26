@@ -105,7 +105,7 @@ Il faudra prévoir la suppression d'une antenne affichée... Pas urgent.
 Pbs persistants urgents :
 - vérifier si toutes les corrections depuis l'interface graphique restent fonctionnelles avec les dossards ajoutés en RFID : 
 	je pense que le problème ci-dessus va se retrouver dans beaucoup de boutons.
-
+- L'interface GUI ne s'actualisait plus après une modification d'un fichier de données, après la modification d'un temps dans l'interface.
 
 
 ############

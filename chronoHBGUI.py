@@ -621,6 +621,9 @@ class MonTableau(Frame):
                                         local_modifie_temps(heure, heureFinaleFormate)
         ##                                self.change = True
                                         self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
+                                        traiterToutesDonneesNG()
+                                        genereResultatsCoursesEtClasses()
+                                        self.maj(tableauGUI)
         ##                                traiterDonneesLocales()
         ##                                genereResultatsCoursesEtClasses()
         ##                                self.maj(tableauGUI)
