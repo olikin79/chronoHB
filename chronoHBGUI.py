@@ -355,7 +355,7 @@ async def main():
 
 # on lance le serveur web asynchrone dans un thread
 # asyncio.run(main())
-Thread(name="Serveur web SSE",target=asyncio.run, args=(main(),)).start()
+Thread(name="Serveur web SSE",target=asyncio.run, args=(main(),), daemon=True).start()
 
 
 ############ fin du serveur web sse asynchrone ##########   
@@ -2266,7 +2266,7 @@ def supprimerDossardAction() :
     supprimerDossardButton.configure(state=NORMAL)
 
 def envoiEmailDeTestLanceur():
-    mon_thread_Diplomes = Thread(target=envoiEmailDeTest)
+    mon_thread_Diplomes = Thread(target=envoiEmailDeTest, daemon=True)
     mon_thread_Diplomes.envoi_en_cours = True
     mon_thread_Diplomes.nom_prenom = "en cours"
     mon_thread_Diplomes.start()
@@ -2551,7 +2551,7 @@ def activerDesactiverLaVideo():
             print("Motion Detection déjà actif : on modifie le réglage comme coché sur l'interface :",voirVideo.get(), enregistrementVideo.get())
         except :
             print("Motion Detection inactif")
-            recoderT = threading.Thread(name='recorder_thread', target=enregistrerLaVideo)
+            recoderT = threading.Thread(name='recorder_thread', target=enregistrerLaVideo, daemon=True)
             recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             recoderT.start()
     else :
@@ -3206,7 +3206,7 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
             if reponse :
                 print("Début d'envoi de diplômes manuellement demandé via le menu...")
                 tagEnvoiDiplomeEnCours = True
-                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal)
+                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal, daemon=True)
                 mon_thread_Diplomes.envoi_en_cours = True
                 mon_thread_Diplomes.nom_prenom = "initialisation"
                 mon_thread_Diplomes.start()
@@ -3214,7 +3214,7 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
             tagEnvoiDiplomeEnCours = True
             # if DEBUG :
             #     print("Début d'envoi de diplômes automatisé...")
-            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal)
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal, daemon=True)
             mon_thread_Diplomes.envoi_en_cours = True
             mon_thread_Diplomes.nom_prenom = "initialisation"
             mon_thread_Diplomes.start()
@@ -3231,7 +3231,7 @@ def depotFTPResultats(initial=False):
         tagDepotFTPEnCours = True
         if DEBUG :
             print("Début de dépôt FTP automatique...")
-        mon_thread_FTP = Thread(target=depotFTPResultatsSansMessage, kwargs={"initial": initial})
+        mon_thread_FTP = Thread(target=depotFTPResultatsSansMessage, kwargs={"initial": initial}, daemon=True)
         mon_thread_FTP.start()
 
 def depotFTPResultatsSansMessage(initial=False):
@@ -3341,7 +3341,7 @@ def ouvrir_popup_patienter(tache, callback=None):
     label.pack(pady=20)
     
     # Lancer la tâche dans un thread
-    thread = threading.Thread(target=tache)
+    thread = threading.Thread(target=tache, daemon=True)
     thread.start()
 
     # Fonction pour vérifier l'état du thread
