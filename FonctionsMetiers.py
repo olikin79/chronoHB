@@ -2847,8 +2847,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         for liste in listeDesDonneesATraiter :
             if liste :
                 poursuivre = True
-                break
-
+                break        
     # on met à jour les paramètres
     # Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
     # Parametres["tempsDerniereRecuperationRFID"] = time.time()

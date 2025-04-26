@@ -48,6 +48,20 @@ from chronoHBRFID import * # pour les fonctions de lecture RFID
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 from resultatsDiffusion import * # création puis diffusion des diplomes par email
 
+# pour surveiller les fichiers txt modifiés par le script CGI qui écoute sur le port 8888
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+class MonGestionnaireEvenements(FileSystemEventHandler):
+    def __init__(self, callback):
+        self.callback = callback
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            print(f"Le fichier {event.src_path} a été modifié !")
+            self.callback(event.src_path)
+
+
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
@@ -621,9 +635,9 @@ class MonTableau(Frame):
                                         local_modifie_temps(heure, heureFinaleFormate)
         ##                                self.change = True
                                         self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
-                                        traiterToutesDonneesNG()
-                                        genereResultatsCoursesEtClasses()
-                                        self.maj(tableauGUI)
+                                        # traiterToutesDonneesNG()
+                                        # genereResultatsCoursesEtClasses()
+                                        # self.maj(tableauGUI)
         ##                                traiterDonneesLocales()
         ##                                genereResultatsCoursesEtClasses()
         ##                                self.maj(tableauGUI)
@@ -635,9 +649,9 @@ class MonTableau(Frame):
                                     self.change = True
                                     self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
                                     # traiterDonneesLocales()
-                                    traiterToutesDonneesNG()
-                                    genereResultatsCoursesEtClasses()
-                                    self.maj(tableauGUI)
+                                    # traiterToutesDonneesNG()
+                                    # genereResultatsCoursesEtClasses()
+                                    # self.maj(tableauGUI)
                                 else :
                                     print("Impossible d'affecter un dossard à un temps qui n'existe pas dans le tableau : le tiret indique qu'il manque un temps.")
                         else :
@@ -2150,8 +2164,8 @@ def ajouterTempsOKAction() :
             # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
             # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
             # if not traiterDonneesLocales() :
-            traiterToutesDonneesNG()
-            genereResultatsCoursesEtClasses()
+            # traiterToutesDonneesNG()
+            # genereResultatsCoursesEtClasses()
             annulerTempsDossards()
         else :
             mess = "Le temps saisi est déjà présent.\nSaisir un temps différent ou affecter le dossard suivant au temps suivant pour un calage automatique des temps."
@@ -3422,7 +3436,7 @@ class Clock():
         except :
             print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
-    def traiterDonnees(self) :
+    def traiterDonnees(self, event=None):
         # global tableauGUI
 
     # def update_clock(self):
@@ -3463,7 +3477,7 @@ class Clock():
         # # print("traitementSmartphonePiques",traitementSmartphonePiques)
         # traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
         # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
-        print("Traitement des données NG")
+        print("Traitement des données NG horodatées")
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
         # print(traitementToutesDonnees, self.premiereExecution)
@@ -3740,6 +3754,15 @@ timer=Clock(root, "tableau.maj")
 rejouerToutesLesActionsMemorisees()
 
 
+######## observateur de fichiers dans dossier_data_txt ########
+gestionnaire = MonGestionnaireEvenements(timer.traiterDonnees)
+observateur = Observer()
+observateur.schedule(gestionnaire, dossier_data_txt, recursive=True)
+thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
+thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
+thread_observateur.start()
+
+####
 
 ##
 ##

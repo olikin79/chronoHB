@@ -1,3 +1,6 @@
+Bug constaté :
+- dernière ligne stabilisée : 0 tout le temps. Ce n'est pas "normal" : cela consomme des ressources pour rien.
+
 A venir :
 - FAIT fichier de sauvegarde contenant tout zippé. OK
 - (DEJA IMPLEMENTE) en cas de sauvegarde des données, copie les fichiers "donneesSmartphone-pique-*.txt"
@@ -9,16 +12,16 @@ Avant diffusion plus large :
 
 Après cross  2024 :
 - vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
-- déplacer les fichiers générés dans mes documents ou dossier %TMP% : diplomes, dossards, resultats.
-- enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
+- (FAIT PARTIELLEMENT: manquent les fichiers www, resultats...) déplacer les fichiers générés dans mes documents ou dossier %TMP% : diplomes, dossards, resultats.
+- (FAIT PARTIELLEMENT: manquent les QR-codes et dossards) enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
 - vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
 - alignement des boites de gauche dans paramètres des courses.
 - afficher les diplomes non encore envoyés.
-- voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
-Idem pour les cases à cocher des listings.
+- (FAIT) voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
+- Idem pour les cases à cocher des listings.
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
-- faire en sorte que le nom soit prononcé plus tôt dans le haut parleur par le téléphone.
-- Afficher les coureurs en erreur en orange.
+- (ABANDONNE) faire en sorte que le nom soit prononcé plus tôt dans le haut parleur par le téléphone.
+- (FAIT) Afficher les coureurs en erreur en orange.
 - Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
 
 
@@ -38,20 +41,19 @@ A finir :
 - sécuriser les dates de naissance inférieures à 1900 en les considérant invalides.
 
 
-Bug constaté :
+Bugs constatés :
 si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) : 
 - le clic sur l'heure de départ ne fonctionne plus pour la modifier. C'est sûrement dû au fait que l'on n'est plus la même date. Presque souhaitable ?
 - le temps depuis le départ clignote (se remet à 00:00:00 puis se règle),
-
 - on ne peut modifier un temps dans l'interface GUI que le jour même car, par défaut, cela change le temps avec la date du jour et non celle de l'évènement.
 Voir chronoHBGUI.py lignes 609 à 624 dans MonTableau(Frame).saveedit()
 
 
 Avant le cross Rieutort :
-- Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
-- reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
+- (OK) Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
+- (FAIT : le nouveau traitement des données horodaté ne devrait plus créer de bloquant) reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
 
-##########################################################
+######################## IMPLEMENTE COMPLETEMENT ##################################
 Idées pour le RFID :
 Sur le lecteur, il faut régler la période de scan par antenne à 50ms pour être sûr de ne pas rater de coureurs.
 
@@ -93,19 +95,18 @@ Le test pourra être réinitialisé.
 
 ##############################################
 
-Il faudrait horodater tous les évènements (issus des smartphones, RFID et local dans les fichiers car, actuellement,
+(FAIT) Il faudrait horodater tous les évènements (issus des smartphones, RFID et local dans les fichiers car, actuellement,
 dans de très rares cas (extra-ordinaires), il se peut que l'on ne rejoue pas les actions dans l'ordre.
 
-Si trois temps arrivent au millième de seconde en même temps, cela buggue : voir dans addArriveeTemps 
+(FAIT) Si trois temps arrivent au millième de seconde en même temps, cela buggue : voir dans addArriveeTemps 
 et dupliqueTemps qui ne semble pas pleinement remplir son office pour le 3ème temps ajouté (malgré la récursivité apparente).
 
-Il faudra prévoir la suppression d'une antenne affichée... Pas urgent.
 ##############################################
 
 Pbs persistants urgents :
-- vérifier si toutes les corrections depuis l'interface graphique restent fonctionnelles avec les dossards ajoutés en RFID : 
+- (FAIT) vérifier si toutes les corrections depuis l'interface graphique restent fonctionnelles avec les dossards ajoutés en RFID : 
 	je pense que le problème ci-dessus va se retrouver dans beaucoup de boutons.
-- L'interface GUI ne s'actualisait plus après une modification d'un fichier de données, après la modification d'un temps dans l'interface.
+- (FAIT) L'interface GUI ne s'actualisait plus après une modification d'un fichier de données, après la modification d'un temps dans l'interface.
 
 
 ############
@@ -131,6 +132,9 @@ Les temps dupliqués étaient identiques alors qu'ils ne devaient pas l'être.
 	1. le dossard sélectionné est déaffecté de son temps violemment.
 	2. j'avance le dossard devant celui qui précède sans déaffecter celui qui précède. 
 C'est mieux pour un fonctionnement RFID où le temps du précédent est supposé être fiable. Il n'y a pas de raison de le dissocier.
+
+- l'actualisation de l'interface ne s'effectuait plus quand les fichiers txt changent. Bug introduit très récemment.
+Ajout du déclencheur wathdog qui surveille le dossier dédié aux fichiers issus des smartphones. Il déclenche timer.traiterDonnees().
 
 
 Travail de mars-avril 2025 :

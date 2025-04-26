@@ -1,16 +1,14 @@
 Bugs découverts :
-- l'actualisation de l'interface ne s'effectue plus quand les fichiers txt changent. Bug introduit très récemment.
+
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 
 
 Avant le 02 mai : test de course APPN :
-- ajout du déclencheur wathdog qui surveille le dossier dédié aux fichiers issus des smartphones. Il déclenche timer.traiterDonnees().
 - association des dossards aux EPC de tests : 
 	* reste à tester le cas où les numéros sont à l'envers (à tester)
 	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse 
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - préparer les dossards de test
-
 
 A faire avant le trail du 18 mai 2024 :
 - associer les dossards aux puces EPC
