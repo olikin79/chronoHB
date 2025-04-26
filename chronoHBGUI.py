@@ -3817,6 +3817,7 @@ def actualiseToutLAffichage() :
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
+    timer.premiereExecution = True
     #timer.reinitErreursATraiter()
 
 
