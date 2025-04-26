@@ -131,6 +131,7 @@ si on essayait d'importer immédiatement après changement, cela donnait des cat
 - le nouveau mode pique-RFID est fonctionnel : la seule chose, c'est que les dossards s'inséraient dans un ordre inverse juste après le dossard trouvé dans ArriveeDossards. Corrigé.
 - déplacement des fichiers txt issus des smartphones et "Courses.db" dans un dossier dédié (dans le home de l'utilisateur). Adaptation de cgi/Arrivee.pyw.
 - la sauvegarde et la récupération incluent bien les fichiers piques,
+- correctif pour supprimer un dossard depuis l'interface GUI.
 
 
 Travail de mars-avril 2025 :

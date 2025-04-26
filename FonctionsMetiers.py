@@ -88,6 +88,9 @@ donneesModifLocales = os.path.join(dossier_data_txt,"donneesModifLocale.txt")
 donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
 donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
 
+dossier_logs = os.path.join(DONNEES, "logs")
+os.makedirs(dossier_logs, exist_ok=True)
+
 DOCUMENTS = os.path.join(os.path.expanduser("~"), "Documents","chronoHB")
 dossier_videos = os.path.join(DOCUMENTS, "videos")
 os.makedirs(dossier_videos, exist_ok=True)
@@ -261,7 +264,7 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                 if not os.path.exists(file):
                     print(f"Le fichier {file} est absent. On le crée.")
                     open(file, 'a').close()
-                sauvegardeZip.write(file, file)
+                sauvegardeZip.write(file, os.path.basename(file))
 
             # Ajouter les fichiers logs au fichier zip
             if avecLogs:
@@ -269,7 +272,7 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                 if os.path.exists(LOGDIR):
                     logs = glob.glob(os.path.join(LOGDIR, "*.log"))
                     for log in logs:
-                        sauvegardeZip.write(log, log)
+                        sauvegardeZip.write(log, "logs" + os.sep + os.path.basename(log))
                 else:
                     print("Pas de fichiers de logs à sauvegarder.")
             # if os.path.exists(donneesSmartphone):
@@ -387,9 +390,9 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
 
         # Mettre à jour les chemins des fichiers à récupérer
         fichierDB = os.path.join(temp_dir, "Courses.db")
-        fichierML = os.path.join(temp_dir, donneesModifLocales)
-        fichierDS = os.path.join(temp_dir, donneesSmartphone)
-        fichierRFID = os.path.join(temp_dir, donneesRFID)
+        fichierML = os.path.join(temp_dir, os.path.basename(donneesModifLocales))
+        fichierDS = os.path.join(temp_dir, os.path.basename(donneesSmartphone))
+        fichierRFID = os.path.join(temp_dir, os.path.basename(donneesRFID))
         # Récupération des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
         listeFichiersPiques = glob.glob(os.path.join(temp_dir,"donneesSmartphone-pique-*.txt"))
     else:
@@ -3044,7 +3047,7 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
                 # print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
                 #print(ligne[-4:])
                 if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                    codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = dictUIDPrecedents, RFID=RFIDtag)
+                    codeErreur = decodeActionsRecupSmartphone(ligne, RFID=RFIDtag)
                     if codeErreur.numero :
                         # une erreur s'est produite
                         print("Code erreur :", codeErreur.numero)
