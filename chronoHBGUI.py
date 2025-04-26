@@ -2244,7 +2244,7 @@ def supprimerDossardAction() :
     dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        local_supprime_dossard(dossard)
+        local_supprime_dossard(dossard, dossardPrecedent)
         # si la ligne sélectionnée était affectée à un dossard, on supprime cette affectation (ce serait très gênant de le conserver pour le RFID)
         test = tableau.getTemps()
         if test :
@@ -2256,7 +2256,7 @@ def supprimerDossardAction() :
                 # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard=0&tpsCoureur='+tempsReel)
                 # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=aff&dossard=0&tpsCoureur='+tempsReel)
                 # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-                regenereAffichageGUI()
+                # regenereAffichageGUI()
         regenereAffichageGUI()
         annulerTempsDossards()
     else :
@@ -2908,7 +2908,7 @@ Pour tout réinitialiser (nouvelle course), pensez à supprimer toutes les donn�
 Cela peut figer momentanément l'interface...")
         if reponse :
             date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-            nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-tableur.chb"
+            nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-avant-import-tableur.chb"
             fichier = ecrire_sauvegardeNG(nomFichierCopie)
             # redirection temporaire pour les messages liés à l'import
             filePath = LOGDIR + os.sep + "dernierImport.txt"
@@ -3383,7 +3383,7 @@ def ouvrir_popup_patienter(tache, callback=None):
 #     verifier_si_termine()
 #     return popup
 
-listeFichiersDonnees = ["donneesSmartphone.txt","donneesRFID.txt","donneesModifLocale.txt"] 
+listeFichiersDonnees = [donneesSmartphone,donneesRFID,donneesModifLocales] 
 
 # timer 
 class Clock():
@@ -3438,15 +3438,15 @@ class Clock():
         # c= Coureurs.recuperer("576A")
         # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
 
-        #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
-        for file in glob.glob("donneesSmartphone-pique-*.txt") :
+        #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone),derniereModifFichierDonnneesLocalesRecente(donneesModifLocales))
+        for file in glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt")) :
             if file not in listeFichiersDonnees:
                 listeFichiersDonnees.append(file)
                 Parametres["tempsDerniereRecuperation"] += [0]
         for i, fichier in enumerate(listeFichiersDonnees) :
             if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
                 print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
-                # if derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt") or derniereModifFichierDonnneesRFIDRecente("donneesRFID.txt") or derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"):
+                # if derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone) or derniereModifFichierDonnneesRFIDRecente(donneesRFID) or derniereModifFichierDonnneesLocalesRecente(donneesModifLocales):
                 self.auMoinsUnImport = True
                 break
         
@@ -3567,7 +3567,7 @@ class Clock():
             dump_sauvegarde()
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImportPourSauvegarde : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
-            destination = "db"
+            destination = dossier_db
             date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
             nomFichierCopie = destination + os.sep + "Course_"+ date + "-auto.chb"
             ecrire_sauvegardeNG(nomFichierCopie,surCle=True)
@@ -3898,7 +3898,7 @@ def effaceDonneesCoursesGUI ():
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs, vidéos enregistrées) ?")
     if reponse :
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-donnees-courses-effacees.chb"
+        nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-avant-donnees-courses-effacees.chb"
         fichier = ecrire_sauvegardeNG(nomFichierCopie)
         delDossardsEtTemps()
         tableau.reinit()
@@ -3927,7 +3927,7 @@ def effaceDonneesGUI ():
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données (coureurs, données de courses,...) ?")
     if reponse :
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-Avant-effacement-toutes-donnees.chb"
+        nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-Avant-effacement-toutes-donnees.chb"
         fichier = ecrire_sauvegardeNG(nomFichierCopie)
         effaceToutesDonnees()
         reponse = showinfo("DONNEES EFFACEES","Les données ont toutes été effacées, celles précédentes ont été sauvegardées dans le fichier "+os.getcwd() + os.sep + fichier+".")
@@ -4464,7 +4464,7 @@ def recupererSauvegardeGUI(name_file="") :
     #global root,Courses
     if not name_file :
         # récupérer le chemin vers Mes Documents sous windows ou vers Documents sur mac os ou linux
-        CURRENT_DIRECTORY = os.path.expanduser("~") + os.sep + "Documents"
+        CURRENT_DIRECTORY = DOCUMENTS
         # CURRENT_DIRECTORY = os.getcwd()
         options = {
                     'initialdir': CURRENT_DIRECTORY,
@@ -5516,7 +5516,7 @@ else :
 
 def exportCourse():
     # Ouvrir une boîte de dialogue pour choisir le nom et le dossier du fichier de sauvegarde
-    CURRENT_DIRECTORY = os.path.expanduser("~") + os.sep + "Documents"
+    CURRENT_DIRECTORY = DOCUMENTS
                     
     fichierChoisi = asksaveasfilename(
         defaultextension=".chb",  # Extension par défaut
@@ -5836,7 +5836,7 @@ et la dernière sauvegarde de la course.\nCeux-ci seront détruits dès le diagn
         # Créer un fichier zip de la dernière sauvegarde de la course
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         listeFichiersJoints=[]
-        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-lors-demande-assistance.chb"
+        nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-lors-demande-assistance.chb"
         ecrire_sauvegardeNG(nomFichierCopie, avecVideos=False, avecLogs=True)
         listeFichiersJoints.append(nomFichierCopie)
         # Appel de la fonction pour envoyer l'e-mail avec la pièce jointe
@@ -5945,7 +5945,7 @@ print("Fermeture de la BDD")
 
 # suppression de la sauvegarde automatique vers db à la fermeture
 date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-nomFichierCopie = "db" + os.sep + "Course_"+ date + "-lors-fermeture-application.chb"
+nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-lors-fermeture-application.chb"
 ecrire_sauvegardeNG(nomFichierCopie)
 dump_sauvegarde()
 

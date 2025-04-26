@@ -28,6 +28,22 @@ tpsServeur = time.time()
 
 
 from os import path
+import sys
+
+# Obtenir le chemin du répertoire courant du script CGI
+chemin_courant = path.dirname(path.abspath(__file__))
+# Obtenir le chemin du répertoire parent (le répertoire racine de votre projet)
+chemin_parent = path.dirname(chemin_courant)
+
+# Ajouter le répertoire parent à sys.path si ce n'est pas déjà fait
+if chemin_parent not in sys.path:
+    sys.path.insert(0, chemin_parent)
+
+# Maintenant, l'import relatif devrait fonctionner comme un import absolu
+from FonctionsMetiers import definir_dossier_donnees
+
+DONNEES = definir_dossier_donnees()
+dossier_data_txt = path.join(DONNEES, "data")
 
 import sys
 sys.stderr = sys.stdout
@@ -40,12 +56,12 @@ form = cgi.FieldStorage()
 def addInstruction(liste) :
     global local
     if local == "true" :
-        fichierDonneesSmartphone = "donneesModifLocale.txt"
+        fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesModifLocale.txt")
     else:
         if pique == "" :
-            fichierDonneesSmartphone = "donneesSmartphone.txt"
+            fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesSmartphone.txt")
         else :
-            fichierDonneesSmartphone = "donneesSmartphone-pique-" + str(uid) + ".txt"
+            fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesSmartphone-pique-" + str(uid) + ".txt")
     with open(fichierDonneesSmartphone, 'a') as f :
         result = ""
         for el in liste :

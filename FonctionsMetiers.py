@@ -47,7 +47,53 @@ import paramiko
 
 from FonctionsGenerationPDF import *
 
-# LOGDIR="logs"
+import platform
+
+def definir_dossier_donnees(nom_application="ChronoHB"):
+    """
+    Crée le dossier de données de l'application s'il n'existe pas
+    et retourne le chemin complet vers ce dossier.
+    """
+    systeme = platform.system()
+    chemin_donnees = None
+
+    if systeme == "Windows":
+        chemin_appdata = os.environ.get('APPDATA')
+        if chemin_appdata:
+            chemin_donnees = os.path.join(chemin_appdata, nom_application)
+    elif systeme == "Darwin":  # macOS
+        chemin_bibliotheque_support = os.path.expanduser("~/Library/Application Support")
+        chemin_donnees = os.path.join(chemin_bibliotheque_support, nom_application)
+    elif systeme == "Linux":
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            chemin_donnees = os.path.join(xdg_config_home, nom_application)
+        else:
+            chemin_donnees = os.path.expanduser(os.path.join("~", ".config", nom_application))
+
+    if chemin_donnees:
+        os.makedirs(chemin_donnees, exist_ok=True)  # Crée le dossier s'il n'existe pas
+        return chemin_donnees
+    else:
+        raise OSError(f"Système d'exploitation non pris en charge : {systeme}")
+
+
+DONNEES = definir_dossier_donnees()
+print(f"Le dossier de données de l'application est : {DONNEES}")
+
+dossier_data_txt = os.path.join(DONNEES, "data")
+os.makedirs(dossier_data_txt, exist_ok=True)
+print(f"Le fichier contenant les données récupérées depuis les smartphones, lecteurs RFID est situé ici : {dossier_data_txt}")
+donneesModifLocales = os.path.join(dossier_data_txt,"donneesModifLocale.txt")
+donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
+donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
+
+DOCUMENTS = os.path.join(os.path.expanduser("~"), "Documents","chronoHB")
+dossier_videos = os.path.join(DOCUMENTS, "videos")
+os.makedirs(dossier_videos, exist_ok=True)
+dossier_db = os.path.join(DOCUMENTS, "db")
+print(f"Le fichier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
+os.makedirs(dossier_videos, exist_ok=True)
 
 def windows():
     if platform.system() == "Windows" :
@@ -93,7 +139,7 @@ def creerDir(path) :
 
 # enregistre les données de sauvegarde
 def dump_sauvegarde() :
-    d = open("Courses.db","wb")
+    d = open(os.path.join(DONNEES, "Courses.db"),"wb")
     pickle.dump(root, d)
     d.close()
 
@@ -122,21 +168,21 @@ def dump_sauvegarde() :
 #     date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
 #     nomFichierCopie = destination + os.sep + sauvegarde+"_"+ date + commentaire
 #     dump_sauvegarde()
-#     if os.path.exists("Courses.db") :
+#     if os.path.exists(os.path.join(DONNEES, "Courses.db")) :
 #         if destination != "" and creerDir(destination) :
 #             print("Création de la sauvegarde", nomFichierCopie)
-#             if os.path.exists("Courses.db") :
-#                 shutil.copy2("Courses.db",  nomFichierCopie + ".db")
-#             if os.path.exists("donneesModifLocale.txt"):
-#                 shutil.copy2("donneesModifLocale.txt", nomFichierCopie + "_ML.txt")
+#             if os.path.exists(os.path.join(DONNEES, "Courses.db")) :
+#                 shutil.copy2(os.path.join(DONNEES, "Courses.db"),  nomFichierCopie + ".db")
+#             if os.path.exists(donneesModifLocales):
+#                 shutil.copy2(donneesModifLocales, nomFichierCopie + "_ML.txt")
 #             else :
 #                 print("Pas de fichier de modifications locales, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-#                 open("donneesModifLocale.txt", 'a').close()
-#             if os.path.exists("donneesSmartphone.txt"):
-#                 shutil.copy2("donneesSmartphone.txt", nomFichierCopie + "_DS.txt")
+#                 open(donneesModifLocales, 'a').close()
+#             if os.path.exists(donneesSmartphone):
+#                 shutil.copy2(donneesSmartphone, nomFichierCopie + "_DS.txt")
 #             else :
 #                 print("Pas de fichier de données provenant des smartphones, on place un fichier vide dans la sauvegarde pour assurer une cohérence.")
-#                 open("donneesSmartphone.txt", 'a').close()
+#                 open(donneesSmartphone, 'a').close()
 #             creerDir("videos")
 #             if avecVideos or surCle :
 #                 creerDir(destination + os.sep + "chronoHBvideos")
@@ -146,7 +192,7 @@ def dump_sauvegarde() :
 #                     if not os.path.exists(dest) and time.time() - os.path.getmtime(dest) > 15 :
 #                         # on copie les fichiers vidéos qui n'existent pas et qui ne sont pas en cours de création : ils ont plus de 15 secondes.
 #                         shutil.copy2(file, dest)
-#             listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+#             listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
 #             for fichier in listeFichiersPiques :
 #                 numeroPique = fichier[24:-4]
 #                 shutil.copy2(fichier, destination + os.sep + os.path.basename(fichier)+"_"+ date + commentaire + "-"+ numeroPique + ".txt")
@@ -205,19 +251,17 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
         # Créer le fichier zip (extension .chb)
         with zipfile.ZipFile(cheminFichier, 'w', zipfile.ZIP_DEFLATED) as sauvegardeZip:
             # Ajouter Courses.db au fichier zip
-            if os.path.exists("Courses.db"):
-                sauvegardeZip.write("Courses.db", "Courses.db")
+            if os.path.exists(os.path.join(DONNEES, "Courses.db")):
+                sauvegardeZip.write(os.path.join(DONNEES, "Courses.db"), "Courses.db")
             else:
                 print("Le fichier Courses.db est absent.")
 
             # Ajouter les fichiers de données au fichier zip
-            for file in ["donneesModifLocale.txt", "donneesSmartphone.txt", "donneesRFID.txt"]:
-                if os.path.exists(file):
-                    sauvegardeZip.write(file, file)
-                else:
+            for file in [donneesModifLocales, donneesSmartphone, donneesRFID]:
+                if not os.path.exists(file):
                     print(f"Le fichier {file} est absent. On le crée.")
                     open(file, 'a').close()
-                    sauvegardeZip.write(file, file)
+                sauvegardeZip.write(file, file)
 
             # Ajouter les fichiers logs au fichier zip
             if avecLogs:
@@ -225,23 +269,23 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                 if os.path.exists(LOGDIR):
                     logs = glob.glob(os.path.join(LOGDIR, "*.log"))
                     for log in logs:
-                        sauvegardeZip.write(log, os.path.join(LOGDIR, os.path.basename(log)))
+                        sauvegardeZip.write(log, log)
                 else:
                     print("Pas de fichiers de logs à sauvegarder.")
-            # if os.path.exists("donneesSmartphone.txt"):
-            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            # if os.path.exists(donneesSmartphone):
+            #     sauvegardeZip.write(donneesSmartphone, donneesSmartphone)
             # else:
             #     print("Pas de fichier de données provenant des smartphones, création d'un fichier vide.")
-            #     open("donneesSmartphone.txt", 'a').close()
-            #     sauvegardeZip.write("donneesSmartphone.txt", "donneesSmartphone.txt")
+            #     open(donneesSmartphone, 'a').close()
+            #     sauvegardeZip.write(donneesSmartphone, donneesSmartphone)
 
             # Si avecVideos est True, ajouter les fichiers .avi du dossier videos/
             if avecVideos:
-                if os.path.exists("videos"):
+                if os.path.exists(dossier_videos):
                     extensions_video = ["*.avi", "*.mkv"]
                     fichiers_videos = []
                     for ext in extensions_video:
-                        fichiers_videos.extend(glob.glob(os.path.join("videos", ext)))
+                        fichiers_videos.extend(glob.glob(os.path.join(dossier_videos, ext)))
                     # fichiers_videos = glob.glob("videos/*.mkv")
                     for fichier in fichiers_videos:
                         sauvegardeZip.write(fichier, os.path.join("videos", os.path.basename(fichier)))
@@ -249,10 +293,10 @@ def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=
                 else:
                     print("Aucune vidéo à sauvegarder.")
 
-            # Sauvegarde des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
-            listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+            # Sauvegarde des fichiers os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt") s'ils existent
+            listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
             for fichier in listeFichiersPiques:
-                sauvegardeZip.write(fichier, os.path.basename(fichier))
+                sauvegardeZip.write(fichier, fichier)
         # copie du fichier créé localement vers la clé USB paramétrée
         if surCle :
             destination = Parametres["cheminSauvegardeUSB"]
@@ -343,9 +387,9 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
 
         # Mettre à jour les chemins des fichiers à récupérer
         fichierDB = os.path.join(temp_dir, "Courses.db")
-        fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
-        fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
-        fichierRFID = os.path.join(temp_dir, "donneesRFID.txt")
+        fichierML = os.path.join(temp_dir, donneesModifLocales)
+        fichierDS = os.path.join(temp_dir, donneesSmartphone)
+        fichierRFID = os.path.join(temp_dir, donneesRFID)
         # Récupération des fichiers "donneesSmartphone-pique-*.txt" s'ils existent
         listeFichiersPiques = glob.glob(os.path.join(temp_dir,"donneesSmartphone-pique-*.txt"))
     else:
@@ -354,7 +398,7 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
         fichierML = sauvegardeChoisie[:-3] + "_ML.txt"
         fichierDS = sauvegardeChoisie[:-3] + "_DS.txt"
         fichierRFID = sauvegardeChoisie[:-3] + "_RFID.txt"
-        listeFichiersPiques = [] # ces fichiers n'existait pas avant les fichiers .chb
+        listeFichiersPiques = [] # ces fichiers n'existait pas avant les fichiers .chb. Compatibilité conservée avec les sauvegardes d'avant 2022
 
     # Tester si les trois fichiers existent
     tousPresents = True
@@ -370,18 +414,18 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
     if tousPresents:
         # Sauvegarder les données actuelles de façon automatique
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-        nomFichierCopie = "db" + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
+        nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
         ecrire_sauvegardeNG(nomFichierCopie, surCle=False, avecVideos=True)
         retour = nettoyerTousLesFichiersGeneres()
 
-        # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
-        shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
-        shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
-        shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
-        shutil.copy2(fichierRFID, os.path.join(os.getcwd(), "donneesRFID.txt"))
+        # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le bon dossier du projet
+        shutil.copy2(fichierDB, os.path.join(DONNEES, "Courses.db"))
+        shutil.copy2(fichierML, os.path.join(dossier_data_txt, donneesModifLocales))
+        shutil.copy2(fichierDS, os.path.join(dossier_data_txt, donneesSmartphone))
+        shutil.copy2(fichierRFID, os.path.join(dossier_data_txt, donneesRFID))
         # on replace les fichiers piques au bon endroit avec le même nom.
         for file in listeFichiersPiques :
-            shutil.copy2(file, os.path.join(os.getcwd(), os.path.basename(file)))
+            shutil.copy2(file, os.path.join(dossier_data_txt, os.path.basename(file)))
 
         # Si un fichier .chb a été traité, récupérer les vidéos
         if sauvegardeChoisie.endswith('.chb'):
@@ -392,13 +436,13 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
                 videos_dans_temp.extend(glob.glob(os.path.join(temp_dir, "videos", ext)))
             if videos_dans_temp:
                 # Créer le dossier vidéos s'il n'existe pas
-                if not os.path.exists("videos"):
-                    os.makedirs("videos")
+                if not os.path.exists(dossier_videos):
+                    os.makedirs(dossier_videos)
 
-                # Copier les vidéos dans le dossier racine du projet
+                # Copier les vidéos dans le dossier videos du projet
                 for video in videos_dans_temp:
-                    shutil.copy2(video, os.path.join("videos", os.path.basename(video)))
-                    print(f"Vidéo {os.path.basename(video)} extraite vers le dossier 'videos'.")
+                    shutil.copy2(video, os.path.join(dossier_videos, os.path.basename(video)))
+                    print(f"Vidéo {os.path.basename(video)} extraite vers le dossier "+dossier_videos)
 
         # Nettoyer le dossier temporaire si un fichier .chb a été extrait
         if sauvegardeChoisie.endswith('.chb'):
@@ -434,9 +478,9 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
 #             zip_ref.extractall(temp_dir)
 
 #         # Mettre à jour les chemins des fichiers à récupérer
-#         fichierDB = os.path.join(temp_dir, "Courses.db")
-#         fichierML = os.path.join(temp_dir, "donneesModifLocale.txt")
-#         fichierDS = os.path.join(temp_dir, "donneesSmartphone.txt")
+#         fichierDB = os.path.join(temp_dir, os.path.join(DONNEES, "Courses.db"))
+#         fichierML = os.path.join(temp_dir, donneesModifLocales)
+#         fichierDS = os.path.join(temp_dir, donneesSmartphone)
 #     else:
 #         # Si c'est un fichier .db classique, on utilise les noms habituels
 #         fichierDB = sauvegardeChoisie
@@ -458,9 +502,9 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
 #         ecrire_sauvegardeNG(sauvegarde, "-avant-import-autres-donnees", surCle=False)
 
 #         # Copier les fichiers de la sauvegarde (décompressée ou directe) vers le dossier racine du projet
-#         shutil.copy2(fichierDB, os.path.join(os.getcwd(), "Courses.db"))
-#         shutil.copy2(fichierML, os.path.join(os.getcwd(), "donneesModifLocale.txt"))
-#         shutil.copy2(fichierDS, os.path.join(os.getcwd(), "donneesSmartphone.txt"))
+#         shutil.copy2(fichierDB, os.path.join(os.getcwd(), os.path.join(DONNEES, "Courses.db")))
+#         shutil.copy2(fichierML, os.path.join(os.getcwd(), donneesModifLocales))
+#         shutil.copy2(fichierDS, os.path.join(os.getcwd(), donneesSmartphone))
 
 #         # Charger les données restaurées
 #         retour = chargerDonnees()
@@ -493,8 +537,8 @@ def recupere_sauvegardeNG(sauvegardeChoisie):
 ##            if not os.path.exists(nomFichierCopie) :
 ##                shutil.copy2(sauvegarde+".db",  nomFichierCopie)
 ##                print("La sauvegarde", nomFichierCopie, "est créée.")
-##                os.path.copy("donneesModifLocale.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_ML.txt")
-##                os.path.copy("donneesSmartphone.txt", destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
+##                os.path.copy(donneesModifLocales, destination + os.sep + sauvegarde +"_"+ date + commentaire + "_ML.txt")
+##                os.path.copy(donneesSmartphone, destination + os.sep + sauvegarde +"_"+ date + commentaire + "_DS.txt")
 ##            else :
 ##                print("La sauvegarde", nomFichierCopie, "existe déjà. Elle n'est pas remplacée pour éviter tout risque.")
 ##        elif destination != "" :
@@ -2009,7 +2053,7 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
             # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
         else :
             print("Le tag", info["epc"], "a été capté depuis moins de", Parametres["delai_antennes_par_tag"], "secondes par la même antenne.")
-    with open("donneesRFID.txt", "a") as file:
+    with open(donneesRFID, "a") as file:
         # Écrire les lignes dans le fichier en une seule fois.
         file.write(chaineAAjouterDansFichierTexte)
         file.close()
@@ -2126,12 +2170,12 @@ def chargerDonnees() :
            genererListingQRcodes,genererListing, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID, ligneDerniereRecuperation, \
+           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, ligneDerniereRecuperation, \
            delai_antennes_par_tag
     noSauvegarde = 1
-    sauvegarde="Courses"
-    if os.path.exists(sauvegarde+".db") :
-        with open(sauvegarde+".db","rb") as d :
+    sauvegarde=os.path.join(DONNEES,"Courses.db")
+    if os.path.exists(sauvegarde) :
+        with open(sauvegarde,"rb") as d :
             root = pickle.load(d)
             #print("on charge les données depuis le fichier",sauvegarde+".db")
         #d = shelve.open(sauvegarde)
@@ -2375,7 +2419,6 @@ def chargerDonnees() :
     seuilRSSI = Parametres["seuilRSSI"]
     if not "donneesRFID" in Parametres :
         Parametres["donneesRFID"] = InfosRFID()
-    donneesRFID = Parametres["donneesRFID"]
     if not "delai_antennes_par_tag" in Parametres :
         Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     delai_antennes_par_tag = Parametres["delai_antennes_par_tag"]
@@ -2720,11 +2763,8 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         
         # dictUIDPrecedents.clear()
     # on liste les fichiers à analyser
-    fichierDonneesSmartphone = "donneesSmartphone.txt"
-    fichierDonneesRFID = "donneesRFID.txt"
-    fichierDonneesLocales = "donneesModifLocale.txt"
-    listeDesFichiersPique = glob.glob("donneesSmartphone-pique-*.txt")
-    listeDesFichiersAAnalyser = [fichierDonneesSmartphone, fichierDonneesRFID, fichierDonneesLocales] + listeDesFichiersPique
+    listeDesFichiersPique = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
+    listeDesFichiersAAnalyser = [donneesSmartphone, donneesRFID, donneesModifLocales] + listeDesFichiersPique
 
     # on récupère les données des fichiers à traiter
     listeDesDonneesATraiter = []
@@ -2857,7 +2897,7 @@ def traiterDonneesSmartphonePiques():
                 retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
                 - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
     """
-    listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+    listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
     if not "DerniereRecuperationSmartphonePiques" in Parametres :
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
     retour = []
@@ -2918,7 +2958,7 @@ def traiterDonneesSmartphonePiquesNG():
                 retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
                 - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
     """
-    listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
+    listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
     if not "DerniereRecuperationSmartphonePiques" in Parametres :
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
         
@@ -2970,8 +3010,8 @@ def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
         à la fin mémoriser heureDerniereRecuperationSmartphone
         retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
     """
-    fichierDonneesSmartphone = "donneesSmartphone.txt"
-    fichierDonneesRFID = "donneesRFID.txt"
+    fichierDonneesSmartphone = donneesSmartphone
+    fichierDonneesRFID = donneesRFID
     if DepuisLeDebut :
         #root["ArriveeTemps"] = []
         #root["ArriveeTempsAffectes"] = []
@@ -3049,7 +3089,7 @@ def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
     Cela permettra de rejouer l'ensemble des actions depuis le début, puis éventuellement, plus tard, d'en annuler certaines.
     retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
     """
-    fichierDonneesSmartphone = "donneesModifLocale.txt"
+    fichierDonneesSmartphone = donneesModifLocales
     #print("Import depuis de le début :", DepuisLeDebut)
     if DepuisLeDebut :
         #root["ArriveeTemps"] = []
@@ -3275,28 +3315,28 @@ def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
 
 def effacerFichierDonnneesSmartphone() :
     print("Effacement des données venant des smartphones  effectué")
-    file = "donneesSmartphone.txt"
+    file = donneesSmartphone
     if os.path.exists(file) :
         os.remove(file)
-    files = glob.glob("donneesSmartphone-pique-*.txt")
+    files = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
     for file in files :
         os.remove(file)
 
 def effacerDonneesRFID() :
-    file = "donneesRFID.txt"
+    file = donneesRFID
     if os.path.exists(file) :
         os.remove(file)
     print("Effacement des données RFID  effectué")
 
-def effacerFichierDonnneesRFID() :
-    print("Effacement des données RFID  effectué")
-    file = "donneesRFID.txt"
-    if os.path.exists(file) :
-        os.remove(file)
+# def effacerFichierDonnneesRFID() :
+#     print("Effacement des données RFID  effectué")
+#     file = donneesRFID
+#     if os.path.exists(file) :
+#         os.remove(file)
 
 def effacerFichierDonnneesLocales() :
-    print("Effacement des modifications locales  effectué")
-    file = "donneesModifLocale.txt"
+    print("Effacement des modifications locales effectué")
+    file = donneesModifLocales
     if os.path.exists(file) :
         os.remove(file)
 
@@ -4334,13 +4374,13 @@ def nettoyerTousLesFichiersGeneres():
     ## effacer les bases de donnees superflues : toutes sauf la dernière.
     L = []
     for schema in ["*.db","*_DS.txt","*_ML.txt","*.chb"] :
-        fichierRecent = selectPlusRecent("db",schema)
+        fichierRecent = selectPlusRecent(dossier_db,schema)
         if fichierRecent :
             L.append(fichierRecent)
     ## effacer les fichiers de base de données automatiquement générés + fichiers de LOG
-    L5 =glob.glob('db'+os.sep+'*.db',recursive = False)
-    L6 =glob.glob('db'+os.sep+'*.txt',recursive = False)
-    L7 =glob.glob('logs'+os.sep+'*.txt',recursive = False)
+    L5 =glob.glob(dossier_db+os.sep+'*.db',recursive = False)
+    L6 =glob.glob(dossier_db+os.sep+'*.txt',recursive = False)
+    L7 =glob.glob(dossier_logs+os.sep+'*.txt',recursive = False)
     for file in L5 + L6 :
         if not file in L and not fichier_cree_aujourdhui(file) :
             try :
