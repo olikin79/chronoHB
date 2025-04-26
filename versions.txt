@@ -121,7 +121,7 @@ Travail du 26/04/25 :
 - l'actualisation de l'interface ne s'effectuait pas si seul un fichier pique est modifié.
 - les erreurs ne disparaissaient pas quand on réinitialisait la course.
 - blindage de fonctions du code face à des données incohérentes.
-
+- après l'impression, l'erreur "des dossards restent à imprimer" ne disparaissait pas.
 
 Travail de mars-avril 2025 :
 - import de fichiers UNSS et peyce,
