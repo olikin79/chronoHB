@@ -1,5 +1,6 @@
 Bugs découverts :
 - la sauvegarde et la récupération n'incluent pas les fichiers piques,
+- l'actualisation de l'interface ne s'effectue plus quand les fichiers txt changent. Bug introduit très récemment.
 
 
 

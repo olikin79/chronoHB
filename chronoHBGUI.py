@@ -3442,6 +3442,7 @@ class Clock():
         for file in glob.glob("donneesSmartphone-pique-*.txt") :
             if file not in listeFichiersDonnees:
                 listeFichiersDonnees.append(file)
+                Parametres["tempsDerniereRecuperation"] += [0]
         for i, fichier in enumerate(listeFichiersDonnees) :
             if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
                 print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")

@@ -2733,6 +2733,8 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
     
     listeDerniereModifFichierDonnees = [] # #[derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID), derniereModifFichierDonnneesLocalesRecente(fichierDonneesLocales)]
     for i, fichier in enumerate(listeDesFichiersAAnalyser) :
+        if i >= len(Parametres["tempsDerniereRecuperation"]) :
+            Parametres["tempsDerniereRecuperation"].append(0)
         listeDerniereModifFichierDonnees.append(derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]))
         if os.path.exists(fichier) :
             Parametres["tempsDerniereRecuperation"][i] = os.path.getmtime(fichier)
@@ -3131,7 +3133,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     ### A priori, UIDPrecedents est inutile car les doublons seront gérés par les instances de ArriveeDossards, ArriveeTemps, etc...
     ### A supprimer plus tard, quand les courses à étapes seront implémentées définitivement.
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
-    #retour = Erreur(999) # a priori, on retourne une erreur. 10000 = erreur non répertoriée . Ne devrait pas se produire.
+    retour = Erreur(0) # a priori, il n'y a pas d'erreur.
     listeAction = ligne.split(",")
     action = listeAction[1]
     if RFID :
@@ -3232,11 +3234,10 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             if action == "add" :
                 if pique :
                     # si le dossard est déjà présent dans la liste des arrivées, on ne l'ajoute pas. On le met juste à jour.
-                    if dossard in ArriveeDossards :
-                        dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)] = dossard
-                    else :
-                        # on ajoute le dossard juste après celui mémorisé dans ArriveeDossards
+                    if not dossard in ArriveeDossards :
+                        # on ajoute le dossard juste après celui mémorisé dans ArriveeDossards car il n'y est pas encore.
                         retour = addArriveeDossard(dossard, dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)])
+                    dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)] = dossard
                 else :
                     retour = addArriveeDossard(dossard, dossardPrecedent)
             elif action =="del" :
