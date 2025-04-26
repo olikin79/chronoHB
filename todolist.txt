@@ -1,3 +1,9 @@
+Bugs découverts :
+- la sauvegarde n'inclut pas les fichiers piques,
+- l'actualisation de l'interface ne s'effectue pas si seul un fichier pique est modifié.
+- les erreurs ne disparaissaient pas quand on réinitialisait la course.
+
+
 Avant le 02 mai : test de course APPN :
 - association des dossards aux EPC de tests : 
 	* reste à tester le cas où les numéros sont à l'envers (à tester)

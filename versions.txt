@@ -118,7 +118,7 @@ Du coup, la fonction dupliqueTemps(tps) ne fonctionne pas et ne duplique pas le 
 
 Travail du 26/04/25 :
 - passage en mode daemon=True du serveur SSE créé en février. Idem pour les Threads sans risque pour les données.
-
+- l'actualisation de l'interface ne s'effectuait pas si seul un fichier pique est modifié.
 
 Travail de mars-avril 2025 :
 - import de fichiers UNSS et peyce,

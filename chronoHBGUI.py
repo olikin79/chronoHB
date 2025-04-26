@@ -3383,6 +3383,8 @@ def ouvrir_popup_patienter(tache, callback=None):
 #     verifier_si_termine()
 #     return popup
 
+listeFichiersDonnees = ["donneesSmartphone.txt","donneesRFID.txt","donneesModifLocale.txt"] 
+
 # timer 
 class Clock():
     global tableauGUI
@@ -3419,7 +3421,7 @@ class Clock():
 
     # def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
-        global tableauGUI,traitementDonneesRecuperees
+        global tableauGUI,traitementDonneesRecuperees, listeFichiersDonnees
         
         
         # print("Courses",Courses)
@@ -3437,7 +3439,9 @@ class Clock():
         # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
 
         #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente("donneesSmartphone.txt"),derniereModifFichierDonnneesLocalesRecente("donneesModifLocale.txt"))
-        listeFichiersDonnees = ["donneesSmartphone.txt","donneesRFID.txt","donneesModifLocale.txt"]
+        for file in glob.glob("donneesSmartphone-pique-*.txt") :
+            if file not in listeFichiersDonnees:
+                listeFichiersDonnees.append(file)
         for i, fichier in enumerate(listeFichiersDonnees) :
             if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
                 print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
