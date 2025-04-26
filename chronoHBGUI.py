@@ -238,7 +238,8 @@ async def handle_events(request):
     await response.prepare(request)
 
     connections.append(response)
-    print("Nouvelle connexion SSE ajoutée.")
+    client_ip = request.remote
+    print(f"Nouvelle connexion SSE ajoutée depuis l'IP : {client_ip}") # Afficher l'IP
 
     try:
         # Garder la connexion ouverte
@@ -964,7 +965,7 @@ class MonTableau(Frame):
                 print("diffusion de ", message, ".")
                 asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
             else :
-                print("ligne ignorée, non transmise :", donnee)
+                print("ligne ignorée, non transmise via le serveur SSE :", donnee)
             self.effectif += 1
             
     def formateSurNChiffres(self,nbre,nbreChiffres) :

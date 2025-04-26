@@ -1661,12 +1661,10 @@ class Temps():#persistent.Persistent):
         else :
             ch = "-"
         return ch
-    def tempsPlusUnDixieme (self) :
-        tempsARetourner = Temps(self.tempsCoureur+0.1, self.tempsClient, self.tempsServeur)
-        return tempsARetourner
-    def tempsMoinsUnDixieme(self) :
-        tempsARetourner = Temps(self.tempsCoureur-0.1, self.tempsClient, self.tempsServeur)
-        return tempsARetourner
+    def tempsPlusUnCentieme(self) : 
+        return Temps(self.tempsCoureur+0.01, self.tempsClient, self.tempsServeur)
+    def tempsMoinsUnCentieme(self) :
+        return Temps(self.tempsCoureur-0.01, self.tempsClient, self.tempsServeur)
     def dateEpreuve(self) :
         """Retourne la date au format %m/%d/%y basée sur le tempsServeur"""
         return time.strftime("%m/%d/%y",time.localtime(self.tempsServeur))
@@ -2737,10 +2735,10 @@ ResultatsGroupements = {} # dictionnaire des résultats calculés qui sera regé
 coureurVide = Coureur("", "", "")
 
 ### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on réinitialise la course.
-def traiterToutesDonnees():
-    traiterDonneesSmartphone(True, False)
-    traiterDonneesLocales(True,False)
-    traiterDonneesSmartphonePiques()
+# def traiterToutesDonnees():
+#     traiterDonneesSmartphone(True, False)
+#     traiterDonneesLocales(True,False)
+#     traiterDonneesSmartphonePiques()
     
 def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
     """Reprend le fonctionnement de traiterToutesDonnees mais en ne traitant les données Smartphone, RFID et Locales en parallèle.
@@ -2763,7 +2761,9 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         Parametres["ligneDerniereRecuperation"] = [1,1,1]
         Parametres["calculateAll"] = True
         UIDPrecedents = {}
-        
+
+    if "UIDPrecedents" not in locals() :
+        UIDPrecedents = {}    
         # dictUIDPrecedents.clear()
     # on liste les fichiers à analyser
     listeDesFichiersPique = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
@@ -2890,253 +2890,253 @@ def IndiceDuPlusPetitNombreNonNul(liste) :
     return indice
 
 
-def traiterDonneesSmartphonePiques():
-    """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
-        - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
-            Chaque fichier modifié est considéré comme une pique. Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
-                - si le premier dossard est présent dans la liste ArriveeDossards, il faut intégrer les données dans le tableau ArriveeDossard en vérifiant qu'elles n'y sont pas déjà.
-                - si le premier dossard n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
-                Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
-                retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
-                - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
-    """
-    listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
-    if not "DerniereRecuperationSmartphonePiques" in Parametres :
-        Parametres["DerniereRecuperationSmartphonePiques"] = {}
-    retour = []
-    for fichier in listeFichiersPiques :
-        listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
-        if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
-            print("Fichier pique", fichier, "modifié récemment")
-            try :
-                premierDossardDeLaPique = listeLigne[0].split(",")[2]
-            except :
-                premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
-            if premierDossardDeLaPique in ArriveeDossards :
-                print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
-                dossardPrecedent = premierDossardDeLaPique
-                for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
-                    ligneT = ligne.split(",")
-                    action = ligneT[1]
-                    if action == "add" :
-                        ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
-                    nouvelle_ligne = ",".join(ligneT)
-                    print("Ligne en cours de traitement", nouvelle_ligne)
-                    codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
-                    if codeErreur.numero :
-                        print("Code erreur :", codeErreur.numero)
-                        print(nouvelle_ligne)
-                    # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
-                    retour.append(codeErreur)
-                    dossardPrecedent = ligneT[2]
-                Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
-            else :
-                noSmartphone = fichier[24:-4]
-                listeDossardsPique = []
-                for ligne in listeLigne :
-                    listeDossardsPique.append(ligne.split(",")[2])
-                if DEBUG :
-                    print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
+# def traiterDonneesSmartphonePiques():
+#     """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
+#         - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
+#             Chaque fichier modifié est considéré comme une pique. Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
+#                 - si le premier dossard est présent dans la liste ArriveeDossards, il faut intégrer les données dans le tableau ArriveeDossard en vérifiant qu'elles n'y sont pas déjà.
+#                 - si le premier dossard n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
+#                 Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
+#                 retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+#                 - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
+#     """
+#     listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
+#     if not "DerniereRecuperationSmartphonePiques" in Parametres :
+#         Parametres["DerniereRecuperationSmartphonePiques"] = {}
+#     retour = []
+#     for fichier in listeFichiersPiques :
+#         listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
+#         if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
+#             print("Fichier pique", fichier, "modifié récemment")
+#             try :
+#                 premierDossardDeLaPique = listeLigne[0].split(",")[2]
+#             except :
+#                 premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
+#             if premierDossardDeLaPique in ArriveeDossards :
+#                 print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
+#                 dossardPrecedent = premierDossardDeLaPique
+#                 for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
+#                     ligneT = ligne.split(",")
+#                     action = ligneT[1]
+#                     if action == "add" :
+#                         ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
+#                     nouvelle_ligne = ",".join(ligneT)
+#                     print("Ligne en cours de traitement", nouvelle_ligne)
+#                     codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
+#                     if codeErreur.numero :
+#                         print("Code erreur :", codeErreur.numero)
+#                         print(nouvelle_ligne)
+#                     # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
+#                     retour.append(codeErreur)
+#                     dossardPrecedent = ligneT[2]
+#                 Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
+#             else :
+#                 noSmartphone = fichier[24:-4]
+#                 listeDossardsPique = []
+#                 for ligne in listeLigne :
+#                     listeDossardsPique.append(ligne.split(",")[2])
+#                 if DEBUG :
+#                     print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
 
-                erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
-                retour.append(erreur)
-                # print("Code erreur :", erreur.numero, erreur.description)
+#                 erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
+#                 retour.append(erreur)
+#                 # print("Code erreur :", erreur.numero, erreur.description)
             
-        # else :
-        #     print("Fichier pique", fichier, "déjà traité à cette heure")
-    return retour
+#         # else :
+#         #     print("Fichier pique", fichier, "déjà traité à cette heure")
+#     return retour
 
 
-def traiterDonneesSmartphonePiquesNG():
-    """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
-        - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
-            Chaque fichier modifié correspond à un téléphone émetteur.
-            Le principe d'insertion des dossards dans arriveeDossard est le suivant : 
+# def traiterDonneesSmartphonePiquesNG():
+#     """Fonctionnement :  si un ou plusieurs fichiers de données smartphone de noms de la forme "donneesSmartphone-pique-XYZ.txt" sont présents :
+#         - si le fichier a été modifié récemment (retrouve l'heure de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ou crée le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] ={} sinon.)
+#             Chaque fichier modifié correspond à un téléphone émetteur.
+#             Le principe d'insertion des dossards dans arriveeDossard est le suivant : 
 
-            Implémentation :
-            Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
-                - si un dossard est présent dans la liste ArriveeDossards, il faut intégrer les dossards qui suivent dans le tableau ArriveeDossard juste derrière, tant qu'elles ne sont pas déjà dans ArriveeDossard
-                - si le premier dossard de la pique n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
-                Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
-                retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
-                - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
-    """
-    listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
-    if not "DerniereRecuperationSmartphonePiques" in Parametres :
-        Parametres["DerniereRecuperationSmartphonePiques"] = {}
+#             Implémentation :
+#             Le premier dossard indiqué dans la première ligne du fichier doit être extrait : il se nomme premierDossardDeLaPique. Ensuite, traite tous de la manière suivante :
+#                 - si un dossard est présent dans la liste ArriveeDossards, il faut intégrer les dossards qui suivent dans le tableau ArriveeDossard juste derrière, tant qu'elles ne sont pas déjà dans ArriveeDossard
+#                 - si le premier dossard de la pique n'est pas présent, retourner une Erreur (dossard attendu non trouvé dans la liste des arrivées). Cela devra retourner l'erreur :
+#                 Erreur(601, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + XYZ + " n'a pas encore été scanné. La pique est ignorée.", elementConcerne=premierDossardDeLaPique)
+#                 retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+#                 - stocke l'erreur de dernière modification du fichier dans le dictionnaire Parametres["DerniereRecuperationSmartphonePiques"] afin de ne pas retraiter la pique tant qu'elle ne change pas.
+#     """
+#     listeFichiersPiques = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
+#     if not "DerniereRecuperationSmartphonePiques" in Parametres :
+#         Parametres["DerniereRecuperationSmartphonePiques"] = {}
         
-    retour = []
-    for fichier in listeFichiersPiques :
-        listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
-        if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
-            print("Fichier pique", fichier, "modifié récemment")
-            try :
-                premierDossardDeLaPique = listeLigne[0].split(",")[2]
-            except :
-                premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
-            if premierDossardDeLaPique in ArriveeDossards :
-                print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
-                dossardPrecedent = premierDossardDeLaPique
-                for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
-                    ligneT = ligne.split(",")
-                    action = ligneT[1]
-                    if action == "add" :
-                        ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
-                    nouvelle_ligne = ",".join(ligneT)
-                    print("Ligne en cours de traitement", nouvelle_ligne)
-                    codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
-                    if codeErreur.numero :
-                        print("Code erreur :", codeErreur.numero)
-                        print(nouvelle_ligne)
-                    # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
-                    retour.append(codeErreur)
-                    dossardPrecedent = ligneT[2]
-                Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
-            else :
-                noSmartphone = fichier[24:-4]
-                listeDossardsPique = []
-                for ligne in listeLigne :
-                    listeDossardsPique.append(ligne.split(",")[2])
-                if DEBUG :
-                    print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
+#     retour = []
+#     for fichier in listeFichiersPiques :
+#         listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
+#         if derniereModifFichierDonnneesSmartphonePiqueRecente(fichier) :
+#             print("Fichier pique", fichier, "modifié récemment")
+#             try :
+#                 premierDossardDeLaPique = listeLigne[0].split(",")[2]
+#             except :
+#                 premierDossardDeLaPique = "-1" #un dossard qui n'existe pas.
+#             if premierDossardDeLaPique in ArriveeDossards :
+#                 print("Le premier dossard de la pique", fichier, "est déjà arrivé. On intègre les données de la pique.")
+#                 dossardPrecedent = premierDossardDeLaPique
+#                 for ligne in listeLigne[1:] : # la première ligne n'a pas à être traitée car elle sert juste à positionner la pique au bon endroit dans ArriveeDossards.
+#                     ligneT = ligne.split(",")
+#                     action = ligneT[1]
+#                     if action == "add" :
+#                         ligneT[3]= dossardPrecedent # on remplace les données venues du smartphone afin d'imposer le dossard précédent dans le traitement des ajouts.
+#                     nouvelle_ligne = ",".join(ligneT)
+#                     print("Ligne en cours de traitement", nouvelle_ligne)
+#                     codeErreur = decodeActionsRecupSmartphone(nouvelle_ligne)
+#                     if codeErreur.numero :
+#                         print("Code erreur :", codeErreur.numero)
+#                         print(nouvelle_ligne)
+#                     # on retourne le code erreur 0 également pour indiquer qu'un traitement a eu lieu.
+#                     retour.append(codeErreur)
+#                     dossardPrecedent = ligneT[2]
+#                 Parametres["DerniereRecuperationSmartphonePiques"][fichier] = os.path.getmtime(fichier)
+#             else :
+#                 noSmartphone = fichier[24:-4]
+#                 listeDossardsPique = []
+#                 for ligne in listeLigne :
+#                     listeDossardsPique.append(ligne.split(",")[2])
+#                 if DEBUG :
+#                     print("Le premier dossard de la pique", noSmartphone, "n'est pas encore arrivé.\nOn ne traite pas les données de la pique.")
 
-                erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
-                retour.append(erreur)
-                # print("Code erreur :", erreur.numero, erreur.description)
+#                 erreur = Erreur(601, listeDesDossardsConcernes = listeDossardsPique ,smartphone=noSmartphone, courteDescription="Le premier dossard " + premierDossardDeLaPique + " de la pique " + noSmartphone + " n'a pas encore été scanné.\nLa pique est ignorée (pour le moment).", elementConcerne=premierDossardDeLaPique)
+#                 retour.append(erreur)
+#                 # print("Code erreur :", erreur.numero, erreur.description)
             
-        # else :
-        #     print("Fichier pique", fichier, "déjà traité à cette heure")
-    return retour
+#         # else :
+#         #     print("Fichier pique", fichier, "déjà traité à cette heure")
+#     return retour
 
-def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
-    """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
-        à la fin mémoriser heureDerniereRecuperationSmartphone
-        retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
-    """
-    fichierDonneesSmartphone = donneesSmartphone
-    fichierDonneesRFID = donneesRFID
-    if DepuisLeDebut :
-        #root["ArriveeTemps"] = []
-        #root["ArriveeTempsAffectes"] = []
-        #root["ArriveeDossards"] = []
-        Parametres["ligneDerniereRecuperation"] = [1,1,1]
-        Parametres["ligneDerniereRecuperationSmartphone"] = 1
-        Parametres["tempsDerniereRecuperationSmartphone"] = 0
-        Parametres["ligneDerniereRecuperationRFID"] = 1
-        Parametres["tempsDerniereRecuperationRFID"] = 0
-        Parametres["compteurReceptionRFID"] = 0
-        Parametres["calculateAll"] = True
-        # dictUIDPrecedents.clear()
-        # print("Réimport de toutes les données smartphone et RFID")
-    listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
-    retour = [] # si aucune ligne à traiter, on retourne []
-    for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
-        # print("Import depuis de le début :", DepuisLeDebut)
-        RFIDtag = "RFID" in fichier
-        listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
-        # listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
-        # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
-        # print(os.path.exists(fichier), listeDerniereModifFichierDonnees[indice])
-        if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
-            listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
-            # print("Fichier", fichier, "modifié récemment. Import de", listeLigne)
-            i = 0
-            #pasDErreur = True
-            while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
-                ligne = listeLigne[i]
-                # print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
-                #print(ligne[-4:])
-                if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                    codeErreur = decodeActionsRecupSmartphone(ligne, RFID=RFIDtag)
-                    if codeErreur.numero :
-                        # une erreur s'est produite
-                        print("Code erreur :", codeErreur.numero)
-                        print(ligne)
-                        retour.append(codeErreur)
-                        #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
-                    ### désormais, même s'il y a une erreur, on poursuit les imports.
-                    if indice == 0 :
-                        Parametres["ligneDerniereRecuperationSmartphone"] += 1
-                        Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                    elif indice == 1 :
-                        Parametres["ligneDerniereRecuperationRFID"] += 1
-                        Parametres["tempsDerniereRecuperationRFID"] = time.time()
-                        ##transaction.commit()
-                else :
-                    #pasDErreur = False
-                    print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
-                    # codeErreur = Erreur(0, courteDescription="Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
-                i += 1
-                # retour.append(codeErreur)
-            #print("Erreurs retournées :",retour)
-            if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
-                if indice == 0 :
-                    Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-                elif indice == 1 :
-                    Parametres["tempsDerniereRecuperationRFID"] = time.time()
-        else :
-            # if not os.path.exists(fichier) :
-            #     print("Fichier", fichier, "n'existe pas.")
-            if indice == 0 :
-                Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-            elif indice == 1 :
-                Parametres["tempsDerniereRecuperationRFID"] = time.time()
-            # print("Fichier", fichier, "déjà traité à cette heure")
-    ##        retour = "RAS"
-    return retour
+# def traiterDonneesSmartphone(DepuisLeDebut = False, ignorerErreurs = False):
+#     """Fonctionnement :  si le fichier de données smartphone a été modifié depuis le dernier traitement => agir.
+#         à la fin mémoriser heureDerniereRecuperationSmartphone
+#         retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+#     """
+#     fichierDonneesSmartphone = donneesSmartphone
+#     fichierDonneesRFID = donneesRFID
+#     if DepuisLeDebut :
+#         #root["ArriveeTemps"] = []
+#         #root["ArriveeTempsAffectes"] = []
+#         #root["ArriveeDossards"] = []
+#         Parametres["ligneDerniereRecuperation"] = [1,1,1]
+#         Parametres["ligneDerniereRecuperationSmartphone"] = 1
+#         Parametres["tempsDerniereRecuperationSmartphone"] = 0
+#         Parametres["ligneDerniereRecuperationRFID"] = 1
+#         Parametres["tempsDerniereRecuperationRFID"] = 0
+#         Parametres["compteurReceptionRFID"] = 0
+#         Parametres["calculateAll"] = True
+#         # dictUIDPrecedents.clear()
+#         # print("Réimport de toutes les données smartphone et RFID")
+#     listeDerniereModifFichierDonnees = [derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID)]
+#     retour = [] # si aucune ligne à traiter, on retourne []
+#     for indice, fichier in enumerate([fichierDonneesSmartphone, fichierDonneesRFID]) :
+#         # print("Import depuis de le début :", DepuisLeDebut)
+#         RFIDtag = "RFID" in fichier
+#         listeLignesDerniereRecuperation = [Parametres["ligneDerniereRecuperationSmartphone"], Parametres["ligneDerniereRecuperationRFID"]]
+#         # listeTempsDerniereRecuperation = [Parametres["tempsDerniereRecuperationSmartphone"], Parametres["tempsDerniereRecuperationRFID"]]
+#         # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+#         # print(os.path.exists(fichier), listeDerniereModifFichierDonnees[indice])
+#         if os.path.exists(fichier) and listeDerniereModifFichierDonnees[indice] :
+#             listeLigne = lignesAPartirDe(fichier, listeLignesDerniereRecuperation[indice])
+#             # print("Fichier", fichier, "modifié récemment. Import de", listeLigne)
+#             i = 0
+#             #pasDErreur = True
+#             while i < len(listeLigne) : # plus d'arrêt à la première erreur : and pasDErreur :
+#                 ligne = listeLigne[i]
+#                 # print("Traitement de la ligne", Parametres["ligneDerniereRecuperationSmartphone"] , ":", ligne, end='')
+#                 #print(ligne[-4:])
+#                 if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
+#                     codeErreur = decodeActionsRecupSmartphone(ligne, RFID=RFIDtag)
+#                     if codeErreur.numero :
+#                         # une erreur s'est produite
+#                         print("Code erreur :", codeErreur.numero)
+#                         print(ligne)
+#                         retour.append(codeErreur)
+#                         #print("Données importées pour la ligne :", Parametres["ligneDerniereRecuperationSmartphone"] )
+#                     ### désormais, même s'il y a une erreur, on poursuit les imports.
+#                     if indice == 0 :
+#                         Parametres["ligneDerniereRecuperationSmartphone"] += 1
+#                         Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+#                     elif indice == 1 :
+#                         Parametres["ligneDerniereRecuperationRFID"] += 1
+#                         Parametres["tempsDerniereRecuperationRFID"] = time.time()
+#                         ##transaction.commit()
+#                 else :
+#                     #pasDErreur = False
+#                     print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+#                     # codeErreur = Erreur(0, courteDescription="Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+#                 i += 1
+#                 # retour.append(codeErreur)
+#             #print("Erreurs retournées :",retour)
+#             if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+#                 if indice == 0 :
+#                     Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+#                 elif indice == 1 :
+#                     Parametres["tempsDerniereRecuperationRFID"] = time.time()
+#         else :
+#             # if not os.path.exists(fichier) :
+#             #     print("Fichier", fichier, "n'existe pas.")
+#             if indice == 0 :
+#                 Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
+#             elif indice == 1 :
+#                 Parametres["tempsDerniereRecuperationRFID"] = time.time()
+#             # print("Fichier", fichier, "déjà traité à cette heure")
+#     ##        retour = "RAS"
+#     return retour
 
 
-    ########### copié collé de la fonction précédente en changeant juste les variables de mémorisation
-def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
-    """traite le 2ème fichier de données :  celui généré par les requêtes effactuées localement directement sur l'interface GUI.
-    Cela permettra de rejouer l'ensemble des actions depuis le début, puis éventuellement, plus tard, d'en annuler certaines.
-    retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
-    """
-    fichierDonneesSmartphone = donneesModifLocales
-    #print("Import depuis de le début :", DepuisLeDebut)
-    if DepuisLeDebut :
-        #root["ArriveeTemps"] = []
-        #root["ArriveeTempsAffectes"] = []
-        #root["ArriveeDossards"] = []
-        Parametres["ligneDerniereRecuperationLocale"] = 1
-        Parametres["tempsDerniereRecuperationLocale"] = 0
-        Parametres["calculateAll"] = True
-        # dictUIDPrecedents.clear()
-    retour = []
-    # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
-    if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesLocalesRecente(fichierDonneesSmartphone) :
-        listeLigne = lignesAPartirDe(fichierDonneesSmartphone, Parametres["ligneDerniereRecuperationLocale"])
-        i = 0
-        #pasDErreur = True
-        while i < len(listeLigne):# and pasDErreur :
-            ligne = listeLigne[i]
-            #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
-            #print(ligne[-4:])
-            if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-                codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
-                if codeErreur.numero :
-                    # une erreur s'est produite
-                    print("Code erreur : ", codeErreur.numero)
-                    print(ligne)
-                    retour.append(codeErreur)
-                #else :
-                    #print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
-                # même si une erreur se produit, désormais, on poursuit les imports.
-                Parametres["ligneDerniereRecuperationLocale"] += 1
-                Parametres["tempsDerniereRecuperationLocale"] = time.time()
-                    ##transaction.commit()
-            else :
-                #pasDErreur = False
-                print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
-            i += 1
-            # retour.append(codeErreur)
-        if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
-            Parametres["tempsDerniereRecuperationLocale"] = time.time()
-    else :
-        Parametres["tempsDerniereRecuperationLocale"] = time.time()
-##        #print("Fichier des données locales déjà traité à cette heure")
-##        retour = "RAS"
-    return retour
+#     ########### copié collé de la fonction précédente en changeant juste les variables de mémorisation
+# def traiterDonneesLocales(DepuisLeDebut = False, ignorerErreurs = False):
+#     """traite le 2ème fichier de données :  celui généré par les requêtes effactuées localement directement sur l'interface GUI.
+#     Cela permettra de rejouer l'ensemble des actions depuis le début, puis éventuellement, plus tard, d'en annuler certaines.
+#     retourne une liste d'instance de la class Erreur. La liste vide signifie que tout s'est bien importé
+#     """
+#     fichierDonneesSmartphone = donneesModifLocales
+#     #print("Import depuis de le début :", DepuisLeDebut)
+#     if DepuisLeDebut :
+#         #root["ArriveeTemps"] = []
+#         #root["ArriveeTempsAffectes"] = []
+#         #root["ArriveeDossards"] = []
+#         Parametres["ligneDerniereRecuperationLocale"] = 1
+#         Parametres["tempsDerniereRecuperationLocale"] = 0
+#         Parametres["calculateAll"] = True
+#         # dictUIDPrecedents.clear()
+#     retour = []
+#     # ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
+#     if os.path.exists(fichierDonneesSmartphone) and derniereModifFichierDonnneesLocalesRecente(fichierDonneesSmartphone) :
+#         listeLigne = lignesAPartirDe(fichierDonneesSmartphone, Parametres["ligneDerniereRecuperationLocale"])
+#         i = 0
+#         #pasDErreur = True
+#         while i < len(listeLigne):# and pasDErreur :
+#             ligne = listeLigne[i]
+#             #print("Traitement de la ligne", Parametres["ligneDerniereRecuperationLocale"] , ":", ligne, end='')
+#             #print(ligne[-4:])
+#             if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
+#                 codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
+#                 if codeErreur.numero :
+#                     # une erreur s'est produite
+#                     print("Code erreur : ", codeErreur.numero)
+#                     print(ligne)
+#                     retour.append(codeErreur)
+#                 #else :
+#                     #print("Données correctement importées pour la ligne :", Parametres["ligneDerniereRecuperationLocale"] )
+#                 # même si une erreur se produit, désormais, on poursuit les imports.
+#                 Parametres["ligneDerniereRecuperationLocale"] += 1
+#                 Parametres["tempsDerniereRecuperationLocale"] = time.time()
+#                     ##transaction.commit()
+#             else :
+#                 #pasDErreur = False
+#                 print("Une ligne incomplète venant du smartphone : ne devrait pas se produire sauf en cas d'accès concurrant au fichier de données. On retente un import plus tard.")
+#             i += 1
+#             # retour.append(codeErreur)
+#         if i == 0 : # si i est nul, c'est que le fichier a été parcouru en entier. Inutile de relancer de multiples sauvegardes.
+#             Parametres["tempsDerniereRecuperationLocale"] = time.time()
+#     else :
+#         Parametres["tempsDerniereRecuperationLocale"] = time.time()
+# ##        #print("Fichier des données locales déjà traité à cette heure")
+# ##        retour = "RAS"
+#     return retour
 
 def EPCtoDossard(epc) :
     try :
@@ -6036,8 +6036,8 @@ def tempsClientIsNotInArriveeTemps(newTps) :
     i = len(ArriveeTemps)
     if i > 0 :
         tpsDejaPresent = ArriveeTemps[i-1]
-        while i > 0 and tpsDejaPresent.tempsReel <= newTps.tempsReel :
-            #print("comparaison de ",tpsDejaPresent.tempsCoureur, " et ",  newTps.tempsCoureur )
+        # print("i=",i,"comparaison de ",tpsDejaPresent.tempsReel, " et ",  newTps.tempsReel )
+        while i > 0 and tpsDejaPresent.tempsReel - 1 <= newTps.tempsReel:
             if tpsDejaPresent.tempsReel == newTps.tempsReel :
                 print("Temps déjà ajouté à l'arrivée. Temps Coureur sur téléphone :", newTps.tempsCoureur, ". Temps réel sur serveur:", newTps.tempsReel,"(non ajouté)." )
                 retour= False

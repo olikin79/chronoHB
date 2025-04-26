@@ -1,6 +1,6 @@
 Bugs découverts :
 - l'actualisation de l'interface ne s'effectue plus quand les fichiers txt changent. Bug introduit très récemment.
-
+- clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 
 
 Avant le 02 mai : test de course APPN :
