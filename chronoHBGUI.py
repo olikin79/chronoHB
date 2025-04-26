@@ -5460,7 +5460,7 @@ for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
 files = tuple(files)
 ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
 ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
-ModeleDeDossardsCombo.set(dossardModele)
+ModeleDeDossardsCombo.set(Parametres["dossardModele"])
 ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
 actualiseCanvasModeleDossards("")
 

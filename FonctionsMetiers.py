@@ -2120,9 +2120,9 @@ class ArriveeTempsAffecteClass(list):
 def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
-           CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
+           CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
            calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, noTransmission,\
-           dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
+           webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
            genererListingQRcodes,genererListing, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
@@ -2269,7 +2269,6 @@ def chargerDonnees() :
     tempsPause=Parametres["tempsPause"]
     if not "dossardModele" in Parametres :
         Parametres["dossardModele"]= "cross-HB"
-    dossardModele=Parametres["dossardModele"]
     if not "webcam" in Parametres :
         Parametres["webcam"]= 0
     webcam=Parametres["webcam"]
@@ -3786,7 +3785,7 @@ def retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=False, impri
     pour indiquer que l'opérateur doit ajouter 3 pages de couleur "white" puis 2 pages de couleur "yellow" puis 1 page de couleur "green" etc..."""
     retour = ""
     # utilisation du modèle de dossard.
-    modeleDosssard = "./modeles/dossards/" + dossardModele + ".tex"
+    modeleDosssard = "./modeles/dossards/" + Parametres["dossardModele"] + ".tex"
     with open(modeleDosssard , 'r') as f :
         modele = f.read()
     f.close()
@@ -3870,7 +3869,7 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
    
 def getEnTetePersonnalise() :
     """ certains modèles de dossards nécessitent un en-tête personnalisé """
-    enTetePersonnalise = "./modeles/en-tete-" + dossardModele + ".tex"
+    enTetePersonnalise = "./modeles/en-tete-" + Parametres["dossardModele"] + ".tex"
     print("Recherche d'un en-tête personnalisé :", enTetePersonnalise)
     if os.path.exists(enTetePersonnalise) :
         with open(enTetePersonnalise, 'r',encoding="utf-8") as f :
@@ -4018,7 +4017,7 @@ def generateDossardsAImprimer() :
 ##        modeleDosssard = "./modeles/dossard-modele.tex"
 ##    else :
 ##        modeleDosssard = "./modeles/dossard-modele-classe.tex"
-##    modeleDosssard = "./modeles/" + dossardModele
+##    modeleDosssard = "./modeles/" + Parametres["dossardModele"]
 ##    with open(modeleDosssard, 'r') as f :
 ##        modele = f.read()
 ##    f.close()
@@ -4049,7 +4048,7 @@ def generateDossard(coureur) :
     TEXDIR = "dossards"+os.sep+"tex"+os.sep
     creerDir(TEXDIR)
     # utilisation du modèle de dossard.
-##    modeleDosssard = "./modeles/" + dossardModele
+##    modeleDosssard = "./modeles/" + Parametres["dossardModele"]
 ##    with open(modeleDosssard, 'r') as f :
 ##        modele = f.read()
 ##    f.close()
