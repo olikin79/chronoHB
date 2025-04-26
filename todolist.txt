@@ -20,6 +20,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
 
 A faire avant les vacances de juillet :
+- solliciter Lucie pour le diplome du cross,
 - commander les 800 dossards pour le cross du collège,
 - commander 1000 puces RFID autocollantes.
 - commander épingles à nourrice ?

@@ -126,7 +126,9 @@ Travail du 26/04/25 :
 - correction d'un très vieux bug : quand on changeait certains paramètres dans l'interface, cela ne s'appliquait qu'après un redémarrage.
 Exemple : le type de catégories (catégories date de naissance vers UNSS), cela ne s'appliquait vraiment qu'après un redémarrage.
 si on essayait d'importer immédiatement après changement, cela donnait des catégories pourries alors que cela fonctionnait après un redémarrage.
-C'est le même problème que pour les dossards et autres diplomes... à corriger plus tard.
+- correction du bug : quand on changeait le diplome, cela ne s'appliquait qu'après un redémarrage.
+C'est le même problème que pour les dossards : à corriger plus tard.
+
 
 
 Travail de mars-avril 2025 :

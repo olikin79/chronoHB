@@ -1856,9 +1856,9 @@ class DossardsFrame(Frame) :
         self.actualiseListeDesClasses()
         #self.actualiseAffichage()
     def actualiseListeDesClasses(self) :
-        if CategorieDAge == 2 :
+        if Parametres['CategorieDAge'] == 2 :
             self.tupleClasses = tuple(listEtablissements())
-        elif CategorieDAge == 1 :
+        elif Parametres['CategorieDAge'] == 1 :
             self.tupleClasses = tuple(listCategories())
         else :
             self.tupleClasses = tuple(listClasses())
@@ -1875,9 +1875,9 @@ class DossardsFrame(Frame) :
             self.comboBoxBarClasse.pack(side=TOP, expand=YES) # fill=X, 
             self.comboBoxBarClasse.config(relief=GROOVE, bd=2)
             selection= self.choixClasseCombo.get()
-            if CategorieDAge == 2 :
+            if Parametres['CategorieDAge'] == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
-            elif CategorieDAge == 1 :
+            elif Parametres['CategorieDAge'] == 1 :
                 self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection)
             else :
                 self.listeCoureursDeLaClasse = listCoureursDUneClasse(selection)
@@ -2663,7 +2663,7 @@ actualiseIPActuelle()
 ##for i in range (1,5) :
 ##    donnees.append(["nom " + str(i), "prenom" + str(i), '10.13.71.' +str(i)])
 #print(donnees)
-if CategorieDAge :
+if Parametres['CategorieDAge'] :
     largeurClasse = 0
     largeurChrono = 50
 else :
@@ -2727,9 +2727,9 @@ def onClickE(err):
     elif err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
             Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
-        if CategorieDAge ==2 :
+        if Parametres['CategorieDAge'] ==2 :
             saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
-        elif CategorieDAge == 1 :
+        elif Parametres['CategorieDAge'] == 1 :
             if CoursesManuelles :
                 saisieAbsDisp(groupementAPartirDUneCategorie(Coureurs.recuperer(err.dossard).course).nom)
             else :
@@ -4954,7 +4954,7 @@ class CoureurFrame(Frame) :
 
     def etablissementEstValide(self) : # retoune True si ce n'est pas un cross UNSS,
         # retourne True si l'établissement et son type st remplis pour le cross UNSS : champ vide retourne False
-        return CategorieDAge != 2 or (len(self.etabC.get())>= 1 and len(self.etabNatureC.get())>= 1)
+        return Parametres['CategorieDAge'] != 2 or (len(self.etabC.get())>= 1 and len(self.etabNatureC.get())>= 1)
     
     def activerBoutons(self,event) :
         """ méthode chargée d'actualiser l'état des boutons en bas du formulaire, d'afficher la validité de la catégorie ou de l'email saisi"""
@@ -5472,7 +5472,7 @@ for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
 files = tuple(files)
 ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
 ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-ModeleDeDiplomeCombo.set(diplomeModele)
+ModeleDeDiplomeCombo.set(Parametres["diplomeModele"])
 ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
 actualiseCanvasModeleDiplome("")
 

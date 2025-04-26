@@ -2121,9 +2121,9 @@ def chargerDonnees() :
     global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
            tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
            CategorieDAge,CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
-           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, dictUIDPrecedents, noTransmission,\
+           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, noTransmission,\
            dossardModele,webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
-           genererListingQRcodes,genererListing,diplomeModele, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
+           genererListingQRcodes,genererListing, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
            actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
            URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
            seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, donneesRFID, ligneDerniereRecuperation, \
@@ -2191,11 +2191,6 @@ def chargerDonnees() :
     #     root["LignesIgnoreesLocal"] = []
     # LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
 
-    # créé pour rien.
-    # if not "dictUIDPrecedents" in root :
-    #     root["dictUIDPrecedents"] = {}
-    # dictUIDPrecedents=root["dictUIDPrecedents"]
-
     if not "ligneTableauGUI" in root :
         root["ligneTableauGUI"] = [1,0]
     ligneTableauGUI=root["ligneTableauGUI"]
@@ -2236,7 +2231,6 @@ def chargerDonnees() :
     ligneDerniereRecuperationLocale = Parametres["ligneDerniereRecuperationLocale"]
     if not "CategorieDAge" in Parametres :
         Parametres["CategorieDAge"]=0
-    CategorieDAge=Parametres["CategorieDAge"]
     if not "CourseCommencee" in Parametres :
         Parametres["CourseCommencee"]=False
     CourseCommencee=Parametres["CourseCommencee"]
@@ -2301,8 +2295,7 @@ def chargerDonnees() :
         Parametres["genererListing"] = True
     genererListing=Parametres["genererListing"]
     if not "diplomeModele" in Parametres :
-        Parametres["diplomeModele"] = "Randon-Trail"
-    diplomeModele=Parametres["diplomeModele"]
+        Parametres["diplomeModele"] = "cross-HB-2023"
     if not "diplomeDiffusionApresNMin" in Parametres :
         Parametres["diplomeDiffusionApresNMin"] = 15
     diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
@@ -2724,6 +2717,8 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
         Parametres["ligneDerniereRecuperation"] = [1,1,1]
         Parametres["calculateAll"] = True
+        UIDPrecedents = {}
+        
         # dictUIDPrecedents.clear()
     # on liste les fichiers à analyser
     fichierDonneesSmartphone = "donneesSmartphone.txt"
@@ -2782,7 +2777,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
         ligne = listeDesDonneesATraiter[indiceMin].pop(0)
         if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-            codeErreur = decodeActionsRecupSmartphone(ligne, local=LocalTag, RFID=RFIDtag, pique=PiqueTag, dernierDossardDeLaPiquePresentDansArriveeDossards=dernierDossardDeLaPiquePresentDansArriveeDossards)
+            codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = UIDPrecedents ,local=LocalTag, RFID=RFIDtag, pique=PiqueTag, dernierDossardDeLaPiquePresentDansArriveeDossards=dernierDossardDeLaPiquePresentDansArriveeDossards)
             if codeErreur.numero :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
@@ -2925,6 +2920,7 @@ def traiterDonneesSmartphonePiquesNG():
     listeFichiersPiques = glob.glob("donneesSmartphone-pique-*.txt")
     if not "DerniereRecuperationSmartphonePiques" in Parametres :
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
+        
     retour = []
     for fichier in listeFichiersPiques :
         listeLigne = lignesAPartirDe(fichier, 1) # récupère tout depuis le début
