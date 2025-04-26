@@ -284,7 +284,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
     # PrecisionSurLAnne permet de retourner des catégories comme JU2 ou JU1 pour le cas où on en a besoin. (Challenge UNSS)
     # PAr défaut le programme retourne des catégories comme BE, MI, CA, JU sans la précision sur l'année.
     categorie = ""
-    if CategorieDAge :
+    if Parametres["CategorieDAge"] :
         correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU2" ], [2005, "JU1" ], [2006, "CA2" ], [2007, "CA1" ], [2008, "MI2" ], [2009, "MI1" ], [2010, "BE2" ], [2011, "BE1" ], [2012, "PO3" ],  [2013, "PO2" ],  [2014, "PO1" ], [2015, "EA" ], [3000, "BB" ]]
         try :
             anneeNaissance = int(anneeNaissance)
@@ -712,6 +712,8 @@ class DictionnaireDeCoureurs(dict) :
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
     def cles(self):
+        # if DEBUG :
+        #     print("cles(self)", self.keys())
         L = list(self.keys())
         L.remove("CoureursElimines")
         return L
@@ -880,9 +882,9 @@ def naissanceValide(naissance) :
         correctDate = True
     else :
         try:
-            print("annee")
+            # print("annee")
             annee = naissance[6:] # on permet les années sur 2 ou 4 chiffres. C'est datetime ci-dessous qui sera juge de la validité de la fin de chaine.
-            print("mois")
+            # print("mois")
             mois = naissance[3:5]
             jour = naissance[0:2]
             correctDate = False
@@ -958,7 +960,7 @@ class Coureur():#persistent.Persistent):
         self.emailNombreDEnvois = 0
         self.emailNombreDEnvois2 = 0
         self.tempsDerniereModif = 0
-        self.categorie(CategorieDAge)
+        self.categorie(Parametres["CategorieDAge"])
         self.__private_categorie = None
         # OBSOLETE : self.__private_categorie_manuelle = None ### devenue inutile suite à la distinction entre Catégorie et Course (version 1.7)
         self.actualiseCategorie()
@@ -986,10 +988,10 @@ class Coureur():#persistent.Persistent):
         
     def actualiseCategorie(self) :
         self.__private_categorie = None
-        return self.categorie(CategorieDAge)
+        return self.categorie(Parametres["CategorieDAge"])
 
 
-    def categorie(self, CategorieDAge=0, precisionSurLAnnee=False):
+    def categorie(self, CategorieDAge, precisionSurLAnnee=False):
         try : # compatibilité avec les vieilles sauvegardes restaurées
             self.etablissement
         except:
@@ -2567,7 +2569,7 @@ def exportXLSX():
     workbook = xlsxwriter.Workbook(fichier)
     worksheet = workbook.add_worksheet()
     ### constitution des champs à ajouter et de leurs contenus
-    if CategorieDAge :
+    if Parametres["CategorieDAge"] :
         CourseOuClasse = 'Course'
     else :
         CourseOuClasse = 'Classe'
@@ -2576,10 +2578,10 @@ def exportXLSX():
                             'Rang', 'Temps (en s)', 'Temps (HMS)',\
                             'Vitesse (en km/h)', 'Pourcentage de VMA']
     exportProprietesOrdonnees = ['coureur.dossard', 'coureur.nom', 'coureur.prenom', 'coureur.sexe', 'coureur.naissance', 'coureur.categorieFFA()',\
-                                 'groupementAPartirDeSonNom(coureur.course, nomStandard=True).nom if CategorieDAge else coureur.classe', 'coureur.VMA', '"oui" if coureur.absent else ""', '"oui" if coureur.dispense else ""',\
+                                 'groupementAPartirDeSonNom(coureur.course, nomStandard=True).nom if Parametres["CategorieDAge"] else coureur.classe', 'coureur.VMA', '"oui" if coureur.absent else ""', '"oui" if coureur.dispense else ""',\
                                  'coureur.rang if coureur.rang else "-"','round(coureur.temps,2)', 'coureur.tempsHMS()',\
                                  'round(coureur.vitesse,1) if coureur.vitesse else "-"','coureur.pourcentageVMA()']
-    if CategorieDAge == 2 : # cross UNSS, champs supplémentaires
+    if Parametres["CategorieDAge"] == 2 : # cross UNSS, champs supplémentaires
         exportChampsOrdonnes += ['établissement', 'type','Licence',]
         exportProprietesOrdonnees += ['coureur.etablissement', 'coureur.etablissementNature', 'coureur.licence']
     ### remplissage 1ère ligne
@@ -2696,7 +2698,7 @@ ResultatsGroupements = {} # dictionnaire des résultats calculés qui sera regé
 ##DonneesAAfficher = TableauGUI()
 coureurVide = Coureur("", "", "")
 
-### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on reinitialise la course.
+### traitement des fichiers créés par le serveur web. On y accède en lecture et on ne l'efface jamais sauf si on réinitialise la course.
 def traiterToutesDonnees():
     traiterDonneesSmartphone(True, False)
     traiterDonneesLocales(True,False)
@@ -3428,7 +3430,7 @@ def listDossardsDUnGroupement(nom):
     retour = []
     if Coureurs.nombreDeCoureurs!=0:
         for coureur in Coureurs.liste() :
-            if nomGroupementAPartirDUneCategorie(coureur.categorie(CategorieDAge)) == nom :
+            if nomGroupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])) == nom :
                 retour.append(coureur.dossard)
     return retour
 
@@ -3436,7 +3438,7 @@ def listDossardsDUneCategorie(cat):
     retour = []
     if Coureurs.nombreDeCoureurs!=0:
         for coureur in Coureurs.liste() :
-            if coureur.categorie(CategorieDAge) == cat :
+            if coureur.categorie(Parametres["CategorieDAge"]) == cat :
                 retour.append(coureur.dossard)
     return retour
 
@@ -3463,7 +3465,7 @@ def listCoureursDUneCourse(course, nomStandard=True):
 def listCoureursDUneCategorie(categorie):
     retour = []
     for coureur in Coureurs.liste()  :
-        if coureur.categorie(CategorieDAge) == categorie :
+        if coureur.categorie(Parametres["CategorieDAge"]) == categorie :
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
@@ -3855,17 +3857,17 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
                 .replace("@dossard@",coureur.getDossard(avecLettre=False)).replace("@qrcode@",str(coureur.dossard))\
                 .replace("@intituleCross@",Parametres["intituleCross"]).replace("@lieu@",Parametres["lieu"])\
                 .replace("@logo@",logoPersonnalise).replace("@logoUNSS@",logoUNSSPersonnalise).replace("@lettreCourse@",coureur.course)
-    if CategorieDAge == 0 : # cas du cross du collège : seuls les noms de classe sont importants
+    if Parametres["CategorieDAge"] == 0 : # cas du cross du collège : seuls les noms de classe sont importants
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
-    elif CategorieDAge == 1 :
+    elif Parametres["CategorieDAge"] == 1 :
         if CoursesManuelles : # cas de courses personnalisées : trail Randon
             retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
         else : # cas de courses par catégorie de la FFA
             retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
-    else : # categorieDAge == 2 (cross UNSS)
+    else : # Parametres["CategorieDAge"] == 2 (cross UNSS)
         retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@",etab)
     return retour
@@ -4219,12 +4221,12 @@ def CoureursParClasseUpdate():
     global CoureursParClasse, CoureursParClasseOrdonnes
     CoureursParClasse.clear()
     CoureursParClasseOrdonnes.clear()
-    if CategorieDAge == 2 : # cas UNSS
+    if Parametres["CategorieDAge"] == 2 : # cas UNSS
         for c in Coureurs.liste() :
             if not c.etablissement in CoureursParClasse.keys() :
                 CoureursParClasse[c.etablissement]=[]
             CoureursParClasse[c.etablissement].append(c)
-    elif CategorieDAge == 1 : # cas catégories d'age
+    elif Parametres["CategorieDAge"] == 1 : # cas catégories d'age
         if CoursesManuelles :
             for c in Coureurs.liste() :
                 if not c.course in CoureursParClasse.keys() :
@@ -5236,7 +5238,7 @@ def absentsDispensesAbandonsEnTex() :
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
         elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(CategorieDAge)
+            retour += c.categorie(Parametres["CategorieDAge"])
         else :
             retour += c.classe 
         retour += ")"
@@ -5253,7 +5255,7 @@ def absentsDispensesAbandonsEnTex() :
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
         elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(CategorieDAge)
+            retour += c.categorie(Parametres["CategorieDAge"])
         else :
             retour += c.classe 
         retour += ")"
@@ -5270,7 +5272,7 @@ def absentsDispensesAbandonsEnTex() :
         if Parametres["CategorieDAge"] == 2 : 
             retour += c.etablissement
         elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(CategorieDAge)
+            retour += c.categorie(Parametres["CategorieDAge"])
         else :
             retour += c.classe 
         retour += ")"
@@ -6411,7 +6413,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 # print("lettreCourse",lettreCourse)
             else :
-                addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                print("ajout de la course automatique si besoin")
+                lettreCourse = addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                print(Coureurs.recuperer(dossard).nom, Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             print("Coureur", dossard,"ajouté", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
@@ -6575,7 +6579,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
     dossPrecedent = formateDossardNG(dossardPrecedent)
     if Coureurs.existe(doss) :
         coureur = Coureurs.recuperer(doss)
-        if CategorieDAge :
+        if Parametres["CategorieDAge"] :
             infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.categorie(Parametres["CategorieDAge"]) + ")."
         else :
             infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.classe + ")."
@@ -7374,10 +7378,10 @@ def genereEnTetesHTML(groupement, chrono=False, avecFermetureTABLE = True) :
         else :
             tableau = "<table border='1' cellpadding='6' cellspacing='5' id='titres'><tbody>"
             tableau += '<thead> <tr><th class="rang"> RANG</th> <th class="nomprenom">Prénom NOM</th>'
-            if CategorieDAge == 0 :
+            if Parametres["CategorieDAge"] == 0 :
                 tableau += '<th class="classe">Classe</th>'
             else :
-                if CategorieDAge == 2 :
+                if Parametres["CategorieDAge"] == 2 :
                     tableau += '<th class="etab">Etablissement</th>'
                 else :
                     tableau += '<th class="classe">Catégorie</th>'
@@ -7480,7 +7484,7 @@ def creerFichierChallenge(challenge, entete):
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
         # score = ResultatsGroupements[challenge][i].score
         classe = ResultatsGroupements[challenge][i].nom
-        if CategorieDAge == 2 : ## pour l'UNSS , on ajoute le numéro d'établissement
+        if Parametres["CategorieDAge"] == 2 : ## pour l'UNSS , on ajoute le numéro d'établissement
             L = ResultatsGroupements[challenge][i].listeCG + ResultatsGroupements[challenge][i].listeCF
             #print("etablissementNoUNSS",L)
             #print(L[0].etablissementNoUNSS)
@@ -7542,7 +7546,7 @@ def creerFichierClasseNG(nom, entete, estGroupement):
     colonneSuppl = ""
     titreSuppl = ""
     tableau = [[["<b> Nom Prénom</b>", 150]]]
-    if CategorieDAge == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
         tableau[0].append(["<b>Sexe</b>", 40])
     tableau[0].append(["<b>Rang</b>", 80])
     tableau[0].append(["<b>Temps</b>", 100])
@@ -7611,7 +7615,7 @@ def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     colonneSuppl = ""
     titreSuppl = ""
-    if CategorieDAge == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
         colonneSuppl = "p{1.2cm} |"
         titreSuppl = "{} \\hfill \\textbf{Sexe} \\hfill {} &"
     tableau = "\\begin{center}\n\
@@ -7732,7 +7736,7 @@ def genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAbandon, rangCourse=False) 
     else :
         contenuRangCat = ""
     ligne = [coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-")]
-    if CategorieDAge == 1 :
+    if Parametres["CategorieDAge"] == 1 :
         ligne += [coureur.sexe]
     ligne += [contenuRang + contenuRangCat, contenuTemps, contenuVitesse]
     # ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} & " \
@@ -7740,7 +7744,7 @@ def genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAbandon, rangCourse=False) 
     # + " {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
     # + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
     # + " \\hfill {} \\\\\n"
-    if CategorieDAge == 2 : #cas du cross UNSS
+    if Parametres["CategorieDAge"] == 2 : #cas du cross UNSS
         ligne += [coureur.etablissement]
     return ligne, ArrDispAbsAbandon
 
@@ -7792,14 +7796,14 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     else :
         contenuRangCat = ""
     contenuSuppl = ""
-    if CategorieDAge == 1 :
+    if Parametres["CategorieDAge"] == 1 :
         contenuSuppl = "{} \\hfill " + coureur.sexe +" \\hfill {} & "
     ligne = " {} \\hfill " + coureur.prenom.replace("_","-") + " " + coureur.nom.replace("_","-") + "\\hfill {} & " \
     + contenuSuppl \
     + " {} \\hfill " + contenuRang + contenuRangCat +" \\hfill {} &  {} \\hfill "\
     + contenuTemps + " \\hfill {} &  {} \\hfill " + contenuVitesse \
     + " \\hfill {} \\\\\n"
-    if CategorieDAge == 2 : #cas du cross UNSS
+    if Parametres["CategorieDAge"] == 2 : #cas du cross UNSS
         ligne += "\n {} \\hfill ("+ coureur.etablissement + ")"   + " \\hfill {} &  & & \\\\\n"
     ligne += "\hline\n"
     return ligne, ArrDispAbsAbandon
@@ -7887,23 +7891,23 @@ def genereLigneTableauHTML(dossard) :
     else :
         ligne += str(coureur.rang) 
     ligne += "</td><td class='nomprenom'>"+ coureur.prenom + " " + coureur.nom
-##    if not CategorieDAge :
+##    if not Parametres["CategorieDAge"] :
 ##        ligne +=ajoutMedailleEnFonctionDuRang(coureur.rang, masculin=masc)
-    if CategorieDAge == 2 and coureur.rang != coureur.rangCat :
+    if Parametres["CategorieDAge"] == 2 and coureur.rang != coureur.rangCat :
         #print(coureur.nom, coureur.rangCat)
         medailleMeilleurDeSaCategorie = ajoutMedailleEnFonctionDuRang(coureur.rangCat, masculin=masc)
         if medailleMeilleurDeSaCategorie :
             ligne += " (" + medailleMeilleurDeSaCategorie + "" + coureur.categorieFFA()+")"
     ligne += "</td>"
-    if not CategorieDAge :
+    if not Parametres["CategorieDAge"] :
         ligne += "<td class='classe'>"+coureur.classe + "</td>"
     else:
-        if CategorieDAge == 1 :
+        if Parametres["CategorieDAge"] == 1 :
             ligne += "<td class='classe'>"
             if coureur.rang != coureur.rangCat :
                 ligne += ajoutMedailleEnFonctionDuRang(coureur.rangCat)
             ligne += coureur.categorieFFA()
-        elif CategorieDAge == 2 :
+        elif Parametres["CategorieDAge"] == 2 :
             ligne += "<td class='etab'>"+coureur.etablissement
             #if coureur.rang < 4 :
             #    ligne += ajoutMedailleEnFonctionDuRang(coureur.rang, masculin=masc)

@@ -50,7 +50,6 @@ Avant le cross Rieutort :
 ##########################################################
 Idées pour le RFID :
 Sur le lecteur, il faut régler la période de scan par antenne à 50ms pour être sûr de ne pas rater de coureurs.
-En limitant la puissance (3m max), on élargit peut-être le champ et donc les capacités de détection.
 
 Pour le cross HB 2025 : 
 - Réfléchir comment rajouter les coureurs manquants : lecture RFID avec un scanner courte distance pouvant remplacer la saisie de numéro, peut-être suffisante.
@@ -114,6 +113,8 @@ A faire rapidement côté développements :
 C'est la méthode tempsClientIsNotInArriveeTemps(tps) qui devrait retourner False avec le temps de l'interface mais qui ne le fait pas.
 Du coup, la fonction dupliqueTemps(tps) ne fonctionne pas et ne duplique pas le temps de l'interface.
 
+
+
 ############
 
 Travail du 26/04/25 :
@@ -122,6 +123,11 @@ Travail du 26/04/25 :
 - les erreurs ne disparaissaient pas quand on réinitialisait la course.
 - blindage de fonctions du code face à des données incohérentes.
 - après l'impression, l'erreur "des dossards restent à imprimer" ne disparaissait pas.
+- correction d'un très vieux bug : quand on changeait certains paramètres dans l'interface, cela ne s'appliquait qu'après un redémarrage.
+Exemple : le type de catégories (catégories date de naissance vers UNSS), cela ne s'appliquait vraiment qu'après un redémarrage.
+si on essayait d'importer immédiatement après changement, cela donnait des catégories pourries alors que cela fonctionnait après un redémarrage.
+C'est le même problème que pour les dossards et autres diplomes... à corriger plus tard.
+
 
 Travail de mars-avril 2025 :
 - import de fichiers UNSS et peyce,

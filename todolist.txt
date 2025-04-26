@@ -23,22 +23,29 @@ A faire avant les vacances de juillet :
 - commander les 800 dossards pour le cross du collège,
 - commander 1000 puces RFID autocollantes.
 - commander épingles à nourrice ?
+- passage de cable sur la ligne d'arrivée si on double les antennes ?
+- 2 trepiers disponibles en EPS ?
+- commander 
+	* un long cable d'antenne : 10 mètres ou 25 m ? Un deuxième à prévoir si 3 antennes ?
+	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
 
 A faire avant début octobre 2025 :
-- commander 
-	* un long cable d'antenne : 10 mètres
-	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
 - import de la base du collège,
 - coller les 720 puces sur les 720 premiers dossards.
 - association des 720 puces aux 720 premiers dossards.
 
-A faire avant le cross du collège Bourrillon :
+A faire avant le cross du collège Bourrillon 2025 :
 - plusieurs antennes fonctionnelles et mode "antenne secondaire" à rendre fonctionnel (identique au mode pique ?).
 - Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
 En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
 - l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
 et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
 - 2ème malette à créer ?
+
+
+A faire pour le cross départemental 2025 :
+- raccourcir automatiquement les noms d'établissement pour les dossards :
+en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
 
 A faire à plus long terme pour un prochain cross du collège ?
 - permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? Pourrait devenir utile à terme.
