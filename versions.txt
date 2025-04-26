@@ -43,6 +43,10 @@ si on réimporte une vieille sauvegarde, on a les bugs suivants (liés) :
 - le clic sur l'heure de départ ne fonctionne plus pour la modifier. C'est sûrement dû au fait que l'on n'est plus la même date. Presque souhaitable ?
 - le temps depuis le départ clignote (se remet à 00:00:00 puis se règle),
 
+- on ne peut modifier un temps dans l'interface GUI que le jour même car, par défaut, cela change le temps avec la date du jour et non celle de l'évènement.
+Voir chronoHBGUI.py lignes 609 à 624 dans MonTableau(Frame).saveedit()
+
+
 Avant le cross Rieutort :
 - Vérifier que, quand on ajoute un dossard 23B après un autre dossard 10C, cela est bien spécifié dans le fichier donneesLocales.txt.
 - reproduire le bug du dossard que l'on ne pouvait pas supprimer lors du cross UNSS.
@@ -99,21 +103,9 @@ Il faudra prévoir la suppression d'une antenne affichée... Pas urgent.
 ##############################################
 
 Pbs persistants urgents :
-- on ne peut pas avancer un dossard quand tous les dossards sont affectés à un temps. Si c'est le cas, que faire ?
-	pour permuter un dossardPrecedent et un dossard, je prendrais le fonctionnement suivant :
-	1. je récupère les temps des deux coureurs et les dossards.
-	2. si au moins une affectation, je remplacerai l'affectation au temps par celle de l'autre (que ce soit une vraie affectation ou 0A) et réciproquement?
-	3. je ferais la permutation dans ArriveeDossards comme actuellement.
 - vérifier si toutes les corrections depuis l'interface graphique restent fonctionnelles avec les dossards ajoutés en RFID : 
 	je pense que le problème ci-dessus va se retrouver dans beaucoup de boutons.
 
-
-A faire rapidement côté développements : 
-- le fait de dupliquer un temps crée un temps avant le temps dupliqué au lieu d'après.
-C'est la méthode tempsClientIsNotInArriveeTemps(tps) qui devrait retourner False avec le temps de l'interface mais qui ne le fait pas.
-Du coup, la fonction dupliqueTemps(tps) ne fonctionne pas et ne duplique pas le temps de l'interface.
-
-Remarque : le fait de dupliquer un temps depuis l'interface, crée le même temps au lieu de créer un temps avec un centième ou deux de plus.
 
 
 ############
@@ -135,6 +127,10 @@ si on essayait d'importer immédiatement après changement, cela donnait des cat
 - correctif pour supprimer un dossard depuis l'interface GUI.
 - correctif du fonctionnement de tempsClientIsNotInArriveeTemps() qui posait problème lors de duplication de temps depuis l'interface.
 Les temps dupliqués étaient identiques alors qu'ils ne devaient pas l'être.
+- on ne pouvait pas avancer un dossard quand tous les dossards sont affectés à un temps. Si c'est le cas, décision prise de procéder ainsi
+	1. le dossard sélectionné est déaffecté de son temps violemment.
+	2. j'avance le dossard devant celui qui précède sans déaffecter celui qui précède. 
+C'est mieux pour un fonctionnement RFID où le temps du précédent est supposé être fiable. Il n'y a pas de raison de le dissocier.
 
 
 Travail de mars-avril 2025 :

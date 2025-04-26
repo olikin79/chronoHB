@@ -631,7 +631,8 @@ class MonTableau(Frame):
                                     local_affecte_dossard(heure, contenuFinal)
                                     self.change = True
                                     self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
-                                    traiterDonneesLocales()
+                                    # traiterDonneesLocales()
+                                    traiterToutesDonneesNG()
                                     genereResultatsCoursesEtClasses()
                                     self.maj(tableauGUI)
                                 else :
@@ -2145,8 +2146,9 @@ def ajouterTempsOKAction() :
             local_ajoute_temps(tps.tempsReelFormateDateHeure())
             # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
             # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tps.tempsReelFormateDateHeure())
-            if not traiterDonneesLocales() :
-                genereResultatsCoursesEtClasses()
+            # if not traiterDonneesLocales() :
+            traiterToutesDonneesNG()
+            genereResultatsCoursesEtClasses()
             annulerTempsDossards()
         else :
             mess = "Le temps saisi est déjà présent.\nSaisir un temps différent ou affecter le dossard suivant au temps suivant pour un calage automatique des temps."
