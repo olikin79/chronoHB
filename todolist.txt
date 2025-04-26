@@ -1,5 +1,5 @@
 Bugs découverts :
-- la sauvegarde n'inclut pas les fichiers piques,
+- la sauvegarde et la récupération n'incluent pas les fichiers piques,
 
 
 

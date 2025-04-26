@@ -3391,13 +3391,15 @@ def listEtablissements():
 
 def listCategories(nomStandard=True):
     retour = []
+    nom = ""
     if Coureurs.nombreDeCoureurs != 0:
         for coureur in Coureurs.liste() :
             if nomStandard :
                 nom = coureur.course
             else :
-                nom = groupementAPartirDUneCategorie(coureur.course).nom
-            if nom not in retour :
+                if groupementAPartirDUneCategorie(coureur.course) :
+                    nom = groupementAPartirDUneCategorie(coureur.course).nom
+            if nom and nom not in retour :
                 retour.append(nom)
         retour = sorted(retour, key=lambda x: (x is None, x))
         # retour.sort()
@@ -5709,7 +5711,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     dictRangsDSDEN = root["dictrangsDSDEN"]
     for nom in ResultatsGroupements :
         # print("Groupement",nom,":")
-        if nom :
+        if nom and groupementAPartirDeSonNom(nom,nomStandard = True) :
             groupementAPartirDeSonNom(nom,nomStandard = True).initEffectifs()
             # on considère que la meilleure catégorie est SENIOR.
             L1 = [ ["SE",0,0 ], ["ES",0,0 ], ["JU",0,0 ], ["CA",0,0 ], ["MI",0,0 ], ["BE",0,0 ], ["PO",0,0 ], ["EA",0,0 ], ["BB",0,0 ]]
@@ -8009,7 +8011,7 @@ def renommerEnTetesSiBesoin(donneesBrutes) :
         # si possible, on remplace chaque entree de donneesBrutes[0] par la valeur présente dans dictIdentifie
         if DEBUG :
             print("dictIdentifie", dictIdentifie)
-        for i, val in enumerate(donneesBrutes) :
+        for i, val in enumerate(donneesBrutes[0]) :
             if val in dictIdentifie.keys() :
                 print("entrée", val , "remplacée par", dictIdentifie[val])
                 donneesBrutes[0][i] = dictIdentifie[val].lower()

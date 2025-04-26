@@ -4386,6 +4386,7 @@ def lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres):
         reponse = True
     if reponse :
         # print(listeDesDossardsGeneres)
+        timer.premiereExecution = True
         for n in listeDesDossardsGeneres :
             print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
             Coureurs.recuperer(n).setAImprimer(False)
