@@ -295,7 +295,7 @@ async def handle_index(request):
     <!DOCTYPE html>
     <html>
     <head>
-        <title>SSE Demo</title>
+        <title>ChronoHB en temps réel</title>
     </head>
     <body>
         <h1>Résultats en temps réel</h1>
@@ -3459,16 +3459,16 @@ class Clock():
         # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
 
         #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone),derniereModifFichierDonnneesLocalesRecente(donneesModifLocales))
-        for file in glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt")) :
-            if file not in listeFichiersDonnees:
-                listeFichiersDonnees.append(file)
-                Parametres["tempsDerniereRecuperation"] += [0]
-        for i, fichier in enumerate(listeFichiersDonnees) :
-            if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
-                print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
-                # if derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone) or derniereModifFichierDonnneesRFIDRecente(donneesRFID) or derniereModifFichierDonnneesLocalesRecente(donneesModifLocales):
-                self.auMoinsUnImport = True
-                break
+        # for file in glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt")) :
+        #     if file not in listeFichiersDonnees:
+        #         listeFichiersDonnees.append(file)
+        #         Parametres["tempsDerniereRecuperation"] += [0]
+        # for i, fichier in enumerate(listeFichiersDonnees) :
+        #     if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
+        #         print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
+        #         # if derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone) or derniereModifFichierDonnneesRFIDRecente(donneesRFID) or derniereModifFichierDonnneesLocalesRecente(donneesModifLocales):
+        #         self.auMoinsUnImport = True
+        #         break
         
         ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
         # traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
@@ -3477,7 +3477,7 @@ class Clock():
         # # print("traitementSmartphonePiques",traitementSmartphonePiques)
         # traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
         # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
-        print("Traitement des données NG horodatées")
+        print("Traitement des données NG horodatées. Première exécution =", self.premiereExecution)
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
         # print(traitementToutesDonnees, self.premiereExecution)

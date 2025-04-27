@@ -2675,11 +2675,14 @@ coureurVide = Coureur("", "", "")
 #     traiterDonneesSmartphone(True, False)
 #     traiterDonneesLocales(True,False)
 #     traiterDonneesSmartphonePiques()
+
+UIDPrecedents = {} # dictionnaire des UID précédents pour éviter de traiter plusieurs fois le même dossard
     
-def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
+def traiterToutesDonneesNG(DepuisLeDebut = False) :
     """Reprend le fonctionnement de traiterToutesDonnees mais en ne traitant les données Smartphone, RFID et Locales en parallèle.
     Il ouvre tous les fichiers, récupère les lignes ayant éventuellement été ajoutées pour chacun des fichiers et
     les traite en prenant en compte heureArriveeServeur en 5ème position pour les temps et en 6ème position pour les dossard"""
+    global UIDPrecedents
     retour = []
     if DepuisLeDebut :
         #root["ArriveeTemps"] = []
@@ -2698,8 +2701,8 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
         Parametres["calculateAll"] = True
         UIDPrecedents = {}
 
-    if "UIDPrecedents" not in locals() :
-        UIDPrecedents = {}    
+    # if "UIDPrecedents" not in locals() :
+    #     UIDPrecedents = {}    
         # dictUIDPrecedents.clear()
     # on liste les fichiers à analyser
     listeDesFichiersPique = glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt"))
@@ -2794,6 +2797,9 @@ def traiterToutesDonneesNG(DepuisLeDebut = False, ignorerErreurs = False) :
     # on traite les données des piques après coup
     # retour += traiterDonneesSmartphonePiques()
     # print("retour traitement", retour)
+    if DEBUG :
+        # on affiche les derniers éléments du tableauGUI.
+        print("tableauGUI", tableauGUI[-10:])
     return retour 
 
 def retourneLeTempsDUneListeDeLignes(liste, indice) :

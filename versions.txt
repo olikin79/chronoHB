@@ -113,6 +113,8 @@ Pbs persistants urgents :
 
 Travail du 27/04/25 :
 - Suppression de tous les paramètres appelés incorrectement dans l'ensemble du code. Ils étaient la cause d'une actualisation non immédiate à plusieurs endroits.
+- les envois en doublon depuis le smartphone n'étaient plus ignorés quand c'est le smartphone qui n'a pas reçu l'accusé de réception HTTP 200 
+alors qu'ils le devenaient après reboot du programme. Défaut de conception de traiterToutesDonneesNG().
 
 
 Travail du 26/04/25 :
