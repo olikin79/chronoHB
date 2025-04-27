@@ -2,6 +2,7 @@ Bugs découverts :
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 
 
+
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.

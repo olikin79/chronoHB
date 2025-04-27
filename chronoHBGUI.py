@@ -805,7 +805,7 @@ class MonTableau(Frame):
         self.treeview.delete(item)
         #self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance += 1
         
-    def maj(self, TableauGUI) :
+    def maj(self, TableauGUI, premiereExecution=False) :
         #print("tableauGUI", tableauGUI)
         global ligneTableauGUI, ArriveeTemps, main_loop
         if len(ArriveeTemps)==0 :
@@ -861,7 +861,7 @@ class MonTableau(Frame):
                 i -= 1
             if self.nbreTempsManquants > 0 :
                 nbreFileAttenteLabel.config(text="Il manque " + str(self.nbreTempsManquants) + " temps saisis à l'arrivée. INCOHERENCE A CORRIGER RAPIDEMENT.")
-                if self.incoherenceFutureACorriger :
+                if self.incoherenceFutureACorriger and not premiereExecution :
                     print("il manque ", self.nbreTempsManquants," temps. Voici le tableau non stabilisé ",TableauGUI)
                     self.corrigeTempsManquants()
 ##                else :
@@ -3507,7 +3507,7 @@ class Clock():
 ##            print("pas de maj de tableau GUI")
         print("Actualisation du tableau GUI dans le thread principal")
         # self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI)"))
-        eval(self.MAJfunction + "(tableauGUI)")
+        eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")")
 
         print("Fin de l'actualisation du tableau")
         tableau.makeDefilementAuto()

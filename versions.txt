@@ -1,5 +1,3 @@
-Bug constaté :
-- dernière ligne stabilisée : 0 tout le temps. Ce n'est pas "normal" : cela consomme des ressources pour rien.
 
 A venir :
 - FAIT fichier de sauvegarde contenant tout zippé. OK
@@ -118,6 +116,7 @@ alors qu'ils le devenaient après reboot du programme. Défaut de conception de 
 - ajout d'un fichier flag "fichierFlagAccesConcurrents" créé par le serveur CGI quand il reçoit des données.
 Le traitement de traiterToutesDonneesNG() est alors interrompu. Il sera relancé plus tard par la surveillance de watchdog quand la dernière écriture sera terminé.
 - s'il manque un temps et qu'on valide par OK pour rajouter un temps, cela effaçait tout dans l'interface. C'était lié au nouveau mode d'actualisation de l'interface suite à une modification locale.
+- la proposition de rajouter un temps supplémentaire au démarrage échouait. On ne propose plus de rajouter un temps au démarrage puisque cela a déjà été proposé une fois.
 
 Travail du 26/04/25 :
 - passage en mode daemon=True du serveur SSE créé en février. Idem pour les Threads sans risque pour les données.
