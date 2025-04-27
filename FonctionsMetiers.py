@@ -87,6 +87,7 @@ print(f"Le fichier contenant les données récupérées depuis les smartphones, 
 donneesModifLocales = os.path.join(dossier_data_txt,"donneesModifLocale.txt")
 donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
 donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
+fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
 
 dossier_logs = os.path.join(DONNEES, "logs")
 os.makedirs(dossier_logs, exist_ok=True)
@@ -2747,7 +2748,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         print("listeDesDonneesATraiter", listeDesDonneesATraiter)
     # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
     dernierDossardDeLaPiquePresentDansArriveeDossards = {}
-    while poursuivre :
+    while poursuivre and not os.path.exists(fichierFlagAccesConcurrents) :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
         indiceMin = IndiceDuPlusPetitNombreNonNul(listeDesTpsServeurDesPremiersElements)
@@ -2787,19 +2788,6 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
             if liste :
                 poursuivre = True
                 break        
-    # on met à jour les paramètres
-    # Parametres["tempsDerniereRecuperationSmartphone"] = time.time()
-    # Parametres["tempsDerniereRecuperationRFID"] = time.time()
-    # Parametres["tempsDerniereRecuperationLocale"] = time.time()
-    # Parametres["tempsDerniereRecuperation"] = [time.time(), time.time(), time.time()]
-
-    # Finalement, on traite les données des piques si elles existent comme les autres fichiers pour être certain d'une cohérence des données au redémarrage.
-    # on traite les données des piques après coup
-    # retour += traiterDonneesSmartphonePiques()
-    # print("retour traitement", retour)
-    if DEBUG :
-        # on affiche les derniers éléments du tableauGUI.
-        print("tableauGUI", tableauGUI[-10:])
     return retour 
 
 def retourneLeTempsDUneListeDeLignes(liste, indice) :

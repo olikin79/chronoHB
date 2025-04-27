@@ -27,7 +27,7 @@ tpsServeur = time.time()
 ## Le retour de l'ensemble des requêtes est formaté par la fonction generateMessage(...) ci-dessous sous forme d'une chaine avec la virgule comme séparateur.
 
 
-from os import path
+from os import path, remove
 import sys
 
 # Obtenir le chemin du répertoire courant du script CGI
@@ -44,6 +44,13 @@ from FonctionsMetiers import definir_dossier_donnees
 
 DONNEES = definir_dossier_donnees()
 dossier_data_txt = path.join(DONNEES, "data")
+
+fichierFlagAccesConcurrents = path.join(dossier_data_txt,"flagAccesConcurrents.txt")
+# créer ce fichier s'il n'existe pas déjà
+if not path.exists(fichierFlagAccesConcurrents) :
+    with open(fichierFlagAccesConcurrents, 'w') as f:
+        f.write("0")
+    f.close()
 
 import sys
 sys.stderr = sys.stdout
@@ -341,11 +348,12 @@ print("Content-type: text/html; charset=utf-8\n")
 
 generateMessage(dossard,nature,action,uid,noTransmission)
     
-        
-#print("coucou")
-    
-
-#print(form.getvalue("test"))
-#print(form.getvalue("tps"))
-#html = """ok"""
-#print(html)
+# supprimer le fichier de flag d'accès concurrents
+# (s'il existe) pour permettre un nouvel accès au serveur.
+try :
+    if path.exists(fichierFlagAccesConcurrents) :
+        remove(fichierFlagAccesConcurrents)
+except OSError as e:
+    print("Erreur lors de la suppression du fichier de flag d'accès concurrents :", e)
+except :
+    pass

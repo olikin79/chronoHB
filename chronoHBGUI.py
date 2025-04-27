@@ -45,6 +45,7 @@ from config import *
 
 from chronoHBGUIclass import * # pour des widgets personnalisés.
 from chronoHBRFID import * # pour les fonctions de lecture RFID
+TableauGUI = []
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 from resultatsDiffusion import * # création puis diffusion des diplomes par email
 
@@ -927,8 +928,8 @@ class MonTableau(Frame):
                 # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
                 tpsDisponible = dupliqueTemps(tpsDisponible.tempsPlusUnCentieme())
                 i -= 1
-            rejouerToutesLesActionsMemorisees()
-            actualiseToutLAffichage()
+            # rejouerToutesLesActionsMemorisees()
+            # actualiseToutLAffichage()
                 
     def majLigne(self, ligne, donnee, items) :
         # print(donnee, items)
@@ -979,7 +980,7 @@ class MonTableau(Frame):
             #### diffusion du message immédiate pour la ligne d'arrivée.
             if ligneAAjouter[9] != "-":#ligneInitiale > derniereLigneStabilisee :
                 # print("ligneInitiale",ligneInitiale,"derniereLigneStabilisee",derniereLigneStabilisee)
-                message = str(ligneAAjouter[9]) + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
+                message = str(ligneAAjouter[9]) + '(' + ligneAAjouter[8] + ')' + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
                 print("diffusion de ", message, ".")
                 asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
             else :

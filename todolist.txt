@@ -1,6 +1,6 @@
 Bugs découverts :
-- s'il manque un temps et qu'on valide par OK pour rajouter un temps, cela efface tout dans l'interface. Un reboot corrige le problème.
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
+
 
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.

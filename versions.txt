@@ -115,7 +115,9 @@ Travail du 27/04/25 :
 - Suppression de tous les paramètres appelés incorrectement dans l'ensemble du code. Ils étaient la cause d'une actualisation non immédiate à plusieurs endroits.
 - les envois en doublon depuis le smartphone n'étaient plus ignorés quand c'est le smartphone qui n'a pas reçu l'accusé de réception HTTP 200 
 alors qu'ils le devenaient après reboot du programme. Défaut de conception de traiterToutesDonneesNG().
-
+- ajout d'un fichier flag "fichierFlagAccesConcurrents" créé par le serveur CGI quand il reçoit des données.
+Le traitement de traiterToutesDonneesNG() est alors interrompu. Il sera relancé plus tard par la surveillance de watchdog quand la dernière écriture sera terminé.
+- s'il manque un temps et qu'on valide par OK pour rajouter un temps, cela effaçait tout dans l'interface. C'était lié au nouveau mode d'actualisation de l'interface suite à une modification locale.
 
 Travail du 26/04/25 :
 - passage en mode daemon=True du serveur SSE créé en février. Idem pour les Threads sans risque pour les données.
@@ -145,6 +147,8 @@ Ajout du déclencheur wathdog qui surveille le dossier dédié aux fichiers issu
 Travail de mars-avril 2025 :
 - import de fichiers UNSS et peyce,
 - affectation de dossards RFID en masse : correction des premiers bugs, à tester.
+- implémentation d'une nouvelle fonction traitant les données désormais horodatées traiterToutesDonneesNG().
+Toutes les données sont toujours rejouées dans le même ordre, ce qui n'étaient pas toujours le cas précédemment (cas exceptionnels).
 
 
 Travail du 10/02/2025 :
