@@ -1078,7 +1078,7 @@ class Coureur():#persistent.Persistent):
             else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
-        if not CoursesManuelles :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+        if not Parametres["CoursesManuelles"] :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
             self.course = self.__private_categorie
         # if "217" in self.dossard :
         #     print("catégorie", self.__private_categorie, self.course)
@@ -1172,7 +1172,7 @@ class Coureur():#persistent.Persistent):
             retour = 0 # si pas d'heure de dernière modif, on l'initialise
         return retour
     def setCourse(self, c) :
-        if CoursesManuelles and self.course != c : # si la course change, on renvoie l'email. Sinon, on ne fait rien.
+        if Parametres["CoursesManuelles"] and self.course != c : # si la course change, on renvoie l'email. Sinon, on ne fait rien.
             self.course = c
             self.setEmailEnvoiEffectue(False)
             self.setEmailEnvoiEffectue2(False)
@@ -1572,7 +1572,7 @@ class Groupement():
             self.nom = str(nomChoisi)
             self.manuel = True
     def setNomStandard(self, nomChoisi):
-        if CoursesManuelles : # Cette méthode ne doit pas être utilisée en dehors des coursesManuelles et du processus de réindexation.
+        if Parametres["CoursesManuelles"] : # Cette méthode ne doit pas être utilisée en dehors des coursesManuelles et du processus de réindexation.
         # les noms standards doivent être fixes dans tous les autres cas.
             print("nomStandard choisi:",nomChoisi, "pour remplacer",self.nomStandard)
             self.nomStandard = str(nomChoisi)
@@ -1591,7 +1591,7 @@ class Groupement():
         if not self.manuel :
             self.nom = self.nomStandard
     def setListeDesCourses(self,liste):
-        if CoursesManuelles : # utilisable uniquement pour la réindexation des coursesManuelles.
+        if Parametres["CoursesManuelles"] : # utilisable uniquement pour la réindexation des coursesManuelles.
             # sinon, ne pas utiliser au risque de tout casser, d'où la protection posée ici.
             self.listeDesCourses = liste
     def addCourse(self, nomCourse):
@@ -2163,16 +2163,8 @@ class ArriveeTempsAffecteClass(list):
 
 # setup the database
 def chargerDonnees() :
-    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,LignesIgnoreesSmartphone,LignesIgnoreesLocal,Parametres,\
-           tempsDerniereRecuperationSmartphone,ligneDerniereRecuperationSmartphone,tempsDerniereRecuperationLocale,ligneDerniereRecuperationLocale,\
-           CourseCommencee,positionDansArriveeTemps,positionDansArriveeDossards,nbreDeCoureursPrisEnCompte,ponderationAcceptee,\
-           calculateAll,intituleCross,lieu,messageDefaut,cheminSauvegardeUSB,vitesseDefilement,tempsPause,sauvegarde, noTransmission,\
-           webcam,webcamSensibility,ligneTableauGUI,listeAffichageTV,CoursesManuelles,nbreDossardsAGenererPourCourseManuelles, genererQRcodesPourCourseManuelles,\
-           genererListingQRcodes,genererListing, diplomeDiffusionApresNMin, diplomeEmailExpediteur, diplomeMdpExpediteur, diplomeDiffusionAutomatique,\
-           actualisationAutomatiqueDeLAffichageTV, FTPlogin, FTPmdp, FTPserveur, HTTPSserveur, email,emailMDP,emailNombreDEnvoisMax,emailNombreDEnvoisDuJour, crossUNSScollegeLycee,\
-           URLGoogleSheetAImporter, telechargerDonnees, classeIgnoreesPourChallenge, urlMiseAJour, utilisationDesDossardsDeChronoHB, informationNouveauxDossardsImportesAEffacer,\
-           seuilRSSI, tempsDerniereRecuperationRFID, tempsDerniereRecuperation, ligneDerniereRecuperationRFID, dictDossardsEPC, dictEPCDossards, ligneDerniereRecuperation, \
-           delai_antennes_par_tag
+    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,Parametres,sauvegarde,\
+           ligneTableauGUI
     noSauvegarde = 1
     sauvegarde=os.path.join(DONNEES,"Courses.db")
     if os.path.exists(sauvegarde) :
@@ -2246,183 +2238,127 @@ def chargerDonnees() :
     Parametres=root["Parametres"]
     if not "dictDossardsEPC" in Parametres :
         Parametres["dictDossardsEPC"] = {}
-    dictDossardsEPC=Parametres["dictDossardsEPC"]
     if not "dictEPCDossards" in Parametres :
         Parametres["dictEPCDossards"] = {}
-    dictEPCDossards=Parametres["dictEPCDossards"]
     if not "tempsDerniereRecuperationSmartphone" in Parametres :
         Parametres["tempsDerniereRecuperationSmartphone"]=0
-    tempsDerniereRecuperationSmartphone = Parametres["tempsDerniereRecuperationSmartphone"]
     if not "ligneDerniereRecuperationSmartphone" in Parametres :
         Parametres["ligneDerniereRecuperationSmartphone"]=1
-    ligneDerniereRecuperationSmartphone = Parametres["ligneDerniereRecuperationSmartphone"]
     if not "tempsDerniereRecuperation" in Parametres :
         Parametres["tempsDerniereRecuperation"] = [0,0,0]
-    tempsDerniereRecuperation = Parametres["tempsDerniereRecuperation"]
     if not "tempsDerniereRecuperationRFID" in Parametres :
         Parametres["tempsDerniereRecuperationRFID"]=0
-    tempsDerniereRecuperationRFID = Parametres["tempsDerniereRecuperationRFID"]
     if not "ligneDerniereRecuperationRFID" in Parametres : ### OBSOLETE
         Parametres["ligneDerniereRecuperationRFID"]=1
-    ligneDerniereRecuperationRFID = Parametres["ligneDerniereRecuperationRFID"]
     if not "ligneDerniereRecuperation" in Parametres :
         Parametres["ligneDerniereRecuperation"]=[1,1,1] # stocke dans l'ordre la ligne dans donneesSmartphone.txt, donneesRFID.txt puis donneesLocales.txt
-    ligneDerniereRecuperation = Parametres["ligneDerniereRecuperation"]
     if not "tempsDerniereRecuperationLocale" in Parametres :
         Parametres["tempsDerniereRecuperationLocale"]=0
-    tempsDerniereRecuperationLocale = Parametres["tempsDerniereRecuperationLocale"]
     if not "ligneDerniereRecuperationLocale" in Parametres :
         Parametres["ligneDerniereRecuperationLocale"]=1
-    ligneDerniereRecuperationLocale = Parametres["ligneDerniereRecuperationLocale"]
     if not "CategorieDAge" in Parametres :
         Parametres["CategorieDAge"]=0
     if not "CourseCommencee" in Parametres :
         Parametres["CourseCommencee"]=False
-    CourseCommencee=Parametres["CourseCommencee"]
     if not "positionDansArriveeTemps" in Parametres :
         Parametres["positionDansArriveeTemps"]=0
-    positionDansArriveeTemps=Parametres["positionDansArriveeTemps"]
     if not "positionDansArriveeDossards" in Parametres :
         Parametres["positionDansArriveeDossards"]=0
-    positionDansArriveeDossards=Parametres["positionDansArriveeDossards"]
     if not "nbreDeCoureursPrisEnCompte" in Parametres :
         Parametres["nbreDeCoureursPrisEnCompte"]=3
-    nbreDeCoureursPrisEnCompte=Parametres["nbreDeCoureursPrisEnCompte"]
     if not "ponderationAcceptee" in Parametres :
         Parametres["ponderationAcceptee"]=False
-    ponderationAcceptee=Parametres["ponderationAcceptee"]
     if not "calculateAll" in Parametres :
         Parametres["calculateAll"]=False
-    calculateAll=Parametres["calculateAll"]
     if not "intituleCross" in Parametres :
         Parametres["intituleCross"]="Cross du collège H. Bourrillon"
-    intituleCross=Parametres["intituleCross"]
     if not "lieu" in Parametres :
         Parametres["lieu"]="Stade Mirandol"
-    lieu=Parametres["lieu"]
     if not "messageDefaut" in Parametres :
         Parametres["messageDefaut"]="<prenom>, bravo !"
-    messageDefaut=Parametres["messageDefaut"]
     if not "cheminSauvegardeUSB" in Parametres :
         Parametres["cheminSauvegardeUSB"]="N:"
-    cheminSauvegardeUSB=Parametres["cheminSauvegardeUSB"]
     if not "vitesseDefilement" in Parametres :
         Parametres["vitesseDefilement"]= "3"
-    vitesseDefilement=Parametres["vitesseDefilement"]
     if not "tempsPause" in Parametres :
         Parametres["tempsPause"]= "8"
-    tempsPause=Parametres["tempsPause"]
     if not "dossardModele" in Parametres :
         Parametres["dossardModele"]= "cross-HB"
     if not "webcam" in Parametres :
         Parametres["webcam"]= 0
-    webcam=Parametres["webcam"]
     if not "webcamSensibility" in Parametres :
         Parametres["webcamSensibility"]= 60000
-    webcamSensibility=Parametres["webcamSensibility"]
     if not "listeAffichageTV" in Parametres :
         Parametres["listeAffichageTV"] = []
-    listeAffichageTV=Parametres["listeAffichageTV"]
     if not "CoursesManuelles" in Parametres :
         Parametres["CoursesManuelles"] = False
-    CoursesManuelles=Parametres["CoursesManuelles"]
     if not "genererQRcodesPourCourseManuelles" in Parametres :
         Parametres["genererQRcodesPourCourseManuelles"] = True
-    genererQRcodesPourCourseManuelles=Parametres["genererQRcodesPourCourseManuelles"]
     if not "nbreDossardsAGenererPourCourseManuelles" in Parametres :
         Parametres["nbreDossardsAGenererPourCourseManuelles"] = 120
-    nbreDossardsAGenererPourCourseManuelles=Parametres["nbreDossardsAGenererPourCourseManuelles"]
     if not "genererListingQRcodes" in Parametres :
         Parametres["genererListingQRcodes"] = False
-    genererListingQRcodes=Parametres["genererListingQRcodes"]
     if not "genererListing" in Parametres :
         Parametres["genererListing"] = True
-    genererListing=Parametres["genererListing"]
     if not "diplomeModele" in Parametres :
         Parametres["diplomeModele"] = "cross-HB-2023"
     if not "diplomeDiffusionApresNMin" in Parametres :
         Parametres["diplomeDiffusionApresNMin"] = 15
-    diplomeDiffusionApresNMin=Parametres["diplomeDiffusionApresNMin"]
     if not "diplomeEmailExpediteur" in Parametres :
         Parametres["diplomeEmailExpediteur"] = "lax.olivier@gmail.com"
-    diplomeEmailExpediteur=Parametres["diplomeEmailExpediteur"]
     if not "diplomeMdpExpediteur" in Parametres :
         Parametres["diplomeMdpExpediteur"] = ""
-    diplomeMdpExpediteur=Parametres["diplomeMdpExpediteur"]
     if not "diplomeDiffusionAutomatique" in Parametres :
         Parametres["diplomeDiffusionAutomatique"] = 0
-    diplomeDiffusionAutomatique=Parametres["diplomeDiffusionAutomatique"]
     if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
-    actualisationAutomatiqueDeLAffichageTV=Parametres["actualisationAutomatiqueDeLAffichageTV"]
     if not "FTPlogin" in Parametres :
         Parametres["FTPlogin"] = "chronohb"
-    FTPlogin=Parametres["FTPlogin"]
     if not "FTPmdp" in Parametres :
         Parametres["FTPmdp"] = "mdp"
-    FTPmdp=Parametres["FTPmdp"]
     if not "HTTPSserveur" in Parametres :
         Parametres["HTTPSserveur"] = "https://monserveur.fr/dossierExportResultatsTempsReel"
-    HTTPSserveur=Parametres["HTTPSserveur"]
     if not "FTPserveur" in Parametres :
         Parametres["FTPserveur"] = "" # "monserveur.fr"
-    FTPserveur=Parametres["FTPserveur"]
     if not "FTPdir" in Parametres :
         Parametres["FTPdir"] = "" # "dossierExportResultatsTempsReel"
-    FTPdir=Parametres["FTPdir"]
     if not "email" in Parametres :
         Parametres["email"] = "chronoHB@gmail.com;chronoHB2@gmail.com;chronoHB3@gmail.com"
-    email=Parametres["email"]
     if not "emailMDP" in Parametres :
         Parametres["emailMDP"] = "mdp;mdp;mdp"
-    emailMDP=Parametres["emailMDP"]
     if not "emailNombreDEnvoisMax" in Parametres :
         Parametres["emailNombreDEnvoisMax"] = "500;500;500"
-    emailNombreDEnvoisMax=Parametres["emailNombreDEnvoisMax"]
     if not "emailNombreDEnvoisDuJour" in Parametres :
         Parametres["emailNombreDEnvoisDuJour"] = {}
-    emailNombreDEnvoisDuJour=Parametres["emailNombreDEnvoisDuJour"]
     if not "emailMessage" in Parametres :
         Parametres["emailMessage"] = """<h1>Bravo pour ta participation !</h1>
 <a href="<urlresultats>">Lien vers tous les résultats.</a>
 <p>Voici ton diplôme <i></i> :</p>
 <img src="<diplome>" width=100%><br>"""
-    emailMessage=Parametres["emailMessage"]
     if not "emailMessageObjet" in Parametres :
         Parametres["emailMessageObjet"] = "Résultats du Cross du collège H. Bourrillon"
-    emailMessageObjet=Parametres["emailMessageObjet"]
     if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
         Parametres["crossUNSScollegeLycee"] = True
-    crossUNSScollegeLycee=Parametres["crossUNSScollegeLycee"]
     if not "URLGoogleSheetAImporter" in Parametres :
         Parametres["URLGoogleSheetAImporter"] = ""
-    URLGoogleSheetAImporter=Parametres["URLGoogleSheetAImporter"]
     if not "telechargerDonnees" in Parametres :
         Parametres["telechargerDonnees"] = 0
-    telechargerDonnees=Parametres["telechargerDonnees"]
     if not "classeIgnoreesPourChallenge" in Parametres :
         Parametres["classeIgnoreesPourChallenge"] = "DSDEN"
-    classeIgnoreesPourChallenge=Parametres["classeIgnoreesPourChallenge"]
     if not "urlMiseAJour" in Parametres :
         Parametres["urlMiseAJour"] = "http://mathlacroix.free.fr/chronoHB/maj"
-    urlMiseAJour=Parametres["urlMiseAJour"]
     if not "urlMiseAJourPrefixeZip" in Parametres :
         Parametres["urlMiseAJourPrefixeZip"] = "http://mathlacroix.free.fr/chronoHB/maj/update_"
-    urlMiseAJourPrefixeZip=Parametres["urlMiseAJourPrefixeZip"]
     if not "utilisationDesDossardsDeChronoHB" in Parametres :
         Parametres["utilisationDesDossardsDeChronoHB"] = True
-    utilisationDesDossardsDeChronoHB = Parametres["utilisationDesDossardsDeChronoHB"]
     if not "informationNouveauxDossardsImportesAEffacer" in Parametres :
         Parametres["informationNouveauxDossardsImportesAEffacer"] = False
-    informationNouveauxDossardsImportesAEffacer = Parametres["informationNouveauxDossardsImportesAEffacer"]
     if not "seuilRSSI" in Parametres :
         Parametres["seuilRSSI"] = -100
-    seuilRSSI = Parametres["seuilRSSI"]
     if not "donneesRFID" in Parametres :
         Parametres["donneesRFID"] = InfosRFID()
     if not "delai_antennes_par_tag" in Parametres :
         Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
-    delai_antennes_par_tag = Parametres["delai_antennes_par_tag"]
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -3701,7 +3637,7 @@ def generateListCoureursPourSmartphone() :
                 try :
                     #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                     #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
-                    if CoursesManuelles :
+                    if Parametres["CoursesManuelles"] :
 ##                        print("Nom : " , coureur.nom)
 ##                        print("course :",coureur.course)
 ##                        print("Description:",Courses[coureur.course].description)
@@ -3899,7 +3835,7 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
     elif Parametres["CategorieDAge"] == 1 :
-        if CoursesManuelles : # cas de courses personnalisées : trail Randon
+        if Parametres["CoursesManuelles"] : # cas de courses personnalisées : trail Randon
             retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
         else : # cas de courses par catégorie de la FFA
@@ -3966,8 +3902,8 @@ def generateDossardsNG() :
             f.write("\n\\end{document}")
         f.close()
     ### création d'un listing sous forme de tableau
-    print("Générer listing tableau",genererListing)
-    if genererListing :
+    print("Générer listing tableau",Parametres["genererListing"])
+    if Parametres["genererListing"] :
         with open(TEXDIR+"0-listing.tex", 'a',encoding="utf-8") as fL :
             fL.write(enteteL + "\n\n")
             L = list(CoureursParClasse.keys())
@@ -3979,8 +3915,8 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     ### création du listing de QR-codes.
-    print("Générer listing tableau",genererListingQRcodes)
-    if genererListingQRcodes :
+    print("Générer listing tableau",Parametres["genererListingQRcodes"])
+    if Parametres["genererListingQRcodes"] :
         with open(TEXDIR+"0-listing-QRCodes.tex", 'w',encoding="utf-8") as fL :
             fL.write(enteteL + "\n\n")
             L = list(CoureursParClasse.keys())
@@ -3992,7 +3928,7 @@ def generateDossardsNG() :
             fL.write("\\end{document}")
         fL.close()
     #### création des QR-codes pour imprimer à part (cross de Rieutort)
-    if CoursesManuelles and genererQRcodesPourCourseManuelles :
+    if Parametres["CoursesManuelles"] and Parametres["genererQRcodesPourCourseManuelles"] :
         with open("./modeles/qrcodes-en-tete.tex", 'r',encoding="utf-8") as f :
             enteteQR = f.read()
         f.close()
@@ -4031,7 +3967,7 @@ def CombienYATIlDossardsAImprimer() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
             retour += 1
     if retour :
-        if utilisationDesDossardsDeChronoHB :
+        if Parametres["utilisationDesDossardsDeChronoHB"] :
             if retour > 1 :
                 erreur = Erreur(190, "Il y a "+str(retour)+" dossards non encore imprimés. Cliquer ici pour les imprimer.")
             elif retour == 1 :
@@ -4120,7 +4056,7 @@ def alimenteListingPourClasse(nomClasse, file, listingSimple = False):
     if Parametres["CategorieDAge"] == 2 : # UNSS
         denomination = ""
     elif Parametres["CategorieDAge"] == 1 : # catégories FFA
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             denomination = "Course"
             nomAffiche = groupementAPartirDUneCategorie(nomClasse).nom
         else :
@@ -4265,7 +4201,7 @@ def CoureursParClasseUpdate():
                 CoureursParClasse[c.etablissement]=[]
             CoureursParClasse[c.etablissement].append(c)
     elif Parametres["CategorieDAge"] == 1 : # cas catégories d'age
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             for c in Coureurs.liste() :
                 if not c.course in CoureursParClasse.keys() :
                     CoureursParClasse[c.course]=[]
@@ -4632,7 +4568,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             nomCourse = groupementAPartirDUneCategorie(classe).nom
         else :
             nomCourse = classe
@@ -4727,7 +4663,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     fstats += ContenuLignesGroupements
     fstats += ["<p>"]
     fstats += ["<b>Nombre total d'arrivées : </b>" + str(nbreArriveesTotal)+ "<br>"]
-    if not CoursesManuelles :
+    if not Parametres["CoursesManuelles"] :
         fstats += ["<b>Nombre total de dispensés : </b>" + str(nbreDispensesTotal)+ "<br>"]
         fstats += ["<b>Nombre total d'abandons : : </b>" + str(nbreAbandonsTotal)+ "<br>"]
         fstats += ["<b>Nombre total d'absents : : </b>" + str(nbreAbsentsTotal)+ "<br>"]
@@ -4846,7 +4782,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
         denomination = "Classe"
     else :
         denomination = "Categorie"
-    if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
+    if not Parametres["CoursesManuelles"] : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
         enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
@@ -4881,8 +4817,8 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
                     if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
                         # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
                         # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
-                        print("coursesmanuelles", CoursesManuelles)
-                        if not uniquementCoursesEtChallenge or CoursesManuelles==1 :
+                        print("coursesmanuelles", Parametres["CoursesManuelles"])
+                        if not uniquementCoursesEtChallenge or Parametres["CoursesManuelles"] == 1 :
                             with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
                                 f.write(contenu)
                                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -4960,7 +4896,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
         #print(classe,"est traité pour création tex", Resultats[classe])
         # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
         #if Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G") :
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             nomCourse = groupementAPartirDUneCategorie(classe).nom
         else :
             nomCourse = classe
@@ -5060,7 +4996,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
     fstats.write(ContenuLignesGroupements)
     fstats.write("\n\\end{tabular}\\end{center}\n\n\\bigskip")
     fstats.write("\n\n\\textbf{Nombre total d'arrivées : }" + str(nbreArriveesTotal))
-    if not CoursesManuelles :
+    if not Parametres["CoursesManuelles"] :
         fstats.write("\n\n\\textbf{Nombre total de dispensés : }" + str(nbreDispensesTotal))
         fstats.write("\n\n\\textbf{Nombre total d'abandons : }" + str(nbreAbandonsTotal))
         fstats.write("\n\n\\textbf{Nombre total d'absents : }" + str(nbreAbsentsTotal))
@@ -5477,7 +5413,7 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     # on ne classe pas l'équipe de la DSDEN dans les résultats.
     # print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
-    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in classeIgnoreesPourChallenge.split(";") :
+    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in Parametres["classeIgnoreesPourChallenge"].split(";") :
         while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
             doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
             coureur = Coureurs.recuperer(doss)
@@ -5679,7 +5615,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     for coureur in Coureurs.liste() :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             groupement = coureur.course
         else :
             groupement = nomGroupementAPartirDUneCategorie(cat)
@@ -5792,7 +5728,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                     else :
                         ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
                         # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
-                        if coureur.classe in classeIgnoreesPourChallenge.split(";") :
+                        if coureur.classe in Parametres["classeIgnoreesPourChallenge.split"](";") :
                             # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
                             dictRangsDSDEN[nom].append(i+1)
                 else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
@@ -6318,7 +6254,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 coureur.setSexe(sexe)
                 print("sexe changé de",coureur.sexe,"en",sexe)
                 auMoinsUnChangement = True
-            if CoursesManuelles :
+            if Parametres["CoursesManuelles"] :
 ##                if courseDonneeSousSonNomStandard :
 ##                    lettreCourse = course
 ##                    course = 
@@ -6394,7 +6330,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 auMoinsUnChangement = True
             if auMoinsUnChangement :
                 print("On a mis à jour les caractéristiques du coureur au dossard", dossard)
-                if not CoursesManuelles :
+                if not Parametres["CoursesManuelles"] :
                     addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
                     # pour toutes les courses automatiques, on doit actualiser la course si besoin.
                 print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
@@ -6408,7 +6344,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 # retour,d  = [0,0,1,0], ""
         else :
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
-            if CoursesManuelles :
+            if Parametres["CoursesManuelles"] :
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
             ####    lettreCourse = ...
@@ -6446,7 +6382,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                                                 aImprimer=aImprimer,\
                                                 course=lettreCourse, email=email, email2=email2), course = lettreCourse)
             # on crée la course après le coureur pour disposer de la catégorie quand elle est calculée par l'objet Coureur.
-            if CoursesManuelles :
+            if Parametres["CoursesManuelles"] :
                 # inutile ? car déjà fait 28 lignes au dessus. Le addCourse ne semble utile qu'en mode "not CoursesManuelles"
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 # print("lettreCourse",lettreCourse)
@@ -6515,7 +6451,7 @@ def addCourse(course, lettreCourse="") :
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
     if course :
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             if not lettreCourse :
                 lettreCourse = lettreCourseEnModeCoursesManuelles(course)
                 print("La lettre attribuée manuellement à la course est :",lettreCourse)
@@ -8318,7 +8254,7 @@ def setParam(parametre, valeur) :
 
 def setParametres() :
     if Parametres["CategorieDAge"] :
-        if CoursesManuelles : 
+        if Parametres["CoursesManuelles"] : 
             crossParClasse = "2"
         else :
             crossParClasse = "0"

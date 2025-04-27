@@ -956,8 +956,8 @@ class MonTableau(Frame):
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
         #print("Dossard affecté",ligneAAjouter[self.colonneDossAff])
-        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=CoursesManuelles)
-        if ligneAAjouter[self.colonneDossAff] != "-" and not CoursesManuelles :
+        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=Parametres["CoursesManuelles"])
+        if ligneAAjouter[self.colonneDossAff] != "-" and not Parametres["CoursesManuelles"] :
             ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
 ##        print("temps de la ligne", ligne)
@@ -1956,7 +1956,7 @@ class AbsDispFrame(Frame) :
             if Parametres["CategorieDAge"] == 2 :
                 cat = "établissement"
             elif Parametres["CategorieDAge"] ==1 :
-                if CoursesManuelles :
+                if Parametres["CoursesManuelles"] :
                     cat = "course"
                 else :
                     cat = "catégorie"
@@ -1970,7 +1970,7 @@ Compléter les absents ou dispensés (enregistrement automatique).")
             if Parametres["CategorieDAge"] == 2 :
                 self.listeCoureursDeLaClasse = listCoureursDUnEtablissement(selection)
             elif Parametres["CategorieDAge"] == 1 :
-                if CoursesManuelles :
+                if Parametres["CoursesManuelles"] :
                     self.listeCoureursDeLaClasse = listCoureursDUneCourse(selection, nomStandard = False)
                 else :
                     self.listeCoureursDeLaClasse = listCoureursDUneCategorie(selection)
@@ -2101,7 +2101,7 @@ zoneAffichageTV = Frame(Affichageframe, relief=GROOVE, bd=2)
 
 # print("GROUPEMENTS:",listNomsGroupements() )
 
-checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupements , vertical=False, listeAffichageTV=listeAffichageTV)
+checkBoxBarAffichage = Checkbar(zoneAffichageTV, listeDeGroupements , vertical=False, listeAffichageTV=Parametres["listeAffichageTV"])
 
 # restauration de l'état à la fermeture de l'application.
 #checkBoxBarAffichage.resetState(listeAffichageTV)
@@ -2750,7 +2750,7 @@ def onClickE(err):
         if Parametres['CategorieDAge'] ==2 :
             saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
         elif Parametres['CategorieDAge'] == 1 :
-            if CoursesManuelles :
+            if Parametres["CoursesManuelles"] :
                 saisieAbsDisp(groupementAPartirDUneCategorie(Coureurs.recuperer(err.dossard).course).nom)
             else :
                 saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
@@ -3175,7 +3175,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                     #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
                     #c.setEmailEnvoiEffectue(False)
                 # print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
-                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(diplomeDiffusionApresNMin) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
+                if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(Parametres["diplomeDiffusionApresNMin"]) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
                     genereDiplome(c, nomModele)
                     if envoiDiplomeParMail(c) :
                         # c.setEmailEnvoiEffectue(True)
@@ -3631,7 +3631,7 @@ class Clock():
 
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
-        if actualisationAutomatiqueDeLAffichageTV  and self.auMoinsUnImport :
+        if Parametres["actualisationAutomatiqueDeLAffichageTV"]  and self.auMoinsUnImport :
             corrigerLesCasesCocheesPourLAffichageTV()
 
         # on actualise l'affichageTV à chaque nouvel import.
@@ -4326,7 +4326,7 @@ def actualiserDistanceDesCourses():
         else :
             lblInfoDistance.configure(text="Veuillez compléter les distances exactes de chaque groupement, en kilomètres.")
         boutonsParametresGroupementsFrame.pack(side=TOP)
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             boutonNettoyage.pack(side=LEFT)
         boutonRecopie.pack(side=LEFT)
     else:
@@ -4818,7 +4818,7 @@ class CoureurFrame(Frame) :
     def categorieEstCorrecte(self):
         resultat = ""
         s = self.sexeC.get()
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             nature = self.comboBoxCategorie.get()
             resultat = "valide."
         else : ### complété pour gérer tous les cas, y compris CategorieDAge == 0 et 1 en mode Automatique et 2
@@ -4882,7 +4882,7 @@ class CoureurFrame(Frame) :
                 self.commentaireArriveeE.insert(0, coureur.commentaireArrivee)
                 self.etabC.set(coureur.etablissement)
                 self.etabNatureC.set(coureur.etablissementNature)
-                if CoursesManuelles :
+                if Parametres["CoursesManuelles"] :
                     self.comboBoxCategorie.config(values=listNomGroupements())
                     self.comboBoxCategorie.set(groupementAPartirDUneCategorie(coureur.course).nom)
         # pas de modif récent puisque les champs sont idem à la base.
@@ -5053,7 +5053,7 @@ class CoureurFrame(Frame) :
             self.vma = float(self.vmaE.get())
         except :
             self.vma = 0
-        if CoursesManuelles :
+        if Parametres["CoursesManuelles"] :
             #nomAffiche = self.comboBoxCategorie.get()
             c = self.comboBoxCategorie.get() # groupementAPartirDeSonNom(nomAffiche, nomStandard = False).nom
         else :
@@ -5076,7 +5076,7 @@ class CoureurFrame(Frame) :
         else :
             #self.boutonsFrame.forget()
             doss = self.choixDossardCombo.get()
-            if CoursesManuelles : # cas des courses manuelles
+            if Parametres["CoursesManuelles"] : # cas des courses manuelles
                 addCoureur(self.nomE.get(), self.prenomE.get(), self.sexeC.get(), naissance=self.classeE.get(),\
                             commentaireArrivee=self.commentaireArriveeE.get(), VMA=self.vma, aImprimer = True, etablissement=self.etabC.get(),\
                             etablissementNature = self.etabNatureC.get(), course = c, dossard = doss, email=self.emailE.get(), email2=self.emailE2.get())
@@ -5182,7 +5182,7 @@ def choixUNSS():		# Fonction associée à catégories par Age
 def packAutresWidgets():
     if Parametres["CategorieDAge"] == 1 :
         CoursesManuellesFrame.pack(side=TOP,anchor="w")       
-    if CoursesManuelles :
+    if Parametres["CoursesManuelles"] :
         cbCMgenerer.set(1)
         CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
         cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
@@ -5353,17 +5353,17 @@ def choixListing():
 
 cbgenererListing = BooleanVar()
 cbgenererListingQRCodes = BooleanVar()
-if genererListing:
+if Parametres["genererListing"]:
     cbgenererListing.set(True)
 else :
     cbgenererListing.set(False)
-if genererListingQRcodes:
+if Parametres["genererListingQRcodes"]:
     cbgenererListingQRCodes.set(True)
 else :
     cbgenererListingQRCodes.set(False)
 
 cbutilisationDesDossardsDeChronoHB = BooleanVar()
-if utilisationDesDossardsDeChronoHB:
+if Parametres["utilisationDesDossardsDeChronoHB"]:
     cbutilisationDesDossardsDeChronoHB.set(True)
 else :
     cbutilisationDesDossardsDeChronoHB.set(False)

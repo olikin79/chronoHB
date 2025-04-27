@@ -111,6 +111,10 @@ Pbs persistants urgents :
 
 ############
 
+Travail du 27/04/25 :
+- Suppression de tous les paramètres appelés incorrectement dans l'ensemble du code. Ils étaient la cause d'une actualisation non immédiate à plusieurs endroits.
+
+
 Travail du 26/04/25 :
 - passage en mode daemon=True du serveur SSE créé en février. Idem pour les Threads sans risque pour les données.
 - l'actualisation de l'interface ne s'effectuait pas si seul un fichier pique est modifié.
@@ -132,14 +136,13 @@ Les temps dupliqués étaient identiques alors qu'ils ne devaient pas l'être.
 	1. le dossard sélectionné est déaffecté de son temps violemment.
 	2. j'avance le dossard devant celui qui précède sans déaffecter celui qui précède. 
 C'est mieux pour un fonctionnement RFID où le temps du précédent est supposé être fiable. Il n'y a pas de raison de le dissocier.
-
-- l'actualisation de l'interface ne s'effectuait plus quand les fichiers txt changent. Bug introduit très récemment.
+- l'actualisation de l'interface ne s'effectuait plus quand les fichiers txt changeaient. Bug introduit récemment corrigé.
 Ajout du déclencheur wathdog qui surveille le dossier dédié aux fichiers issus des smartphones. Il déclenche timer.traiterDonnees().
 
 
 Travail de mars-avril 2025 :
 - import de fichiers UNSS et peyce,
-- affectation de dossards RFID en masse : correction des premiers bugs,
+- affectation de dossards RFID en masse : correction des premiers bugs, à tester.
 
 
 Travail du 10/02/2025 :
