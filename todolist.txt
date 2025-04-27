@@ -41,6 +41,7 @@ A faire avant début octobre 2025 :
 - association des 720 puces aux 720 premiers dossards.
 
 A faire avant le cross du collège Bourrillon 2025 :
+- afficher les diplomes non encore envoyés comme une "erreur" sans action spécifique autre qu'afficher un popup indiquant de cocher la case correspondante ?
 - plusieurs antennes fonctionnelles et mode "antenne secondaire" à rendre fonctionnel (identique au mode pique ?).
 - Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
 En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.

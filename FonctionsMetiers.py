@@ -89,6 +89,16 @@ donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
 donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
 fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
 
+dossier_www = os.path.join(DONNEES, "www")
+os.makedirs(dossier_www, exist_ok=True)
+
+dossier_resultats = os.path.join(DONNEES, "resultats")
+os.makedirs(dossier_resultats, exist_ok=True)
+
+dossier_dossards = os.path.join(DONNEES, "dossards")
+dossier_qrcodes = os.path.join(dossier_dossards, "qrcodes")
+os.makedirs(dossier_qrcodes, exist_ok=True)
+
 dossier_logs = os.path.join(DONNEES, "logs")
 os.makedirs(dossier_logs, exist_ok=True)
 

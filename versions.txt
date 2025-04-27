@@ -14,7 +14,6 @@ Après cross  2024 :
 - (FAIT PARTIELLEMENT: manquent les QR-codes et dossards) enlever Latex du programme : trop lourd, trop lent. pdfreport utilisé à la place.
 - vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
 - alignement des boites de gauche dans paramètres des courses.
-- afficher les diplomes non encore envoyés.
 - (FAIT) voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
 - Idem pour les cases à cocher des listings.
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
