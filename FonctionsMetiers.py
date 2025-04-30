@@ -2368,6 +2368,10 @@ def chargerDonnees() :
         Parametres["seuilRSSI"] = -100
     if not "donneesRFID" in Parametres :
         Parametres["donneesRFID"] = InfosRFID()
+    if not "dictEPCDossardsTronques" in Parametres :
+        Parametres["dictEPCDossardsTronques"] = {}
+    if not "TroncaturesEPCRealisees" in Parametres :
+        Parametres["TroncaturesEPCRealisees"] = []
     if not "delai_antennes_par_tag" in Parametres :
         Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     ##transaction.commit()
@@ -3081,6 +3085,11 @@ def EPCtoDossard(epc) :
     try :
         return Parametres['dictEPCDossards'][epc]
     except :
+        # permet l'affectation de dossards en masse quand des caractères inutiles à droite sont présents dans la bande de tags RFID.
+        for n in Parametres['TroncaturesEPCRealisees'] :
+            epcTronque = epc[0:-n]
+            if epcTronque in Parametres['dictEPCDossardsTronques'].keys() and Parametres['dictEPCDossardsTronques'][epcTronque] == n :
+                return Parametres['dictEPCDossards'][epcTronque]
         return ""
     
 def DossardtoREPC(dossard) :
@@ -3089,7 +3098,7 @@ def DossardtoREPC(dossard) :
     except :
         return ""
 
-def associe_dossard_epc(dossard, epc):
+def associe_dossard_epc(dossard, epc, troncature=0):
     if epc and dossardValide(dossard) : 
         dossard = formateDossardNG(dossard)
         # éviter les doublons. Deux dossards ne peuvent pas être associés au même epc : on efface l'ancien et on remplace par le nouveau.
@@ -3103,6 +3112,12 @@ def associe_dossard_epc(dossard, epc):
                 print("La puce", epc, "n'est plus associée au dossard :", dossardActuel, ". On l'affecte à :", dossard)
         except :
             pass
+        if troncature :
+            # l'epc fourni en argument a été tronqué à troncature caractères en partant de la droite.
+            Parametres['dictEPCDossardsTronques'][epc] = troncature
+            # optimisation 
+            if troncature not in  Parametres['TroncaturesEPCRealisees'] :
+                Parametres['TroncaturesEPCRealisees'].append(troncature)
         Parametres['dictEPCDossards'][epc] = dossard
         Parametres['dictDossardsEPC'][dossard] = epc
         print("Association du dossard", dossard, "à la puce", epc, "réalisée avec succès.")

@@ -725,6 +725,9 @@ Le test pourra être réinitialisé par un bouton dédié."""
                             # en détectant à quel rang se situe l'incrémentation hexadécimale
                             epcActuelTronque, increment = self.detecteRangHexadecimal(info['epc'], int(self.nbreDossards.get()))
                             if epcActuelTronque :
+                                tronque = True
+                                if self.epcActuel == epcActuelTronque :
+                                    tronque = False
                                 self.epcActuel = epcActuelTronque
                                 print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection, self.epcInitialementDetecte)
                                 # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
@@ -732,7 +735,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
                                 epcInitial = self.epcActuel
                                 for i in range(int(self.nbreDossards.get())):
                                     print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
-                                    associe_dossard_epc(self.dossardActuel, self.epcActuel)
+                                    associe_dossard_epc(self.dossardActuel, self.epcActuel, tronque=tronque)
                                     self.dossardActuel = self.increment_dossard(self.dossardActuel)
                                     self.epcActuel = self.increment_epc(self.epcActuel, nbre=increment)
                                 # on indique la réussite de l'opération
