@@ -3085,11 +3085,20 @@ def EPCtoDossard(epc) :
     try :
         return Parametres['dictEPCDossards'][epc]
     except :
-        # permet l'affectation de dossards en masse quand des caractères inutiles à droite sont présents dans la bande de tags RFID.
-        for n in Parametres['TroncaturesEPCRealisees'] :
-            epcTronque = epc[0:-n]
-            if epcTronque in Parametres['dictEPCDossardsTronques'].keys() and Parametres['dictEPCDossardsTronques'][epcTronque] == n :
-                return Parametres['dictEPCDossards'][epcTronque]
+        try : 
+            # l'epc non tronqué a déjà été résolu (rencontré) et mémorisé dans Parametres['dictEPCDossardsTronques'] sous sa forme complète
+            return Parametres['dictEPCDossards'][Parametres['dictEPCDossardsTronques'][epc]]
+        except :
+            # l'epc fourni n'a jamais été scanné sur une antenne RFID : on vérifie s'il fait partie d'une affectation en masse.
+            # permet l'affectation de dossards en masse quand des caractères inutiles à droite sont présents dans la bande de tags RFID.
+            if epc in Parametres['TroncaturesEPCRealisees'] :
+                index_element = Parametres['TroncaturesEPCRealisees'].index(epc)
+                n = Parametres['TroncaturesEPCRealisees'][index_element].troncature
+                epcTronque = epc[:n]
+                # si l'epc tronqué est présent dans le dictionnaire, on retourne le dossard associé et on mémorise la valeur complète pour une fois future dans dictEPCDossardsTronques.
+                if epcTronque in Parametres['dictEPCDossards'].keys() : 
+                    Parametres['dictEPCDossardsTronques'][epc] = Parametres['dictEPCDossards'][epcTronque]
+                    return Parametres['dictEPCDossards'][epcTronque]
         return ""
     
 def DossardtoREPC(dossard) :
@@ -3098,7 +3107,7 @@ def DossardtoREPC(dossard) :
     except :
         return ""
 
-def associe_dossard_epc(dossard, epc, troncature=0):
+def associe_dossard_epc(dossard, epc, troncature=0, partieCommune=""):
     if epc and dossardValide(dossard) : 
         dossard = formateDossardNG(dossard)
         # éviter les doublons. Deux dossards ne peuvent pas être associés au même epc : on efface l'ancien et on remplace par le nouveau.
@@ -3107,20 +3116,25 @@ def associe_dossard_epc(dossard, epc, troncature=0):
         try :
             dossardActuel = Parametres['dictEPCDossards'][epc]
             print("La puce", epc, "est déjà affectée à", dossardActuel)
+            # s'il y a du changement, on efface l'ancienne affectation
             if dossardActuel :
                 del Parametres['dictDossardsEPC'][dossardActuel]
                 print("La puce", epc, "n'est plus associée au dossard :", dossardActuel, ". On l'affecte à :", dossard)
         except :
             pass
-        if troncature :
-            # l'epc fourni en argument a été tronqué à troncature caractères en partant de la droite.
-            Parametres['dictEPCDossardsTronques'][epc] = troncature
-            # optimisation 
-            if troncature not in  Parametres['TroncaturesEPCRealisees'] :
-                Parametres['TroncaturesEPCRealisees'].append(troncature)
         Parametres['dictEPCDossards'][epc] = dossard
         Parametres['dictDossardsEPC'][dossard] = epc
         print("Association du dossard", dossard, "à la puce", epc, "réalisée avec succès.")
+        # partie non standard : permet l'affectation en masse quand des caractères inutiles à droite sont présents dans la bande de tags RFID.
+        if partieCommune and len(epc) > partieCommune :
+            # on mémorise les seuls partieCommune autorisées pour éviter les mauvaises détections.
+            if partieCommune not in  Parametres['TroncaturesEPCRealisees'] :
+                partieCommune.troncature = troncature
+                Parametres['TroncaturesEPCRealisees'].append(partieCommune)
+                print("On mémorise que l'epc fourni en argument a été tronqué à", troncature, "caractères en partant de la droite. PartieCommune =", partieCommune)
+            # l'epc fourni en argument a été tronqué à troncature caractères en partant de la droite.
+            # Parametres['dictEPCDossardsTronques'][epc] = troncature
+        
         return True
     else :
         print("Dossard ou epc invalide : ", dossard, epc,". Association impossible.")

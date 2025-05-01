@@ -17,7 +17,8 @@ Avant le 02 mai : test de course APPN :
 
 A faire avant le trail du 18 mai 2024 :
 - associer les dossards aux puces EPC
-- régler la puissance d'émission de l'antenne
+- régler la puissance d'émission de l'antenne : 
+voir action_post_modif_parametre ligne 1405 de app-raspberry4.py pour permettre de régler individuellement les puissances de chaque antenne
 - (A TESTER) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
 en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui, ce serait comme une deuxième pique ?
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast.

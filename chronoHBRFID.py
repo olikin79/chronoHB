@@ -483,17 +483,17 @@ class Popup(tk.Toplevel):
         # La première valeur du combobox est la chaine de caractères du premier dossard
         # self.dossard.set(self.listeDossardsCHB[0])
         comboboxDossard.grid(row=1, column=1, sticky="w")
-        # label pour indiquer le rôle de comboboxNombre
-        label = tk.Label(frame, text="Choisir le nombre de dossards successifs du rouleau à affecter :", justify="left")
-        label.grid(row=3, column=0,  sticky="w")
         # combobox pour le nombre de dossards du rouleau à affecter. Placement avec grid
         self.nbreDossards = tk.StringVar()
         # on crée un combobox modifiable (avec les valeurs 1, 2, 5, 10, 50, 100 proposées par défaut).
         comboboxNombre = tk.ttk.Combobox(frame, justify="center", textvariable=self.nbreDossards, values=["5", "10", "50", "100"])
         comboboxNombre.set("100")
         comboboxNombre.grid(row=3, column=1, sticky="w")
+        # label pour indiquer le rôle de comboboxNombre
+        label = tk.Label(frame, text="Choisir le nombre de dossards successifs du rouleau à affecter :", justify="left")
+        label.grid(row=3, column=0,  sticky="w")
         # bouton "Valider" pour lancer l'affectation des puces RFID aux dossards. Placement avec grid
-        button = tk.Button(frame, text="Valider", command=lambda frame=frame : self.validerAffectationMasse(frame))
+        button = tk.Button(frame, text="Valider cette puce comme étant celle du dossard ci-dessus", command=lambda frame=frame : self.validerAffectationMasse(frame))
         button.grid(row=4, column=0, columnspan=2, sticky="nsew")
         # on désactive la possibilité de saisir une chaine personnalisée dans les combobox
         # self.dossard.trace("w", lambda *args: self.dossard.set(self.dossard.get()))
@@ -723,11 +723,8 @@ Le test pourra être réinitialisé par un bouton dédié."""
                             # on vérifie si l'EPC scanné est bien celui attendu
                             # la fonction suivante permet d'éliminer des caractères en trop dans les puces commandées sur aliexpress
                             # en détectant à quel rang se situe l'incrémentation hexadécimale
-                            epcActuelTronque, increment = self.detecteRangHexadecimal(info['epc'], int(self.nbreDossards.get()))
+                            epcActuelTronque, increment, troncature, partieCommune = self.detecteRangHexadecimal(info['epc'], int(self.nbreDossards.get()))
                             if epcActuelTronque :
-                                tronque = True
-                                if self.epcActuel == epcActuelTronque :
-                                    tronque = False
                                 self.epcActuel = epcActuelTronque
                                 print("Détection du bon EPC pour le dossard : ", self.dossardEnAttenteDeDetection, self.epcEnAttenteDeDetection, self.epcInitialementDetecte)
                                 # on associe tous les dossards du rouleau aux EPC calculés en commençant par self.dossardActuel et self.epcActuel
@@ -735,7 +732,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
                                 epcInitial = self.epcActuel
                                 for i in range(int(self.nbreDossards.get())):
                                     print("Affectation du dossard ", self.dossardActuel, " à la puce RFID ", self.epcActuel)
-                                    associe_dossard_epc(self.dossardActuel, self.epcActuel, tronque=tronque)
+                                    associe_dossard_epc(self.dossardActuel, self.epcActuel, troncature=troncature, partieCommune=partieCommune)
                                     self.dossardActuel = self.increment_dossard(self.dossardActuel)
                                     self.epcActuel = self.increment_epc(self.epcActuel, nbre=increment)
                                 # on indique la réussite de l'opération
@@ -905,10 +902,13 @@ Le test pourra être réinitialisé par un bouton dédié."""
 
     def detecteRangHexadecimal(self, epcDetecteALInstant, nbreDossards) :
         if self.epcEnAttenteDeDetection :
+            print("Appel de detecteRangHexadecimal avec epcDetecteALInstant : ", epcDetecteALInstant, "et epcInitialementDetecte : ", self.epcInitialementDetecte)
             # and epcDetecte == self.epcEnAttenteDeDetection :
             # parfois, les puces contiennent des caractères alphanumériques à la fin inutiles pour les différencier.
             # en incrémentant les numéros à partir d'un certain nombre de caractères en élminant les derniers à droite,
             # on obtient la liste incrémentée.
+            partieCommune = ""
+            troncature = 0
             epcDetecteTronque = False
             increment=0
             longueurMin = min(len(epcDetecteALInstant), len(self.epcInitialementDetecte))
@@ -919,6 +919,7 @@ Le test pourra être réinitialisé par un bouton dédié."""
             # - les chaines sont non vides, 
             # - qu'elles sont différentes (si elles sont égales, c'est qu'on a trop tronqué)
             while not epcDetecteTronque and epcInitialementDetecteTronque and epcInitialementDetecteTronque!= epcDetecteALInstantTronque :
+                print("Test de tronquage pour le dossard actuel",  epcDetecteALInstantTronque, "avec (dé)incrementation de ", nbreDossards, "dossards : ", self.increment_epc(epcInitialementDetecteTronque, nbre=nbreDossards-1), "et ", self.increment_epc(epcInitialementDetecteTronque, nbre=-nbreDossards+1))
                 if self.increment_epc(epcInitialementDetecteTronque, nbre=nbreDossards-1) == epcDetecteALInstantTronque :
                     # on vient de trouver où tronquer
                     epcDetecteTronque = epcDetecteALInstantTronque
@@ -927,10 +928,19 @@ Le test pourra être réinitialisé par un bouton dédié."""
                     # on vient de trouver où tronquer dans l'ordre inverse de la bande
                     epcDetecteTronque = epcDetecteALInstantTronque
                     increment = -nbreDossards+1
-                # self.increment_dossard(epcInitialementDetecteTronque, nbre=nbreDossards-1)
-            return epcDetecteTronque,increment
+                # on tronque les deux chaines à droite pour la prochaine itération
+                longueurMin -= 1
+                epcInitialementDetecteTronque = self.epcInitialementDetecte[:longueurMin]
+                epcDetecteALInstantTronque = epcDetecteALInstant[:longueurMin]
+            if epcDetecteTronque :
+                # partieCommune doit contenir les caractères communs à epcDetecteALInstantTronque et epcInitialementDetecteTronque en partant du début
+                troncature = longueurMin + 1
+                partieCommune = "".join([epcDetecteALInstantTronque[i] for i in range(min(len(epcDetecteALInstantTronque), len(epcInitialementDetecteTronque))) if all(epcDetecteALInstantTronque[i] == epcInitialementDetecteTronque[i] for j in range(1))])
+                print("On a détecté le bon dossard : ", epcDetecteALInstant, " avec un increment de ", increment, "une troncature à", troncature, "caractères et une partie commune de ", partieCommune)
+            print("Fin de la recherche de tronquage pour le dossard actuel :",  epcDetecteTronque," increment ", increment, "troncature", troncature, "Partie commune", partieCommune)
+            return epcDetecteTronque,increment, troncature ,partieCommune
         else :
-            return False,0
+            return False,0,0,""
 
     def insererDansListeTriee(self, liste, element):
         """Insère un élément dans une liste triée de dossards (au format "123A" : un entier suivi d'une lettre) en conservant l'ordre des dossards :
