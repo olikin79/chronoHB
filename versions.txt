@@ -111,6 +111,7 @@ Pbs persistants urgents :
 Travail du 30/04/25 :
 - implémentation de la conversion en dossard d'un EPC tronqué lors d'une affectation en masse de tag RFID.
 - Protection contre les tentatives de vidage d'un treeview déjà vide.
+- modèle de dossard en tex pour dossard sans QR-code.
 
 
 Travail du 27/04/25 :
