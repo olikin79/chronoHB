@@ -784,18 +784,21 @@ class MonTableau(Frame):
         #print(self.listeDesTemps, self.effectif)
         
     def delTreeviewFrom(self, ligne):
-        x = self.treeview.get_children()
-        #print(self.treeview.get_children(), len(x))
-        if ligne <= len(x) :
-            ToDeleteList = x[ligne - 1 : ]
-            print("suppression des lignes en trop en bas du tableau :", len(ToDeleteList))
-            #print("liste a supprimer",ToDeleteList)
-            for item in ToDeleteList:
-                #print("suppression de ", item)
-                #self.treeview.delete(item)
-                self.treeviewDelete(item)    
-        self.treeview.pack(side=LEFT, fill=BOTH)
-        self.effectif = len(self.treeview.get_children())
+        try :
+            x = self.treeview.get_children()
+            #print(self.treeview.get_children(), len(x))
+            if ligne <= len(x) :
+                ToDeleteList = x[ligne - 1 : ]
+                print("suppression des lignes en trop en bas du tableau :", len(ToDeleteList))
+                #print("liste a supprimer",ToDeleteList)
+                for item in ToDeleteList:
+                    #print("suppression de ", item)
+                    #self.treeview.delete(item)
+                    self.treeviewDelete(item)    
+            self.treeview.pack(side=LEFT, fill=BOTH)
+            self.effectif = len(self.treeview.get_children())
+        except :
+            print("Tableau a priori vide. Rien à supprimer.")
         #print("self.treeview.get_children()",self.treeview.get_children())
 ##        if self.effectif == 0 :
 ##            self.nombreDeLignesEffaceesDepuisLaConstructionDeLInstance = 0
