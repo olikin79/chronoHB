@@ -2192,7 +2192,7 @@ def dupliquerTempsAction() :
         # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         # regenereAffichageGUI()
-        root.after(100, lambda: timer.traiterDonnees())
+        # root.after(100, lambda: timer.traiterDonnees())
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à dupliquer."
@@ -4552,15 +4552,15 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
                         print("Fin du traitement des données RFID reçues par le popup de configuration.")
                     else :
                         # traiter les données dans le logiciel chronoHB car on est en configuration de course
-                        print("Traitement des données RFID reçues en configuration de course.")
+                        # print("Traitement des données RFID reçues en configuration de course.")
                         traiterDonneesRFID(data, heureReceptionServeur)
                         # timer.traiterDonnees()
-                        root.after(0, lambda: timer.traiterDonnees())
+                        # root.after(0, lambda: timer.traiterDonnees())
                 except: 
-                    print("Traitement des données RFID reçues en configuration de course.")
+                    # print("Traitement des données RFID reçues en configuration de course.")
                     traiterDonneesRFID(data, heureReceptionServeur)
                     # timer.traiterDonnees()
-                    root.after(0, lambda: timer.traiterDonnees())
+                    # root.after(0, lambda: timer.traiterDonnees())
                 
                 # Répondre au client
                 self.send_response(200)

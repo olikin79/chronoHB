@@ -112,7 +112,7 @@ Travail du 30/04/25 :
 - implémentation de la conversion en dossard d'un EPC tronqué lors d'une affectation en masse de tag RFID : toujours non fonctionnel - à débugguer.
 - Protection contre les tentatives de vidage d'un treeview déjà vide.
 - modèle de dossard en tex pour dossard sans QR-code.
-- Mise à jour du tableauGUI thread safe
+- Mise à jour du tableauGUI thread safe et unique : des scories restaient de l'ancien fonctionnement provoquant l'exécution en doublon de traiterDonnees()
 
 
 Travail du 27/04/25 :

@@ -1,7 +1,7 @@
 Bugs découverts :
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
-
+- après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches. Cela se joue dans metsEnEvidenceErreurs()
 
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
