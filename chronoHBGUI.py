@@ -815,7 +815,7 @@ class MonTableau(Frame):
             #print("Il n'y a aucun temps à afficher")
             self.reinit(Reordonner=True)
         else :
-            # print("tableauGUI", TableauGUI)
+            print("tableauGUI", TableauGUI)
             if TableauGUI :
                 print("mise à jour du tableau avec ", TableauGUI)
                 # il y a des lignes à actualiser
@@ -3509,8 +3509,8 @@ class Clock():
 ##        else :
 ##            print("pas de maj de tableau GUI")
         print("Actualisation du tableau GUI dans le thread principal")
-        # self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI)"))
-        eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")")
+        self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")"))
+        # eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")")
 
         print("Fin de l'actualisation du tableau")
         tableau.makeDefilementAuto()

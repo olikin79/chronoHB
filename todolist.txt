@@ -9,13 +9,13 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 Avant le 02 mai : test de course APPN :
-- association des dossards aux EPC de tests : 
-	* reste à tester le cas où les numéros sont à l'envers (à tester)
-	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse 
-- blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - préparer les dossards de test
 
+
 A faire avant le trail du 18 mai 2024 :
+- association des dossards aux puces de tests : 
+	* reste à tester le cas où les numéros sont à l'envers (à tester)
+	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse
 - associer les dossards aux puces EPC
 - régler la puissance d'émission de l'antenne : 
 voir action_post_modif_parametre ligne 1405 de app-raspberry4.py pour permettre de régler individuellement les puissances de chaque antenne
@@ -26,6 +26,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
 
 A faire avant les vacances de juillet :
+- blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - solliciter Lucie pour le diplome du cross,
 - commander les 800 dossards pour le cross du collège,
 - commander 1000 puces RFID autocollantes.
@@ -51,9 +52,10 @@ et ne pas afficher le message d'erreur en cas de non réception : l'interface co
 - 2ème malette à créer ?
 
 
-A faire pour le cross départemental 2025 :
+A faire pour le cross départemental 2025 (novembre) :
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
+
 
 A faire à plus long terme pour un prochain cross du collège ?
 - permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? Pourrait devenir utile à terme.

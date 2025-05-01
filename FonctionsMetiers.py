@@ -1897,16 +1897,18 @@ class InfosRFID(dict) :
         if nom_antenne in self.listeAntennesSecondaires :
             return False
         print("nom_antenne",nom_antenne)
-        print("clés", self.derniersDossardsCaptes.keys())
+        print("derniersDossardsCaptes", self.derniersDossardsCaptes.keys())
         # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
         # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter si elle a 
         if epc in self.derniersDossardsCaptes.keys() :
-            print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
-            print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
+            # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
+            # print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
             if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
                 self.derniersDossardsCaptes[epc] = time.time()
+                print("Le dossard ",EPCtoDossard(epc)," est resté devant l'antenne et ne l'a pas quittée depuis", Parametres["delai_antennes_par_tag"], "secondes.")
                 return True
             else :
+                print("Le dossard ",EPCtoDossard(epc)," a quitté l'antenne depuis plus de", Parametres["delai_antennes_par_tag"], "secondes.")
                 self.derniersDossardsCaptes[epc] = time.time()
                 return False
         else :
