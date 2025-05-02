@@ -121,7 +121,7 @@ def genereDiplomeNG(dossard, modele, listeDesObjetsAIncruster, creationDeTousLes
     if creationDeTousLesModeles :
         dossierGeneration = "modeles/diplomes"
     else :
-        dossierGeneration = "resultats"
+        dossierGeneration = dossier_resultats
         # Créer le dossier "resultats" s'il n'existe pas
         os.makedirs(dossierGeneration, exist_ok=True)
 
@@ -541,7 +541,7 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     return retour
             
 def envoiDiplomeParMail(coureur, envoiManuel = False) :
-    fichier = "resultats/" + coureur.dossard + ".jpg"
+    fichier = dossier_resultats + os.sep + coureur.dossard + ".jpg"
     try :
         if os.path.exists(fichier) :
             print(coureur.nom, coureur.prenom, "a passé la ligne, nombre d'envois sur email", coureur.emailNombreDEnvois, "et sur email2", coureur.emailNombreDEnvois2)

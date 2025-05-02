@@ -4033,7 +4033,7 @@ def affichagePopupPourImpressionRapide() :
 
 def imprimerArrierePlan(fichiers) :
     for fichier in fichiers :
-        arg = "impressions" + os.sep + fichier
+        arg = dossier_impressions + os.sep + fichier
         mon_threadImpressions = Thread(target=imprimePDF, args=(arg,))
         mon_threadImpressions.start()
         # pause d'une seconde pour éviter tout problème.
@@ -4054,7 +4054,7 @@ def generateResultatsMessage() :
     if os.name == 'nt':
         # reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
         path = os.getcwd()
-        subprocess.Popen(r'explorer /select,"' + path + os.sep +  'impressions' + os.sep +'_statistiques.pdf"')
+        subprocess.Popen(r'explorer /select,"' + path + os.sep +  dossier_impressions + os.sep +'_statistiques.pdf"')
     else :
         reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + path + os.sep + "'impressions'.")
 

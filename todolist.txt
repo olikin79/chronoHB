@@ -1,31 +1,29 @@
 Bugs découverts :
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
-- après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches. Cela se joue dans metsEnEvidenceErreurs()
+- après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
+Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
-Avant le 02 mai : test de course APPN :
-- préparer les dossards de test
-
-
 A faire avant le trail du 18 mai 2024 :
 - association des dossards aux puces de tests : 
 	* reste à tester le cas où les numéros sont à l'envers (à tester)
 	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse
-- associer les dossards aux puces EPC
+
 - régler la puissance d'émission de l'antenne : 
 voir action_post_modif_parametre ligne 1405 de app-raspberry4.py pour permettre de régler individuellement les puissances de chaque antenne
-- (A TESTER) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
+- (FAIT) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
 en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui, ce serait comme une deuxième pique ?
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast.
 - Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
 - Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
 
 A faire avant les vacances de juillet :
+- (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - solliciter Lucie pour le diplome du cross,
 - commander les 800 dossards pour le cross du collège,

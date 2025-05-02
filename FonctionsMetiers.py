@@ -92,6 +92,9 @@ fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrent
 dossier_www = os.path.join(DONNEES, "www")
 os.makedirs(dossier_www, exist_ok=True)
 
+dossier_impressions = os.path.join(DONNEES, "impressions")
+os.makedirs(dossier_impressions, exist_ok=True)
+
 dossier_resultats = os.path.join(DONNEES, "resultats")
 os.makedirs(dossier_resultats, exist_ok=True)
 
@@ -2552,7 +2555,7 @@ chargerDonnees()
 
 
 def exportXLSX():
-    fichier = 'impressions' + sep + '_resultats.xlsx'
+    fichier = dossier_impressions + sep + '_resultats.xlsx'
     if os.path.exists(fichier) :
         os.remove(fichier)
     workbook = xlsxwriter.Workbook(fichier)
@@ -3103,7 +3106,7 @@ def EPCtoDossard(epc) :
                     return Parametres['dictEPCDossards'][epcTronque]
         return ""
     
-def DossardtoREPC(dossard) :
+def DossardtoEPC(dossard) :
     try :
         return Parametres['dictDossardsEPC'][formateDossardNG(dossard)]
     except :
@@ -4332,7 +4335,7 @@ def nettoyerTousLesFichiersGeneres():
     L1 =glob.glob(DOSSDIR+"tex"+os.sep+'*.tex',recursive = True)
     L2 =glob.glob(DOSSDIR+'*.pdf',recursive = False)
     ## effacer les tex existants d'impressions
-    IMPDIR = "impressions"+os.sep
+    IMPDIR = dossier_impressions+os.sep
     L3 =glob.glob(IMPDIR+"tex"+os.sep+'*.tex',recursive = False)
     L4 =glob.glob(IMPDIR+'*.pdf',recursive = False)
     listeTotale = L1 + L2 + L3 + L4
@@ -4401,7 +4404,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     retour = [] # en cas d'erreur, retourne les messages à afficher à l'utilisateur
     listeDesFichiersACreer = []
     listeDesContenus = []
-    pathImpressions = "Impressions"
+    pathImpressions = dossier_impressions
 
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = []
@@ -4437,7 +4440,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     #     os.remove(file) # on supprime tous les .tex
 
     # effacer les fichiers pdf qui ont besoin d'être regénérés car une modification est intervenue.
-    liste_fichiers_pdf_complete=glob.glob("impressions"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
+    liste_fichiers_pdf_complete=glob.glob(dossier_impressions+os.sep+"**"+os.sep+'*.pdf',recursive = True)
     for file in liste_fichiers_pdf_complete : # on selectionne les pdf à supprimer
         nomFichierPdfDecoupe = os.path.basename(file)[:-4].split("_")
         try :
@@ -4614,7 +4617,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
             contenu, ArrDispAbsAbandon = creerFichierClasseNG(classe,entete, True)
             nomFichier = nomCourse.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
             if ArrDispAbsAbandon[8] :
-                if not os.path.exists("impressions"+os.sep+"Course_"+nomFichier+ ".pdf") :
+                if not os.path.exists(dossier_impressions+os.sep+"Course_"+nomFichier+ ".pdf") :
                     listeDesFichiersACreer.append(os.path.join(pathImpressions,"Course_"+nomFichier+ ".pdf"))
                     listeDesContenus.append(contenu)
 
@@ -4735,7 +4738,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = ""
     ContenuLignesGroupements = ""
-    for DIR in [ "impressions", "impressions"+os.sep+"tex" ]:
+    for DIR in [ dossier_impressions, dossier_impressions+os.sep+"tex" ]:
         if not os.path.exists(DIR) :
             os.makedirs(DIR)
     # charger dans une chaine un modèle avec %nom% etc... , remplacer les variables dans la chaine et ajouter cela aux fichiers résultats.
@@ -4759,12 +4762,12 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
     with open("./modeles/stats-ligne.tex", 'r',encoding="utf-8") as f :
         ligneStats = f.read()
     f.close()
-    TEXDIR = "impressions"+os.sep+"tex"+os.sep
+    TEXDIR = dossier_impressions +os.sep+"tex"+os.sep
     ## effacer les tex existants
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
     for file in liste_fichiers_tex_complete :
         os.remove(file) # on supprime tous les .tex
-    liste_fichiers_pdf_complete=glob.glob("impressions"+os.sep+"**"+os.sep+'*.pdf',recursive = True)
+    liste_fichiers_pdf_complete=glob.glob(dossier_impressions+os.sep+"**"+os.sep+'*.pdf',recursive = True)
     for file in liste_fichiers_pdf_complete : # on selectionne les pdf à supprimer
         nomFichierPdfDecoupe = os.path.basename(file)[:-4].split("_")
         try :
@@ -4849,7 +4852,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
                 nomFichier = classe.replace(" ","_").replace("__","_")
                 if ArrDispAbsAbandon[8] :
-                    if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
+                    if not os.path.exists(dossier_impressions+os.sep+denomination +"_"+nomFichier+ ".pdf") :
                         # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
                         # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
                         print("coursesmanuelles", Parametres["CoursesManuelles"])
@@ -4943,7 +4946,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
             contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, True)
             nomFichier = nomCourse.replace(" ","_").replace("-/-","_").replace("/","_").replace("\\","_").replace("___","_")
             if ArrDispAbsAbandon[8] :
-                if not os.path.exists("impressions"+os.sep+"Course_"+nomFichier+ ".pdf") :
+                if not os.path.exists(dossier_impressions+os.sep+"Course_"+nomFichier+ ".pdf") :
                     with open(TEXDIR+"Course_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
                         f.write(contenu)
                         f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -5075,7 +5078,7 @@ def generateImpressions(uniquementCoursesEtChallenge = False) :
 ##                f.close()
 
     # pour chaque fichier dans impressions , compiler.
-    compilerTousLesTex(TEXDIR, "impressions")
+    compilerTousLesTex(TEXDIR, dossier_impressions)
     return retour
 
 
@@ -8879,3 +8882,24 @@ def genereAffichageWWW(listeDesGroupements) :
 if __name__ == '__main__':
     deposePagesHTMLInternet(["./www/Affichage-Contenu.html"])
 
+
+
+# def fonctionTemporairePourConnaitreLesEPCAffectesATousLesCoureurs(): 
+#     """Fonction temporaire pour connaître les EPC affectés à tous les coureurs. A supprimer plus tard.
+#     Envoie dans un fichier texte tous les EPC affectés à tous les dossards (une ligne par dossard)."""
+#     fichier = os.path.join(DOCUMENTS, "EPCaffectes.txt")
+#     with open(fichier, "w") as f:
+#         for coureur in Coureurs.liste() :
+#             epc =  DossardtoEPC(coureur.dossard)
+#             print("Dossard", formateDossardNG(coureur.dossard), "EPC", epc)
+#             if epc != "" :
+#                 ajout = ""
+#                 if len(coureur.dossard) != 3 :
+#                     ajout="0"
+#                 f.write(ajout + coureur.dossard + "," + epc + "\n")
+#     print("Fichier", fichier, "créé avec succès. Il contient tous les EPC affectés à tous les dossards.")
+
+# print("dictionnaires de liaison dossard/EPC :")
+# print("dictEPCDossards", Parametres['dictEPCDossards'])
+# print("dictDossardsEPC", Parametres['dictDossardsEPC'])
+# fonctionTemporairePourConnaitreLesEPCAffectesATousLesCoureurs()

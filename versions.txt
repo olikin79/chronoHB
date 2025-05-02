@@ -107,6 +107,9 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 02/05/25 :
+- Bascule des dossiers de travail "resultats" et "impressions" dans les dossiers appropriés (%appdata%, etc)
+
 
 Travail du 30/04/25 :
 - implémentation de la conversion en dossard d'un EPC tronqué lors d'une affectation en masse de tag RFID : toujours non fonctionnel - à débugguer.
