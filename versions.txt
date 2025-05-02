@@ -109,6 +109,8 @@ Pbs persistants urgents :
 ############
 Travail du 02/05/25 :
 - Bascule des dossiers de travail "resultats" et "impressions" dans les dossiers appropriés (%appdata%, etc)
+- Correction bug envoi auto des diplomes : ils n'étaient plus envoyés après avoir décoché-recoché la case.
+- Implémentation de la case "Envoi auto dossards" pour envoyer le numéro de dossard dès l'inscription par email pour un retrait plus facile.
 
 
 Travail du 30/04/25 :

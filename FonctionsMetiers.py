@@ -1014,12 +1014,18 @@ class Coureur():#persistent.Persistent):
         self.setEmail(email)
         self.email2=""
         self.setEmail2(email2)
-        self.emailEnvoiEffectue = False
+        self.emailEnvoiEffectue = False # concerne les diplomes
         self.emailEnvoiEffectue2 = False
         self.setEmailEnvoiEffectue(False)
         self.setEmailEnvoiEffectue2(False)
         self.emailNombreDEnvois = 0
         self.emailNombreDEnvois2 = 0
+        self.emailDossardEnvoiEffectue = False # concerne les numéros de dossards envoyés par email
+        self.emailDossardEnvoiEffectue2 = False
+        self.setEmailDossardEnvoiEffectue(False)
+        self.setEmailDossardEnvoiEffectue2(False)
+        self.emailDossardNombreDEnvois = 0
+        self.emailDossardNombreDEnvois2 = 0
         self.tempsDerniereModif = 0
         self.categorie(Parametres["CategorieDAge"])
         self.__private_categorie = None
@@ -1130,6 +1136,26 @@ class Coureur():#persistent.Persistent):
             self.email2 = ""
             self.setEmailEnvoiEffectue(False)
             self.emailNombreDEnvois2 = 0
+    def setEmailDossardEnvoiEffectue(self, val = True) :
+        if self.dossard :
+            self.emailDossardEnvoiEffectue = bool(val)
+        else :
+            self.emailDossardEnvoiEffectue = False
+            # print("emailEnvoiEffectue pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue)
+        # compatbilité ascendante avec vieilles sauvegardes
+        try : 
+            self.email
+        except :
+            self.email = ""
+        try :
+            self.emailDossardNombreDEnvois
+            if val :
+                self.emailDossardNombreDEnvois += 1 
+        except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
+            if bool(val) : # initialisation correcte en fonction de l'action demandée.
+                self.emailDossardNombreDEnvois = 1
+            else :
+                self.emailDossardNombreDEnvois = 0
     def setEmailEnvoiEffectue(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue = bool(val)
@@ -1150,6 +1176,24 @@ class Coureur():#persistent.Persistent):
                 self.emailNombreDEnvois = 1
             else :
                 self.emailNombreDEnvois = 0
+    def setEmailDossardEnvoiEffectue2(self, val = True) :
+        if self.dossard :
+            self.emailDossardEnvoiEffectue2 = bool(val)
+            # print("emailEnvoiEffectue2 pour", self.nom, self.prenom, self.dossard, ":", self.emailEnvoiEffectue2)
+        # compatbilité ascendante avec vieilles sauvegardes
+        try : 
+            self.email2
+        except :
+            self.email2 = ""
+        try :
+            self.emailDossardNombreDEnvois2
+            if val :
+                self.emailDossardNombreDEnvois2 += 1 
+        except : # cas d'import de vieilles sauvegardes n'ayant pas cette propriété.
+            if bool(val) : # initialisation correcte en fonction de l'action demandée.
+                self.emailDossardNombreDEnvois2 = 1
+            else :
+                self.emailDossardNombreDEnvois2 = 0
     def setEmailEnvoiEffectue2(self, val = True) :
         if self.dossard :
             self.emailEnvoiEffectue2 = bool(val)
@@ -2353,6 +2397,10 @@ def chargerDonnees() :
 <img src="<diplome>" width=100%><br>"""
     if not "emailMessageObjet" in Parametres :
         Parametres["emailMessageObjet"] = "Résultats du Cross du collège H. Bourrillon"
+    if not "emailDossardMessage" in Parametres :
+        Parametres["emailDossardMessage"] = """<h1><prenom>, voici le numéro de dossard qui t'a été attribué : <dossard>.</h1>"""
+    #if not "emailDossardMessageObjet" in Parametres :
+    Parametres["emailDossardMessageObjet"] = "Dossard attribué pour la course"
     if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an
         Parametres["crossUNSScollegeLycee"] = True
     if not "URLGoogleSheetAImporter" in Parametres :

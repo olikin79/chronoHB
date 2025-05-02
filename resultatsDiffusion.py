@@ -410,6 +410,7 @@ def envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
     return envoiDiplomeParMail(ctmp)
 
 
+
 tagMessageQuotaDepasseDejaAffiche = False
 
 def dateDuJour():
@@ -524,12 +525,12 @@ def envoiDiplomePourUnCoureurSurUnMail(AjoutObjet, fichier, mail) :
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
         print("Envoi du diplome pour le coureur avec le mail expéditeur", gmail.username)
-        URLLienDirectVersResultats = Parametres["HTTPSserveur"] # formater_chemin(Parametres["HTTPSserveur"]) # + "index-en-ligne.html"
+        # URLLienDirectVersResultats = Parametres["HTTPSserveur"] # formater_chemin(Parametres["HTTPSserveur"]) # + "index-en-ligne.html"
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],
                     subject= AjoutObjet + Parametres["emailMessageObjet"], # "Résultats du " + Parametres["intituleCross"],
-                    html=Parametres["emailMessage"].replace("<urlresultats>", URLLienDirectVersResultats).replace("<diplome>","{{ diplome.src }}"), 
+                    html=Parametres["emailMessage"].replace("<urlresultats>", Parametres["HTTPSserveur"]).replace("<diplome>","{{ diplome.src }}"), 
                     body_images={
                         "diplome": fichier
                     }
@@ -583,6 +584,74 @@ def envoiDiplomeParMail(coureur, envoiManuel = False) :
                 return False
         else :
             print("Fichier absent (non généré) :", fichier)
+    # except SMTPAuthenticationError:
+    #     print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
+    except Exception as e:
+        print("Erreur inconnue générée lors de l'envoi de l'email avec le diplome : " + str(e))
+
+
+
+def envoiDossardPourUnCoureurSurUnMail(AjoutObjet, coureur, mail) :
+    global diplomeEmailQuotaDepasse
+    gmail.username, gmail.password = choixDuMailAUtiliser()
+    if gmail.username != "" :
+        print("Envoi du dossard pour le coureur avec le mail expéditeur", gmail.username)
+        # URLLienDirectVersResultats = Parametres["HTTPSserveur"] # formater_chemin(Parametres["HTTPSserveur"]) # + "index-en-ligne.html"
+        retour = gmail.send(
+                    sender=gmail.username,
+                    receivers=[mail],
+                    subject= AjoutObjet + Parametres["emailDossardMessageObjet"], # "Résultats du " + Parametres["intituleCross"],
+                    html=Parametres["emailDossardMessage"].replace("<dossard>", coureur.dossard).replace("<prenom>", coureur.prenom)
+                )
+    else :
+        print("Plus de mail disponible pour l'envoi des diplomes.")
+        diplomeEmailQuotaDepasse = True
+        retour = False
+    return retour
+            
+def envoiDossardParMail(coureur, envoiManuel = False) :
+    # fichier = dossier_resultats + os.sep + coureur.dossard + ".jpg"
+    try :
+        # if os.path.exists(fichier) :
+        print(coureur.nom, coureur.prenom, "s'est vu attribuer le dossard" , coureur.dossard, "nombre d'envois sur email", coureur.emailDossardNombreDEnvois, "et sur email2", coureur.emailDossardNombreDEnvois2)
+        retour = True
+        retour2 = True # par défaut, il n'y a pas d'erreur générée.
+        if (coureur.email and coureur.emailDossardEnvoiEffectue == False) or envoiManuel :
+            # print("Envoi par email du fichier", fichier,  "à l'adresse", coureur.email)
+            if coureur.emailDossardNombreDEnvois :
+                AjoutObjet = "Correctif : "
+            else :
+                AjoutObjet = ""
+            retour = envoiDossardPourUnCoureurSurUnMail(AjoutObjet, coureur, coureur.email)
+            if retour :
+                coureur.setEmailDossardEnvoiEffectue(True)
+                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+            else :
+                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                retour = False
+        if coureur.email2 and coureur.emailDossardEnvoiEffectue2 == False :
+            print("Envoi par email du dossard à l'adresse n°2", coureur.email2)
+            try :
+                if coureur.emailDossardNombreDEnvois2 :
+                    AjoutObjet = "Correctif : "
+                else :
+                    AjoutObjet = ""
+            except :
+                AjoutObjet = ""
+            retour2 = envoiDossardPourUnCoureurSurUnMail(AjoutObjet, coureur, coureur.email2)
+            if retour :
+                coureur.setEmailDossardEnvoiEffectue2(True)
+                print("Email bien envoyé pour le dossard", coureur.dossard, " Objet :",AjoutObjet)
+                retour2 = True
+            else :
+                print("Erreur dans l'envoi de l'email pour le dossard", coureur.dossard)
+                retour2 = False
+        if retour and retour2 :
+            return True
+        else :
+            return False
+        # else :
+        #     print("Fichier absent (non généré) :", fichier)
     # except SMTPAuthenticationError:
     #     print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
     except Exception as e:

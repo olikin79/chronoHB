@@ -2548,6 +2548,10 @@ topframe = Frame(Arriveesframe)
 def parametreTableau() :
     tableau.setDefilementAuto(defilement.get())
 
+def parametreEMailDossardAuto():
+    print("Réglage de l'envoi automatique des dossards au démarrage :", envoiAutoDesEMailsDossard.get())
+    Parametres["dossardDiffusionAutomatique"] = envoiAutoDesEMailsDossard.get()
+
 def parametreEMailAuto():
     print("Réglage de l'envoi automatique des diplômes au démarrage :", envoiAutoDesEMails.get())
     Parametres["diplomeDiffusionAutomatique"] = envoiAutoDesEMails.get()
@@ -2638,6 +2642,13 @@ lblHeureActuelle.pack(side=TOP)
 
 lblIPActuelle = Label(heureFrame, text= "Adr. IP : 0.0.0.0", fg="red", font=("Time", 12))
 lblIPActuelle.pack(side=TOP)
+
+# on remet à False l'envoi automatique des dossards au démarrage pour éviter des problèmes.
+Parametres["dossardDiffusionAutomatique"] = 0
+envoiAutoDesEMailsDossard = IntVar()
+envoiAutoDesEMailsDossardCB  = Checkbutton(defilementFrameBas, text='Envoi auto dossards',
+    variable=envoiAutoDesEMailsDossard, command=parametreEMailDossardAuto)
+envoiAutoDesEMailsDossardCB.pack(side=LEFT)
 
 # on remet à False l'envoi automatique des diplômes au démarrage pour éviter des problèmes.
 Parametres["diplomeDiffusionAutomatique"] = 0
@@ -3127,6 +3138,70 @@ def construireMenuAnnulDepart():
     actualiseAffichageDeparts()
     #actualiseAffichageZoneDeDroite(timer.erreursEnCours)
 
+### fonctions d'envoi des dossards
+tagEnvoiDossardEnCours = False
+
+def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
+    ''' diffuse les dossards non encore envoyés aux coureurs '''
+    global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMailsDossards
+    if not diplomeEmailQuotaDepasse :
+        for c in Coureurs.liste() :
+            if not diplomeEmailQuotaDepasse and mon_thread_Dossards.envoi_en_cours :
+                try :
+                    c.emailDossardEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailDossardNombreDEnvois
+                    c.emailDossardEnvoiEffectue2 # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
+                    c.emailDossardNombreDEnvois2
+                except :
+                    c.setEmailDossardEnvoiEffectue(False)
+                    c.setEmailDossardEnvoiEffectue2(False)
+
+                mon_thread_Dossards.nom_prenom = c.nom + " " + c.prenom
+                ### CORRECTIF TEMPORAIRE POUR RENVOYER TOUS LES MAILS VERS LES ADRESSES HOTMAIL
+                ### A SUPPRIMER UNE FOIS QUE LES MAILS SERONT CORRECTEMENT ENVOYES
+                # tag = False 
+                # if c.email and "hotmail" in c.email :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue(False)
+                # if c.email2 and "hotmail" in c.email2 :
+                #     tag = True
+                #     c.setEmailEnvoiEffectue2(False)
+                # if tag : # si on doit renvoyer le mail, on attend 60 secondes pour éviter d'être considéré comme un spammer
+                #     n += 1 # compteur de mails renvoyés
+                #     print("Mail n°",n,"renvoyé pour le coureur",c.nom,c.dossard,"sur",c.email,"et",c.email2,"à",time.strftime("%H:%M:%S", time.localtime()),"car adresse hotmail.")
+                #     time.sleep(60)
+                ### FIN DU CORRECTIF TEMPORAIRE
+                if c.temps > 0 and (((not c.emailDossardEnvoiEffectue) and c.email) or ((not c.emailDossardEnvoiEffectue2) and c.email2))  : # l'un des deux mails valide n'a pas reçu. On génère l'envoi.
+                    if envoiDossardParMail(c) :
+                        if DEBUG : 
+                            print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
+            else :
+                break
+    else :
+        if DEBUG and not tagMessageQuotaDepasseDejaAffiche :
+            print("Le quota d'envoi d'email a été dépassé pour aujourd'hui. Pas d'envoi de dossard possible.")
+            tagMessageQuotaDepasseDejaAffiche = True
+
+def envoiDossardsSansMessageFinal():
+    global tagEnvoiDossardEnCours, mon_thread_Dossards
+    envoiDossardPourTousLesCoureurs()
+    tagEnvoiDossardEnCours = False
+    mon_thread_Dossards.envoi_en_cours = False
+
+def envoiDossards():
+    global tagEnvoiDossardEnCours, mon_thread_Dossards
+    if not tagEnvoiDossardEnCours :
+        tagEnvoiDossardEnCours = True
+        # if DEBUG :
+        #     print("Début d'envoi de diplômes automatisé...")
+        mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True)
+        mon_thread_Dossards.envoi_en_cours = True
+        mon_thread_Dossards.nom_prenom = "initialisation"
+        mon_thread_Dossards.start()
+##    else :
+##        print("Des dossards sont déjà en cours d'envoi, on ne relance pas le script.")  
+
+
 ### fonctions d'envoi des diplomes
 tagEnvoiDiplomeEnCours = False
 
@@ -3134,22 +3209,12 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
     ''' diffuse les diplomes non encore envoyés aux coureurs '''
     global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMails
     if not diplomeEmailQuotaDepasse :
-        # pour les tests
         if diplomeImpose != "" :
             nomModele = diplomeImpose
         else :
             nomModele = Parametres["diplomeModele"]
-            # charger le modèle de diplome des paramètres
-        # modeleDiplome = "./modeles/diplomes/" + nomModele + ".tex"
-        #pour les tests : modeleDiplome = "./modeles/diplomes/Randon-Trail.tex"
-        # with open(modeleDiplome , 'r') as f :
-        #     modele = f.read()
-        # f.close()
-        # n = 0 
         for c in Coureurs.liste() :
             if not diplomeEmailQuotaDepasse and mon_thread_Diplomes.envoi_en_cours :
-                # if DEBUG :
-                    # print("Coureur", c.nom, "examiné email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2, "dossard" , c.dossard, "nbreenvois", c.emailNombreDEnvois, "nbreenvois2", c.emailNombreDEnvois2, "email", c.email, "email2", c.email2)
                 try :
                     c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
                     c.emailNombreDEnvois
@@ -3174,33 +3239,11 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
                 #     print("Mail n°",n,"renvoyé pour le coureur",c.nom,c.dossard,"sur",c.email,"et",c.email2,"à",time.strftime("%H:%M:%S", time.localtime()),"car adresse hotmail.")
                 #     time.sleep(60)
                 ### FIN DU CORRECTIF TEMPORAIRE
-        ##        if c.dossard[-1] == "B" : #TEMPORAIRE POUR LES TESTS
-        ##            c.setEmail("lax.olivier@gmail.com")
-                    #print(c.nombreDeSecondesDepuisDerniereModif(), " > 60*",diplomeDiffusionApresNMin)
-                    #c.setEmailEnvoiEffectue(False)
-                # print(type(c.temps), type(c.nombreDeSecondesDepuisDerniereModif()), type(diplomeDiffusionApresNMin))
                 if c.temps > 0 and (((not c.emailEnvoiEffectue) and c.email) or ((not c.emailEnvoiEffectue2) and c.email2)) and c.nombreDeSecondesDepuisDerniereModif() > 60*int(Parametres["diplomeDiffusionApresNMin"]) : # l'un des deux mails valide n'a pas reçu. On génère le diplome.
                     genereDiplome(c, nomModele)
                     if envoiDiplomeParMail(c) :
-                        # c.setEmailEnvoiEffectue(True)
                         if DEBUG : 
                             print("Envoi du diplome pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
-                # else :
-                #     print("Mail déjà envoyé pour le coureur :", c.nom, c.prenom, "classe :", c.classe)
-                
-                # if c.temps > 0 and (not c.emailEnvoiEffectue) and c.email and c.nombreDeSecondesDepuisDerniereModif() > 60*diplomeDiffusionApresNMin :
-                #     # le coureur a passé la ligne a un email valide et n'a pas reçu son diplome et n'a pas été modifié récemment, on l'envoie
-                #     #print("Envoi du mail fictif pour le coureur",c.nom,c.dossard,c.temps)
-
-                ### pour les tests !
-                # elif __name__ == '__main__' and c.dossard == "1A" :
-                #     genereDiplome(modele, c, nomModele)
-                # elif c.dossard[:-1] != "C" and c.temps == 0.0 :
-                #     print("Condition fausse : ", c.dossard, c.nom, "=>", c.temps, " > 0 and (not ",c.emailEnvoiEffectue,") and", c.email, "and" , c.nombreDeSecondesDepuisDerniereModif()," > 60*",diplomeDiffusionApresNMin)
-                #else : #if c.dossard == "1A" :
-                #   print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,"> 60*diplomeDiffusionApresNMin")
-                # else :
-                #     print("Dossard", c.dossard ,"non envoyé", c.temps, " > 0 and (not ", c.emailEnvoiEffectue, ") and", c.email ,"and", c.nombreDeSecondesDepuisDerniereModif() ,">", 60*diplomeDiffusionApresNMin)
             else :
                 break
     else :
@@ -3213,13 +3256,15 @@ def envoiDiplomesMessageFinal():
     global tagEnvoiDiplomeEnCours
     # print("Temps depuis derniere modif 25B",Coureurs.recuperer("25A").nombreDeSecondesDepuisDerniereModif())
     envoiDiplomePourTousLesCoureurs()
-    tagEnvoiDiplomeEnCours = False
+    mon_thread_Diplomes.envoi_en_cours = False
+    tagEnvoiDiplomeEnCours = False # inutile ?
     showinfo("INFORMATION","Diffusion des diplômes à tous les participants (ayant fourni leur email et n'ayant pas encore été destinataires) effectuée.")
     
 def envoiDiplomesSansMessageFinal():
     global tagEnvoiDiplomeEnCours
     envoiDiplomePourTousLesCoureurs()
-    tagEnvoiDiplomeEnCours = False
+    mon_thread_Diplomes.envoi_en_cours = False
+    tagEnvoiDiplomeEnCours = False # inutile ?
 
 def envoiDiplomes(avecQuestion = True):
     global tagEnvoiDiplomeEnCours, mon_thread_Diplomes
@@ -3294,7 +3339,7 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
 
 # Fonction pour créer un popup permettant une sélection des fichiers à imprimer 
 
-def selectionner_fichiers_popup(root, debuts, dossier="impressions"):
+def selectionner_fichiers_popup(root, debuts, dossier=dossier_impressions):
     # Créer une nouvelle fenêtre popup
     popup = Toplevel(root)
     popup.title("Sélection des fichiers à imprimer")
@@ -3600,11 +3645,21 @@ class Clock():
         self.compteurSauvegarde += 1
 
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
+        if Parametres["dossardDiffusionAutomatique"] :
+            if not "mon_thread_Dossards" in globals() and not "mon_thread_Dossards" in locals() :
+                # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
+                envoiDossards()
+            else :
+                if not mon_thread_Dossards.envoi_en_cours and not mon_thread_Diplomes.envoi_en_cours :
+                    # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
+                    envoiDossards()
+
+        ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["diplomeDiffusionAutomatique"] :
             if not "mon_thread_Diplomes" in globals() and not "mon_thread_Diplomes" in locals() :
                 envoiDiplomes(avecQuestion = False)
             else :
-                if not mon_thread_Diplomes.envoi_en_cours :
+                if not mon_thread_Diplomes.envoi_en_cours and not mon_thread_Dossards.envoi_en_cours :
                     # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
                     envoiDiplomes(avecQuestion = False)
         # actualise la variable envoi_en_cours du thread qui envoie les diplomes afin de pouvoir l'interrompre
@@ -4054,9 +4109,9 @@ def generateResultatsMessage() :
     if os.name == 'nt':
         # reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
         path = os.getcwd()
-        subprocess.Popen(r'explorer /select,"' + path + os.sep +  dossier_impressions + os.sep +'_statistiques.pdf"')
+        subprocess.Popen(r'explorer /select,"' + dossier_impressions + os.sep +'_statistiques.pdf"')
     else :
-        reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + path + os.sep + "'impressions'.")
+        reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + dossier_impressions +".")
 
 
 ### Thread
@@ -4097,6 +4152,7 @@ def envoiDiplomeIndividuelsLanceur():
 
 def envoiDiplomeIndividuels() :
     imprimerDossards(buttonBarMode=1)
+    mon_thread_Diplomes.envoi_en_cours = False
 
 def imprimerDossards(buttonBarMode = 0) :
     if not Parametres["utilisationDesDossardsDeChronoHB"] :

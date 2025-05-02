@@ -4,6 +4,9 @@ Bugs découverts :
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 
+- pour l'envoi auto de diplomes et de dossards, le fait de décocher la case, bloque définitivement le processus, qui ne semble pas reprendre quand on recoche.
+
+
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
