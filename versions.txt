@@ -110,6 +110,7 @@ Pbs persistants urgents :
 Travail du 03/05/25 :
 - Ajout du support des fichiers ods (pour les imports peyce notamment),
 - Boite de dialogue d'ouverture des fichiers filtrant automatiquement les fichiers chronoHB valides.
+- implémentation d'une souplesse dans les noms des champs issus d'un formulaire google form. On recherche un sous-chaine "nom", "prénom", "naissance" etc.
 
 
 Travail du 02/05/25 :

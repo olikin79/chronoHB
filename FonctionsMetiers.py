@@ -8131,14 +8131,14 @@ def traitementDesDonneesAImporter(donneesBrutes) :
 
 
 ### Import XLSX
-def recupImportNG(fichierSelectionne="") :
+def recupImportNG(fichierSelectionne="", tolerance = False) :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
     # try :
     BilanCreationModifErreur = [0,0,0,0]
     d = ""
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
+            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne, tolerance = tolerance)
         elif fichierSelectionne[-3:].lower() == "ods":
             BilanCreationModifErreur, d = recupODS(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
@@ -8179,7 +8179,7 @@ def importGoogleSheetAutomatique() :
             fichierTelecharge = "import/fichierGoogleSheetImporte.xlsx"
             urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
             print("Fichier téléchargé :", fichierTelecharge)
-            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge)
+            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge, tolerance = True)
             print("Import du google sheet terminé.")
         except :
             print("Erreur lors de l'import du google sheet.")
@@ -8188,14 +8188,14 @@ def importGoogleSheetAutomatique() :
     # en mode automatique, pas de retour à l'utilisateur sur les données importées
     # return BilanCreationModifErreur, d
 
-def recupXLSX(fichierSelectionne=""):
+def recupXLSX(fichierSelectionne="", tolerance = False) :
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
     #try :
     #print(fichierSelectionne)
     wb_obj = load_workbook(fichierSelectionne)
     sheet = wb_obj.active # lis la feuille active
     donneesBrutes = [] # initialisation
-    for row in sheet.iter_rows(max_row=sheet.max_row):
+    for n,row in enumerate(sheet.iter_rows(max_row=sheet.max_row)) : 
         ligne = []
         for cell in row:
             if cell.value == None :
@@ -8204,7 +8204,7 @@ def recupXLSX(fichierSelectionne=""):
                 valeur = str(cell.value)
                 ### prétraitement pour les documents google sheets téléchargés automatiquement
                 # print("valeur avant traitement google sheet",valeur)
-                valeur = traiter_chaine_si_import_google_sheet(valeur)
+                valeur = traiter_chaine_si_import_google_sheet(valeur, tolerance=tolerance, ligne=n)
                 # print("valeur après traitement google sheet",valeur)
                 ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
                 if len(valeur)> 18 :
@@ -8348,7 +8348,7 @@ def recupODS(fichierSelectionne=""):
         print(f"Erreur : probablement pas un fichier ODS valide ou erreur lors de la lecture : {e}")
         return [0, 0, 0, 0], {}
 
-def traiter_chaine_si_import_google_sheet(chaine):
+def traiter_chaine_si_import_google_sheet(chaine, tolerance = False, ligne =-1):
     ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 
     Filtre le contenu de la fonction IFERREUR de l'export google au cas où chaine ne soit pas la valeur attendue (celle visible dans le document google sheet)'''
     # Vérifier si la chaîne commence par '=SIERREUR' ou '=IFERROR'
@@ -8365,6 +8365,34 @@ def traiter_chaine_si_import_google_sheet(chaine):
             return chaine  # Si aucun match n'est trouvé
     else:
         # Retourner la chaîne originale si elle ne commence pas par '=SIERREUR' ou '=IFERROR'
+        if tolerance and ligne == 0 :
+            print("Tolérance appliquée pour le tableur google sheet importé.")
+            # pour la première ligne des tableurs en ligne uniquement, on admet une tolérance pour l'import. 
+            # On recherche les mots classiques des champs valides et on remplace s'ils font partie d'une sous-chaine
+            # ["nom", "prénom", "sexe", "naissance", "course", "classe", "établissement", "type", "email", "licence", "absent", "dispensé", "commentaire à l'arrivée", "vma", "email2"] 
+            dictCorrespondanceTableurEnLigne = {
+                "prénom": "prénom",
+                "nom": "nom",
+                "sexe": "sexe",
+                "naissance": "naissance",
+                "classe": "classe",
+                "email": "email",
+                "email n°2": "email2",
+                "course": "course",
+                "établissement": "établissement",
+                "type": "type",
+                "licence": "licence",
+                "absent": "absent",
+                "dispensé": "dispensé",
+                "commentaire à l'arrivée": "commentairearrivée",
+                "vma": "vma",
+            }
+            for mot in dictCorrespondanceTableurEnLigne.keys() :
+                if mot in chaine.lower() :
+                    print("Mot trouvé dans la chaine", mot, "chaine avant remplacement", chaine)
+                    # Remplacer les entrées de la première ligne du tableur importé par les noms standards de la documentation
+                    chaine = dictCorrespondanceTableurEnLigne[mot]
+                    break
         return chaine
 
 
