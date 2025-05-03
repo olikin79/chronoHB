@@ -3148,7 +3148,7 @@ def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
     global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMailsDossards
     if not diplomeEmailQuotaDepasse :
         for c in Coureurs.liste() :
-            print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue)
+            # print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue)
             if not diplomeEmailQuotaDepasse and mon_thread_Dossards.envoi_en_cours :
                 try :
                     c.emailDossardEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
@@ -3664,7 +3664,7 @@ class Clock():
                 envoiDossards()
             else :
                 if not mon_thread_Dossards.envoi_en_cours :
-                    print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
+                    # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
                     try :
                         if not mon_thread_Diplomes.envoi_en_cours :
                             # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
