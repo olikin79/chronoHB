@@ -8133,20 +8133,20 @@ def traitementDesDonneesAImporter(donneesBrutes) :
 ### Import XLSX
 def recupImportNG(fichierSelectionne="") :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
-    try :
-        BilanCreationModifErreur = [0,0,0,0]
-        d = ""
-        if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
-            if fichierSelectionne[-4:].lower() == "xlsx" :
-                BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
-            elif fichierSelectionne[-3:].lower() == "ods":
-                BilanCreationModifErreur, d = recupODS(fichierSelectionne)
-            elif fichierSelectionne[-3:].lower() == "csv":
-                BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
-    except : 
-        # cas où une erreur a été créée lors de la création d'un coureur.
-        BilanCreationModifErreur = [0,0,1,0]
-        print("ATTENTION : Exception non gérée dans recupXLSX() ou recupCSV().")
+    # try :
+    BilanCreationModifErreur = [0,0,0,0]
+    d = ""
+    if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
+        if fichierSelectionne[-4:].lower() == "xlsx" :
+            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
+        elif fichierSelectionne[-3:].lower() == "ods":
+            BilanCreationModifErreur, d = recupODS(fichierSelectionne)
+        elif fichierSelectionne[-3:].lower() == "csv":
+            BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+    # except : 
+    #     # cas où une erreur a été créée lors de la création d'un coureur.
+    #     BilanCreationModifErreur = [0,0,1,0]
+    #     print("ATTENTION : Exception non gérée dans recupXLSX() ou recupCSV().")
     #if retour :
     print("IMPORT CSV ou XLSX TERMINE")
     generateListCoureursPourSmartphone()
@@ -8232,11 +8232,67 @@ def recupXLSX(fichierSelectionne=""):
     #    print("Erreur : probablement pas un fichier xlsx valide...")
     return BilanCreationModifErreur, d
 
+# def recupODS(fichierSelectionne=""):
+#     ''' traite le fichier ods fourni en argument pour l'import des coureurs et retourne un tableau à 4 éléments [création, modif, erreurs, identiques]'''
+#     # try:
+#     doc = ezodf.opendoc(fichierSelectionne)
+#     sheet = doc.sheets[0] # lis la première feuille
+#     donneesBrutes = [] # initialisation
+#     for i, row in enumerate(sheet.rows()):
+#         ligne = []
+#         for cell in row:
+#             if cell.value is None:
+#                 ligne.append("")
+#             else:
+#                 valeur = str(cell.value)
+#                 ### prétraitement pour les documents google sheets téléchargés automatiquement
+#                 valeur = traiter_chaine_si_import_google_sheet(valeur)
+#                 ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
+#                 if len(valeur) > 18:
+#                     if valeur[:8] == "datetime": # cas datetime.datetime(20,08,2008)
+#                         # cas des dates dans excel
+#                         try:
+#                             # Tentative de conversion directe depuis le format datetime ODS
+#                             valeur = time.strftime("%d/%m/%Y", valeur.timetuple())
+#                         except AttributeError:
+#                             pass # Si ce n'est pas un objet datetime standard
+#                     else:
+#                         try:
+#                             valeurInitiale = valeur
+#                             valeur = time.strftime("%d/%m/%Y", time.strptime(valeur, "%Y-%m-%d %H:%M:%S")) #cas 2008-08-20 00:00:00
+#                         except ValueError:
+#                             try:
+#                                 valeurInitiale = valeur
+#                                 valeur = time.strftime("%d/%m/%Y", time.strptime(valeur, "%Y-%m-%d")) # cas 2008-08-20
+#                             except ValueError:
+#                                 pass # on ne fait rien si une date n'est pas reconnue.
+#                 ligne.append(valeur)
+#         # si tous les éléments de la ligne ne sont pas vides, on les traitera
+#         if not all(elt == "" for elt in ligne):
+#             donneesBrutes.append(ligne)
+#     doc.close()
+#     print("Données brutes récupérées du tableur ODS", donneesBrutes)
+#     ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+#     BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
+
+#     # Assumons que BilanCreationModifErreur est un dictionnaire contenant les clés 'creation', 'modification', 'erreur', 'identique'
+#     # Si la structure est différente, vous devrez adapter cette partie.
+#     bilan = [
+#         BilanCreationModifErreur.get('creation', 0),
+#         BilanCreationModifErreur.get('modification', 0),
+#         BilanCreationModifErreur.get('erreur', 0),
+#         BilanCreationModifErreur.get('identique', 0)
+#     ]
+#     return bilan, d
+#     # except Exception as e:
+#     #     print(f"Erreur : probablement pas un fichier ODS valide ou erreur lors de la lecture : {e}")
+#     #     return [0, 0, 0, 0], {}
+
 def recupODS(fichierSelectionne=""):
-    ''' traite le fichier ods fourni en argument pour l'import des coureurs'''
+    ''' traite le fichier ods fourni en argument pour l'import des coureurs et retourne un tableau à 4 éléments [création, modif, erreurs, identiques]'''
     try:
         doc = ezodf.opendoc(fichierSelectionne)
-        sheet = doc.sheets()[0] # lis la première feuille
+        sheet = doc.sheets[0] # lis la première feuille
         donneesBrutes = [] # initialisation
         for i, row in enumerate(sheet.rows()):
             ligne = []
@@ -8270,14 +8326,27 @@ def recupODS(fichierSelectionne=""):
             # si tous les éléments de la ligne ne sont pas vides, on les traitera
             if not all(elt == "" for elt in ligne):
                 donneesBrutes.append(ligne)
-        doc.close()
+        # doc.close()
         # print("Données brutes récupérées du tableur ODS", donneesBrutes)
         ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
         BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
-        return BilanCreationModifErreur, d
+
+        # Assumons que BilanCreationModifErreur est une liste: [creation, modification, erreur, identique]
+        bilan = [0, 0, 0, 0] # Initialisation par défaut en cas de problème
+        if isinstance(BilanCreationModifErreur, list) and len(BilanCreationModifErreur) == 4:
+            bilan = BilanCreationModifErreur
+        elif isinstance(BilanCreationModifErreur, dict): # Vérification supplémentaire si c'est un dictionnaire par erreur
+            bilan = [
+                BilanCreationModifErreur.get('creation', 0),
+                BilanCreationModifErreur.get('modification', 0),
+                BilanCreationModifErreur.get('erreur', 0),
+                BilanCreationModifErreur.get('identique', 0)
+            ]
+        # Sinon, on garde la valeur par défaut [0, 0, 0, 0]
+        return bilan, d
     except Exception as e:
         print(f"Erreur : probablement pas un fichier ODS valide ou erreur lors de la lecture : {e}")
-        return {}, {}
+        return [0, 0, 0, 0], {}
 
 def traiter_chaine_si_import_google_sheet(chaine):
     ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 
@@ -8302,7 +8371,7 @@ def traiter_chaine_si_import_google_sheet(chaine):
 def recupCSV(fichierSelectionne=""):
     ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
     #print("fichierSelectionne",fichierSelectionne)
-    BilanCreationModifErreur = [0,0,0]
+    BilanCreationModifErreur = [0,0,0,0]
     try :
         with open(fichierSelectionne, encoding='utf-8') as csvfile:
             donneesBrutes = csv.reader(csvfile, delimiter=';')
