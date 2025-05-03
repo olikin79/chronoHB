@@ -3148,6 +3148,7 @@ def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
     global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMailsDossards
     if not diplomeEmailQuotaDepasse :
         for c in Coureurs.liste() :
+            print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue)
             if not diplomeEmailQuotaDepasse and mon_thread_Dossards.envoi_en_cours :
                 try :
                     c.emailDossardEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
@@ -3173,7 +3174,7 @@ def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
                 #     print("Mail n°",n,"renvoyé pour le coureur",c.nom,c.dossard,"sur",c.email,"et",c.email2,"à",time.strftime("%H:%M:%S", time.localtime()),"car adresse hotmail.")
                 #     time.sleep(60)
                 ### FIN DU CORRECTIF TEMPORAIRE
-                if c.temps > 0 and (((not c.emailDossardEnvoiEffectue) and c.email) or ((not c.emailDossardEnvoiEffectue2) and c.email2))  : # l'un des deux mails valide n'a pas reçu. On génère l'envoi.
+                if ((not c.emailDossardEnvoiEffectue) and c.email) or ((not c.emailDossardEnvoiEffectue2) and c.email2)  : # l'un des deux mails valide n'a pas reçu. On génère l'envoi.
                     if envoiDossardParMail(c) :
                         if DEBUG : 
                             print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue, "mail2:",c.emailEnvoiEffectue2)
@@ -3185,15 +3186,24 @@ def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
             tagMessageQuotaDepasseDejaAffiche = True
 
 def envoiDossardsSansMessageFinal():
-    global tagEnvoiDossardEnCours, mon_thread_Dossards
+    # global tagEnvoiDossardEnCours, 
+    global mon_thread_Dossards
     envoiDossardPourTousLesCoureurs()
-    tagEnvoiDossardEnCours = False
+    # tagEnvoiDossardEnCours = False
     mon_thread_Dossards.envoi_en_cours = False
 
 def envoiDossards():
-    global tagEnvoiDossardEnCours, mon_thread_Dossards
-    if not tagEnvoiDossardEnCours :
-        tagEnvoiDossardEnCours = True
+    # global tagEnvoiDossardEnCours, 
+    global mon_thread_Dossards
+    try :
+        if not mon_thread_Dossards.envoi_en_cours :
+            mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True)
+            mon_thread_Dossards.envoi_en_cours = True
+            mon_thread_Dossards.nom_prenom = "initialisation"
+            mon_thread_Dossards.start()
+    except :
+    # if not tagEnvoiDossardEnCours :
+    #     tagEnvoiDossardEnCours = True
         # if DEBUG :
         #     print("Début d'envoi de diplômes automatisé...")
         mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True)
@@ -3636,6 +3646,7 @@ class Clock():
             # permet d'effectuer une sauvegarde après toute modif, au plus tard 1 min plus tard. Du coup, dans tous les cas, la dernière sauvegarde contient toutes les données nouvelles...
             # A chaque import, on dump les données vers le disque pour ne pas avoir de perte en casde plantage de l'application.
             dump_sauvegarde()
+
         if self.compteurSauvegarde >= 60//self.delaiActualisation and self.auMoinsUnImportPourSauvegarde : # 12 x 5 s  = 1 minute
             print("Sauvegarde enclenchée toutes les minutes car de nouvelles données sont arrivées.")
             destination = dossier_db
@@ -3653,6 +3664,7 @@ class Clock():
                 envoiDossards()
             else :
                 if not mon_thread_Dossards.envoi_en_cours :
+                    print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
                     try :
                         if not mon_thread_Diplomes.envoi_en_cours :
                             # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")

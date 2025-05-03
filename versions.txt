@@ -112,6 +112,7 @@ Travail du 03/05/25 :
 - Boite de dialogue d'ouverture des fichiers filtrant automatiquement les fichiers chronoHB valides.
 - implémentation d'une souplesse dans les noms des champs issus d'un formulaire google form. On recherche un sous-chaine "nom", "prénom", "naissance" etc.
 - réordonnancement des cases à cocher pour un ordre plus chronologique des actions.
+- correctif : les dossards n'étaient envoyés qu'à des coureurs ayant un temps (copié-collé malheureux de la fonction d'envoi des diplomes.
 
 
 Travail du 02/05/25 :
