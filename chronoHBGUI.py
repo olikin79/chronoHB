@@ -3650,18 +3650,30 @@ class Clock():
                 # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
                 envoiDossards()
             else :
-                if not mon_thread_Dossards.envoi_en_cours and not mon_thread_Diplomes.envoi_en_cours :
-                    # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
-                    envoiDossards()
+                if not mon_thread_Dossards.envoi_en_cours 
+                    try :
+                        if not mon_thread_Diplomes.envoi_en_cours :
+                            # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
+                            envoiDossards()
+                    except : 
+                        # si mon_thread_Diplomes n'existe pas, on envoie les dossards.
+                        envoiDossards()
+                        pass
 
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["diplomeDiffusionAutomatique"] :
             if not "mon_thread_Diplomes" in globals() and not "mon_thread_Diplomes" in locals() :
                 envoiDiplomes(avecQuestion = False)
             else :
-                if not mon_thread_Diplomes.envoi_en_cours and not mon_thread_Dossards.envoi_en_cours :
-                    # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
-                    envoiDiplomes(avecQuestion = False)
+                if not mon_thread_Diplomes.envoi_en_cours :
+                    try :
+                        if not mon_thread_Dossards.envoi_en_cours :
+                            # print("Envoi des diplômes pour tous les participants ne l'ayant pas encore reçu et ayant passé la ligne depuis un temps défini dans les paramètres")
+                            envoiDiplomes(avecQuestion = False)
+                    except :
+                        # si mon_thread_Dossards n'existe pas, on
+                        envoiDiplomes(avecQuestion = False)
+                        pass
         # actualise la variable envoi_en_cours du thread qui envoie les diplomes afin de pouvoir l'interrompre
         try :
             if mon_thread_Diplomes.envoi_en_cours and not envoiAutoDesEMails.get() :
