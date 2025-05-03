@@ -2643,6 +2643,13 @@ lblHeureActuelle.pack(side=TOP)
 lblIPActuelle = Label(heureFrame, text= "Adr. IP : 0.0.0.0", fg="red", font=("Time", 12))
 lblIPActuelle.pack(side=TOP)
 
+# case à cocher pour télécharger les données depuis un googlesheet.
+telechargerDonneesVar = IntVar()
+telechargerDonneesVar.set(Parametres["telechargerDonnees"])
+telechargerDonneesCB  = Checkbutton(defilementFrameBas, text='Télécharger les inscriptions en temps réel.',
+    variable=telechargerDonneesVar, command=parametreTelechargerAuto)
+telechargerDonneesCB.pack(side=LEFT)
+
 # on remet à False l'envoi automatique des dossards au démarrage pour éviter des problèmes.
 Parametres["dossardDiffusionAutomatique"] = 0
 envoiAutoDesEMailsDossard = IntVar()
@@ -2657,12 +2664,7 @@ envoiAutoDesEMailsCB  = Checkbutton(defilementFrameBas, text='Envoi auto diplôm
     variable=envoiAutoDesEMails, command=parametreEMailAuto)
 envoiAutoDesEMailsCB.pack(side=LEFT)
 
-# case à cocher pour télécharger les données depuis un googlesheet.
-telechargerDonneesVar = IntVar()
-telechargerDonneesVar.set(Parametres["telechargerDonnees"])
-telechargerDonneesCB  = Checkbutton(defilementFrameBas, text='Télécharger les inscriptions en temps réel.',
-    variable=telechargerDonneesVar, command=parametreTelechargerAuto)
-telechargerDonneesCB.pack(side=LEFT)
+
 
 
 defilementFrameHaut.pack(side=TOP)
@@ -3650,7 +3652,7 @@ class Clock():
                 # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
                 envoiDossards()
             else :
-                if not mon_thread_Dossards.envoi_en_cours 
+                if not mon_thread_Dossards.envoi_en_cours :
                     try :
                         if not mon_thread_Diplomes.envoi_en_cours :
                             # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")

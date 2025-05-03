@@ -8366,7 +8366,7 @@ def traiter_chaine_si_import_google_sheet(chaine, tolerance = False, ligne =-1):
     else:
         # Retourner la chaîne originale si elle ne commence pas par '=SIERREUR' ou '=IFERROR'
         if tolerance and ligne == 0 :
-            print("Tolérance appliquée pour le tableur google sheet importé.")
+            # print("Tolérance appliquée pour le tableur google sheet importé.")
             # pour la première ligne des tableurs en ligne uniquement, on admet une tolérance pour l'import. 
             # On recherche les mots classiques des champs valides et on remplace s'ils font partie d'une sous-chaine
             # ["nom", "prénom", "sexe", "naissance", "course", "classe", "établissement", "type", "email", "licence", "absent", "dispensé", "commentaire à l'arrivée", "vma", "email2"] 
