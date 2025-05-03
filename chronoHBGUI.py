@@ -2933,7 +2933,7 @@ def regenereAffichageGUI() :
 
 
 def importSIECLEAction() :
-    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers XLSX","*.xlsx"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
+    file_path = askopenfilename(title = "Sélectionner un fichier de données à importer", filetypes = (("Fichiers chronoHB", "*.xlsx *.ods *.csv"),("Fichiers XLSX","*.xlsx"),("Fichiers ODS","*.ods"),("Fichiers CSV","*.csv"),("Tous les fichiers","*.*")))
     if file_path :
         nomFichier = os.path.basename(file_path)
         #print("ajouter un 'êtes vous sûr ? Vraiment sûr ?'")
@@ -4736,7 +4736,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 # menu préparation course
 filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
 filemenu.add_command(label="Paramètres internet", command=affecterParametresInternet)
-filemenu.add_command(label="Import XLSX ou CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
+filemenu.add_command(label="Import XLSX, ODS, CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)

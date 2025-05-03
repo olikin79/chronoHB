@@ -22,6 +22,7 @@ from threading import Thread, Lock
 import requests
 
 import xlsxwriter # pour les exports excels des résultats
+import ezodf  # pour les imports ods
 import math # pour math.ceil
 
 ### A décommenter plus tard pour la mise en place des imports NG.
@@ -8138,6 +8139,8 @@ def recupImportNG(fichierSelectionne="") :
         if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
             if fichierSelectionne[-4:].lower() == "xlsx" :
                 BilanCreationModifErreur, d = recupXLSX(fichierSelectionne)
+            elif fichierSelectionne[-3:].lower() == "ods":
+                BilanCreationModifErreur, d = recupODS(fichierSelectionne)
             elif fichierSelectionne[-3:].lower() == "csv":
                 BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
     except : 
@@ -8228,6 +8231,53 @@ def recupXLSX(fichierSelectionne=""):
     #except :
     #    print("Erreur : probablement pas un fichier xlsx valide...")
     return BilanCreationModifErreur, d
+
+def recupODS(fichierSelectionne=""):
+    ''' traite le fichier ods fourni en argument pour l'import des coureurs'''
+    try:
+        doc = ezodf.opendoc(fichierSelectionne)
+        sheet = doc.sheets()[0] # lis la première feuille
+        donneesBrutes = [] # initialisation
+        for i, row in enumerate(sheet.rows()):
+            ligne = []
+            for cell in row:
+                if cell.value is None:
+                    ligne.append("")
+                else:
+                    valeur = str(cell.value)
+                    ### prétraitement pour les documents google sheets téléchargés automatiquement
+                    valeur = traiter_chaine_si_import_google_sheet(valeur)
+                    ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
+                    if len(valeur) > 18:
+                        if valeur[:8] == "datetime": # cas datetime.datetime(20,08,2008)
+                            # cas des dates dans excel
+                            try:
+                                # Tentative de conversion directe depuis le format datetime ODS
+                                valeur = time.strftime("%d/%m/%Y", valeur.timetuple())
+                            except AttributeError:
+                                pass # Si ce n'est pas un objet datetime standard
+                        else:
+                            try:
+                                valeurInitiale = valeur
+                                valeur = time.strftime("%d/%m/%Y", time.strptime(valeur, "%Y-%m-%d %H:%M:%S")) #cas 2008-08-20 00:00:00
+                            except ValueError:
+                                try:
+                                    valeurInitiale = valeur
+                                    valeur = time.strftime("%d/%m/%Y", time.strptime(valeur, "%Y-%m-%d")) # cas 2008-08-20
+                                except ValueError:
+                                    pass # on ne fait rien si une date n'est pas reconnue.
+                    ligne.append(valeur)
+            # si tous les éléments de la ligne ne sont pas vides, on les traitera
+            if not all(elt == "" for elt in ligne):
+                donneesBrutes.append(ligne)
+        doc.close()
+        # print("Données brutes récupérées du tableur ODS", donneesBrutes)
+        ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+        BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
+        return BilanCreationModifErreur, d
+    except Exception as e:
+        print(f"Erreur : probablement pas un fichier ODS valide ou erreur lors de la lecture : {e}")
+        return {}, {}
 
 def traiter_chaine_si_import_google_sheet(chaine):
     ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 

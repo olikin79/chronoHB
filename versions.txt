@@ -107,10 +107,16 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 03/05/25 :
+- Ajout du support des fichiers ods (pour les imports peyce notamment),
+- Boite de dialogue d'ouverture des fichiers filtrant automatiquement les fichiers chronoHB valides.
+
+
 Travail du 02/05/25 :
 - Bascule des dossiers de travail "resultats" et "impressions" dans les dossiers appropriés (%appdata%, etc)
 - Correction bug envoi auto des diplomes : ils n'étaient plus envoyés après avoir décoché-recoché la case.
 - Implémentation de la case "Envoi auto dossards" pour envoyer le numéro de dossard dès l'inscription par email pour un retrait plus facile.
+Verrouillage empêchant les tentatives d'envoi de dossards et de diplômes simultanément.
 
 
 Travail du 30/04/25 :
