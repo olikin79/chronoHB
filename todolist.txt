@@ -12,22 +12,25 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
-- rajouter une sécurité sur les puissances des antennes : empêcher de fixer en dehors de la plage 1-30dB.
-- association des dossards aux puces de tests : 
+- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
+- Affectation du réseau wifi depuis l'interface, en tactile : 
+	* afficher vraiment tous les réseaux à portée.
+	* saisie du mot de passe en clair ou pas ?
+- (FAIT) rajouter une sécurité sur les puissances des antennes : empêcher de fixer en dehors de la plage 1-30dB.
+- (FAIT) association des dossards aux puces de tests : 
 	* reste à tester le cas où les numéros sont à l'envers (à tester)
 	* reste à tester l'arrivée avec epc in dossardDetecteLorsDeLaCourse
-
-- régler la puissance d'émission de l'antenne : 
+- (FAIT) quand on éteint le boitier, les boutons oui-non restent affichés longtemps. Il faudrait que l'interface se ferme immédiatement et que le processus continue en arrière plan.
+- (FAIT) régler la puissance d'émission de l'antenne : 
 voir action_post_modif_parametre ligne 1405 de app-raspberry4.py pour permettre de régler individuellement les puissances de chaque antenne
 - (FAIT) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
 en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui, ce serait comme une deuxième pique ?
-- recherche du serveur chronoHB sur le réseau local à faire en broadcast.
 - (FAIT) Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
-- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
 
 
 A faire avant les vacances de juillet :
-- quand on éteint le boitier, les boutons oui-non restent affichés longtemps. Il faudrait que l'interface se ferme immédiatement et que le processus continue en arrière plan.
+- recherche du serveur chronoHB sur le réseau local à faire en broadcast.
+
 - regrouper les tags RFID captés dans la même seconde sur le raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
 Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
 Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
