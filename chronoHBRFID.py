@@ -316,7 +316,7 @@ class Popup(tk.Toplevel):
     Ce bouton "Valider" serait rendu actif si les dossards existent jusqu'au nombre choisi.
 	Cela affecterait toutes les puces dans l'ordre des dossards en incrémentant les puces avec la méthode incremente_epc.
 
-    2. "Passage des dossards succesivement devant le lecteur" :
+    2. "Passage des dossards successivement devant le lecteur" :
     Un deuxième mode d'affectation existerait : on passerait un dossard devant l'antenne et cela affecterait la puce RFID détectée au dossard sléectionné dans le combobox.
     Cela passerait au dossard suivant dès qu'un dossard serait détecté (si case à cocher dédiée activée).
     Un signal graphique changement de couleur de l'interface en vert durant une seconde indiquerait 
@@ -330,7 +330,7 @@ class Popup(tk.Toplevel):
         self.label.grid(row=0, column=0, sticky="w")
         self.modeAffectation = tk.StringVar()
         self.modeAffectation.set("Affectation de dossards en masse")
-        self.combobox = tk.OptionMenu(frame, self.modeAffectation, "Affectation de dossards en masse", "Passage des dossards successivement devant le lecteur") 
+        self.combobox = tk.OptionMenu(frame, self.modeAffectation, "Passage des dossards successivement devant le lecteur", "Affectation de dossards en masse") 
         self.combobox.grid(row=0, column=1, sticky="w")
         # en dessous du combobox, on remplir la fenêtre avec une frame qui occupe tout l'espace en largeur et en hauteur
         self.frameAffectation = tk.Frame(frame)

@@ -107,6 +107,11 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 07/05/25 :
+- appraspberry.py : réglage indépendant de la puissance des antennes et possibilité de détection des tags depuis la totalité des antennes : OK !
+- inversion de l'affectation individuelle et de l'affectation en masse dans le menu dédié.
+
+
 Travail du 03/05/25 :
 - Ajout du support des fichiers ods (pour les imports peyce notamment),
 - Boite de dialogue d'ouverture des fichiers filtrant automatiquement les fichiers chronoHB valides.
