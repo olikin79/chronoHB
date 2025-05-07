@@ -329,7 +329,7 @@ class Popup(tk.Toplevel):
         self.label = tk.Label(frame, text="Choisir le mode d'affectation :", justify="left")
         self.label.grid(row=0, column=0, sticky="w")
         self.modeAffectation = tk.StringVar()
-        self.modeAffectation.set("Affectation de dossards en masse")
+        self.modeAffectation.set("Passage des dossards successivement devant le lecteur")
         self.combobox = tk.OptionMenu(frame, self.modeAffectation, "Passage des dossards successivement devant le lecteur", "Affectation de dossards en masse") 
         self.combobox.grid(row=0, column=1, sticky="w")
         # en dessous du combobox, on remplir la fenêtre avec une frame qui occupe tout l'espace en largeur et en hauteur
