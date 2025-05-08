@@ -17,7 +17,6 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 A faire avant le trail du 18 mai 2024 :
 - déploiement automatique via le menu mise à jour.
 - changer le clavier tactile en bas : pas pratique pour les majuscules et trop petit.
-- déplacer le dossier import vers %appdata%
 - (FAIT) l'affichage défilant des résultats ajoute un rond rouge en haut à droite en cas d'absence de réception depuis le serveur 
 et n'affiche plus le message d'erreur en cas de non réception : l'interface continue de défiler. Ce sera plus joli pour des problèmes de connexion temporaires.
 - (FAIT) regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
@@ -47,6 +46,7 @@ A faire avant les vacances de juillet :
 - (FAIT pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
 	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
 - déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
+- déplacer le dossier import vers %appdata%
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast.
 - documenter les nouveautés (partie RFID, etc.).
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
