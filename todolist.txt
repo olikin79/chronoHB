@@ -3,8 +3,12 @@ Bugs découverts :
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
+
 - voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
+La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une seconde d'écart dans un même envoi depuis le sender du raspberry.
+Si possible, il faudrait pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
+
 
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
@@ -12,10 +16,15 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
+- déploiement automatique via le menu mise à jour.
 - Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
 - Affectation du réseau wifi depuis l'interface, en tactile : 
 	* afficher vraiment tous les réseaux à portée.
 	* saisie du mot de passe en clair ou pas ?
+- l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
+et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
+- rajouter la couleur du dossard dans le mail envoyé au coureur avec son numéro de dossard.
+
 - (FAIT) rajouter une sécurité sur les puissances des antennes : empêcher de fixer en dehors de la plage 1-30dB.
 - (FAIT) association des dossards aux puces de tests : 
 	* reste à tester le cas où les numéros sont à l'envers (à tester)
@@ -26,16 +35,16 @@ voir action_post_modif_parametre ligne 1405 de app-raspberry4.py pour permettre 
 - (FAIT) procédure en cas de non-détection : gestion du mode "pique" à perfectionner 
 en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui, ce serait comme une deuxième pique ?
 - (FAIT) Capacité pour le logiciel d'envoyer un mail au participant lors de la création de son dossard.
-
+- (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast.
-
-- regrouper les tags RFID captés dans la même seconde sur le raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
+- regrouper les tags RFID captés à moins d'une seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
 Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
 Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
+Si possible, il faudrait pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
 
-- faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
+
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - solliciter Lucie pour le diplome du cross,
@@ -54,12 +63,11 @@ A faire avant début octobre 2025 :
 - association des 720 puces aux 720 premiers dossards.
 
 A faire avant le cross du collège Bourrillon 2025 :
+- vérifier le dénominateur des personnels de la DSDEN sur le dossard. Il était faux l'an dernier.
 - afficher les diplomes non encore envoyés comme une "erreur" sans action spécifique autre qu'afficher un popup indiquant de cocher la case correspondante ?
-- plusieurs antennes fonctionnelles et mode "antenne secondaire" à rendre fonctionnel (identique au mode pique ?).
+- mode "antenne secondaire" à rendre fonctionnel (identique au mode pique).
 - Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
 En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
-- l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
-et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
 - 2ème malette à créer ?
 
 
@@ -90,9 +98,9 @@ A FAIRE pour le raspberry pi :
 	* (FAIT)
 	* (EN COURS) réglage WIFI à corriger.
 	* (FAIT) Renvoyer toutes les données vers le serveur
-	* mise à jour logicielle chronoHB.
+	* (FAIT) mise à jour logicielle chronoHB.
 	* Assistance à distance (VPN).
-	* (OK pour Antenne 1) Etat des antennes : si données reçues depuis le dernier allumage.
+	* (FAIT) Etat des antennes : si données reçues depuis le dernier allumage.
 
 #######################################################
 BUGS DECOUVERTS :
@@ -203,7 +211,7 @@ A ajouter :
 nettoyage des fichiers tex ayant servi à créer les QR-codes. Cela serait ça de moins de présent sur le disque.
 
 Fonctionnalités :
-- ajouter les paramètres généraux, déjà documentés : 
+- (FAIT) ajouter les paramètres généraux, déjà documentés : 
 	* relatifs à l'envoi automatique de diplomes, les logins et mdp d'emails, le nombre de minutes de rétention avant l'envoi des diplomes.
 	* relatifs à l'affichage TV automatique ?
 	* relatifs au dépôt FTP pour site web en temps réel. (rajouter le lien dans le mail diffusé)
@@ -222,6 +230,7 @@ Documentation :
 - documenter : double authentification google.com + mot de passe d'application.
 - documenter l'inscription en ligne via formulaire google form.
 - documenter l'import avec le numéro de dossard fourni.
+- documenter la partie RFID.
 
 
 Trouver win32ui installation. https://stackoverflow.com/questions/42370339/python-3-6-install-win32api
@@ -247,11 +256,11 @@ Fonctionnalités :
 - (FAIT) Inscription en ligne avec case à cocher : trouver un moyen de cacher périodiquement les lignes "dossard distribué" 
 et de pouvoir "tout afficher" avec une case à cocher, qui restera toujours visible.
 Ainsi, les opérateurs ne voient que les dossards qui restent à donner.
-- Inscription en ligne : envoi d'un email automatique aux inscrits avec leur numéro de dossard, la couleur et l'indication "Donner votre nom et indiquez que vous avez le dossard "23 vert".
+- (FAIT) Inscription en ligne : envoi d'un email automatique aux inscrits avec leur numéro de dossard, la couleur et l'indication "Donner votre nom et indiquez que vous avez le dossard "23 vert".
 
 Fonctionnalités :
-- Installation automatique de l'ensemble dont extensions installées localement.
-- Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
+- (FAIT) Installation automatique de l'ensemble dont extensions installées localement.
+- (FAIT) Faire en sorte que l'import de dossards depuis un autre smartphone soit automatiquement considéré comme une autre pic.
 Chaque smartphone sera considéré comme une pique différente. Le premier smartphone à envoyer des données sera la pique de base importée
 ArriveesDossards sera complété par des propriétés et méthodes  :
 La documentation spécifiera que : le premier dossard scanné avec un smartphone "pique" (qui n'est pas celui de base) devra être :

@@ -15,7 +15,7 @@ Après cross  2024 :
 - vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
 - alignement des boites de gauche dans paramètres des courses.
 - (FAIT) voir pourquoi le changement de dossard ou diplome n'est pas instantanément actif (redémarrage de l'application nécessaire).
-- Idem pour les cases à cocher des listings.
+- (FAIT) Idem pour les cases à cocher des listings.
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 - (ABANDONNE) faire en sorte que le nom soit prononcé plus tôt dans le haut parleur par le téléphone.
 - (FAIT) Afficher les coureurs en erreur en orange.
@@ -32,7 +32,7 @@ A finir :
   génère automatiquement les .zip en fonction des derniers fichiers modifiés et de la date et heure de dernière génération d'une mise à jour,
   voir les déposer sur le dépôt ftp...
 - actualiser les paramètres généraux dans l'interface après une récupération de sauvegarde. J'ai l'impression que cela n'est pas le cas.
-- envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
+- FAIT envoi de mails avec le numéro de dossard attribué effectué par le logiciel chronoHB. Ce sera plus fiable que les envois par googlesheet, trop limités en nombre.
 - FAIT sur le smartphone, créer un bouton (un peu caché) permettant de renvoyer tous les résultats une deuxième fois.
 - FAIT dans le code python, sécuriser systématiquement l'absence d'un fichier pour que le fonctionnement principal perdure (messageDefault.txt, etc)
 - sécuriser les dates de naissance inférieures à 1900 en les considérant invalides.
@@ -107,6 +107,10 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 08/05/25 :
+- implémentation des boutons "Renvoyer toutes les données", "Mise à jour", "Remise à zéro",
+
+
 Travail du 07/05/25 :
 - appraspberry.py : réglage indépendant de la puissance des antennes : OK !
 - possibilité de détection des tags depuis la totalité des antennes : OK !
