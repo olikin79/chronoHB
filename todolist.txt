@@ -4,10 +4,9 @@ Bugs découverts :
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 
-- voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
+- (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une seconde d'écart dans un même envoi depuis le sender du raspberry.
-Si possible, il faudrait pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
 
 
 Bug sur le programme smartphone : 
@@ -16,15 +15,21 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
+- déplacer le dossier import vers %appdata%
+- (FAIT) regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
+Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
+Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
+Si possible, il faudrait pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
 - changer le clavier tactile en bas : pas pratique pour les majuscules et trop petit.
 - déploiement automatique via le menu mise à jour.
-- Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
+- (FAIT) Simplification du tableur d'inscription en ligne.
+Le serveur recopie lui-même le numéro de dossard effectivement attribué dans le tableur qui sert à la distribution.
 - (FAIT) Affectation du réseau wifi depuis l'interface, en tactile : 
 	* afficher vraiment tous les réseaux à portée.
 	* saisie du mot de passe en clair plus pratique.
 - l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
 et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
-- rajouter la couleur du dossard dans le mail envoyé au coureur avec son numéro de dossard.
+- (FAIT) rajouter la couleur du dossard dans le mail envoyé au coureur avec son numéro de dossard.
 
 - (FAIT) rajouter une sécurité sur les puissances des antennes : empêcher de fixer en dehors de la plage 1-30dB.
 - (FAIT) association des dossards aux puces de tests : 
@@ -39,13 +44,10 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- (A TESTER pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
+	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast.
-- regrouper les tags RFID captés à moins d'une seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
-Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
-Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
-Si possible, il faudrait pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
-
-
+- documenter les nouveautés (partie RFID, etc.).
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - solliciter Lucie pour le diplome du cross,

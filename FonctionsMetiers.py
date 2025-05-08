@@ -130,17 +130,9 @@ if windows() :
 import pickle
 #import chronoHBClasses
 
-# récupère les données de sauvegarde de à la carte en tant que variables globales pour être utilisées par les autres fonctions.
-##def lire_sauvegarde(sauvegarde) :
-##    if os.path.exists(sauvegarde+".db") :
-##        #d =
-##        retour = pickle.load(open(sauvegarde+".db","rb"))
-##        #d = shelve.open(sauvegarde)
-##        #retour = d['root']
-##        d.close()
-##    else :
-##        retour = {}
-##    return retour
+# action sur document google sheet
+import gspread
+from google.oauth2.service_account import Credentials
 
 def creerDir(path) :
     retour = True
@@ -2407,6 +2399,8 @@ def chargerDonnees() :
         Parametres["crossUNSScollegeLycee"] = True
     if not "URLGoogleSheetAImporter" in Parametres :
         Parametres["URLGoogleSheetAImporter"] = ""
+    if not "GoogleSheetServiceAccountFile" in Parametres :
+        Parametres["GoogleSheetServiceAccountFile"] = ""
     if not "telechargerDonnees" in Parametres :
         Parametres["telechargerDonnees"] = 0
     if not "classeIgnoreesPourChallenge" in Parametres :
@@ -8086,7 +8080,7 @@ def renommerEnTetesSiBesoin(donneesBrutes) :
     return donneesBrutes
 
 #### Import des données nouvelle génération (post 2022) à tester...
-def traitementDesDonneesAImporter(donneesBrutes) :
+def traitementDesDonneesAImporter(donneesBrutes, googleSheet=False, nom_feuille_travail="") :
     ''' données brutes est un tableau (ou itérable) qui contient des lignes constituées des chaines de caractères (sans point virgule) issues d'un CSV ou tableur.
     Crée les coureurs à partir des informations de chacun, si les données indispensables sont présentes.
     Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
@@ -8115,31 +8109,102 @@ def traitementDesDonneesAImporter(donneesBrutes) :
                 print("Certains éléments obligatoires semblent manquer dans le fichier fourni (normal pour un cross UNSS où les champs sont non standards chronoHB) :", informations)
                 #retour = False
                 ### break
+            if googleSheet :
+                # on repère si le champ dossard est fourni ou pas. S'il l'est, on garde la lettre de la colonne dans colonneDossards
+                # sinon, on détermine la première lettre de colonne ayant un en-tête vide et on la conserve dans colonneDossards
+                try :
+                    noColonne = informations.index("dossard")
+                    colonneDossards = chr(65 + noColonne) # 65 = A
+                except :
+                    # on cherche la première colonne entièrement vide dans donneesBrutes
+                    colonneDossards = chr(65 + len(informations)) # traitement du cas où toutes les colonnes sont non vides.
+                    for colonne in range(0, len(informations)) :
+                        for ligne in range(0, len(donneesBrutes)) :
+                            if donneesBrutes[ligne][colonne] != "" :
+                                break
+                        if ligne == len(donneesBrutes) - 1 : # on a trouvé une colonne vide
+                            colonneDossards = chr(65 + colonne) # 65 = A
+                            break
+                    # on ajoute le mot dossard dans le fichier en ligne, première ligne
+                    placer_valeur_dans_cellule(nom_feuille_travail, colonneDossards+"1", "dossard")
+                print("colonneDossards", colonneDossards)
         else :
 ##             if i == 1 :
 ##                 print("Première ligne du fichier importé:")
 ##                 print(row)
              retourCreationModifErreur, d = creerCoureur(row, informations)
+
+             if googleSheet :
+                 coordonneesCellule = colonneDossards + str(i+1) # i+1 car on commence à 0 et la première ligne est l'en-tête
+                 if d and d != "0" and (retourCreationModifErreur[0] + retourCreationModifErreur[1] != 0) :
+                     # on place le dossard si le coureur a été créé ou modifié et s'il a un dossard valide.
+                     placer_valeur_dans_cellule(nom_feuille_travail, coordonneesCellule, d)
+                 else :
+                     print("Pas de valeur à placer dans la cellule", coordonneesCellule, ". Ligne " + str(i+1) + " probablement non valide.")
              #print("retour création :" ,retourCreationModifErreur)
-             for i in range(4) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
+             for j in range(4) : # actualisation de la liste dénombrant les ajouts, modifs, erreurs effectuées globalement.
                  #print(i,retourCreationModifErreur[i])
-                 if retourCreationModifErreur[i] :
-                    BilanCreationModifErreur[i] += 1
+                 if retourCreationModifErreur[j] :
+                    BilanCreationModifErreur[j] += 1
         i+=1
     # if not 'd' in locals():
     #     d = ''
     return BilanCreationModifErreur, d
 
+## écriture dans un google sheet dans une cellule donnée
+# Portée des autorisations nécessaires (lecture et écriture pour Sheets)
+SCOPE = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.file'
+]
+
+def placer_valeur_dans_cellule(nom_feuille_travail: str, cellule: str, valeur: any):
+    """
+    Se connecte à une feuille de calcul Google Sheet, sélectionne une feuille de travail
+    et place une valeur dans la cellule spécifiée.
+
+    Args:
+        nom_feuille_travail (str): Le nom de la feuille de travail.
+        cellule (str): Les coordonnées de la cellule au format A1 (e.g., 'B3').
+        valeur (any): La valeur à écrire dans la cellule.
+    """
+    try:
+        # Chemin vers ton fichier JSON de clés de service
+        SERVICE_ACCOUNT_FILE = Parametres["GoogleSheetServiceAccountFile"]
+
+        # Nom de ta feuille de calcul Google Sheet extrait de l'URL
+        # on extrait l'ID de l'URL juste après /d/ et avant /edit via une expression régulière
+        SPREADSHEET_ID = re.search(r'/d/(.*?)/', Parametres["URLGoogleSheetAImporter"]).group(1)
+        # SPREADSHEET_ID = Parametres["URLGoogleSheetAImporter"].split("/")[5] # on extrait l'ID de la feuille de calcul à partir de l'URL
+
+        # Authentification
+        creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPE)
+        gc = gspread.authorize(creds)
+
+        # Ouverture de la feuille de calcul par son nom
+        # sh = gc.open(SPREADSHEET_NAME)
+        sh = gc.open_by_key(SPREADSHEET_ID)
+
+        # Sélection de la feuille de travail par son nom
+        worksheet = sh.worksheet(nom_feuille_travail)
+
+        # Mise à jour de la cellule avec la valeur
+        worksheet.update(cellule, [[valeur]])
+        print(f"La valeur '{valeur}' a été placée dans la cellule '{cellule}' de la feuille '{nom_feuille_travail}'.")
+
+    except Exception as e:
+        print(f"Une erreur s'est produite : {e}")
+
 
 ### Import XLSX
-def recupImportNG(fichierSelectionne="", tolerance = False) :
+def recupImportNG(fichierSelectionne="", tolerance = False, googleSheet=False) :
     ''' destiné à remplacer l'appel à recupCSVSIECLE(..) quand ce sera possible : ajout du paramètre categorieManuelle'''
     # try :
     BilanCreationModifErreur = [0,0,0,0]
     d = ""
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne, tolerance = tolerance)
+            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne, tolerance = tolerance, googleSheet=googleSheet)
         elif fichierSelectionne[-3:].lower() == "ods":
             BilanCreationModifErreur, d = recupODS(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
@@ -8180,7 +8245,7 @@ def importGoogleSheetAutomatique() :
             fichierTelecharge = "import/fichierGoogleSheetImporte.xlsx"
             urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
             print("Fichier téléchargé :", fichierTelecharge)
-            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge, tolerance = True)
+            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge, tolerance = True, googleSheet=True)
             print("Import du google sheet terminé.")
         except :
             print("Erreur lors de l'import du google sheet.")
@@ -8189,48 +8254,56 @@ def importGoogleSheetAutomatique() :
     # en mode automatique, pas de retour à l'utilisateur sur les données importées
     # return BilanCreationModifErreur, d
 
-def recupXLSX(fichierSelectionne="", tolerance = False) :
+def recupXLSX(fichierSelectionne="", tolerance = False, googleSheet=False) :
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
     #try :
     #print(fichierSelectionne)
     wb_obj = load_workbook(fichierSelectionne)
-    sheet = wb_obj.active # lis la feuille active
-    donneesBrutes = [] # initialisation
-    for n,row in enumerate(sheet.iter_rows(max_row=sheet.max_row)) : 
-        ligne = []
-        for cell in row:
-            if cell.value == None :
-                ligne.append("")
-            else :
-                valeur = str(cell.value)
-                ### prétraitement pour les documents google sheets téléchargés automatiquement
-                # print("valeur avant traitement google sheet",valeur)
-                valeur = traiter_chaine_si_import_google_sheet(valeur, tolerance=tolerance, ligne=n)
-                # print("valeur après traitement google sheet",valeur)
-                ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
-                if len(valeur)> 18 :
-                    if valeur[:8] == "datetime" : # cas datetime.datetime(20,08,2008)
-                        # cas des dates dans excel
-                        #print("Date à importer au format datetime(...)",valeur)
-                        valeur = time.strftime("%d/%m/%Y", valeur)
-                    else :
-                        try :
-                            valeurInitiale = valeur
-                            valeur = time.strftime("%d/%m/%Y",time.strptime(valeur, "%Y-%m-%d  %H:%M:%S")) #cas 2008-08-20 00:00:00
-                            #print("Date à importer au format 2008-08-20 00:00:00",valeurInitiale, "vers",valeur)
-                        except :
-                            True # on ne fait rien si une date n'est pas reconnue.
-                            #print("Probablement pas une date. Valeur conservée :", valeur)
-                ligne.append(valeur)
-        # si tous les éléments de la ligne ne sont pas vides, on les traitera
-        if not all(elt == "" for elt in ligne) : 
-            donneesBrutes.append(ligne)
-    # print("Données brutes récupérées du tableur", donneesBrutes)
-    ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-    BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
+    # on peut parcourir toutes les feuilles de calculs du fichier
+    for sheet in wb_obj.worksheets:
+        print("Feuille de calcul trouvée :", sheet.title)
+        # sheet = wb_obj.active # lis la feuille active
+        donneesBrutes = [] # initialisation
+        for n,row in enumerate(sheet.iter_rows(max_row=sheet.max_row)) : 
+            ligne = []
+            for cell in row:
+                if cell.value == None :
+                    ligne.append("")
+                else :
+                    valeur = str(cell.value)
+                    ### prétraitement pour les documents google sheets téléchargés automatiquement
+                    # print("valeur avant traitement google sheet",valeur)
+                    valeur = traiter_chaine_si_import_google_sheet(valeur, tolerance=tolerance, ligne=n)
+                    # print("valeur après traitement google sheet",valeur)
+                    ### prétraitement pour les dates de naissances, selon les cas déjà rencontrés.
+                    if len(valeur)> 18 :
+                        if valeur[:8] == "datetime" : # cas datetime.datetime(20,08,2008)
+                            # cas des dates dans excel
+                            #print("Date à importer au format datetime(...)",valeur)
+                            valeur = time.strftime("%d/%m/%Y", valeur)
+                        else :
+                            try :
+                                valeurInitiale = valeur
+                                valeur = time.strftime("%d/%m/%Y",time.strptime(valeur, "%Y-%m-%d  %H:%M:%S")) #cas 2008-08-20 00:00:00
+                                #print("Date à importer au format 2008-08-20 00:00:00",valeurInitiale, "vers",valeur)
+                            except :
+                                True # on ne fait rien si une date n'est pas reconnue.
+                                #print("Probablement pas une date. Valeur conservée :", valeur)
+                    ligne.append(valeur)
+            # si tous les éléments de la ligne ne sont pas vides, on les traitera
+            if not all(elt == "" for elt in ligne) : 
+                donneesBrutes.append(ligne)
+        # print("Données brutes récupérées du tableur", donneesBrutes)
+        ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
+        BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes, googleSheet=googleSheet, nom_feuille_travail=sheet.title)
+        if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] == 0 :
+            print("Aucun coureur créé ou modifié avec la feuille", sheet.title)
+        else :
+            print("Import de la feuille de calcul", sheet.title, "terminé. Bilan : ", BilanCreationModifErreur)
+            break # on ne traite qu'une seule feuille de calcul par classeur pour l'instant : la première valide.
     wb_obj.close()
-    #except :
-    #    print("Erreur : probablement pas un fichier xlsx valide...")
+        #except :
+        #    print("Erreur : probablement pas un fichier xlsx valide...")
     return BilanCreationModifErreur, d
 
 # def recupODS(fichierSelectionne=""):

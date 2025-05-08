@@ -1,7 +1,7 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.2.17"
+versionDistribuee = "2.3.0"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
@@ -12,7 +12,7 @@ build_exe_options = {
         "cryptography.fernet", "ftplib", "locale", "glob", "shutil", "random", "csv", "pathlib", "server", "threading", \
         "xlsxwriter", "math", "openpyxl", "urllib.request", "zipfile", "redmail", "cryptography.fernet", "paramiko", \
         "copy" ,"datetime" ,"email.utils" ,"html" ,"http.client" ,"io" ,"mimetypes" , "os" ,"posixpath" ,"select" ,"shutil" , \
-        "socket" ,"socketserver", "sys" ,"time" ,"urllib.parse" ,"http", "watchdog", "ezodf", "lxml"],
+        "socket" ,"socketserver", "sys" ,"time" ,"urllib.parse" ,"http", "watchdog", "ezodf", "lxml", "gspread"],
     "include_files": ["favicon.ico","create_shortcuts.py", \
         "LICENSE", "openh264-1.8.0-win64.dll", \
         "mystyle.css", "jquery-3.6.0.js", "index.html"\

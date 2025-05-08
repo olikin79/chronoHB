@@ -5291,7 +5291,8 @@ def packAutresWidgets():
     webcamComboFVide.pack(side=LEFT)
     webcamScale.pack(side=LEFT)
     webcamF.pack(side=TOP,anchor="w")
-    URLGoogleSheetAImporterEntry.pack(side=LEFT,anchor="w")
+    URLGoogleSheetAImporterEntry.pack(side=TOP,anchor="w")
+    GoogleSheetServiceAccountFileEntry.pack(side=TOP,anchor="w")
     emailEntry.pack(side=TOP,anchor="w")
     emailMDPEntry.pack(side=TOP,anchor="w")
     emailNombreDEnvoisMaxEntry.pack(side=LEFT,anchor="w")
@@ -5322,6 +5323,7 @@ def forgetAutresWidgets():
     #ModeleDeDossardsFrame.pack_forget()
     webcamF.pack_forget()
     URLGoogleSheetAImporterEntry.forget()
+    GoogleSheetServiceAccountFileEntry.forget()
     emailEntry.forget()
     emailMDPEntry.forget()
     emailNombreDEnvoisMaxEntry.forget()
@@ -5510,6 +5512,7 @@ Label(FTPFrame, text="PARAMETRES EXPORT DES RESULTATS EN TEMPS REEL :").pack(sid
 FTPFrame.pack(side=TOP,anchor="w",fill=X)
 
 URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur Google Sheet", largeur=120, parent=ImportTempsReelFrame)
+GoogleSheetServiceAccountFileEntry = EntryParam( "GoogleSheetServiceAccountFile", "Chemin vers le fichier json d'authentification de votre compte google", largeur=120, parent=ImportTempsReelFrame)
 
 emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparées par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
 emailMDPEntry = EntryParam( "emailMDP", "Mot(s) de passe d'application email (séparés par un point virgule)", largeur=60, parent=EnvoiDiplomeFrame, password=True)

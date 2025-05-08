@@ -110,6 +110,10 @@ Pbs persistants urgents :
 Travail du 08/05/25 :
 - implémentation des boutons "Renvoyer toutes les données", "Mise à jour", "Remise à zéro", connexion au réseau "Wifi"
 - la couleur du dossard apparaît dans le mail envoyé avec le numéro de dossard.
+- regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
+Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
+Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
+Si possible, il faudra pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
 
 
 Travail du 07/05/25 :
@@ -118,6 +122,8 @@ Travail du 07/05/25 :
 - inversion de l'affectation individuelle et de l'affectation en masse dans le menu dédié.
 - sécurité ajoutée avec min et max sur certains paramètres numériques. Fonctionnel.
 - résolution du bug du statut de l'antenne 4 qui faisait planter la détection. Un problème d'indice dans une liste un peu subtil qui faisait que cela fonctionnait pour les antennes 1 à 3.
+- Simplification du tableur d'inscription en ligne.
+Le serveur recopie lui-même le numéro de dossard (dans une colonne vide) effectivement attribué dans le tableur qui sert à la distribution.
 
 
 Travail du 03/05/25 :
