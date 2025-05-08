@@ -114,6 +114,8 @@ Travail du 08/05/25 :
 Cela permettrait de mieux regrouper les tags captés en même temps. Actuellement, chaque détection donne lieu à un envoi.
 Du coup, le serveur a l'impression que deux tags peuvent avoir été captés séparément alors qu'ils étaient ensemble devant le lecteur.
 Si possible, il faudra pouvoir régler le raspberrypi comme étant sur la ligne de départ pour éviter ce comportement dans ce seul cas.
+- l'affichage défilant des résultats ajoute un rond rouge en haut à droite en cas d'absence de réception depuis le serveur 
+et n'affiche plus le message d'erreur en cas de non réception : l'interface continue de défiler. Ce sera plus joli pour des problèmes de connexion temporaires.
 
 
 Travail du 07/05/25 :
