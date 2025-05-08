@@ -3659,6 +3659,7 @@ class Clock():
 
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["dossardDiffusionAutomatique"] :
+            # print("Diffusion des dossards")
             if not "mon_thread_Dossards" in globals() and not "mon_thread_Dossards" in locals() :
                 # print("Envoi des dossards pour tous les participants ne l'ayant pas encore reçu")
                 envoiDossards()
@@ -4949,10 +4950,10 @@ class CoureurFrame(Frame) :
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = str(self.choixDossardCombo.get())
-            print("dossard:",doss)
+            # print("dossard:",doss)
             if doss : # la combobox n'est pas vide   
                 coureur = Coureurs.recuperer(doss)
-                print("licence", coureur.licence)
+                # print("licence", coureur.licence)
                 self.nomE.insert(0, coureur.nom)
                 self.prenomE.insert(0, coureur.prenom)
                 if Parametres['CategorieDAge'] :

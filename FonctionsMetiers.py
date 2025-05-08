@@ -2398,8 +2398,9 @@ def chargerDonnees() :
 <img src="<diplome>" width=100%><br>"""
     if not "emailMessageObjet" in Parametres :
         Parametres["emailMessageObjet"] = "Résultats du Cross du collège H. Bourrillon"
-    if not "emailDossardMessage" in Parametres :
-        Parametres["emailDossardMessage"] = """<h1><prenom>, voici le numéro de dossard qui t'a été attribué : <dossard>.</h1>"""
+    # if not "emailDossardMessage" in Parametres :
+    Parametres["emailDossardMessage"] = """<h1><prenom>, voici le numéro de dossard qui t'a été attribué : 
+        <div style="border:2px solid <couleur>; padding: 10px; display: inline-block;"><dossard></div>.</h1>"""
     #if not "emailDossardMessageObjet" in Parametres :
     Parametres["emailDossardMessageObjet"] = "Dossard attribué pour la course"
     if not "crossUNSScollegeLycee" in Parametres : ### case à cocher à créer dans les paramètres en cas de cross UNSS (destiné à éviter la catégorie PO pour les élèves en avance d'un an

@@ -595,13 +595,17 @@ def envoiDossardPourUnCoureurSurUnMail(AjoutObjet, coureur, mail) :
     global diplomeEmailQuotaDepasse
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
-        print("Envoi du dossard pour le coureur avec le mail expéditeur", gmail.username)
+        couleurDuGroupement = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).couleur
+        if not couleurDuGroupement :
+            couleurDuGroupement = "white"
+        print("Envoi du dossard pour le coureur avec le mail expéditeur", gmail.username, "dossard de couleur", couleurDuGroupement)
         # URLLienDirectVersResultats = Parametres["HTTPSserveur"] # formater_chemin(Parametres["HTTPSserveur"]) # + "index-en-ligne.html"
         retour = gmail.send(
                     sender=gmail.username,
                     receivers=[mail],
                     subject= AjoutObjet + Parametres["emailDossardMessageObjet"], # "Résultats du " + Parametres["intituleCross"],
-                    html=Parametres["emailDossardMessage"].replace("<dossard>", coureur.dossard).replace("<prenom>", coureur.prenom)
+                    html=Parametres["emailDossardMessage"].replace("<dossard>", coureur.dossard).replace("<prenom>", coureur.prenom)\
+                    .replace("<couleur>", couleurDuGroupement)
                 )
     else :
         print("Plus de mail disponible pour l'envoi des diplomes.")

@@ -108,7 +108,8 @@ Pbs persistants urgents :
 
 ############
 Travail du 08/05/25 :
-- implémentation des boutons "Renvoyer toutes les données", "Mise à jour", "Remise à zéro",
+- implémentation des boutons "Renvoyer toutes les données", "Mise à jour", "Remise à zéro", connexion au réseau "Wifi"
+- la couleur du dossard apparaît dans le mail envoyé avec le numéro de dossard.
 
 
 Travail du 07/05/25 :

@@ -16,11 +16,12 @@ Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
+- changer le clavier tactile en bas : pas pratique pour les majuscules et trop petit.
 - déploiement automatique via le menu mise à jour.
 - Simplification du tableur d'inscription en ligne. Le serveur pourrait recopier lui-même le numéro de dossard effectivement attribué. A faire au pire pour janvier 2026
-- Affectation du réseau wifi depuis l'interface, en tactile : 
+- (FAIT) Affectation du réseau wifi depuis l'interface, en tactile : 
 	* afficher vraiment tous les réseaux à portée.
-	* saisie du mot de passe en clair ou pas ?
+	* saisie du mot de passe en clair plus pratique.
 - l'affichage défilant des résultats pourrait ajouter un indice dans un coin en cas d'absence de réception depuis le serveur 
 et ne pas afficher le message d'erreur en cas de non réception : l'interface continuerait de défiler. Ce serait plus joli.
 - rajouter la couleur du dossard dans le mail envoyé au coureur avec son numéro de dossard.
