@@ -4768,11 +4768,9 @@ filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
 filemenu.add_separator()
-if DEBUG : # pour l'instant, ne pas afficher le popup RFID en production
-    filemenu.add_command(label="Paramètres RFID", command=lancerPopupRFID)
-    filemenu.add_separator()
-    # temporaire : on lance le menu direct pour gagner du temps lors des tests
-    # lancerPopupRFID()
+# if DEBUG : # pour l'instant, ne pas afficher le popup RFID en production
+filemenu.add_command(label="Paramètres RFID", command=lancerPopupRFID)
+filemenu.add_separator()
 
 filemenu.add_command(label="Ajout manuel d'un coureur", command=ajoutManuelCoureur)
 filemenu.add_command(label="Modification manuelle d'un coureur", command=modifManuelleCoureur)
@@ -5667,29 +5665,29 @@ def lireFichierTexte(nom) :
         retour = "-1"
     return retour
 
-def MAJChronoHB():
-    # télécharge un script de MAJ depuis une URL fixe
-    try :
-        creerDir("maj")
-        print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
-        url = "http://mathlacroix.free.fr/chronoHB/"
-        nomFichierVersionActuelle = "maj/version.txt"
-        nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
-        # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
-        response = requests.get(url + "maj/maj.py", stream=True)
-        with open("maj/maj.py", "wb") as handle:
-            for data in response.iter_content() : #tqdm(response.iter_content()):
-                handle.write(data)
-        response = requests.get(url + nomFichierVersionActuelle, stream=True)
-        with open(nomFichierVersionDeployee, "wb") as handle :
-            for data in response.iter_content() : #tqdm(response.iter_content()):
-                handle.write(data)
-            #f.write("mise à jour en cours")
-        print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
-        relancer()
-    except :
-        print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
-        showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+# def MAJChronoHB():
+#     # télécharge un script de MAJ depuis une URL fixe
+#     try :
+#         creerDir("maj")
+#         print("Tentative de téléchargement de la dernière mise à jour de chronoHB")
+#         url = "http://mathlacroix.free.fr/chronoHB/"
+#         nomFichierVersionActuelle = "maj/version.txt"
+#         nomFichierVersionDeployee = "maj/versionEnCoursDeploiement.txt"
+#         # téléchargement du fichier indiquant les fichiers à télécharger depuis la version en cours.
+#         response = requests.get(url + "maj/maj.py", stream=True)
+#         with open("maj/maj.py", "wb") as handle:
+#             for data in response.iter_content() : #tqdm(response.iter_content()):
+#                 handle.write(data)
+#         response = requests.get(url + nomFichierVersionActuelle, stream=True)
+#         with open(nomFichierVersionDeployee, "wb") as handle :
+#             for data in response.iter_content() : #tqdm(response.iter_content()):
+#                 handle.write(data)
+#             #f.write("mise à jour en cours")
+#         print("On relance le programme pour qu'il effectue sa mise à jour (à défaut de pouvoir recharger le module maj)")
+#         relancer()
+#     except :
+#         print("Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
+#         showinfo("ATTENTION","Le téléchargement a échoué. La connexion internet ne semble pas fonctionnelle.")
     # ne fonctionne pas, je ne trouve pas comment recharger effectivement un module en cours d'exécution.
 ##    # importe les nouvelles fonctions du fichier
 ##    importlib.reload(maj)
