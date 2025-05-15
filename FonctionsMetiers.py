@@ -50,6 +50,8 @@ from FonctionsGenerationPDF import *
 
 import platform
 
+# cette fonction est dupliquée dans Arrivee.pyw pour éviter un import complet de FonctionsMetiers
+# lors des appels CGI. Toute modification ayant lieu ici, doit être répercutée dans Arrivee.pyw.
 def definir_dossier_donnees(nom_application="ChronoHB"):
     """
     Crée le dossier de données de l'application s'il n'existe pas
@@ -2451,6 +2453,13 @@ def chargerDonnees() :
         setParam("messageDefaut", Parametres["messageDefaut"])
     return globals()
     
+def setParam(parametre, valeur) :
+    Parametres[parametre] = valeur
+    if parametre == "messageDefaut" : # cas particulier où le fichier texte nécessaire au serveur web doit être réactualisé immédiatement.
+        with open("messageDefaut.txt", 'w') as f:
+            f.write(valeur)
+        f.close()
+
 chargerDonnees()
 
 
@@ -8552,12 +8561,7 @@ def setDistance(nomCourse, distance):
     print("ajout de la distance " + str(distance) + " km à " + nomCourse)
     Courses[nomCourse].setDistance(distance)
 
-def setParam(parametre, valeur) :
-    Parametres[parametre] = valeur
-    if parametre == "messageDefaut" : # cas particulier où le fichier texte nécessaire au serveur web doit être réactualisé immédiatement.
-        with open("messageDefaut.txt", 'w') as f:
-            f.write(valeur)
-        f.close()
+
 
 def setParametres() :
     if Parametres["CategorieDAge"] :

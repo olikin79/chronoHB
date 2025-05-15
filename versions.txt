@@ -107,6 +107,14 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 10/05/25 :
+- augmentation de la taille du clavier tactile pour qu'il soit plus pratique à manipuler.
+- blocage de l'interaction avec la fenêtre sous-jacente en cas de modification d'un paramètre.
+- fermeture du clavier quand la fenêtre paramètre est fermée par la croix en haut à droite (c'était déjà le cas avec les boutons valider et annuler).
+- fiabilisation de l'ouverture en plein écran au démarrage du boitier. Blocage : impossibilité de réduire l'application.
+- mise en veille automatique après 60 secondes. Sortie de veille en touchant l'écran.
+
+
 Travail du 08/05/25 :
 - implémentation des boutons "Renvoyer toutes les données", "Mise à jour", "Remise à zéro", connexion au réseau "Wifi"
 - la couleur du dossard apparaît dans le mail envoyé avec le numéro de dossard.

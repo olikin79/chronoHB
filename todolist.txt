@@ -1,22 +1,27 @@
 Bugs découverts :
+- si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
+- dans l'application cx_freeze, les modifications locales ne fonctionnent pas.
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
+- (A VERIFIER) Le script execute_update_script() exécute "python" dont je ne suis pas sûr d'une exécution correcte sur un ordinateur vierge de python.
+Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
-La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une seconde d'écart dans un même envoi depuis le sender du raspberry.
+La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
 
 
 Bug sur le programme smartphone : 
-- quand on quitte et que l'on revient dans le meny dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
+- quand on quitte et que l'on revient dans le menu dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
+- interfacer le choix du fichier json d'API vers google sheet.
 - déploiement automatique via le menu mise à jour.
-- changer le clavier tactile en bas : pas pratique pour les majuscules et trop petit.
+- (FAIT) augmentation la taille du clavier tactile en bas : n'était pas pratique pour saisir.
 - (FAIT) l'affichage défilant des résultats ajoute un rond rouge en haut à droite en cas d'absence de réception depuis le serveur 
 et n'affiche plus le message d'erreur en cas de non réception : l'interface continue de défiler. Ce sera plus joli pour des problèmes de connexion temporaires.
 - (FAIT) regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry afin de ne pas procéder à plus d'un envoi par seconde vers le serveur chronoHB.
@@ -43,6 +48,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
 - (FAIT pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
 	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
 - déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
@@ -62,6 +68,7 @@ A faire avant les vacances de juillet :
 	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
 
 A faire avant début octobre 2025 :
+- 2ème malette à créer.
 - import de la base du collège,
 - coller les 720 puces sur les 720 premiers dossards.
 - association des 720 puces aux 720 premiers dossards.
@@ -72,7 +79,6 @@ A faire avant le cross du collège Bourrillon 2025 :
 - mode "antenne secondaire" à rendre fonctionnel (identique au mode pique).
 - Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
 En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
-- 2ème malette à créer ?
 
 
 A faire pour le cross départemental 2025 (novembre) :
@@ -81,7 +87,8 @@ en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot
 
 
 A faire à plus long terme pour un prochain cross du collège ?
-- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? Pourrait devenir utile à terme.
+- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? 
+Pourrait devenir utile à terme quand des dossards seront perdus, abimés et non renouvelés...
 - implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
 - (FAIT) installeur à terminer
 - possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.

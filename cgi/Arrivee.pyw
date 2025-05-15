@@ -27,27 +27,57 @@ tpsServeur = time.time()
 ## Le retour de l'ensemble des requêtes est formaté par la fonction generateMessage(...) ci-dessous sous forme d'une chaine avec la virgule comme séparateur.
 
 
-from os import path, remove
+import os
 import sys
 
 # Obtenir le chemin du répertoire courant du script CGI
-chemin_courant = path.dirname(path.abspath(__file__))
+chemin_courant = os.path.dirname(os.path.abspath(__file__))
 # Obtenir le chemin du répertoire parent (le répertoire racine de votre projet)
-chemin_parent = path.dirname(chemin_courant)
+chemin_parent = os.path.dirname(chemin_courant)
 
 # Ajouter le répertoire parent à sys.path si ce n'est pas déjà fait
 if chemin_parent not in sys.path:
     sys.path.insert(0, chemin_parent)
 
 # Maintenant, l'import relatif devrait fonctionner comme un import absolu
-from FonctionsMetiers import definir_dossier_donnees
+# from FonctionsMetiers import definir_dossier_donnees
+import platform
+
+
+def definir_dossier_donnees(nom_application="ChronoHB"):
+    """
+    Crée le dossier de données de l'application s'il n'existe pas
+    et retourne le chemin complet vers ce dossier.
+    """
+    systeme = platform.system()
+    chemin_donnees = None
+
+    if systeme == "Windows":
+        chemin_appdata = os.environ.get('APPDATA')
+        if chemin_appdata:
+            chemin_donnees = os.path.join(chemin_appdata, nom_application)
+    elif systeme == "Darwin":  # macOS
+        chemin_bibliotheque_support = os.path.expanduser("~/Library/Application Support")
+        chemin_donnees = os.path.join(chemin_bibliotheque_support, nom_application)
+    elif systeme == "Linux":
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            chemin_donnees = os.path.join(xdg_config_home, nom_application)
+        else:
+            chemin_donnees = os.path.expanduser(os.path.join("~", ".config", nom_application))
+
+    if chemin_donnees:
+        os.makedirs(chemin_donnees, exist_ok=True)  # Crée le dossier s'il n'existe pas
+        return chemin_donnees
+    else:
+        raise OSError(f"Système d'exploitation non pris en charge : {systeme}")
 
 DONNEES = definir_dossier_donnees()
-dossier_data_txt = path.join(DONNEES, "data")
+dossier_data_txt = os.path.join(DONNEES, "data")
 
-fichierFlagAccesConcurrents = path.join(dossier_data_txt,"flagAccesConcurrents.txt")
+fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
 # créer ce fichier s'il n'existe pas déjà
-if not path.exists(fichierFlagAccesConcurrents) :
+if not os.path.exists(fichierFlagAccesConcurrents) :
     with open(fichierFlagAccesConcurrents, 'w') as f:
         f.write("0")
     f.close()
@@ -63,12 +93,12 @@ form = cgi.FieldStorage()
 def addInstruction(liste) :
     global local
     if local == "true" :
-        fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesModifLocale.txt")
+        fichierDonneesSmartphone = os.path.join(dossier_data_txt,"donneesModifLocale.txt")
     else:
         if pique == "" :
-            fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesSmartphone.txt")
+            fichierDonneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
         else :
-            fichierDonneesSmartphone = path.join(dossier_data_txt,"donneesSmartphone-pique-" + str(uid) + ".txt")
+            fichierDonneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone-pique-" + str(uid) + ".txt")
     with open(fichierDonneesSmartphone, 'a') as f :
         result = ""
         for el in liste :
@@ -96,7 +126,7 @@ def rechercheCoureur(fichier, nom, prenom, classe, categorie) :
         retourne "PR,Préciser car n coureurs ont un nom prénom correspondant à cette recherche." si c'est le cas.
         retourne "NT,La saisie ne correspond à aucun coureur. Saisir un morceau du nom ou du prénom sans accent par exemple."
         """
-    if path.exists(fichier) :
+    if os.path.exists(fichier) :
         with open(fichier, 'r') as f:
             ReferenceTrouvee = 0
             for ind, line in enumerate(f):
@@ -202,7 +232,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         minutes = tpsCoureurSTR[12:14]
         secondes = tpsCoureurSTR[15:17]
         if estNumeroDossardCredible(dossard) :
-            if path.exists(donnees) :
+            if os.path.exists(donnees) :
                 ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
                     print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
@@ -220,7 +250,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
             print( heure, "heures", minutes, "minutes", secondes, "secondes", chdossard, "est supprimé.")
         elif action == "affecte" :
             if estNumeroDossardCredible(dossard) :
-                if path.exists(donnees) :
+                if os.path.exists(donnees) :
                     ligneBrute = ligneIndice(donnees, noDossard)
                     if ligneBrute == None :
                         print("Le dossard", dossard,"n'existe pas et ne sera pas pris en compte pour ce temps.")
@@ -234,7 +264,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                 print( heure, "heures", minutes, "minutes", secondes, "secondes dissociée de tout dossard.")
         addInstruction([nature,action,dossard, tpsCoureur, tpsClient, tpsServeur, uid, noTransmission])
     elif nature == "dossard" :
-        if path.exists(donnees) :
+        if os.path.exists(donnees) :
             if estNumeroDossardCredible(dossard) :
                 ligneBrute = ligneIndice(donnees, noDossard)
                 if ligneBrute == None :
@@ -351,8 +381,8 @@ generateMessage(dossard,nature,action,uid,noTransmission)
 # supprimer le fichier de flag d'accès concurrents
 # (s'il existe) pour permettre un nouvel accès au serveur.
 try :
-    if path.exists(fichierFlagAccesConcurrents) :
-        remove(fichierFlagAccesConcurrents)
+    if os.path.exists(fichierFlagAccesConcurrents) :
+        os.remove(fichierFlagAccesConcurrents)
 except OSError as e:
     print("Erreur lors de la suppression du fichier de flag d'accès concurrents :", e)
 except :
