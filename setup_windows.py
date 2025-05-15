@@ -1,7 +1,13 @@
 import os
 from cx_Freeze import setup, Executable
 
-versionDistribuee = "2.3.0"
+# récupère le deuxème argument de la ligne de commande
+import sys
+if len(sys.argv) > 2:
+    print("Compilation de la version", sys.argv[1])
+    versionDistribuee = sys.argv[2]
+else:
+    versionDistribuee = "2.3.1"
 
 os.environ["PYTHONIOENCODING"] = "utf-8"
 
@@ -15,7 +21,7 @@ build_exe_options = {
         "socket" ,"socketserver", "sys" ,"time" ,"urllib.parse" ,"http", "watchdog", "ezodf", "lxml", "gspread"],
     "include_files": ["favicon.ico","create_shortcuts.py", \
         "LICENSE", "openh264-1.8.0-win64.dll", \
-        "mystyle.css", "jquery-3.6.0.js", "index.html"\
+        "mystyle.css", "jquery-3.6.0.js", "index.html",\
         "cgi", "documentation", "gs", "gsview", "hooks", "IM", "maj", "media", "modeles", "secret", "www", "Fonts"]# , "texlive"
 }
 
@@ -65,3 +71,6 @@ setup(
              "bdist_msi": build_msi_options},
     executables=[Executable("chronoHB.pyw", base="gui", target_name='chronoHB', copyright="Copyright (C) 2024 chronoHB",icon="favicon.ico")],
 )
+
+# renommer le dossier build/exe.win-amd64-3.9 en 
+
