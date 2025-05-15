@@ -75,7 +75,7 @@ def definir_dossier_donnees(nom_application="ChronoHB"):
 DONNEES = definir_dossier_donnees()
 dossier_data_txt = os.path.join(DONNEES, "data")
 
-fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
+fichierFlagAccesConcurrents = os.path.join(DONNEES,"flagAccesConcurrents.txt")
 # créer ce fichier s'il n'existe pas déjà
 if not os.path.exists(fichierFlagAccesConcurrents) :
     with open(fichierFlagAccesConcurrents, 'w') as f:

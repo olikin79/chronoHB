@@ -107,6 +107,13 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 15/05/25 :
+- correctif de bugs quand le serveur web était hébergé dans l'application déployée avec cx_freeze.
+Il manquait l'accès aux bibliothèques dans l'env cx_freeze (platform,...) et "flagAccesConcurrents.txt" était positionné dans le dossier surveillé par watchdog (boucle infinie potentielle).
+
+
+
+
 Travail du 10/05/25 :
 - augmentation de la taille du clavier tactile pour qu'il soit plus pratique à manipuler.
 - blocage de l'interaction avec la fenêtre sous-jacente en cas de modification d'un paramètre.

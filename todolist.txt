@@ -1,6 +1,6 @@
 Bugs découverts :
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
-- dans l'application cx_freeze, les modifications locales ne fonctionnent pas.
+- (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
