@@ -2071,7 +2071,7 @@ def extractionDonneesCommunesDeDataRFID(data) :
     tags = data.get("tags", [])
     # convertion de l'horodatage en secondes depuis l'époque depuis une datetime.now().isoformat()
     json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
-    # json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000Z")))
+    # json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000000Z")))
     return reader_name, tags, json_timestamp_epoch
     
 def extractionDonneesDUnTagRFID(tag, reader_name) :
@@ -2082,7 +2082,7 @@ def extractionDonneesDUnTagRFID(tag, reader_name) :
     rssi = tag.get("rssi", "0")
     seen_count = tag.get("seenCount", "0")
     tag_timestamp_epoch = str(convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
-    # tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000Z"))
+    # tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000Z"))
     return {"epc":str(epc), "reader":str(reader_name), "antenna" :str(antenna_port), "rssi":str(rssi), "seen_count":str(seen_count)  ,"tag_timestamp_epoch":str(tag_timestamp_epoch)}
     # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
 
@@ -2094,7 +2094,7 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
     for tag in tags:
         # epc, antenna_port, rssi, seen_count, tag_timestamp_epoch 
         info = extractionDonneesDUnTagRFID(tag, reader_name)
-        print("Info",info)
+        print("Heure réception", heureReceptionServeur, "\nHeure d'envoi", json_timestamp_epoch, "\nInfo reçues pour ce tag",info)
 
         # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
         nom_antenne = info["reader"]+"-"+info["antenna"]

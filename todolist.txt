@@ -1,5 +1,6 @@
 Bugs découverts :
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
+- le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
 - (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
@@ -13,14 +14,18 @@ où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais le
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
 
 
+Bug sur le boitier :
+- si la puissance fournie n'est pas suffisante, on rate des tags RFID.
+- le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
+
+
 Bug sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le menu dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
 A faire avant le trail du 18 mai 2024 :
-- interfacer le choix du fichier json d'API vers google sheet.
-- déploiement automatique via le menu mise à jour.
+- (FAIT) déploiement automatique via le menu mise à jour.
 - (FAIT) augmentation la taille du clavier tactile en bas : n'était pas pratique pour saisir.
 - (FAIT) l'affichage défilant des résultats ajoute un rond rouge en haut à droite en cas d'absence de réception depuis le serveur 
 et n'affiche plus le message d'erreur en cas de non réception : l'interface continue de défiler. Ce sera plus joli pour des problèmes de connexion temporaires.
@@ -48,6 +53,8 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
+- penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
 - créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
 - (FAIT pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
 	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
@@ -82,6 +89,7 @@ En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la
 
 
 A faire pour le cross départemental 2025 (novembre) :
+- mettre dans un thread les actions wifi du boitier (recherche du réseau, connexion au réseau choisi) pour éviter que l'interface de se fige.
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
 

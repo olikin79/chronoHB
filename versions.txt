@@ -107,11 +107,17 @@ Pbs persistants urgents :
 
 
 ############
+
+Travail du 16/05/25 :
+- correctif temps calculé en provenance du boitier RFID. L'utilisation du format iso privilégiée sur chronoHB et le boitier :
+Sur le boitier : datetime.now(timezone.utc).isoformat()
+Sur le serveur : convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000+00:00"))
+Désormais, les temps calculés sont corrects.
+
+
 Travail du 15/05/25 :
 - correctif de bugs quand le serveur web était hébergé dans l'application déployée avec cx_freeze.
 Il manquait l'accès aux bibliothèques dans l'env cx_freeze (platform,...) et "flagAccesConcurrents.txt" était positionné dans le dossier surveillé par watchdog (boucle infinie potentielle).
-
-
 
 
 Travail du 10/05/25 :
