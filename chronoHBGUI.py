@@ -5829,14 +5829,14 @@ def download_update(remote_version):
             f.write(response.content)
         print("Mise à jour téléchargée :",remote_version)
         
-        # # Extraire le fichier zip
-        # with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
-        #     zip_ref.extractall(os.getcwd())
-        # print("Fichiers mis à jour:",remote_version)
+        # Extraire le fichier zip
+        with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
+            zip_ref.extractall(os.getcwd())
+        print("Fichiers mis à jour:",remote_version)
         
-        # # Mettre à jour le fichier de version
-        # with open("maj/version.txt", "w") as f:
-        #     f.write(remote_version)
+        # Mettre à jour le fichier de version
+        with open("maj/version.txt", "w") as f:
+            f.write(remote_version)
         return True
     else:
         print("Erreur lors du téléchargement de la version " + remote_version)
@@ -5848,16 +5848,16 @@ def restart_program(remote_version):
     # Fermer l'application tkinter
     root.destroy()
 
-    # décompression du fichier zip téléchargé et actualisation du fichier de version.
-    # Extraire le fichier zip
-    with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
-        zip_ref.extractall(os.getcwd())
-    print("Fichiers mis à jour:",remote_version)
+    # # décompression du fichier zip téléchargé et actualisation du fichier de version.
+    # # Extraire le fichier zip
+    # with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
+    #     zip_ref.extractall(os.getcwd())
+    # print("Fichiers mis à jour:",remote_version)
     
-    # Mettre à jour le fichier de version
-    with open("maj/version.txt", "w") as f:
-        f.write(remote_version)
-    # return True
+    # # Mettre à jour le fichier de version
+    # with open("maj/version.txt", "w") as f:
+    #     f.write(remote_version)
+    # # return True
     
     # Redémarrer le programme
     python = sys.executable
@@ -5942,79 +5942,80 @@ def boiteDialogueInfoReboot(message):
     messagebox.showinfo("Information", message)
     root.destroy()
 
-class UpdateThread(threading.Thread):
-    def __init__(self, callback_success, callback_failure, remote_version):
-        threading.Thread.__init__(self)
-        self.callback_success = callback_success
-        self.callback_failure = callback_failure
-        self.remote_version = remote_version
-        self.root_ref = None # Pour stocker une référence à la fenêtre principale
+# class UpdateThread(threading.Thread):
+#     def __init__(self, callback_success, callback_failure, remote_version):
+#         threading.Thread.__init__(self)
+#         self.callback_success = callback_success
+#         self.callback_failure = callback_failure
+#         self.remote_version = remote_version
+#         self.root_ref = None # Pour stocker une référence à la fenêtre principale
 
-    def run(self):
-        if download_update(self.remote_version):
-            if download_update_script():
-                self.callback_success(self.remote_version)
-                try:
-                    boiteDialogueInfoReboot("Redémarrage du programme pour appliquer les mises à jour...")
-                    if self.root_ref:
-                        self.root_ref.destroy()
-                        time.sleep(0.5) # Petit délai pour laisser Tkinter se fermer
+#     def run(self):
+#         if download_update(self.remote_version):
+#             if download_update_script():
+#                 self.callback_success(self.remote_version)
+#                 try:
+#                     boiteDialogueInfoReboot("Redémarrage du programme pour appliquer les mises à jour...")
+#                     if self.root_ref:
+#                         self.root_ref.destroy()
+#                         time.sleep(0.5) # Petit délai pour laisser Tkinter se fermer
 
-                    # Extraire le fichier zip
-                    with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
-                        zip_ref.extractall(os.getcwd())
-                    print("Fichiers mis à jour:", self.remote_version)
+#                     # Extraire le fichier zip
+#                     with zipfile.ZipFile("maj/update.zip", "r") as zip_ref:
+#                         zip_ref.extractall(os.getcwd())
+#                     print("Fichiers mis à jour:", self.remote_version)
 
-                    # Mettre à jour le fichier de version
-                    with open("maj/version.txt", "w") as f:
-                        f.write(self.remote_version)
+#                     # Mettre à jour le fichier de version
+#                     with open("maj/version.txt", "w") as f:
+#                         f.write(self.remote_version)
 
-                    # Redémarrer le programme
-                    python = sys.executable
-                    subprocess.Popen([python, *sys.argv])
-                except Exception as e:
-                    print(f"Erreur lors du remplacement/redémarrage : {e}")
-            else:
-                self.callback_failure(f"Erreur lors du téléchargement du script de mise à jour.")
-        else:
-            self.callback_failure(f"Erreur lors du téléchargement de la mise à jour {self.remote_version}.")
+#                     # Redémarrer le programme
+#                     python = sys.executable
+#                     subprocess.Popen([python, *sys.argv])
+#                 except Exception as e:
+#                     print(f"Erreur lors du remplacement/redémarrage : {e}")
+#             else:
+#                 self.callback_failure(f"Erreur lors du téléchargement du script de mise à jour.")
+#         else:
+#             self.callback_failure(f"Erreur lors du téléchargement de la mise à jour {self.remote_version}.")
 
-
-def update_application():
-    remote_version = check_for_updates()
-    if remote_version:
-        def update_success(version):
-            check_and_execute_update_script()
-            restart_program(version)
-
-        def update_failure(message):
-            boiteDialogueInfoReboot(message)
-
-        update_thread = UpdateThread(update_success, update_failure, remote_version)
-        update_thread.start()
-        print("Le téléchargement de la mise à jour s'effectue en arrière-plan...")
-    else:
-        print("Aucune nouvelle mise à jour disponible.")
 
 # def update_application():
-#     # Vérifier s'il y a une nouvelle version
 #     remote_version = check_for_updates()
 #     if remote_version:
-#         # Télécharger et appliquer la mise à jour
-#         if download_update(remote_version):
-#             # Télécharger update.py à chaque mise à jour forcée
-#             if download_update_script():
-#                 check_and_execute_update_script()
-#                 # Redémarrer après mise à jour
-#                 restart_program(remote_version)
-#         else:
-#             boiteDialogueInfo("Erreur lors de la mise à jour " + remote_version + ".")
+#         def update_success(version):
+#             check_and_execute_update_script()
+#             restart_program(version)
+
+#         def update_failure(message):
+#             boiteDialogueInfoReboot(message)
+
+#         update_thread = UpdateThread(update_success, update_failure, remote_version)
+#         update_thread.deamon = True
+#         update_thread.start()
+#         print("Le téléchargement de la mise à jour s'effectue en arrière-plan...")
+#     else:
+#         print("Aucune nouvelle mise à jour disponible.")
+
+def update_application():
+    # Vérifier s'il y a une nouvelle version
+    remote_version = check_for_updates()
+    if remote_version:
+        # Télécharger et appliquer la mise à jour
+        if download_update(remote_version):
+            # Télécharger update.py à chaque mise à jour forcée
+            if download_update_script():
+                check_and_execute_update_script()
+                # Redémarrer après mise à jour
+                restart_program(remote_version)
+        else:
+            boiteDialogueInfo("Erreur lors de la mise à jour " + remote_version + ".")
     # si l'utilisateur ne veut pas mettre à jour, on ne force pas.
-    # else:
-    #     # Si aucune mise à jour, forcer le téléchargement de update.py
-    #     if download_update_script():
-    #         # Comparer et exécuter update.py si nécessaire
-    #         check_and_execute_update_script()
+    else:
+        # Si aucune mise à jour, forcer le téléchargement de update.py
+        if download_update_script():
+            # Comparer et exécuter update.py si nécessaire
+            check_and_execute_update_script()
 
 
 ####################### DEMANDES D'ASSISTANCE ################

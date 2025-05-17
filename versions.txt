@@ -113,6 +113,7 @@ Travail du 16/05/25 :
 Sur le boitier : datetime.now(timezone.utc).isoformat()
 Sur le serveur : convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000+00:00"))
 Désormais, les temps calculés sont corrects.
+- correctif : processus de mise à jour où la décompression se fait après fermeture de l'application. Ainsi, tout fichier peut être remplacé.
 
 
 Travail du 15/05/25 :

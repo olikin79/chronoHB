@@ -12,10 +12,11 @@ Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
+- Vérifier que les threads du programme sont bien en mode deamon=True, y compris envoi de mails etc...
 
 
 Bug sur le boitier :
-- si la puissance fournie n'est pas suffisante, on rate des tags RFID.
+- si la puissance fournie n'est pas suffisante, on rate des tags RFID. Voir comment cabler pour obtenir plus de puissance sur le lecteur RFID.
 - le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 
 
