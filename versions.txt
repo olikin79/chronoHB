@@ -111,6 +111,8 @@ Pbs persistants urgents :
 Travail du 17/05/25 :
 - Correctif formatage des dates issues du boitier RFID
 - uid de transmission pour éviter les doublons sur un WIFI défaillant.
+- correctif import miles republic : insensibilité à la casse.
+
 
 Travail du 16/05/25 :
 - correctif temps calculé en provenance du boitier RFID. L'utilisation du format iso privilégiée sur chronoHB et le boitier :
