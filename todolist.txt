@@ -1,4 +1,5 @@
 Bugs découverts :
+- si on veut modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionne pas.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
 - (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.
@@ -9,6 +10,8 @@ Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des err
 - (A VERIFIER) Le script execute_update_script() exécute "python" dont je ne suis pas sûr d'une exécution correcte sur un ordinateur vierge de python.
 Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 
+- ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
+- le dépôt FTP ne s'opère que s'il y a un au moins un import ou s'il y a un changement dans l'affichage TV. Pas très logique.
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.

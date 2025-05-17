@@ -3675,7 +3675,7 @@ class Clock():
                         # si mon_thread_Diplomes n'existe pas, on envoie les dossards.
                         envoiDossards()
                         pass
-
+        time.sleep(0.5)
         ## si l'envoi automatique de diplomes est paramétré, on effectue un envoi
         if Parametres["diplomeDiffusionAutomatique"] :
             if not "mon_thread_Diplomes" in globals() and not "mon_thread_Diplomes" in locals() :

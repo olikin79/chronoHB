@@ -8,6 +8,7 @@
 import locale
 locale.setlocale(locale.LC_TIME,'') # pour mettre en français le module time. Samedi au lieu de Saturday, etc...
 import time, datetime
+from datetime import datetime, timezone
 import os, sys, glob, subprocess
 import shutil
 import random
@@ -249,6 +250,7 @@ def creer_dossier_si_inexistant(chemin):
         return False
 
 def ecrire_sauvegardeNG(cheminFichier, commentaire="", surCle=False, avecVideos=False, avecLogs = False):
+    dump_sauvegarde()
     # print("ecrire_sauvegardeNG(",cheminFichier, commentaire, surCle, avecVideos,")")
     # Extraire le nom de dossier et le nom de fichier à partir du chemin complet
     dossier, nomFichier = os.path.split(cheminFichier)
@@ -339,13 +341,14 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
     # Toutes les années suivantes se calculeront par décalage par rapport à cette référence
     # PrecisionSurLAnne permet de retourner des catégories comme JU2 ou JU1 pour le cas où on en a besoin. (Challenge UNSS)
     # PAr défaut le programme retourne des catégories comme BE, MI, CA, JU sans la précision sur l'année.
+    # print("categorieAthletisme", anneeNaissance, etablissementNature, precisionSurLAnnee)
     categorie = ""
     if Parametres["CategorieDAge"] :
         correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU2" ], [2005, "JU1" ], [2006, "CA2" ], [2007, "CA1" ], [2008, "MI2" ], [2009, "MI1" ], [2010, "BE2" ], [2011, "BE1" ], [2012, "PO3" ],  [2013, "PO2" ],  [2014, "PO1" ], [2015, "EA" ], [3000, "BB" ]]
         try :
             anneeNaissance = int(anneeNaissance)
-            currentDateTime = datetime.datetime.now()
-            date = currentDateTime.date()
+            currentDateTime = datetime.now()
+            # date = currentDateTime.date()
             year = currentDateTime.year
             if currentDateTime.month > 8 :
                 #changement d'année sportive au premier septembre.
@@ -1943,8 +1946,8 @@ class InfosRFID(dict) :
         # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
         # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter si elle a 
         if epc in self.derniersDossardsCaptes.keys() :
-            # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
-            # print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
+            print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
+            print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
             if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
                 self.derniersDossardsCaptes[epc] = time.time()
                 print("Le dossard ",EPCtoDossard(epc)," est resté devant l'antenne et ne l'a pas quittée depuis", Parametres["delai_antennes_par_tag"], "secondes.")
@@ -2052,24 +2055,67 @@ class AntenneRFID(dict):
     def get_nom_complet(self):
         return str(self["lecteur"])+"-"+str(self["nom"])
 
-def convert_timestamp_to_epoch(timestamp):
-        """
-        Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
-        Retourne un float pour inclure les millisecondes.
-        """
+# def convert_timestamp_to_epoch(timestamp):
+#         """
+#         Convertir un horodatage ISO 8601 en secondes depuis l'époque avec millisecondes.
+#         Retourne un float pour inclure les millisecondes.
+#         """
+#         try:
+#             millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
+#             dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
+#             return float(time.mktime(dt) + int(millisecondes) / 1000)
+#         except Exception as e:
+#             print(f"Error converting timestamp: {timestamp}, Error: {e}")
+#             return -1.0
+# def convert_timestamp_to_epoch(timestamp):
+#     """
+#     Convertir un horodatage ISO 8601 (avec ou sans indication de fuseau horaire Z/+HH:MM)
+#     en secondes depuis l'époque avec microsecondes.
+#     Retourne un float pour inclure les microsecondes.
+#     """
+#     try:
+#         if 'Z' in timestamp:
+#             dt_object = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+#         else:
+#             dt_object = datetime.fromisoformat(timestamp)
+#         epoch = datetime(1970, 1, 1, tzinfo=dt_object.tzinfo)
+#         return (dt_object - epoch).total_seconds()
+#     except Exception as e:
+#         print(f"Erreur lors de la conversion de l'horodatage : {timestamp}, Erreur : {e}")
+#         return -1.0
+def convert_timestamp_to_epoch(timestamp_str):
+    """
+    Convertir un horodatage ISO 8601 (avec microsecondes et fuseau horaire Z ou +HH:MM)
+    en secondes depuis l'époque (UTC) - Compatible avec Python < 3.7.
+    Retourne un float pour inclure les microsecondes.
+    """
+    print("convert_timestamp_to_epoch", timestamp_str)
+    try:
+        if timestamp_str.endswith('Z'):
+            timestamp_str = timestamp_str[:-1] + '+00:00'
+        dt_object = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+        epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        return (dt_object - epoch).total_seconds()
+    except ValueError:
         try:
-            millisecondes = timestamp.split(".")[1][:-1] # on vire le Z à la fin de la chaine
-            dt = time.strptime(timestamp.split(".")[0], "%Y-%m-%dT%H:%M:%S")
-            return float(time.mktime(dt) + int(millisecondes) / 1000)
-        except Exception as e:
-            print(f"Error converting timestamp: {timestamp}, Error: {e}")
+            if timestamp_str.endswith('Z'):
+                timestamp_str = timestamp_str[:-1] + '+00:00'
+            dt_object = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S%z")
+            epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+            return (dt_object - epoch).total_seconds()
+        except ValueError as e:
+            print(f"Erreur lors de la conversion de l'horodatage : {timestamp_str}, Erreur : {e}")
             return -1.0
-          
+    except Exception as e:
+        print(f"Erreur lors de la conversion de l'horodatage : {timestamp_str}, Erreur : {e}")
+        return -1.0
+
 def extractionDonneesCommunesDeDataRFID(data) :
     # Récupération des données spécifiques de data
     reader_name = data.get("readerName", "UnknownReader")
     tags = data.get("tags", [])
     # convertion de l'horodatage en secondes depuis l'époque depuis une datetime.now().isoformat()
+    # json_timestamp_epoch = str(data.get("timestamp", "0"))
     json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
     # json_timestamp_epoch = str(convert_timestamp_to_epoch(data.get("timestamp", "1970-01-01T00:00:00.000000Z")))
     return reader_name, tags, json_timestamp_epoch
@@ -2081,9 +2127,11 @@ def extractionDonneesDUnTagRFID(tag, reader_name) :
         actualiseListeDesAntennes(reader_name, antenna_port)
     rssi = tag.get("rssi", "0")
     seen_count = tag.get("seenCount", "0")
+    # tag_timestamp_epoch = str(tag.get("timestamp", "0"))
     tag_timestamp_epoch = str(convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000+00:00")))
+    uid = tag.get("uid", "0")
     # tag_timestamp_epoch = convert_timestamp_to_epoch(tag.get("timestamp", "1970-01-01T00:00:00.000000Z"))
-    return {"epc":str(epc), "reader":str(reader_name), "antenna" :str(antenna_port), "rssi":str(rssi), "seen_count":str(seen_count)  ,"tag_timestamp_epoch":str(tag_timestamp_epoch)}
+    return {"epc":str(epc), "reader":str(reader_name), "antenna" :str(antenna_port), "rssi":str(rssi), "seen_count":str(seen_count)  ,"tag_timestamp_epoch":str(tag_timestamp_epoch), "uid":uid}
     # return epc, antenna_port, rssi, seen_count, tag_timestamp_epoch
 
 def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenna_port, rssi, seen_count, tag_timestamp_epoch, heureReceptionServeur, json_timestamp_epoch) :
@@ -2104,8 +2152,11 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
             # # reader_name_antenna = f"{reader_name}-{antenna_port}"
             # # si le popup RFID est actif on lui envoie toutes les infos
             # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
-            chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+",0,0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
-            chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,0," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+            uidTps = info["uid"]
+            uidDossard = info["uid"]+0.1
+            print("UID transmission", info["uid"])
+            chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+","+str(uidTps)+",0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+            chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,"+str(uidDossard)+"," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
             # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
         else :
             print("Le tag", info["epc"], "a été capté depuis moins de", Parametres["delai_antennes_par_tag"], "secondes par la même antenne.")
@@ -2423,8 +2474,8 @@ def chargerDonnees() :
         Parametres["dictEPCDossardsTronques"] = {}
     if not "TroncaturesEPCRealisees" in Parametres :
         Parametres["TroncaturesEPCRealisees"] = []
-    if not "delai_antennes_par_tag" in Parametres :
-        Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
+    # if not "delai_antennes_par_tag" in Parametres :
+    Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()

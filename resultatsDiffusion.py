@@ -595,7 +595,14 @@ def envoiDossardPourUnCoureurSurUnMail(AjoutObjet, coureur, mail) :
     global diplomeEmailQuotaDepasse
     gmail.username, gmail.password = choixDuMailAUtiliser()
     if gmail.username != "" :
-        couleurDuGroupement = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).couleur
+        try :
+            if Parametres["CoursesManuelles"] :
+                # on utilise la course manuelle
+                couleurDuGroupement = groupementAPartirDUneCategorie(coureur.course).couleur
+            else :
+                couleurDuGroupement = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).couleur
+        except :
+            couleurDuGroupement = "white"
         if not couleurDuGroupement :
             couleurDuGroupement = "white"
         print("Envoi du dossard pour le coureur avec le mail expéditeur", gmail.username, "dossard de couleur", couleurDuGroupement)
@@ -659,7 +666,7 @@ def envoiDossardParMail(coureur, envoiManuel = False) :
     # except SMTPAuthenticationError:
     #     print("Erreur d'authentification sur le serveur SMTP lors de l'envoi de l'email avec le diplome.")
     except Exception as e:
-        print("Erreur inconnue générée lors de l'envoi de l'email avec le diplome : " + str(e))
+        print("Erreur inconnue générée lors de l'envoi de l'email avec le dossard : " + str(e))
 
 if __name__ == '__main__':
     # print(choixDuMailAUtiliser())

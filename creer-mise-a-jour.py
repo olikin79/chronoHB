@@ -60,6 +60,7 @@ def comparer_et_archiver_modifications(chemin_reference, chemin_nouveau, nom_arc
         print("Aucun fichier modifié détecté.")
 
 if __name__ == "__main__":
-    REF = r"C:\Users\olikin\SynologyDrive\chronoHB\Archives\ChronoHB_2.0"
+    # REF = r"C:\Users\olikin\SynologyDrive\chronoHB\Archives\ChronoHB_2.0"
+    REF = r"C:\Users\olikin\SynologyDrive\chronoHB\Archives\ChronoHB_2.3.1"
     NEW = r"C:\Users\olikin\Documents\GitHub\chronoHB\build\exe.win-amd64-3.9"
     comparer_et_archiver_modifications(REF, NEW)
