@@ -3005,21 +3005,6 @@ au(x) précédent(s) import(s).")
                     os.startfile(filePath)
                 
 
-def actualiseToutLAffichage(toutSaufParametresCourses=False) :
-    print("Actualise tout l'affichage")
-    # se fait dans le timer proprement : actualiseAffichageZoneDeDroite(timer.erreursEnCours)
-    zoneTopDepart.actualise()
-    actualiseAffichageDeparts()
-    if toutSaufParametresCourses :  
-        actualiserDistanceDesCourses()
-    #listeDeCourses = listCourses() # encore utile ?
-    actualiseZoneAffichageTV()
-    absDispZone.actualiseListeDesClasses()
-    dossardsZone.actualiseListeDesClasses()
-    actualiseEtatBoutonsRadioConfig()
-    zoneCoureursAjoutModif.actualiseAffichage()
-    #timer.reinitErreursATraiter()
-
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
 
@@ -3921,21 +3906,22 @@ thread_observateur.start()
 ##                    os.startfile(filePath)
 ##            # on actualise l'affiche des paramètres de courses suite à l'import. Utle si on est dans ce menu là.
 ##            actualiserDistanceDesCoursesAvecCoursesManuelles(None)
-                
 
-def actualiseToutLAffichage() :
+def actualiseToutLAffichage(toutSaufParametresCourses=False) :
     print("Actualise tout l'affichage")
-    actualiseAffichageZoneDeDroite()
+    # se fait dans le timer proprement : actualiseAffichageZoneDeDroite(timer.erreursEnCours)
     zoneTopDepart.actualise()
-    actualiseAffichageDeparts()  
-    actualiserDistanceDesCourses()
+    actualiseAffichageDeparts()
+    if toutSaufParametresCourses :  
+        actualiserDistanceDesCourses()
     #listeDeCourses = listCourses() # encore utile ?
     actualiseZoneAffichageTV()
     absDispZone.actualiseListeDesClasses()
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
+    zoneCoureursAjoutModif.actualiseAffichage()
     timer.premiereExecution = True
-    #timer.reinitErreursATraiter()
+    #timer.reinitErreursATraiter()      
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
