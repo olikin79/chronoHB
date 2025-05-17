@@ -7,8 +7,9 @@
 #import transaction
 import locale
 locale.setlocale(locale.LC_TIME,'') # pour mettre en français le module time. Samedi au lieu de Saturday, etc...
-import time, datetime
+import time
 from datetime import datetime, timezone
+import datetime
 import os, sys, glob, subprocess
 import shutil
 import random
@@ -347,9 +348,12 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
         correspondanceAnneeCategories = [ [1937, "M10" ], [1942, "M9" ], [1947, "M8" ], [1952, "M7" ], [1957, "M6" ], [1962, "M5" ], [1967, "M4" ], [1972, "M3" ], [1977, "M2" ], [1982, "M1" ], [1987, "M0" ], [1999, "SE" ], [2002, "ES" ], [2004, "JU2" ], [2005, "JU1" ], [2006, "CA2" ], [2007, "CA1" ], [2008, "MI2" ], [2009, "MI1" ], [2010, "BE2" ], [2011, "BE1" ], [2012, "PO3" ],  [2013, "PO2" ],  [2014, "PO1" ], [2015, "EA" ], [3000, "BB" ]]
         try :
             anneeNaissance = int(anneeNaissance)
-            currentDateTime = datetime.now()
-            # date = currentDateTime.date()
+            currentDateTime = datetime.datetime.now()
+            print("currentDateTime", currentDateTime)
+            date = currentDateTime.date()
+            print("date", date)
             year = currentDateTime.year
+            print("year", year)
             if currentDateTime.month > 8 :
                 #changement d'année sportive au premier septembre.
                 year += 1
@@ -381,6 +385,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
         # on ne garde que deux caractère pour la catégorie sauf pour les M10, qui comportent 3 caractères et doivent les conserver
         if categorie != "M10" :
             categorie = categorie[:2]
+    print("Catégorie athlétisme", anneeNaissance, etablissementNature, precisionSurLAnnee, ":", categorie)
     return categorie
 
 
@@ -946,6 +951,7 @@ def naissanceValide(naissance) :
             # print("mois")
             mois = naissance[3:5]
             jour = naissance[0:2]
+            # print("naissanceValide", naissance, annee, mois, jour)
             correctDate = False
             newDate = datetime.datetime(int(annee),int(mois),int(jour))
             correctDate = True
@@ -962,6 +968,26 @@ def emailEstValide(email) :
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
         return re.fullmatch(regex, str(email))
 
+# def convertir_nombre_en_date(chaine):
+#     try:
+#         # Tente de convertir la chaîne en nombre flottant (pour les dates numériques)
+#         nombre = float(chaine)
+#         # La date de référence (30 décembre 1899)
+#         date_reference = datetime(1899, 12, 30)
+#         # Ajouter le nombre de jours à la date de référence
+#         date_resultat = date_reference + datetime.timedelta(days=nombre)
+#         # Retourner la date au format 'jour/mois/année'
+#         return date_resultat.strftime('%d/%m/%Y')
+#     except ValueError:
+#         try:
+#             # Si la conversion en nombre échoue, tente de parser la chaîne comme une date
+#             date_objet = datetime.strptime(chaine, '%d/%m/%Y')
+#             # Retourner la date au format 'jour/mois/année'
+#             return date_objet.strftime('%d/%m/%Y')
+#         except ValueError:
+#             # Si aucune des deux conversions ne fonctionne, retourner la chaîne inchangée
+#             return chaine
+        
 def convertir_nombre_en_date(chaine):
     try:
         # Convertir la chaîne en nombre flottant
@@ -2093,15 +2119,16 @@ def convert_timestamp_to_epoch(timestamp_str):
     try:
         if timestamp_str.endswith('Z'):
             timestamp_str = timestamp_str[:-1] + '+00:00'
-        dt_object = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
-        epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        dt_object = datetime.datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
+        epoch = datetime.datetime(1970, 1, 1, tzinfo=timezone.utc)
+        print("coucou")
         return (dt_object - epoch).total_seconds()
     except ValueError:
         try:
             if timestamp_str.endswith('Z'):
                 timestamp_str = timestamp_str[:-1] + '+00:00'
-            dt_object = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S%z")
-            epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+            dt_object = datetime.datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S%z")
+            epoch = datetime.datetime(1970, 1, 1, tzinfo=timezone.utc)
             return (dt_object - epoch).total_seconds()
         except ValueError as e:
             print(f"Erreur lors de la conversion de l'horodatage : {timestamp_str}, Erreur : {e}")
@@ -6345,8 +6372,9 @@ def coureurExists(nom, prenom) :
 
 def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
     etablissementNatureValide = etablissementNature.upper() == "CLG" or etablissementNature.upper() == "LG" or etablissementNature.upper() == "LP"
-    # print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
-    #        "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
+    print("ajoutEstIlValide", "nom", nom, "prenom", prenom, "sexe", sexe, "naissance", naissance, "dossard", dossard, "course", course, "Parametres['CoursesManuelles']", Parametres["CoursesManuelles"], "CategorieDAge", Parametres["CategorieDAge"],\
+           "naissanceValide(naissance)", naissanceValide(naissance), "dossardValide(dossard)", dossardValide(dossard))
+    print("devrait être true pour randon trail :", Parametres["CategorieDAge"] == 1, Parametres["CoursesManuelles"], naissanceValide(naissance), len(course))
     retour = nom and prenom and sexe and \
            ((Parametres["CategorieDAge"] == 0 and classe) \
              or (Parametres["CategorieDAge"] == 1 and not Parametres["CoursesManuelles"] and naissanceValide(naissance)) \
@@ -6540,7 +6568,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             ## Coureurs[-1].setCourse(addCourse(course))
             retour, d = [1,0,0,0], dossard
     else :
-        print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; établissement=",etablissement," ; établissementType=", etablissementNature)
+        print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; course=",course," ; établissement=",etablissement," ; établissementType=", etablissementNature)
         retour,d  = [0,0,1,0], ""
     if CoureursParClasseUpdateActif :
         CoureursParClasseUpdate()
@@ -8096,22 +8124,22 @@ def renommerEnTetesSiBesoin(donneesBrutes) :
     Elle sera capable de reconnaître divers formats de données issus de divers types de fichiers : 
     export OPUSS UNSS, export peyce = miles republic'''
     try :
-        if DEBUG :
-            print(donneesBrutes[0])
-        dictPeyce = {"Nom de famille":"nom",
-                    "Prénom":"prénom",
-                    "Genre":"sexe",
-                    "Date de naissance":"naissance",
-                    "Course":"course",
-                    "Email":"email",
-                    "Licence":"licence"}
-        dictOPUSS = {"Nom":"nom",
-                    "Prénom":"prénom",
-                    "N° Licence":"licence",
-                    "Cat":"cat",
-                    "Date naiss.":"naissance",
-                    "Nom étab.":"établissement",
-                    "Type étab.":"type"}
+        # if DEBUG :
+        premiereLigneEnMinuscules = [x.lower() for x in donneesBrutes[0]]
+        print("donneesBrutes",donneesBrutes[0])
+        dictPeyce = {"nom de famille":"nom",
+                    "prénom":"prénom",
+                    "genre":"sexe",
+                    "date de naissance":"naissance",
+                    "course":"course",
+                    "email":"email"}
+        dictOPUSS = {"nom":"nom",
+                    "prénom":"prénom",
+                    "n° licence":"licence",
+                    "cat":"cat",
+                    "date naiss.":"naissance",
+                    "nom étab.":"établissement",
+                    "type étab.":"type"}
         TypesEnTetes = [dictOPUSS, dictPeyce]
         dictIdentifie = {}
         for dictionnaire in TypesEnTetes :
@@ -8119,22 +8147,22 @@ def renommerEnTetesSiBesoin(donneesBrutes) :
             # si c'est le cas, on a trouvé le type de fichiers qu'on nommera dictIdentifie puis break
             toutesLesClesTrouvees = True
             for entete in dictionnaire.keys() :
-                if entete not in donneesBrutes[0] :
+                if entete.lower() not in premiereLigneEnMinuscules :
                     toutesLesClesTrouvees = False
                     break
-            if DEBUG :
-                print("clés", dictionnaire.keys(), "toutesLesClesTrouvees", toutesLesClesTrouvees)
-                print("dans", donneesBrutes[0])
+            # if DEBUG :
+            print("clés", dictionnaire.keys(), "toutesLesClesTrouvees", toutesLesClesTrouvees)
+            print("dans", premiereLigneEnMinuscules)
             if toutesLesClesTrouvees :
                 dictIdentifie = dictionnaire
                 break
         # si possible, on remplace chaque entree de donneesBrutes[0] par la valeur présente dans dictIdentifie
-        if DEBUG :
-            print("dictIdentifie", dictIdentifie)
-        for i, val in enumerate(donneesBrutes[0]) :
-            if val in dictIdentifie.keys() :
-                print("entrée", val , "remplacée par", dictIdentifie[val])
-                donneesBrutes[0][i] = dictIdentifie[val].lower()
+        # if DEBUG :
+        print("dictIdentifie", dictIdentifie)
+        for i, val in enumerate(premiereLigneEnMinuscules) :
+            if val.lower() in dictIdentifie.keys() :
+                print("entrée", val.lower() , "remplacée par", dictIdentifie[val.lower()])
+                donneesBrutes[0][i] = dictIdentifie[val.lower()].lower()
     except Exception as e :
         print("Erreur dans la fonction renommerEnTetesSiBesoin", e)
     return donneesBrutes
@@ -8146,7 +8174,7 @@ def traitementDesDonneesAImporter(donneesBrutes, googleSheet=False, nom_feuille_
     Retourne False si certains éléments impératifs ne sont pas présents dans le fichier source'''
     i=0
     #retour= False
-    renommerEnTetesSiBesoin(donneesBrutes)
+    donneesBrutes = renommerEnTetesSiBesoin(donneesBrutes)
     BilanCreationModifErreur = [0,0,0,0] # nbres de [création, modif, erreurs, identiques]
     for row in donneesBrutes:
         if i == 0 :
