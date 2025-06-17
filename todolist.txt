@@ -1,5 +1,5 @@
 Bugs découverts :
-- si on veut modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionne pas.
+- (CORRIGE) si on veut modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionne pas.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
 - (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.

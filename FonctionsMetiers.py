@@ -2501,8 +2501,8 @@ def chargerDonnees() :
         Parametres["dictEPCDossardsTronques"] = {}
     if not "TroncaturesEPCRealisees" in Parametres :
         Parametres["TroncaturesEPCRealisees"] = []
-    # if not "delai_antennes_par_tag" in Parametres :
-    Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
+    if not "delai_antennes_par_tag" in Parametres :
+        Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -2532,7 +2532,9 @@ def chargerDonnees() :
     return globals()
     
 def setParam(parametre, valeur) :
+    global Parametres
     Parametres[parametre] = valeur
+    print("Modificaton du paramètre", parametre, "en", Parametres[parametre])
     if parametre == "messageDefaut" : # cas particulier où le fichier texte nécessaire au serveur web doit être réactualisé immédiatement.
         with open("messageDefaut.txt", 'w') as f:
             f.write(valeur)

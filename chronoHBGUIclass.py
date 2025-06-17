@@ -44,15 +44,18 @@ class EntryParam(Frame):
             else :
                 ch = self.entry.get()
             if self.nombre :
-                try :
-                    ch = ch.replace(",",".")
-                    if "." in ch :
-                        ch = float(ch)
-                    else :
-                        ch = int(ch)
-                    setParam(self.param, ch)
-                except :
-                    dontsaveedit(None)
+                if ch :
+                    try :
+                        ch = ch.replace(",",".")
+                        if "." in ch :
+                            ch = float(ch)
+                        else :
+                            ch = int(ch)
+                        setParam(self.param, ch)
+                    except :
+                        dontsaveedit(None)
+                else :
+                    setParam(self.param, 0)
             else :
                 setParam(self.param, ch)
         self.entry.bind("<KeyRelease>", memoriseValeurBind)
