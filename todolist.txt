@@ -8,10 +8,34 @@ Bugs découverts :
 - après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 - (A VERIFIER) Le script execute_update_script() exécute "python" dont je ne suis pas sûr d'une exécution correcte sur un ordinateur vierge de python.
+
 Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
+
+BUGS constatés au randon trail : 
+- l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
+Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
+- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus.
+- Quand on supprime un dossard sur l'application cx_freeze, tout disparaît (treeview) : un redémarrage règle le problème.
+- l'affichage en temps réel sur chrome ne fonctionne pas.
+- le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.
+- l'affichage, parfois, ne s'actualise pas.
+- quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
+- le menu "gestion des temps" déborde sur la droite de l'écran.
+- ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
+- augmenter la fréquence de téléchargement du tableur google sheet (1,5x ou 2x plus souvent ?)
+- envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
+- dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
+Ou alors, trouver le bon total sur le nombre de participants et non ceux déjà arrivés.
+
+
+Bug sur l'application smartphone :
+- quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.
+Si on saisit 42, on n'a pas d'erreur.
+
 
 - ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
 - le dépôt FTP ne s'opère que s'il y a un au moins un import ou s'il y a un changement dans l'affichage TV. Pas très logique.
+A exécuter s'il n'a jamais été exécuté.
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
@@ -19,11 +43,11 @@ La solution est toute trouvée dans l'idée de regrouper les tags RFID captés �
 
 
 Bug sur le boitier :
-- si la puissance fournie n'est pas suffisante, on rate des tags RFID. Voir comment cabler pour obtenir plus de puissance sur le lecteur RFID.
+- (FAIT) si la puissance fournie n'est pas suffisante, on rate des tags RFID => Prendre une batterie externe plus puissante.
 - le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 
 
-Bug sur le programme smartphone : 
+Bug (mineur) sur le programme smartphone : 
 - quand on quitte et que l'on revient dans le menu dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
@@ -57,6 +81,12 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
+- Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
+Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
+- Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
+Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
+Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
 - (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
 - penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
 - créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".

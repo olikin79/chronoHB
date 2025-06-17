@@ -349,11 +349,11 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
         try :
             anneeNaissance = int(anneeNaissance)
             currentDateTime = datetime.datetime.now()
-            print("currentDateTime", currentDateTime)
+            # print("currentDateTime", currentDateTime)
             date = currentDateTime.date()
-            print("date", date)
+            # print("date", date)
             year = currentDateTime.year
-            print("year", year)
+            # print("year", year)
             if currentDateTime.month > 8 :
                 #changement d'année sportive au premier septembre.
                 year += 1
@@ -385,7 +385,7 @@ def categorieAthletisme(anneeNaissance, etablissementNature = "", precisionSurLA
         # on ne garde que deux caractère pour la catégorie sauf pour les M10, qui comportent 3 caractères et doivent les conserver
         if categorie != "M10" :
             categorie = categorie[:2]
-    print("Catégorie athlétisme", anneeNaissance, etablissementNature, precisionSurLAnnee, ":", categorie)
+    # print("Catégorie athlétisme", anneeNaissance, etablissementNature, precisionSurLAnnee, ":", categorie)
     return categorie
 
 
@@ -2686,7 +2686,7 @@ chargerDonnees()
 
 
 def exportXLSX():
-    fichier = dossier_impressions + sep + '_resultats.xlsx'
+    fichier = os.path.join(dossier_impressions, '_resultats.xlsx')
     if os.path.exists(fichier) :
         os.remove(fichier)
     workbook = xlsxwriter.Workbook(fichier)
@@ -2732,8 +2732,8 @@ def exportXLSX():
         worksheet.set_column(col + ':' + col, None, fmt)
     workbook.close()
     ### ouverture immédiate du tableur avec le logiciel par défaut sur l'ordinateur.
-    path = os.getcwd()
-    fichierAOuvrir = path + os.sep + fichier
+    # path = os.getcwd()
+    fichierAOuvrir = os.path.join(dossier_impressions, '_resultats.xlsx')
     subprocess.Popen([fichierAOuvrir],shell=True)
     #subprocess.Popen(r'explorer /select,"' + )
 
@@ -8868,9 +8868,9 @@ def deposePagesHTMLInternet(liste, remplacer=True):
     if not Parametres["FTPserveur"] or not Parametres["FTPlogin"] or not Parametres["FTPmdp"]:
         print("Paramètres de connexion FTP manquants ou incomplets (serveur, login ou mdp).")
         return 
-    if DEBUG :
-        print("Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.")
-        return
+    # if DEBUG :
+    #     print("Pas de dépôt sur serveur FTP en mode DEBUG : cela évite d'interférer avec des vraies données lors de mes tests.")
+    #     return
     print("Dépôt des pages générées sur internet :", liste, "vers", Parametres["FTPserveur"], Parametres["FTPdir"], Parametres["FTPlogin"])
     dossierWWW = Parametres["FTPdir"]
     if not dossierWWW.endswith("/"):
