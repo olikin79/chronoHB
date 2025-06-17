@@ -2213,7 +2213,7 @@ def supprimerTempsAction() :
             local_efface_temps(tempsReel)
             # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
             # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
-            regenereAffichageGUI()
+            # regenereAffichageGUI()
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à supprimer."
@@ -2256,7 +2256,7 @@ def ajouterDossardApresOKAction() :
         # requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
         # print("requete :", requete)
         # r = requests.get(requete)
-        regenereAffichageGUI()
+        # regenereAffichageGUI()
         annulerTempsDossards()
     else :
         mess = "Saisie non valide:",ajouterTempsEntry.get()
@@ -2340,7 +2340,7 @@ def avancerDossardAction() :
                 # print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
             local_supprime_dossard(dossardSelectionne, dossardPrecedent)
             local_ajoute_dossard(dossardSelectionne, dossardEncoreAvant)
-            regenereAffichageGUI()
+            # regenereAffichageGUI()
         else :
             print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",dossardEncoreAvant)
             reponse = showinfo("ERREUR","Impossible d'avancer le premier dossard.")
@@ -2370,7 +2370,7 @@ def reculerDossardAction() :
                 # print("On avance le dossard sélectionné", dossardSelectionne,"en supprimant le précédent puis en ajoutant ce dernier derrière celui sélectionné",dossardPrecedent)
             local_supprime_dossard(dossardSelectionne, dossardPrecedent)
             local_ajoute_dossard(dossardSelectionne, dossardSuivant)
-            regenereAffichageGUI()
+            # regenereAffichageGUI()
             # print("On recule le dossard sélectionné", dossardSelectionne,"en le supprimant puis en l'ajoutant derrière celui qui le suivait",dossardSuivant)
             # requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossardSelectionne+'&dossardPrecedent='+dossardPrecedent
             # print("requete :", requete)
@@ -4123,7 +4123,7 @@ def generateResultatsMessage() :
     if os.name == 'nt':
         # reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
         path = os.getcwd()
-        subprocess.Popen(r'explorer /select,"' + dossier_impressions + os.sep +'_statistiques.pdf"')
+        subprocess.Popen(r'explorer /select,"' + dossier_resultats + os.sep +'_statistiques.pdf"')
     else :
         reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + dossier_impressions +".")
 

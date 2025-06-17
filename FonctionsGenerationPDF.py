@@ -112,9 +112,11 @@ def generer_pdf_NG(nom_fichier, contenu) : #, path="Impressions"):
 def creerTousLesPdf(listeDesFichiersACreer, listeDesContenus) :
     i = 0
     while i < len(listeDesFichiersACreer) and i < len(listeDesContenus) :
-        # print("Création du fichier", listeDesFichiersACreer[i])
-        # print("Contenu du fichier", listeDesContenus[i])
-        generer_pdf_NG(listeDesFichiersACreer[i], listeDesContenus[i])
+        try :
+            generer_pdf_NG(listeDesFichiersACreer[i], listeDesContenus[i])
+        except :
+            print("Erreur lors de la création du fichier", listeDesFichiersACreer[i])
+            print("Contenu du fichier\n", listeDesContenus[i])
         i += 1
 
 

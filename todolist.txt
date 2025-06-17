@@ -14,8 +14,7 @@ Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 BUGS constatés au randon trail : 
 - l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
-- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus.
-- (CORRIGE) Quand on supprime un dossard de l'arrivée, tout disparaît (treeview) : un redémarrage règle le problème.
+- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent.
 - l'affichage en temps réel sur chrome ne fonctionne pas.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.
 - l'affichage, parfois, ne s'actualise pas.
@@ -81,6 +80,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
 Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.

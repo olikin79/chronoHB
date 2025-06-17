@@ -108,6 +108,14 @@ Pbs persistants urgents :
 
 ############
 
+Travail du 17/06/25 : correction de bugs :
+- Correctif dossier résultats (transféré vers Documents/chronoHB/resultats/intitule-cross).
+Fonctions métiers chargées du tableur xlsx et de la génération des pdf corrigées en fonction.
+- Quand on supprimait un dossard de l'arrivée, tout disparaissait (treeview) : un redémarrage règlait le problème.
+- Correctif similaire aux précédents pour les autres actions locales de l'interface.
+- si on voulait modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionnait plus. Corrigé.
+
+
 Travail du 17/05/25 :
 - Correctif formatage des dates issues du boitier RFID
 - uid de transmission pour éviter les doublons sur un WIFI défaillant.
