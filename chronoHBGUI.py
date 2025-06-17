@@ -2269,7 +2269,6 @@ def supprimerDossardAction() :
     dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("On supprime le dossard sélectionné", dossard)
-        local_supprime_dossard(dossard, dossardPrecedent)
         # si la ligne sélectionnée était affectée à un dossard, on supprime cette affectation (ce serait très gênant de le conserver pour le RFID)
         test = tableau.getTemps()
         if test :
@@ -2282,7 +2281,8 @@ def supprimerDossardAction() :
                 # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=aff&dossard=0&tpsCoureur='+tempsReel)
                 # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard=0&tpsCoureur='+tempsReel)
                 # regenereAffichageGUI()
-        regenereAffichageGUI()
+        local_supprime_dossard(dossard, dossardPrecedent)
+        # regenereAffichageGUI()
         annulerTempsDossards()
     else :
         message = "Aucun dossard sélectionné dans le tableau."

@@ -15,7 +15,7 @@ BUGS constatés au randon trail :
 - l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 - Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus.
-- Quand on supprime un dossard sur l'application cx_freeze, tout disparaît (treeview) : un redémarrage règle le problème.
+- (CORRIGE) Quand on supprime un dossard de l'arrivée, tout disparaît (treeview) : un redémarrage règle le problème.
 - l'affichage en temps réel sur chrome ne fonctionne pas.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.
 - l'affichage, parfois, ne s'actualise pas.
