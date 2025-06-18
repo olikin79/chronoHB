@@ -4427,10 +4427,13 @@ def medianeDesTemps(listeDesTemps) :
 
 def pourcentage(eff, effTot):
     if effTot :
-        retour = str(round(100*eff/effTot))+"\\%"
+        retour = str(round(100*eff/effTot))+'%'
     else :
-        retour = "0\\%"
+        retour = '0%'
     return retour
+
+def ajouteGuillemets(chaine):
+    return "'" + chaine + "'"
 
 def testTMPStats():
     with open("./modeles/impression-en-tete.tex", 'r') as f :
@@ -4553,15 +4556,15 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
         enteteC = [f.read()]
     f.close()
     with open("./modeles/impression-en-teteS.txt", 'r',encoding="utf-8") as f :
-        if Parametres["CategorieDAge"] == 2 :
-            fstats = [f.read().replace("@categorie@","établissement")]
-        elif Parametres["CategorieDAge"] == 1 :
-            fstats = [f.read().replace("@categorie@","catégorie")]
-        else :
-            fstats = [f.read().replace("@categorie@","classe")]
+        fstats = [f.read()]
     f.close()
     with open("./modeles/impression-en-teteSGpments.txt", 'r',encoding="utf-8") as f :
-        enteteSGpments = [f.read()]#.replace("@date",dateDuJour())
+        if Parametres["CategorieDAge"] == 2 :
+            enteteSGpments = [f.read().replace("@categorie@","établissement")]
+        elif Parametres["CategorieDAge"] == 1 :
+            enteteSGpments = [f.read().replace("@categorie@","catégorie")]
+        else :
+            enteteSGpments = [f.read().replace("@categorie@","classe")]
     f.close()
     with open("./modeles/stats-ligne.txt", 'r',encoding="utf-8") as f :
         ligneStats = [f.read()]
@@ -4628,112 +4631,6 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
 #         enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
-# \\begin{center}
-# \\begin{tabular}{|*{11}{c|}}
-# \hline
-
-# \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{@categorie@ }}}
-#   & 
-#   \multicolumn{2}{|c|}{\\textbf{Arrivés} } 
-#   & 
-#   \multicolumn{2}{|c|}{\\textbf{Dispensés} }
-#   & 
-#   \multicolumn{2}{|c|}{\\textbf{Absents} }
-#   & 
-#   \multicolumn{2}{|c|}{\\textbf{Abandons} }
-#   & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Moyenne}}} 
-#   & \multicolumn{1}{|c|}{\multirow{2}{*}{\\textbf{Médiane}}} \\\\
-#   \cline{2-9}
-# \multicolumn{1}{|c|}{} & F & G & F & G &F & G &F & G & \multicolumn{1}{|c|}{} & \multicolumn{1}{|c|}{}
-#  \\\\
-# \hline""".replace("@categorie@", "Classes" if Parametres["CategorieDAge"] == 0 else "Catégories")
-#         fstats.write(enTeteDesStatistiquesParCategories)
-#         for classe in Resultats :  # doute lors d'une fusion manuelle de deux branches. Est ce "for classe in ResultatsPourImpressions:" ?
-#             #print(classe,"est traité pour création tex", Resultats[classe])
-#             # si cross du collège, on ne met que les classes dans les statistiques. Si categorieDAge, on met toutes les catégories présentes.
-#             if (Parametres["CategorieDAge"] or (len(classe) != 1 and classe[-2:] != "-F" and classe[-2:] != "-G")) :
-#                 #print("Création du fichier de "+classe)
-#                 contenu, ArrDispAbsAbandon = creerFichierClasse(classe,entete, False)
-#                 nomFichier = classe.replace(" ","_").replace("__","_")
-#                 if ArrDispAbsAbandon[8] :
-#                     if not os.path.exists("impressions"+os.sep+denomination +"_"+nomFichier+ ".pdf") :
-#                         # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
-#                         # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
-#                         print("coursesmanuelles", CoursesManuelles)
-#                         if not uniquementCoursesEtChallenge or CoursesManuelles==1 :
-#                             with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
-#                                 f.write(contenu)
-#                                 f.write("\n\\end{longtable}\\end{center}\\end{document}")
-#                             f.close()
-#                     # alimentation des statistiques
-#                     listeDesTempsDeLaClasse = ArrDispAbsAbandon[8]
-#                     effTot = sum(ArrDispAbsAbandon[:-1])
-#                     effTotG = ArrDispAbsAbandon[1]+ArrDispAbsAbandon[3]+ArrDispAbsAbandon[5]+ArrDispAbsAbandon[7]
-#                     effTotF = ArrDispAbsAbandon[0]+ArrDispAbsAbandon[2]+ArrDispAbsAbandon[4]+ArrDispAbsAbandon[6]
-#                     moyenne = moyenneDesTemps(listeDesTempsDeLaClasse)
-#                     mediane = medianeDesTemps(listeDesTempsDeLaClasse)
-#                     ### Statistiques en effectifs par défaut : voir si envie d'avoir des statistiques en % plus tard : tout est prêt dans le else ###
-#                     if StatsEffectifs :
-#                         if effTotF :
-#                             FArr = str(ArrDispAbsAbandon[0]) + "{\\scriptsize /" + str(effTotF) + "}"
-#                         else :
-#                             FArr = "{-}"
-#                         if effTotG :
-#                             GArr = str(ArrDispAbsAbandon[1]) + "{\\scriptsize /" + str(effTotG) + "}"
-#                         else :
-#                             GArr = "{-}"
-#                         if effTotF :
-#                             FD = str(ArrDispAbsAbandon[2]) + "{\\scriptsize /" + str( effTotF) + "}"
-#                         else :
-#                             FD = "{-}"
-#                         if effTotG :
-#                             GD = str(ArrDispAbsAbandon[3]) + "{\\scriptsize /" + str( effTotG) + "}"
-#                         else :
-#                             GD = "{-}"
-#                         if effTotF :
-#                             FAba = str(ArrDispAbsAbandon[4]) + "{\\scriptsize /" + str( effTotF) + "}"
-#                         else :
-#                             FAba = "{-}"
-#                         if effTotG :
-#                             GAba = str(ArrDispAbsAbandon[5]) + "{\\scriptsize /" + str( effTotG) + "}"
-#                         else :
-#                             GAba = "{-}"
-#                         if effTotF :
-#                             FAbs = str(ArrDispAbsAbandon[6]) + "{\\scriptsize /" + str( effTotF) + "}"
-#                         else :
-#                             FAbs = "{-}"
-#                         if effTotG :
-#                             GAbs = str(ArrDispAbsAbandon[7]) + "{\\scriptsize /" + str( effTotG) + "}"
-#                         else :
-#                             GAbs = "{-}"
-#                     else :
-#                         FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
-#                         GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
-#                         FD = pourcentage(ArrDispAbsAbandon[2], effTotF)
-#                         GD = pourcentage(ArrDispAbsAbandon[3], effTotG)
-#                         FAba = pourcentage(ArrDispAbsAbandon[4], effTotF)
-#                         GAba = pourcentage(ArrDispAbsAbandon[5], effTotG)
-#                         FAbs = pourcentage(ArrDispAbsAbandon[6], effTotF)
-#                         GAbs = pourcentage(ArrDispAbsAbandon[7], effTotG)
-#                     # nbreArriveesTotal += ArrDispAbsAbandon[0] + ArrDispAbsAbandon[1]
-#                     # nbreDispensesTotal += ArrDispAbsAbandon[2] + ArrDispAbsAbandon[3]
-#                     # nbreAbandonsTotal += ArrDispAbsAbandon[6] + ArrDispAbsAbandon[7]
-#                     # nbreAbsentsTotal += ArrDispAbsAbandon[4] + ArrDispAbsAbandon[5]
-#                     #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
-#                     ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
-#                                  .replace("@GArr",GArr).replace("@FD",FD)\
-#                                  .replace("@GD",GD).replace("@FAba",FAba)\
-#                                  .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-#                                  .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-#                                  .replace("@med",mediane)
-#                     ### la catégorie n'a plus à être regénérée sauf modification
-#                     if denomination != "Classe" :
-#                         try :
-#                             Courses[classe].setARegenererPourImpression(False)
-#                         except :
-#                             True
-#                         # si la classe a été générée, la catégorie également via les groupements ci-dessous
-
     # création d'un fichier de statistiques par groupements
     for classe in ResultatsGroupementsPourImpressions :
         #print(classe,"est traité pour création tex", Resultats[classe])
@@ -4774,29 +4671,29 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
                     else :
                         GArr = "-"
                     if effTotF :
-                        FD = str(ArrDispAbsAbandon[2]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                        FD = str(ArrDispAbsAbandon[2]) 
                     else :
                         FD = "-"
                     if effTotG :
-                        GD = str(ArrDispAbsAbandon[3]) + baliseFont + ' / ' + str( effTotG) + "</font>"
+                        GD = str(ArrDispAbsAbandon[3]) 
                     else :
                         GD = "-"
                     if effTotF :
-                        FAba = str(ArrDispAbsAbandon[4]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                        FAba = str(ArrDispAbsAbandon[4]) 
                     else :
                         FAba = "-"
                     if effTotG :
-                        GAba = str(ArrDispAbsAbandon[5]) + baliseFont + ' / ' + str(effTotG) + "</font>"
+                        GAba = str(ArrDispAbsAbandon[5]) 
                     else :
                         GAba = "-"
                     if effTotF :
-                        FAbs = str(ArrDispAbsAbandon[6]) + baliseFont + ' / ' + str( effTotF) + "</font>"
+                        FAbs = str(ArrDispAbsAbandon[6]) 
                     else :
                         FAbs = "-"
                     if effTotG :
-                        GAbs = str(ArrDispAbsAbandon[7]) + baliseFont + ' / ' + str( effTotG) + "</font>"
+                        GAbs = str(ArrDispAbsAbandon[7]) 
                     else :
-                        GAbs = "-"
+                        GAbs = '"-"'
                 else :
                     FArr = pourcentage(ArrDispAbsAbandon[0], effTotF)
                     GArr = pourcentage(ArrDispAbsAbandon[1], effTotG)
@@ -4813,32 +4710,46 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
                 #print(classe,FArr,GArr,FD,GD,FAba,GAba,FAbs,GAbs,moyenne,mediane)
                 #if estNomDeGroupement(classe) :
                 # ligneActuelle = deep.copy(ligneStats)
-                ContenuLignesGroupements += [ligneStats[0].replace("@classe",groupementAPartirDeSonNom(classe).nom).replace("@FArr",FArr)\
-                             .replace("@GArr",GArr).replace("@FD",FD)\
-                             .replace("@GD",GD).replace("@FAba",FAba)\
-                             .replace("@GAba",GAba).replace("@FAbs",FAbs)\
-                             .replace("@GAbs",GAbs).replace("@moy",moyenne)\
-                             .replace("@med",mediane)]
+                ContenuLignesGroupements += [eval(ligneStats[0].replace("@classe",ajouteGuillemets(groupementAPartirDeSonNom(classe).nom)).replace("@FArr",ajouteGuillemets(FArr))\
+                             .replace("@GArr",ajouteGuillemets(GArr)).replace("@FD",ajouteGuillemets(FD))\
+                             .replace("@GD",ajouteGuillemets(GD)).replace("@FAba",ajouteGuillemets(FAba))\
+                             .replace("@GAba",ajouteGuillemets(GAba)).replace("@FAbs",ajouteGuillemets(FAbs))\
+                             .replace("@GAbs",ajouteGuillemets(GAbs)).replace("@moy",ajouteGuillemets(moyenne))\
+                             .replace("@med",ajouteGuillemets(mediane)))]
                 
                 ### le groupement et toutes les catégories incluses n'ont plus à être regénérés sauf modification ultérieure
                 groupementAPartirDeSonNom(classe).setARegenererPourImpression(False)
                 for c in groupementAPartirDeSonNom(classe).listeDesCourses :
                     Courses[c].setARegenererPourImpression(False)
 
-
-        # on ferme le fichier de statistiques des classes
-    # fstats.write(ContenuLignesCategories)
-    # fstats.write("\n\\end{tabular}\\end{center}\n ")
-
-    fstats += enteteSGpments
-    fstats += ContenuLignesGroupements
+    # ajout des lignes pour 
+    # fstats += enteteSGpments
+    # fstats += [PageBreak()]
     fstats += ["<p>"]
-    fstats += ["<b>Nombre total d'arrivées : </b>" + str(nbreArriveesTotal)+ "<br>"]
+    fstats += ["<b> Statistiques par groupement :</b>","<p>"]
+    # print(ContenuLignesGroupements[0])
+    largeurDesColonnesParSexe = 30
+    demiLargeurDesColonnes = 43
+    tableau = [[['Groupement',80], ['Arrivés',largeurDesColonnesParSexe+10], ['',largeurDesColonnesParSexe+10], ['Dispensés',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Absents',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Abandons',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Moyenne',demiLargeurDesColonnes], ['',demiLargeurDesColonnes], ['Médiane',demiLargeurDesColonnes], ['',demiLargeurDesColonnes]],
+               ['-', 'F', 'G', 'F', 'G', 'F', 'G', 'F', 'G', '-', '','-', '']]
+    for c in ContenuLignesGroupements:
+        print(len(c))
+        tableau += [c] #[ContenuLignesGroupements[0]]#
+    # fstats += ContenuLignesGroupements
+    # on ferme le tableau proprement
+    # if fstats[-1] == "," :
+    #     fstats = fstats[:-1]
+    fstats += [tableau]
+    fstats += ["<p>"]
+    fstats += ["<b>Nombre total d'arrivées : </b>" + str(nbreArriveesTotal)]
     if not Parametres["CoursesManuelles"] :
-        fstats += ["<b>Nombre total de dispensés : </b>" + str(nbreDispensesTotal)+ "<br>"]
-        fstats += ["<b>Nombre total d'abandons : : </b>" + str(nbreAbandonsTotal)+ "<br>"]
-        fstats += ["<b>Nombre total d'absents : : </b>" + str(nbreAbsentsTotal)+ "<br>"]
-    fstats += [PageBreak(), absentsDispensesAbandonsEnTex()]
+        fstats += ["<b>Nombre total de dispensés : </b>" + str(nbreDispensesTotal)]
+        fstats += ["<b>Nombre total d'abandons : : </b>" + str(nbreAbandonsTotal)]
+        fstats += ["<b>Nombre total d'absents : : </b>" + str(nbreAbsentsTotal)]
+    
+    fstats += [PageBreak()]
+    fstats += absentsDispensesAbandonsNG()
+    print(fstats)
 
     # à décommenter pour créer le fichier de statistiques.
     listeDesFichiersACreer.append(os.path.join(pathImpressions, "_statistiques.pdf"))
@@ -5356,7 +5267,76 @@ def supprimeCourseDuGroupementEtNettoieGroupements(course):
             del Groupements[i]
         i += 1
 
-def absentsDispensesAbandonsEnTex() :
+# def absentsDispensesAbandonsEnTex() :
+#     Labs = []
+#     Ldisp = []
+#     Labandon = []
+#     #print(Resultats)
+#     for c in Coureurs.liste() :
+#         if c.absent :
+#             Labs.append(c)
+#             #print(c.nom, c.prenom, "était absent.")
+#         elif c.dispense :
+#             Ldisp.append(c)
+#             #print(c.nom, c.prenom, "est dispensé")
+#         elif c.rang == 0 and Courses[c.course].depart : # si la course a été lancé et le coureur n'est pas arrivé.
+#             Labandon.append(c)
+#             #print(c.nom, c.prenom, "a abandonné")
+#     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
+#     retour = """\n\n\\newpage\n
+# {} \\hfill  {\LARGE ABSENTS}  \\hfill {}\n
+
+# \\begin{multicols}{3}
+# \\begin{itemize}
+# """
+#     for c in Labs:
+#         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+#         if Parametres["CategorieDAge"] == 2 : 
+#             retour += c.etablissement
+#         elif Parametres["CategorieDAge"] == 1 : 
+#             retour += c.categorie(Parametres["CategorieDAge"])
+#         else :
+#             retour += c.classe 
+#         retour += ")"
+#     retour +="\\end{itemize}\\end{multicols}\n\n"
+#     retour += """\\bigskip
+
+# {} \\hfill  {\LARGE DISPENSES}  \\hfill {}
+
+# \\begin{multicols}{3}
+# \\begin{itemize}
+# """
+#     for c in Ldisp:
+#         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+#         if Parametres["CategorieDAge"] == 2 : 
+#             retour += c.etablissement
+#         elif Parametres["CategorieDAge"] == 1 : 
+#             retour += c.categorie(Parametres["CategorieDAge"])
+#         else :
+#             retour += c.classe 
+#         retour += ")"
+#     retour +="\\end{itemize}\\end{multicols}\n\n"
+#     retour += """\\bigskip
+
+# {} \\hfill  {\LARGE ABANDONS (ceux sans temps, ni absents, ni dispensés)}  \\hfill {}
+
+# \\begin{multicols}{3}
+# \\begin{itemize}
+# """
+#     for c in Labandon:
+#         retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
+#         if Parametres["CategorieDAge"] == 2 : 
+#             retour += c.etablissement
+#         elif Parametres["CategorieDAge"] == 1 : 
+#             retour += c.categorie(Parametres["CategorieDAge"])
+#         else :
+#             retour += c.classe 
+#         retour += ")"
+#     retour +="\\end{itemize}\\end{multicols}\n\n"
+#     return retour
+
+
+def absentsDispensesAbandonsNG() :
     Labs = []
     Ldisp = []
     Labandon = []
@@ -5372,56 +5352,42 @@ def absentsDispensesAbandonsEnTex() :
             Labandon.append(c)
             #print(c.nom, c.prenom, "a abandonné")
     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
-    retour = """\n\n\\newpage\n
-{} \\hfill  {\LARGE ABSENTS}  \\hfill {}\n
-
-\\begin{multicols}{3}
-\\begin{itemize}
-"""
-    for c in Labs:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
-        if Parametres["CategorieDAge"] == 2 : 
-            retour += c.etablissement
-        elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(Parametres["CategorieDAge"])
-        else :
-            retour += c.classe 
-        retour += ")"
-    retour +="\\end{itemize}\\end{multicols}\n\n"
-    retour += """\\bigskip
-
-{} \\hfill  {\LARGE DISPENSES}  \\hfill {}
-
-\\begin{multicols}{3}
-\\begin{itemize}
-"""
-    for c in Ldisp:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
-        if Parametres["CategorieDAge"] == 2 : 
-            retour += c.etablissement
-        elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(Parametres["CategorieDAge"])
-        else :
-            retour += c.classe 
-        retour += ")"
-    retour +="\\end{itemize}\\end{multicols}\n\n"
-    retour += """\\bigskip
-
-{} \\hfill  {\LARGE ABANDONS (ceux sans temps, ni absents, ni dispensés)}  \\hfill {}
-
-\\begin{multicols}{3}
-\\begin{itemize}
-"""
-    for c in Labandon:
-        retour += "\\item[$\\bullet$]" + c.nom + " " + c.prenom + " (" 
-        if Parametres["CategorieDAge"] == 2 : 
-            retour += c.etablissement
-        elif Parametres["CategorieDAge"] == 1 : 
-            retour += c.categorie(Parametres["CategorieDAge"])
-        else :
-            retour += c.classe 
-        retour += ")"
-    retour +="\\end{itemize}\\end{multicols}\n\n"
+    intitules = ["ABSENTS", "DISPENSES", "ABANDONS"]
+    largeurColonnes = 230
+    retour = []
+    nbreDeNomsParLigne = 2 
+    for n,liste in enumerate([Labs, Ldisp, Labandon]):
+        if liste : # la liste est non vide, on affiche les noms correspondants
+            retour += ["<center><font size='14'><b><u>" + intitules[n] + "</u></b></font></center>", "<p>", ]
+            premiereLigne = [["Noms prénoms",largeurColonnes]]
+            for z in range(nbreDeNomsParLigne-1) :
+                premiereLigne.append(["",largeurColonnes])
+            tableau = [premiereLigne]
+            i = 0
+            ligne = []
+            for c in liste :
+                # création d'un tableau de trois colonnes que l'on complète avec chaineCoureur
+                chaineCoureur = c.nom + " " + c.prenom + " ("
+                if Parametres["CategorieDAge"] == 2 : 
+                    chaineCoureur += c.etablissement
+                elif Parametres["CategorieDAge"] == 1 : 
+                    chaineCoureur += c.categorie(Parametres["CategorieDAge"])
+                else :
+                    chaineCoureur += c.classe 
+                chaineCoureur += ")"
+                ligne.append(chaineCoureur)
+                # on gère les différents cas.
+                if i % nbreDeNomsParLigne == nbreDeNomsParLigne - 1 : # on dispose d'une ligne complète
+                    tableau.append(ligne)
+                    ligne = []
+                i+=1
+            if ligne :
+                # on complète la dernière ligne si besoin jusqu'à 3
+                for z in range(nbreDeNomsParLigne-len(ligne)) :
+                    ligne.append("-")
+                tableau.append(ligne)
+            retour.append(tableau)
+            retour.append("<p>")
     return retour
 
 def syscmd(cmd, encoding=''):

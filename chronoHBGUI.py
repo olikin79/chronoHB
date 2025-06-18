@@ -4123,7 +4123,7 @@ def generateResultatsMessage() :
     if os.name == 'nt':
         # reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier 'impressions' qui s'est ouvert dans l'explorateur (windows).")
         path = os.getcwd()
-        subprocess.Popen(r'explorer /select,"' + dossier_resultats + os.sep +'_statistiques.pdf"')
+        subprocess.Popen(r'explorer /select,"' + os.path.join(dossier_resultats,Parametres["intituleCross"].replace(" ","-"), "_statistiques.pdf"))
     else :
         reponse = showinfo("FIN DE LA COMPILATION","Les résultats ont été générés dans le dossier " + dossier_impressions +".")
 

@@ -170,20 +170,29 @@ def generer_pdf(nom_fichier, contenu):
     doc.build(elements)
 
 # # Exemple de contenu
-contenu = [
-    "Ceci est un paragraphe avant le saut de page.",
-    PageBreak(),
-    "Ceci est un paragraphe avec du <b>texte en gras</b>, de <i>l'italique</i>, et une <font size='14'><u>taille personnalisée</u></font>.",
-    [
-        ["Colonne 1 non fusionnée", "Colonne 2 fusionnée", ""],
-        ["Valeur 1", "Valeur 2", "Valeur 3"],
-    ] + [["Donnée {}".format(i), "Colonne 2.{}".format(i), "Colonne 3.{}".format(i)] for i in range(4, 50)],
-    "Tableau où l'on spécifie la largeur des colonnes",
-    [
-        [["Colonne 1 fusionnée", 100], ["", 150], ["Colonne 3 non fusionnée", 80]],  # Largeurs définies ici
-        ["Valeur 1", "Valeur 2", "Valeur 3"],
-    ] + [["Donnée {}".format(i), "Colonne 2.{}".format(i), "Colonne 3.{}".format(i)] for i in range(4, 50)]
-    ]
+largeurDesColonnesParSexe = 40
+demiLargeurDesColonnes = 43
+contenu = [[[['Noms prénoms', 230], ['', 230], ['-', 230]]]]#, ['Rousset Victor (JU-G)', 'Roudil Julien (JU-G)', 'Farges Romain (SE-G)'], ['Osmont Nathan (JU-G)', 'Trocellier Lucas (JU-G)', 'Lartaud Benjamin (SE-G)'], ['Deveze Sebastien (M0-G)', 'Decock Élodie  (M2-F)', '-']]]
+# contenu = [[[['Groupement', 80], ['Arrivés', 40], ['', 40], ['Dispensés', 40], ['', 40], ['Absents', 40], ['', 40], ['Abandons', 40], ['', 40], ['Moyenne', 43], ['', 43], ['Médiane', 43], ['', 43]], ['-', 'F', 'G', 'F', 'G', 'F', 'G', 'F', 'G', '-', '', '-', ''], ['Trail 10 km', '21<font size="-2"> / 21</font>', '27<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '7<font size="-2"> / 34</font>', '01 h 13 min 07 s', '01 h 10 min 11 s'], ['Trail 15 km', '20<font size="-2"> / 21</font>', '47<font size="-2"> / 47</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 47</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 47</font>', '1<font size="-2"> / 21</font>', '0<font size="-2"> / 47</font>', '01 h 35 min 22 s', '01 h 33 min 30 s']]]
+# contenu = [[[['Groupement',80], ['Arrivés',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Dispensés',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Absents',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Abandons',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Moyenne',demiLargeurDesColonnes], ['',demiLargeurDesColonnes], ['Médiane',demiLargeurDesColonnes], ['',demiLargeurDesColonnes]],
+#            ['-', 'F', 'G', 'F', 'G', 'F', 'G', 'F', 'G', '-', '','-', ''],
+#         ['Trail 10 km', '21<font size="-2"> / 21</font>', '27<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '0<font size="-2"> / 34</font>', '0<font size="-2"> / 21</font>', '7<font size="-2"> / 34</font>', '01 h 13 min 07 s','', '01 h 10 min 11 s','']]]
+for c in contenu[0] :
+    print(len(c))
+# contenu = [
+#     "Ceci est un paragraphe avant le saut de page.",
+#     PageBreak(),
+#     "Ceci est un paragraphe avec du <b>texte en gras</b>, de <i>l'italique</i>, et une <font size='14'><u>taille personnalisée</u></font>.",
+#     [
+#         ["Colonne 1 non fusionnée", "Colonne 2 fusionnée", ""],
+#         ["Valeur 1", "Valeur 2", "Valeur 3"],
+#     ] + [["Donnée {}".format(i), "Colonne 2.{}".format(i), "Colonne 3.{}".format(i)] for i in range(4, 50)],
+#     "Tableau où l'on spécifie la largeur des colonnes",
+#     [
+#         [["Colonne 1 fusionnée", 100], ["", 150], ["Colonne 3 non fusionnée", 80]],  # Largeurs définies ici
+#         ["Valeur 1", "Valeur 2", "Valeur 3"],
+#     ] + [["Donnée {}".format(i), "Colonne 2.{}".format(i), "Colonne 3.{}".format(i)] for i in range(4, 50)]
+#     ]
 # contenu = [
 #     "Ceci est un paragraphe avec du <b>texte en gras</b>, de <i>l'italique</i>, et une <font size='14'><u>taille personnalisée</u></font>.",
 #     [

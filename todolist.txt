@@ -80,6 +80,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- trouver le bug introduit : les premiers ne sont plus coloriés en jaune et les erreurs en orange.
 - tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
