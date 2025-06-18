@@ -4733,7 +4733,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     tableau = [[['Groupement',80], ['Arrivés',largeurDesColonnesParSexe+10], ['',largeurDesColonnesParSexe+10], ['Dispensés',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Absents',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Abandons',largeurDesColonnesParSexe], ['',largeurDesColonnesParSexe], ['Moyenne',demiLargeurDesColonnes], ['',demiLargeurDesColonnes], ['Médiane',demiLargeurDesColonnes], ['',demiLargeurDesColonnes]],
                ['-', 'F', 'G', 'F', 'G', 'F', 'G', 'F', 'G', '-', '','-', '']]
     for c in ContenuLignesGroupements:
-        print(len(c))
+        # print(len(c))
         tableau += [c] #[ContenuLignesGroupements[0]]#
     # fstats += ContenuLignesGroupements
     # on ferme le tableau proprement
@@ -4749,7 +4749,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     
     fstats += [PageBreak()]
     fstats += absentsDispensesAbandonsNG()
-    print(fstats)
+    # print(fstats)
 
     # à décommenter pour créer le fichier de statistiques.
     listeDesFichiersACreer.append(os.path.join(pathImpressions, "_statistiques.pdf"))
