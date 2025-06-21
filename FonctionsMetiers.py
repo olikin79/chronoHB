@@ -4604,9 +4604,9 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     with open("./modeles/impression-en-tete.txt", 'r',encoding="utf-8") as f :
         entete = [f.read()]
     f.close()
-    with open("./modeles/impression-en-teteC.txt", 'r',encoding="utf-8") as f :
-        enteteC = [f.read()]
-    f.close()
+    # with open("./modeles/impression-en-teteC.txt", 'r',encoding="utf-8") as f :
+    #     enteteC = [f.read()]
+    # f.close()
     with open("./modeles/impression-en-teteS.txt", 'r',encoding="utf-8") as f :
         fstats = [f.read()]
     f.close()
@@ -4817,7 +4817,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
             if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
                 print("Création du fichier du challenge", challenge)
     #                 with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
-                contenu = creerFichierChallengeNG(challenge,enteteC)
+                contenu = creerFichierChallengeNG(challenge)
                 listeDesContenus.append(contenu)
                 listeDesFichiersACreer.append(os.path.join(pathImpressions, "Challenge_"+challenge+ ".pdf"))
     #                     f.write("\n\\end{longtable}\\end{center}\\end{document}")
@@ -7643,7 +7643,7 @@ def creerFichierChallengeNG(challenge):
         chaineSub = "Etabl."
     else :
         chaineSub = "Classe"
-    premiereLigne = [["<b>Rang</b>",50],["<b>"+chaineSub+"</b>", 50],["<center><b>Détail :</b> ...Prénom Nom (rang à l'arrivée)...</center>"], ["<b>Total</b>", 75]]
+    premiereLigne = [["<b>Rang</b>",50],["<b>"+chaineSub+"</b>", 50],["<center><b>Détail :</b> ...Prénom Nom (rang à l'arrivée)...</center>",400], ["<b>Total</b>", 75]]
     tableau = [premiereLigne]
     i = 0
     while i < len(ResultatsGroupements[challenge]) :
@@ -7666,7 +7666,6 @@ def creerFichierChallengeNG(challenge):
         # tableau += ' \\end{center} \\\\ \n \\end{minipage} \n & '
         # tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
         #tableau += "<td class='moyC'>" + moy +"</td>"
-        tableau += "\\hline\n"
         tableau.append(ligne)
         i += 1
     return [titre] + ["<p>"] + [tableau]

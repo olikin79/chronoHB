@@ -79,6 +79,7 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- l'actualisation des premiers et erreurs du treeview ne s'effectue pas lors d'un réimport.
 - améliorer la gestion des erreurs qui doit provenir de traiterDonnees() et non du timer plus long destiné au dépôt FTP, emails etc...
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.

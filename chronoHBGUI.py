@@ -817,7 +817,7 @@ class MonTableau(Frame):
                 print("dernière ligne stabilisée :", derniereLigneStabilisee)
                 try:
                     items = self.treeview.get_children()
-                    print(f"Children: {items}")
+                    # print(f"Children: {items}")
                 except Exception as e :
                     print(f"Erreur détectée : {e}")
                 # print("après get_children()")
@@ -2895,6 +2895,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
 
 
 def rejouerToutesLesActionsMemorisees() :
+    global ligneTableauGUI, tableau
     print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
     print("On supprime tous les temps, tous les dossards arrivés.")
     print("On conserve le listing coureurs, le top départ de chaque course.")
@@ -2912,6 +2913,7 @@ def rejouerToutesLesActionsMemorisees() :
     ligneTableauGUI = [1,0]
     print("On retraite tous les fichiers de données grace au timer.")
     timer.reinitErreursATraiter()
+    tableau.reinit()
 
 
 
@@ -3479,6 +3481,8 @@ class Clock():
     def setPremiereExecution(self,valeur):
         try :
             self.premiereExecution = bool(valeur)
+            if self.premiereExecution :
+                self.traiterDonnees()
         except :
             print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
@@ -3635,7 +3639,7 @@ class Clock():
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
             DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique, daemon=True)
-            DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+            # DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             DownloadDaemon.start()
             self.compteurTelechargementURLGoogleSheet = 0
         self.compteurTelechargementURLGoogleSheet += 1
@@ -3748,6 +3752,7 @@ class Clock():
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
         self.premiereExecution = True
+        self.traiterDonnees()
         
     def erreursATraiter(self,listeNouvellesErreursATraiter):
         global tagEnvoiDiplomeEnCours
@@ -3935,6 +3940,7 @@ def actualiseToutLAffichage(toutSaufParametresCourses=False) :
     actualiseEtatBoutonsRadioConfig()
     zoneCoureursAjoutModif.actualiseAffichage()
     timer.premiereExecution = True
+    timer.traiterDonnees()
     #timer.reinitErreursATraiter()      
 
 
@@ -4515,7 +4521,7 @@ def lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres):
         reponse = True
     if reponse :
         # print(listeDesDossardsGeneres)
-        timer.premiereExecution = True
+        # timer.premiereExecution = True
         for n in listeDesDossardsGeneres :
             print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
             Coureurs.recuperer(n).setAImprimer(False)

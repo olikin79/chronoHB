@@ -116,7 +116,7 @@ def creerTousLesPdf(listeDesFichiersACreer, listeDesContenus) :
             generer_pdf_NG(listeDesFichiersACreer[i], listeDesContenus[i])
         except :
             print("Erreur lors de la création du fichier", listeDesFichiersACreer[i])
-            # print("Contenu du fichier\n", listeDesContenus[i])
+            print("Contenu du fichier\n", listeDesContenus[i])
         i += 1
 
 
