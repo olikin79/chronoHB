@@ -16,7 +16,6 @@ BUGS constatés au randon trail :
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 - Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent.
 - l'affichage en temps réel sur chrome ne fonctionne pas.
-- le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.
 - l'affichage, parfois, ne s'actualise pas.
 - quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
 - le menu "gestion des temps" déborde sur la droite de l'écran.
@@ -80,7 +79,8 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
-- trouver le bug introduit : les premiers ne sont plus coloriés en jaune et les erreurs en orange.
+- améliorer la gestion des erreurs qui doit provenir de traiterDonnees() et non du timer plus long destiné au dépôt FTP, emails etc...
+- le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
@@ -100,16 +100,16 @@ Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectat
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - solliciter Lucie pour le diplome du cross,
-- commander les 800 dossards pour le cross du collège,
-- commander 1000 puces RFID autocollantes.
-- commander épingles à nourrice ?
-- passage de cable sur la ligne d'arrivée si on double les antennes ?
-- 2 trepiers disponibles en EPS ?
-- commander 
+- (FAIT) 2 trepiers à acherter.
+- (EN COURS) commander 
+	* passage de cable sur la ligne d'arrivée si on double les antennes.
 	* un long cable d'antenne : 10 mètres ou 25 m ? Un deuxième à prévoir si 3 antennes ?
 	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
 
 A faire avant début octobre 2025 :
+- commander les 800 dossards pour le cross du collège,
+- commander 1000 puces RFID autocollantes.
+- commander épingles à nourrice ?
 - 2ème malette à créer.
 - import de la base du collège,
 - coller les 720 puces sur les 720 premiers dossards.

@@ -49,22 +49,13 @@ TableauGUI = []
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 from resultatsDiffusion import * # création puis diffusion des diplomes par email
 
-# pour surveiller les fichiers txt modifiés par le script CGI qui écoute sur le port 8888
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-
-class MonGestionnaireEvenements(FileSystemEventHandler):
-    def __init__(self, callback):
-        self.callback = callback
-
-    def on_modified(self, event):
-        if not event.is_directory:
-            print(f"Le fichier {event.src_path} a été modifié !")
-            self.callback(event.src_path)
 
 
 from CameraMotionDetection import * # camera motion detection
 from functools import partial
+
+# pour la communication entre les threads métiers watchdog (surveillance des arrivées sur le serveur web) et l'interface graphique qui doit s'actualsiser.
+from queue import Queue
 
 # import queue # pour transmettre des infos entre processus : entre le thread principal et le serveur web par exemple.
 # File d'attente partagée pour les messages
@@ -2174,7 +2165,7 @@ def ajouterTempsOKAction() :
             annulerTempsDossards()
         else :
             mess = "Le temps saisi est déjà présent.\nSaisir un temps différent ou affecter le dossard suivant au temps suivant pour un calage automatique des temps."
-            reponse = showinfo("ERREUR",mess)
+            reponse = showinfo("ERREUR D'AJOUT DE TEMPS",mess)
             print(mess)
     else :
         print("Saisie non valide:",ajouterTempsEntry.get())
@@ -2197,7 +2188,7 @@ def dupliquerTempsAction() :
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à dupliquer."
-        reponse = showinfo("ERREUR",mess)
+        reponse = showinfo("ERREUR LORS DE LA DUPLICATION D'UN TEMPS",mess)
         #print(mess)
 
 def supprimerTempsAction() :
@@ -2217,7 +2208,7 @@ def supprimerTempsAction() :
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à supprimer."
-        reponse = showinfo("ERREUR",mess)
+        reponse = showinfo("ERREUR POUR SUPPRIMER UN TEMPS",mess)
         print(mess)
     supprimerTempsButton.configure(state=NORMAL)
 
@@ -2243,7 +2234,7 @@ def ajouterDossardApresAction() :
     else :
         mess = "Sélectionner un dossard au préalable qui précèdera celui saisi."
         #print(mess)
-        reponse = showinfo("ERREUR",mess)
+        reponse = showinfo("ERREUR POUR AJOUTER UN DOSSARD APRES UN AUTRE",mess)
 
 def ajouterDossardApresOKAction() :
     ajouterDossardApresOK.configure(state=DISABLED)
@@ -2261,7 +2252,7 @@ def ajouterDossardApresOKAction() :
     else :
         mess = "Saisie non valide:",ajouterTempsEntry.get()
         #print(mess)
-        reponse = showinfo("ERREUR",mess)
+        reponse = showinfo("ERREUR LORS DE L'AJOUT D'UN DOSSARD APRES UN AUTRE",mess)
     ajouterDossardApresOK.configure(state=NORMAL)
 
 def supprimerDossardAction() :
@@ -2287,7 +2278,7 @@ def supprimerDossardAction() :
     else :
         message = "Aucun dossard sélectionné dans le tableau."
         #print(message)
-        reponse = showinfo("ERREUR",message)
+        reponse = showinfo("ERREUR SUPRESSION DE DOSSARD",message)
     supprimerDossardButton.configure(state=NORMAL)
 
 def envoiEmailDeTestLanceur():
@@ -2307,10 +2298,10 @@ def envoiEmailDeTest() :
             reponse = showinfo("INFORMATION",message)
         else :
             message = "Erreur lors de l'envoi du diplôme de test à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
-            reponse = showinfo("ERREUR",message)
+            reponse = showinfo("ERREUR ENVOI EMAIL DE TEST",message)
     else :
         message = "Aucun dossard sélectionné dans le tableau."
-        reponse = showinfo("ERREUR",message)
+        reponse = showinfo("ERREUR ENVOI EMAIL DE TEST",message)
 
 
 
@@ -2343,7 +2334,7 @@ def avancerDossardAction() :
             # regenereAffichageGUI()
         else :
             print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le premier; si i=-1, celui-ci n'existe pas (normalement impossible). i=",dossardEncoreAvant)
-            reponse = showinfo("ERREUR","Impossible d'avancer le premier dossard.")
+            reponse = showinfo("ERREUR D'AJOUT DE DOSSARD","Impossible d'avancer le premier dossard.")
     avancerDossardButton.configure(state=NORMAL)
 
 
@@ -2381,7 +2372,7 @@ def reculerDossardAction() :
             # regenereAffichageGUI()
         else :
             print("On ne fait rien : si i=0, le dossard sélectionné", dossardSelectionne,"est le dernier; si i=-1, celui-ci n'existe pas (normalement impossible).")
-            reponse = showinfo("ERREUR","Impossible de reculer le dernier dossard.")
+            reponse = showinfo("ERREUR POUR RECULER LE DOSSARD","Impossible de reculer le dernier dossard.")
     reculerDossardButton.configure(state=NORMAL)
 
 
@@ -2991,7 +2982,7 @@ au(x) précédent(s) import(s).")
     chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
     Les données précédentes ont été sauvegardées dans le fichier "+fichier+".")
                 else :
-                    reponse = showinfo("ERREUR","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
+                    reponse = showinfo("ERREUR IMPORT SIECLE","L'import à partir du fichier "+nomFichier +" n'a pas été effectué pleinement correctement.\n"+\
     chaineBilan + "Le fichier fourni doit impérativement être au format XLSX ou en CSV (encodé en UTF8, avec des points virgules comme séparateur).\n\
     Les champs obligatoires sont 'Nom', 'Prénom', 'Sexe' (F ou G).\n\
     D'autres champs peuvent être imposés selon le paramétrage choisi : 'Classe' (cross du collège ou 'Naissance' (catégories FFA)\n\
@@ -3475,7 +3466,15 @@ class Clock():
         self.auMoinsUnImportPourSauvegarde = False
         # self.nbreAImprimerPrecedent = -1
         nbreAImprimerAncien = 0
-        self.update_clock()
+        # communication entre les fonctions watchdog de surveillance des fichiers créés par le serveur web et le thread principal tkinter
+        self.event_queue = Queue()
+        Parametres["traiterDonneesActif"] = False
+        self.traiterDonneesARelancer = False
+        # exécution initiale.
+        self.root.after(0, self.traiterDonnees) # exécution initiale de la fonction de traitement des données afin d'afficher dans l'interface les données présentes dans les fichiers de données.
+        self.root.after(0, self.update_clock) # fonction qui actualise certains éléments moins fréquemment (sauvegarde, dépôt FTP, envoi d'email)
+        self.root.after(0, self.surveillance_queue) # fonction qui surveille la file self.event_queue et qui actualise l'interface si cette file est non vide.
+        demarrerLObservateurDeFichiersDeDonnees(self.event_queue)
 
     def setPremiereExecution(self,valeur):
         try :
@@ -3483,10 +3482,27 @@ class Clock():
         except :
             print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
+    def surveillance_queue(self) :
+        if not self.event_queue.empty():
+            # on vide la file
+            while not self.event_queue.empty():
+                event = self.event_queue.get(block=False) # block=False pour éviter de bloquer si la queue est vide (bien que le while not empty() le gère)
+            if not Parametres["traiterDonneesActif"] :
+                Parametres["traiterDonneesActif"] = True
+                self.traiterDonnees(event)
+                Parametres["traiterDonneesActif"] = False
+            else :
+                # traiterDonnees() est en cours d'exécution, il sera relancé automatiquement en fin d'exécution.
+                self.traiterDonneesARelancer = True
+            # # pour éviter d'exécuter trop de traiterDonnees(event) simultanément.
+            # time.wait(0.5) 
+        # Rappelez-vous vous-même pour vérifier à nouveau après 100 ms
+        self.root.after(100, self.surveillance_queue)
+
+
     def traiterDonnees(self, event=None):
         # global tableauGUI
-
-    # def update_clock(self):
+        # def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementDonneesRecuperees, listeFichiersDonnees
         
@@ -3597,6 +3613,12 @@ class Clock():
         # se relance dans un temps prédéfini.
         self.premiereExecution = False
         # print("Fin de timer.traiterDonnees().")
+
+        # on a reçu des données pendant l'exécution de traiterDonnees(), on le relance.
+        if self.traiterDonneesARelancer :
+            self.traiterDonneesARelancer = False
+            self.traiterDonnees()
+
     
     def update_clock(self):
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
@@ -3604,15 +3626,15 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
 
-        if self.premiereExecution :
-            print("Première exécution: mise à jour de l'affichage.")
-            self.traiterDonnees()
+        # if self.premiereExecution :
+        #     print("Première exécution: mise à jour de l'affichage.")
+        #     self.traiterDonnees()
         
         # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
         if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
-            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique)
+            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique, daemon=True)
             DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             DownloadDaemon.start()
             self.compteurTelechargementURLGoogleSheet = 0
@@ -3826,14 +3848,6 @@ timer=Clock(root, "tableau.maj")
 rejouerToutesLesActionsMemorisees()
 
 
-######## observateur de fichiers dans dossier_data_txt ########
-gestionnaire = MonGestionnaireEvenements(timer.traiterDonnees)
-observateur = Observer()
-observateur.schedule(gestionnaire, dossier_data_txt, recursive=True)
-thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
-thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
-thread_observateur.start()
-
 ####
 
 ##
@@ -3999,10 +4013,16 @@ def effaceDonneesCoursesGUI ():
     global tableau
     reponse = askokcancel("ATTENTION", "Etes vous sûr de vouloir supprimer toutes les données des courses (départs, arrivées des coureurs, vidéos enregistrées) ?")
     if reponse :
+        # sauvegarde automatique avant remplacement.
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-avant-donnees-courses-effacees.chb"
         fichier = ecrire_sauvegardeNG(nomFichierCopie)
+        # effacement des fichiers de données choisis
+        arreterLObservateurDeFichiersDeDonnees()
         delDossardsEtTemps()
+        demarrerLObservateurDeFichiersDeDonnees(timer.event_queue)
+        timer.traiterDonnees()
+        # recalcul de tout
         tableau.reinit()
         genereResultatsCoursesEtClasses(True)
         actualiseToutLAffichage()
@@ -4013,7 +4033,12 @@ def effaceDonneesCoursesGUI ():
         #print("IL RESTE ACTUALISER LES CHECKBOX POUR LE DEPART, ETC...")
 
 def effaceToutesDonnees() :
+        # effacement des fichiers de données choisis (tous)
+        arreterLObservateurDeFichiersDeDonnees()
         delCoureurs()
+        demarrerLObservateurDeFichiersDeDonnees(timer.event_queue)
+        timer.traiterDonnees()
+        # recalcul de tout
         genereResultatsCoursesEtClasses(True)
         tableau.reinit()
         actualiseToutLAffichage()
@@ -4564,6 +4589,7 @@ def actualiseEntryParams():
     VitesseDefilementFrame.actualise()
 
 def recupererSauvegardeGUI(name_file="") :
+    global timer
     #global root,Courses
     if not name_file :
         # récupérer le chemin vers Mes Documents sous windows ou vers Documents sur mac os ou linux
@@ -4578,10 +4604,19 @@ def recupererSauvegardeGUI(name_file="") :
     if name_file :
         #print("Sauvegarde choisie :",name_file)
         # effaceToutesDonnees()
+        # on arrête la surveillance des fichiers
+        arreterLObservateurDeFichiersDeDonnees()
+        # on extrait les fichiers de la sauvegarde au bon endroit.
         erreurs = recupere_sauvegardeNG(name_file)
+        # on relance la surveillance des fichiers
+        timer.setPremiereExecution(True)
+        demarrerLObservateurDeFichiersDeDonnees(timer.event_queue)
+        # on traite les données dans la foulée.
+        
+        print(erreurs)
         for texte in erreurs :
             if texte :
-                showinfo("ERREUR", texte)
+                showinfo("ERREUR RECUPERATION DE SAUVEGARDE", texte)
         dictionnaire = chargerDonnees()
         if dictionnaire :
             globals().update(dictionnaire)
@@ -5640,7 +5675,7 @@ def exportCourse():
             # showinfo("INFORMATION", "Sauvegarde effectuée : " + fichierChoisi)
         except :
             # Informer l'utilisateur de l'échec de l'opération
-            showinfo("ERREUR", "La sauvegarde a échoué.")
+            showinfo("ERREUR DANS L'EXPORT DE COURSE", "La sauvegarde a échoué.")
     else:
         # Avertir l'utilisateur s'il n'a pas choisi de fichier
         showinfo("ATTENTION", "Pas de sauvegarde effectuée. Veuillez choisir un fichier pour la sauvegarde.")
@@ -6133,6 +6168,8 @@ try :
     print("Extinction de l'enregistreur de webcam")
 except :
     print("Webcam non enregistrée à cet instant")
+
+arreterLObservateurDeFichiersDeDonnees()
 
 #fLOG.close()
 

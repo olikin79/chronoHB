@@ -138,6 +138,43 @@ import pickle
 import gspread
 from google.oauth2.service_account import Credentials
 
+
+# pour surveiller les fichiers txt modifiés par le script CGI qui écoute sur le port 8888
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from queue import Queue
+
+class MonGestionnaireEvenements(FileSystemEventHandler):
+    def __init__(self, event_queue):
+        self.event_queue = event_queue
+
+    def on_modified(self, event):
+        if not event.is_directory:
+            print(f"Le fichier {event.src_path} a été modifié !")
+            self.event_queue.put({"type": "modified", "path": event.src_path})
+            # self.callback(event.src_path)
+
+
+######## observateur de fichiers dans dossier_data_txt ########
+def demarrerLObservateurDeFichiersDeDonnees(event_queue) :
+    global thread_observateur, observateur
+    gestionnaire = MonGestionnaireEvenements(event_queue)
+    observateur = Observer()
+    observateur.schedule(gestionnaire, dossier_data_txt, recursive=True)
+    thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
+    thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
+    thread_observateur.start()
+    print("Observateur des fichiers de données démarré.")
+    event_queue.put({"type": "initialisation", "path": "tous les fichiers sont modifiés"})
+
+def arreterLObservateurDeFichiersDeDonnees() :
+    global thread_observateur, observateur
+    observateur.stop()
+    observateur.join()
+    print("Observateur des fichiers de données arrêté.")
+
+
+
 def creerDir(path) :
     retour = True
     #print(path)
@@ -150,6 +187,7 @@ def creerDir(path) :
         #print("Impossible de créer le dossier : la clé USB de sauvegarde n'est probablement pas branchée.")
         retour = False
     return retour
+
 
 # enregistre les données de sauvegarde
 def dump_sauvegarde() :
@@ -424,14 +462,26 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
     tousPresents = True
     for fichier in [fichierDB, fichierML, fichierDS, fichierRFID]:
         if not os.path.exists(fichier):
-            tousPresents = False
-            message = f"Le fichier {fichier} est absent. La sauvegarde est incomplète. Import annulé."
+            message = f"Le fichier {fichier} est absent."
             print(message)
-            return message
-            # showinfo("ERREUR", message)
-            break
+            if "RFID" not in fichier :
+                # les fichiers RFID n'existent pas dans les vieilles sauvegardes : on rend leur présence facultative
+                tousPresents = False
+                message += "La sauvegarde est incomplète. Import annulé."
+                return message
 
     if tousPresents:
+        # nettoyer les fichiers présents (gestion des anciennes sauvegardes qui ne contiennent pas tout.)
+        for nom_fichier in os.listdir(dossier_data_txt):
+            chemin_complet = os.path.join(dossier_data_txt, nom_fichier)
+            if os.path.isfile(chemin_complet): # Vérifie si c'est un fichier
+                try:
+                    os.remove(chemin_complet)
+                    print(f"Fichier supprimé : {chemin_complet}")
+                except Exception as e:
+                    print(f"Erreur lors de la suppression de {chemin_complet} : {e}")
+            # else:
+            #     print(f"Ignoré (n'est pas un fichier) : {chemin_complet}") 
         # Sauvegarder les données actuelles de façon automatique
         date = time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
         nomFichierCopie = dossier_db + os.sep + "Course_"+ date + "-avant-import-autres-donnees.chb"
@@ -442,7 +492,8 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
         shutil.copy2(fichierDB, os.path.join(DONNEES, "Courses.db"))
         shutil.copy2(fichierML, os.path.join(dossier_data_txt, donneesModifLocales))
         shutil.copy2(fichierDS, os.path.join(dossier_data_txt, donneesSmartphone))
-        shutil.copy2(fichierRFID, os.path.join(dossier_data_txt, donneesRFID))
+        if os.path.exists(fichierRFID) :
+            shutil.copy2(fichierRFID, os.path.join(dossier_data_txt, donneesRFID))
         # on replace les fichiers piques au bon endroit avec le même nom.
         for file in listeFichiersPiques :
             shutil.copy2(file, os.path.join(dossier_data_txt, os.path.basename(file)))
@@ -472,7 +523,6 @@ def recupere_sauvegardeNG_horsGUI(sauvegardeChoisie):
 
 def recupere_sauvegardeNG(sauvegardeChoisie):
     global sauvegarde
-
     erreur = recupere_sauvegardeNG_horsGUI(sauvegardeChoisie)
     # Charger les données restaurées
     chargerDonnees()
@@ -2503,6 +2553,8 @@ def chargerDonnees() :
         Parametres["TroncaturesEPCRealisees"] = []
     if not "delai_antennes_par_tag" in Parametres :
         Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
+    # paramètre interne commun à divers thread. L'un d'eux le met à jour, d'autres le lisent.
+    Parametres["traiterDonneesActif"] = False
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
@@ -4755,17 +4807,19 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     listeDesFichiersACreer.append(os.path.join(pathImpressions, "_statistiques.pdf"))
     listeDesContenus.append(fstats)
 
-    ### générer les tex pour chaque challenge
-    # if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
-    #     listeChallenges = listChallenges()
-    #     print("liste des challenges", listeChallenges)
-    #     for challenge  in listeChallenges :
+    ### générer les fichiers pour chaque challenge
+    if Parametres["CategorieDAge"]==0 or Parametres["CategorieDAge"]==2 :
+        listeChallenges = listChallenges()
+        print("liste des challenges", listeChallenges)
+        for challenge  in listeChallenges :
     #         try :
-    #             print(ResultatsGroupements[challenge])
-    #             if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
-    #                 print("Création du fichier du challenge", challenge)
+            # print(ResultatsGroupements[challenge])
+            if ResultatsGroupements[challenge] : # il y a des classes qui ont atteint le nombre d'arrivées suffisantes.
+                print("Création du fichier du challenge", challenge)
     #                 with open(TEXDIR+"Challenge_"+challenge+ ".tex", 'w',encoding="utf-8") as f :
-    #                     f.write(creerFichierChallenge(challenge,enteteC))
+                contenu = creerFichierChallengeNG(challenge,enteteC)
+                listeDesContenus.append(contenu)
+                listeDesFichiersACreer.append(os.path.join(pathImpressions, "Challenge_"+challenge+ ".pdf"))
     #                     f.write("\n\\end{longtable}\\end{center}\\end{document}")
     #                 f.close()
     #         except :
@@ -5865,7 +5919,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
                     else :
                         ## ajout de code spécifique pour éliminer les personnes de la DSDEN dans le calcul des résultats du challenge.
                         # pour chaque sexe, on mémorise les rangs des personnes de la DSDEN. Exemple : [[3,8][4]] si deux gars arrivent en positions 3 et 8 chez les garçons et une femme arrive en position 4 chez les filles
-                        if coureur.classe in Parametres["classeIgnoreesPourChallenge.split"](";") :
+                        if coureur.classe in Parametres["classeIgnoreesPourChallenge"].split(";") :
                             # print("coureur de la DSDEN",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps, "-", coureur.rang,"ajouté dans dictRangsDSDEN" )
                             dictRangsDSDEN[nom].append(i+1)
                 else : # inutile car les seuls coureurs dans Resultats sont ceux ayant un rang légitime vu le filtrage 10 lignes au dessus :
@@ -6739,9 +6793,9 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         else :
             # insère juste après le dossard dossardPrecedent , si on le trouve.
             try :
-                print("insertion du dossard", doss, "juste après", dossPrecedent, "dans ArriveeDossards", ArriveeDossards)
+                # print("insertion du dossard", doss, "juste après", dossPrecedent, "dans ArriveeDossards", ArriveeDossards)
                 n = ArriveeDossards.index(dossPrecedent)
-                print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n)
+                print("Insertion du dossard", doss, "juste après", dossPrecedent, "à l'indice", n, "dans ArriveeDossards")
                 #position = n+1
                 ArriveeDossards.insert(n+1 , doss)
                 Parametres["calculateAll"] = True
@@ -7227,7 +7281,10 @@ def delArriveeTempss():
 ##    else :
 ##        print("Course commencée : impossible d'effacer le listing des temps d'arrivée.")
 
+
+
 def delDossardsEtTemps():
+    # arreterLObservateurDeFichiersDeDonnees()
     global ligneTableauGUI
 ##    if not Parametres["CourseCommencee"] :
     Parametres["positionDansArriveeTemps"] = 0
@@ -7256,6 +7313,7 @@ def delDossardsEtTemps():
         shutil.rmtree("./videos")
 ##    else :
 ##        print("Course commencée : impossible d'effacer le listing des coureurs")
+    # demarrerLObservateurDeFichiersDeDonnees()
 
 def delCoureurs():
     global ligneTableauGUI
@@ -7564,7 +7622,7 @@ def yATIlUCoureurArrive(groupement) :
 
 ############ LATEX #######################
 
-def creerFichierChallenge(challenge, entete):
+def creerFichierChallengeNG(challenge):
     if challenge == "LG" :
         challengeNomAffiche = "lycées généraux et technologiques"
     elif challenge == "LP" :
@@ -7576,21 +7634,17 @@ def creerFichierChallenge(challenge, entete):
     else :
         challengeNomAffiche = challenge
         
-    titre = "{\\Large {} \\hfill Challenge " + challengeNomAffiche
-    if Parametres["CategorieDAge"] == 0 :
+    titre = "<center><font size='14'><b><u>Challenge" +  challengeNomAffiche 
+    if Parametres["CategorieDAge"] == 0 and challengeNomAffiche.isnumeric and int(challengeNomAffiche)>= 6 and int(challengeNomAffiche) <=3 : # on est au collège ! Classes 6ème à 3ème.
         titre += "ème"
-    titre += " \\hfill {}}"
+    titre += "</u></b></font></center>"
+
     if Parametres["CategorieDAge"] == 2 :
         chaineSub = "Etabl."
     else :
         chaineSub = "Classe"
-    tableau = """
-\\begin{center}
-\\begin{longtable}{| p{1.5cm} | p{1.5cm} | p{10.5cm} | p{1.5cm} |}
-\\hline
-{}\\hfill \\textbf{Rang} \\hfill {} & {} \\hfill \\textbf{@classe@} \\hfill {} & {}\\hfill \\textbf{Détail :} \ldots Prénom Nom (rang à l'arrivée) \ldots \\hfill {} & {}\\hfill \\textbf{Total} \\hfill{} \\\\
-\\hline
-\\endhead""".replace("@classe@",chaineSub)
+    premiereLigne = [["<b>Rang</b>",50],["<b>"+chaineSub+"</b>", 50],["<center><b>Détail :</b> ...Prénom Nom (rang à l'arrivée)...</center>"], ["<b>Total</b>", 75]]
+    tableau = [premiereLigne]
     i = 0
     while i < len(ResultatsGroupements[challenge]) :
         #moy = ResultatsGroupements[challenge][i].moyenneTemps
@@ -7604,16 +7658,18 @@ def creerFichierChallenge(challenge, entete):
         if Parametres["CategorieDAge"] == 2 :
             classe = classe[3:]
         #liste = ResultatsGroupements[challenge][i].listeCF + ResultatsGroupements[challenge][i].listeCG
-        tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-1em}\\begin{center} "+ classe +"\\end{center}&  "
-        tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
-        #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
-        tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
-        tableau += ' \\end{center} \\\\ \n \\end{minipage} \n & '
-        tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
+        ligne = [str(i+1), classe, listeNPremiersGF(ResultatsGroupements[challenge][i]), str(ResultatsGroupements[challenge][i].scoreFormate())]
+        # tableau += "{} \\hfill {} "+ str(i+1) +"{} \\hfill {}  &{}\\vspace{-1em}\\begin{center} "+ classe +"\\end{center}&  "
+        # tableau += '\\begin{minipage}{\\linewidth} \\medskip \n {} \\begin{center} '# + listeNPremiers(ResultatsGroupements[challenge][i].listeCF) + ", "
+        # #tableau += ' {} \\hfill {} \\\\ \n \n' + ' {} \\hfill {} ' + 
+        # tableau += listeNPremiersGF(ResultatsGroupements[challenge][i]) # listeNPremiers(ResultatsGroupements[challenge][i].listeCG)
+        # tableau += ' \\end{center} \\\\ \n \\end{minipage} \n & '
+        # tableau += "{} \\hfill {} "+str(ResultatsGroupements[challenge][i].scoreFormate()) +"{} \\hfill {} \\\\ \n"
         #tableau += "<td class='moyC'>" + moy +"</td>"
         tableau += "\\hline\n"
+        tableau.append(ligne)
         i += 1
-    return entete + "\n\n" + titre + "\n\n" + tableau
+    return [titre] + ["<p>"] + [tableau]
 
 # def creerFichierCategorie(cat, entete):
     # titre = "{\\Large {} \\hfill \\textbf{CATEGORIE " + cat + "} \\hfill {}}"

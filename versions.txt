@@ -107,10 +107,19 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 21/06/25 :
+- déplacement du thread watchdog vers Fonctions Metiers.
+- Activation et désactivation de ce thread lors de l'ouverture d'un nouveau fichier de données ou lors de la réinitialisation des données.
+- ajout d'une file Queue permettant au thread watchdog de communiquer avec l'interface tkinter pour qu'elle s'actualise en cas de nouvelles données.
+- import d'anciennes sauvegardes de nouveau fonctionnel : correctif lié pour pouvoir importer des fichiers chb sans données RFID.
+
+
+Travail du 20/06/25 :
+- la présence du fichier donnees_RFID.txt dans les sauvegardes est rendue facultative afin de pouvoir réimporter les anciennes sauvegardes.
+- création des fichiers de challenge avec reportlab (sans texlive).
 
 Travail du 19/06/25 :
 - implémentation du document de statistiques généré avec reportlab (sans texlive). Remplacement de la fonction d'origine par absentsDispensesAbandonsNG()
-
 
 Travail du 17/06/25 : correction de bugs :
 - Correctif dossier résultats (transféré vers Documents/chronoHB/resultats/intitule-cross).
