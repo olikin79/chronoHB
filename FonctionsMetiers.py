@@ -4796,8 +4796,8 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     fstats += ["<b>Nombre total d'arrivées : </b>" + str(nbreArriveesTotal)]
     if not Parametres["CoursesManuelles"] :
         fstats += ["<b>Nombre total de dispensés : </b>" + str(nbreDispensesTotal)]
-        fstats += ["<b>Nombre total d'abandons : : </b>" + str(nbreAbandonsTotal)]
-        fstats += ["<b>Nombre total d'absents : : </b>" + str(nbreAbsentsTotal)]
+        fstats += ["<b>Nombre total d'abandons : </b>" + str(nbreAbandonsTotal)]
+        fstats += ["<b>Nombre total d'absents : </b>" + str(nbreAbsentsTotal)]
     
     fstats += [PageBreak()]
     fstats += absentsDispensesAbandonsNG()
