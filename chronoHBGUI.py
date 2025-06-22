@@ -105,9 +105,9 @@ from queue import Queue
 
 CoureursParClasse = {}
 
-root = Tk() # initial box declaration
-root.title("ChronoHB")
-root.iconbitmap(r'favicon.ico')
+rootGUI = Tk() # initial box declaration
+rootGUI.title("ChronoHB")
+rootGUI.iconbitmap(r'favicon.ico')
 
 ### popup pour faire patienter
 # Création du popup de démarrage
@@ -801,7 +801,7 @@ class MonTableau(Frame):
         
     def maj(self, TableauGUI, premiereExecution=False) :
         #print("tableauGUI", tableauGUI)
-        global ligneTableauGUI, ArriveeTemps, main_loop
+        global ArriveeTemps, main_loop
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
             self.reinit(Reordonner=True)
@@ -812,7 +812,7 @@ class MonTableau(Frame):
                 # il y a des lignes à actualiser
                 ligneInitiale = TableauGUI[0][0]
                 #ligneAjoutee = ligneTableauGUI[0]
-                derniereLigneStabilisee = ligneTableauGUI[1]
+                derniereLigneStabilisee = root["ligneTableauGUI"][1]
                 print("ligneInitiale :" , ligneInitiale)
                 print("dernière ligne stabilisée :", derniereLigneStabilisee)
                 try:
@@ -821,7 +821,7 @@ class MonTableau(Frame):
                 except Exception as e :
                     print(f"Erreur détectée : {e}")
                 # print("après get_children()")
-                # print(ligneTableauGUI)
+                # print(root["ligneTableauGUI"])
                 for donnee in TableauGUI :
                     self.majLigne(ligneInitiale, donnee, items)
                     ligneInitiale += 1
@@ -842,8 +842,8 @@ class MonTableau(Frame):
                     self.treeview.yview_moveto('0.9999') # tentative pour pallier le problème du défilement tous les deux ajouts de lignes.
                     self.treeview.yview_moveto('1.0')
 
-        #print(self.effectif , ligneTableauGUI)
-        ### nbFileDAttente =  len(TableauGUI) #self.effectif - ligneTableauGUI[0] + 1
+        #print(self.effectif , root["ligneTableauGUI"])
+        ### nbFileDAttente =  len(TableauGUI) #self.effectif - root["ligneTableauGUI"][0] + 1
         # si les deux derniers temps sont identiques, cela signifie qu'un nombre insuffisant de temps a été saisi. Il y a trop de dossards scannés.
         # Créer une alerte dans l'interface et proposer de dupliquer dans le bon nombre le dernier temps pour tout recaler.
         #print(self.listeDesTemps[-1], self.listeDesTemps[-2])
@@ -976,10 +976,10 @@ class MonTableau(Frame):
                 # print("ligneInitiale",ligneInitiale,"derniereLigneStabilisee",derniereLigneStabilisee)
                 message = str(ligneAAjouter[9]) + '(' + ligneAAjouter[8] + ')' + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
                 if main_loop :
-                    print("diffusion de ", message, ".")
+                    # print("diffusion de ", message, ".")
                     asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
-            else :
-                print("ligne ignorée, non transmise via le serveur SSE :", donnee)
+            # else :
+            #     print("ligne ignorée, non transmise via le serveur SSE :", donnee)
             self.effectif += 1
             
     def formateSurNChiffres(self,nbre,nbreChiffres) :
@@ -1730,21 +1730,21 @@ def extract_ip():
 
 
 
-DroiteFrame = Frame(root)# non fonctionnel ScrollFrame(root)
-GaucheFrame = Frame(root)
+DroiteFrame = Frame(rootGUI)# non fonctionnel ScrollFrame(root)
+GaucheFrame = Frame(rootGUI)
 
-GaucheFrameCoureur = Frame(root)
-GaucheFrameAbsDisp = Frame(root)
-GaucheFrameDossards = Frame(root)
+GaucheFrameCoureur = Frame(rootGUI)
+GaucheFrameAbsDisp = Frame(rootGUI)
+GaucheFrameDossards = Frame(rootGUI)
 #GaucheFrameAbsDisp.pack()
 
 #GaucheFrameDistanceCourses = Frame(root)
 
 #GaucheFrameParametres = Frame(root)
-GaucheFrameDistanceCourses = Frame(root)
-GaucheFrameParametresCourses = Frame(root)
-GaucheFrameParametresInternet = Frame(root)
-GaucheFrameParametresDossardsDiplomes = Frame(root)
+GaucheFrameDistanceCourses = Frame(rootGUI)
+GaucheFrameParametresCourses = Frame(rootGUI)
+GaucheFrameParametresInternet = Frame(rootGUI)
+GaucheFrameParametresDossardsDiplomes = Frame(rootGUI)
 
 
 ## menu interactif déroulant en haut
@@ -2184,7 +2184,7 @@ def dupliquerTempsAction() :
         # print("requete :", 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         # r = requests.get('http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard=0&tpsCoureur='+tempsReel)
         # regenereAffichageGUI()
-        # root.after(100, lambda: timer.traiterDonnees())
+        # rootGUI.after(100, lambda: timer.traiterDonnees())
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à dupliquer."
@@ -2582,7 +2582,7 @@ def activerDesactiverLaVideo():
         except :
             # on retente un peu plus tard car l'initialisation n'a pas pu être effectuée.
             # on relance activerDesactiverLaVideo() dans 1 seconde avec timer
-            root.after(1000,activerDesactiverLaVideo)
+            rootGUI.after(1000,activerDesactiverLaVideo)
             pass
 
 
@@ -2709,7 +2709,7 @@ tableau.pack(fill=BOTH,expand=True)
 nbreFileAttenteLabel = Label(bottomframe, text="")
 nbreFileAttenteLabel.pack(side= LEFT)
 
-menubar = Menu(root)
+menubar = Menu(rootGUI)
 # create more pulldown menus
 editmenu = Menu(menubar, tearoff=0)
 
@@ -2895,7 +2895,7 @@ def actualiseAffichageZoneDeDroite(erreursEnCours=[]) :
 
 
 def rejouerToutesLesActionsMemorisees() :
-    global ligneTableauGUI, tableau
+    global tableau
     print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
     print("On supprime tous les temps, tous les dossards arrivés.")
     print("On conserve le listing coureurs, le top départ de chaque course.")
@@ -2910,7 +2910,7 @@ def rejouerToutesLesActionsMemorisees() :
     # dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
-    ligneTableauGUI = [1,0]
+    root["ligneTableauGUI"] = [1,0]
     print("On retraite tous les fichiers de données grace au timer.")
     timer.reinitErreursATraiter()
     tableau.reinit()
@@ -3006,8 +3006,8 @@ def onClick(grpe):
     print("grpe",grpe)
     groupement = groupementAPartirDeSonNom(grpe, nomStandard=True)
     print("ouverture de la boite de dialogue pour modifier le départ de la course :",groupement.nom)
-    inputDialog = departDialog(groupement ,root)
-    root.wait_window(inputDialog.top)
+    inputDialog = departDialog(groupement ,rootGUI)
+    rootGUI.wait_window(inputDialog.top)
     #print('Nouveau temps défini pour',groupement.nom, ":" , tempsDialog)
     
 
@@ -3330,9 +3330,9 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
 
 # Fonction pour créer un popup permettant une sélection des fichiers à imprimer 
 
-def selectionner_fichiers_popup(root, debuts, dossier=dossier_impressions):
+def selectionner_fichiers_popup(rootGUI, debuts, dossier=dossier_impressions):
     # Créer une nouvelle fenêtre popup
-    popup = Toplevel(root)
+    popup = Toplevel(rootGUI)
     popup.title("Sélection des fichiers à imprimer")
     
     # Variables pour stocker les cases à cocher et leur état
@@ -3389,7 +3389,7 @@ def selectionner_fichiers_popup(root, debuts, dossier=dossier_impressions):
 
 # Fonction pour créer le popup "Veuillez patienter" et lancer la tâche donnée
 def ouvrir_popup_patienter(tache, callback=None):
-    popup = Toplevel(root)
+    popup = Toplevel(rootGUI)
     popup.title("Veuillez patienter...")
     popup.geometry("400x200")
     
@@ -3407,7 +3407,7 @@ def ouvrir_popup_patienter(tache, callback=None):
     # Fonction pour vérifier l'état du thread
     def verifier_si_termine():
         if thread.is_alive():
-            root.after(100, verifier_si_termine)  # Vérifier encore après 100ms
+            rootGUI.after(100, verifier_si_termine)  # Vérifier encore après 100ms
         else:
             # Appeler le callback lorsque le thread est terminé
             if callback:
@@ -3493,6 +3493,7 @@ class Clock():
                 event = self.event_queue.get(block=False) # block=False pour éviter de bloquer si la queue est vide (bien que le while not empty() le gère)
             if not Parametres["traiterDonneesActif"] :
                 Parametres["traiterDonneesActif"] = True
+                self.auMoinsUnImport = True
                 self.traiterDonnees(event)
                 Parametres["traiterDonneesActif"] = False
             else :
@@ -3613,11 +3614,11 @@ class Clock():
 
         # création des boutons pour traitement des erreurs
         self.erreursATraiter(self.listeNouvellesErreursATraiter)
+        actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
 
+        # FIN DU SCRIPT
         # se relance dans un temps prédéfini.
         self.premiereExecution = False
-        # print("Fin de timer.traiterDonnees().")
-
         # on a reçu des données pendant l'exécution de traiterDonnees(), on le relance.
         if self.traiterDonneesARelancer :
             self.traiterDonneesARelancer = False
@@ -3630,9 +3631,6 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
 
-        # if self.premiereExecution :
-        #     print("Première exécution: mise à jour de l'affichage.")
-        #     self.traiterDonnees()
         
         # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
         if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
@@ -3709,7 +3707,7 @@ class Clock():
                 mon_thread_Diplomes.envoi_en_cours = False
         except :
             pass
-        actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
+        
         # if tagEnvoiDiplomeEnCours :
         #     # self.listeNouvellesErreursATraiter.append(Erreur(701, "Envoi des diplômes en cours..."))
         #     self.erreursATraiter(self.listeNouvellesErreursATraiter)
@@ -3742,7 +3740,6 @@ class Clock():
         self.auMoinsUnImport = False
 
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
-        tableau.setLargeurColonnesAuto()
         self.root.after(int(1000*self.delaiActualisation), self.update_clock)
 
     def actualiserAffichageDeDroite(self, val) :
@@ -3848,7 +3845,7 @@ except :
 print("initEffectifs lancé, on arrive dans clock init")
 
         
-timer=Clock(root, "tableau.maj")
+timer=Clock(rootGUI, "tableau.maj")
 
 rejouerToutesLesActionsMemorisees()
 
@@ -4129,7 +4126,7 @@ def generateImpressionsArrierePlan():
 
 def affichagePopupPourImpressionRapide() : 
     # création du popup pour sélectionner les fichier sà imprimer.
-    selectionner_fichiers_popup(root, ["Challenge","Course"])
+    selectionner_fichiers_popup(rootGUI, ["Challenge","Course"])
 
 def imprimerArrierePlan(fichiers) :
     for fichier in fichiers :
@@ -4787,7 +4784,7 @@ resetmenu.add_command(label="Effacer les données de courses mais pas les coureu
 resetmenu.add_separator()
 resetmenu.add_command(label="Récupérer une sauvegarde", command=recupererSauvegardeGUI)
 resetmenu.add_separator()
-resetmenu.add_command(label="Quitter", command=root.quit)
+resetmenu.add_command(label="Quitter", command=rootGUI.quit)
 menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 
 # menu préparation course
@@ -5732,7 +5729,7 @@ def relancer():
 ##    sys.stdout.flush()
 ##    print(sys.argv[0], sys.argv)
 ##    os.execv(sys.argv[0],sys.argv)
-    root.destroy()
+    rootGUI.destroy()
     os.startfile("chronoHB.pyw")
 
 # exécution éventuelle de la mise à jour programmée.
@@ -5762,12 +5759,12 @@ def exportOPUSS():
                 chaine_opuss = genereChainePourOPUSS(challenge, nombre_qualifies)
 
                 # Copier la chaîne générée dans le presse-papiers
-                root.clipboard_clear()
-                root.clipboard_append(chaine_opuss)
-                root.update()
+                rootGUI.clipboard_clear()
+                rootGUI.clipboard_append(chaine_opuss)
+                rootGUI.update()
 
                 # Afficher le deuxième popup
-                popup2 = Toplevel(root)
+                popup2 = Toplevel(rootGUI)
                 popup2.title("Coller le contenu généré dans le logiciel OPUSS")
                 label2 = Label(popup2, text="Collez le contenu généré dans le logiciel OPUSS.")
                 label2.pack(padx=10, pady=10)
@@ -5776,7 +5773,7 @@ def exportOPUSS():
                 popup.destroy()
 
             # Configuration de la fenêtre principale
-            popup = Toplevel(root)
+            popup = Toplevel(rootGUI)
             popup.title("Sélection pour export vers OPUSS")
 
             # Style pour centrer le texte dans la Combobox
@@ -5873,7 +5870,7 @@ def download_update(remote_version):
 def restart_program(remote_version):
     boiteDialogueInfo("Redémarrage du programme pour appliquer les mises à jour...")
     # Fermer l'application tkinter
-    root.destroy()
+    rootGUI.destroy()
 
     # # décompression du fichier zip téléchargé et actualisation du fichier de version.
     # # Extraire le fichier zip
@@ -5964,10 +5961,10 @@ def execute_update_script():
 
 def boiteDialogueInfoReboot(message):
     """Affiche une boîte de dialogue d'information."""
-    root = tk.Tk()
-    root.withdraw()  # Cacher la fenêtre principale
+    rootGUI = tk.Tk()
+    rootGUI.withdraw()  # Cacher la fenêtre principale
     messagebox.showinfo("Information", message)
-    root.destroy()
+    rootGUI.destroy()
 
 # class UpdateThread(threading.Thread):
 #     def __init__(self, callback_success, callback_failure, remote_version):
@@ -6110,7 +6107,7 @@ helpmenu.add_command(label="A propos de ChronoHB", command=noVersion)
 menubar.add_cascade(label="Aide", menu=helpmenu)
 
 # display the menu
-root.config(menu=menubar)
+rootGUI.config(menu=menubar)
 
 
 ### mise en page des Frames entre eux...
@@ -6151,12 +6148,12 @@ ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 # root.attributes("-fullscreen", True)
 
 # pour un plein écran avec barre des taches.
-root.state("zoomed")
+rootGUI.state("zoomed")
 
 # ### Ferme le popup qui montre le chargement de chronoBHB
 # popup.destroy()
 
-root.mainloop() # enter the message loop
+rootGUI.mainloop() # enter the message loop
 
 # sauvegarde de l'état des boutons de l'affichage TV avant fermeture
 Parametres["listeAffichageTV"] = checkBoxBarAffichage.state()

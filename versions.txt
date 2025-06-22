@@ -107,6 +107,11 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 22/06/25 :
+- distinction entre les variables root (dictionnaire de données) et rootGUI (tk.tk()). Correction du code pour plus de clarté.
+
+
+
 Travail du 21/06/25 :
 - déplacement du thread watchdog vers Fonctions Metiers.
 - Activation et désactivation de ce thread lors de l'ouverture d'un nouveau fichier de données ou lors de la réinitialisation des données.
