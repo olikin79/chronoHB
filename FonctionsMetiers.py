@@ -147,6 +147,7 @@ from queue import Queue
 class MonGestionnaireEvenements(FileSystemEventHandler):
     def __init__(self, event_queue):
         self.event_queue = event_queue
+        self.event_queue.put({"type": "initialisation du gestionnaire d'éèvements watchdog", "path": "on force un traitement ."})
 
     def on_modified(self, event):
         if not event.is_directory:
@@ -164,8 +165,8 @@ def demarrerLObservateurDeFichiersDeDonnees(event_queue) :
     thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
     thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
     thread_observateur.start()
-    print("Observateur des fichiers de données démarré.")
-    event_queue.put({"type": "initialisation", "path": "tous les fichiers sont modifiés"})
+    print("Observateur des fichiers de données démarré. On force le traitement des données ici.")
+    
 
 def arreterLObservateurDeFichiersDeDonnees() :
     global thread_observateur, observateur
