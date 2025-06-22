@@ -109,7 +109,7 @@ Pbs persistants urgents :
 ############
 Travail du 22/06/25 :
 - distinction entre les variables root (dictionnaire de données) et rootGUI (tk.tk()). Correction du code pour plus de clarté.
-
+- nom explicite pour le dossier contenant les sauvegardes automatiques.
 
 
 Travail du 21/06/25 :

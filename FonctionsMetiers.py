@@ -113,8 +113,8 @@ os.makedirs(dossier_resultats, exist_ok=True)
 
 dossier_videos = os.path.join(DOCUMENTS, "videos")
 os.makedirs(dossier_videos, exist_ok=True)
-dossier_db = os.path.join(DOCUMENTS, "db")
-print(f"Le fichier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
+dossier_db = os.path.join(DOCUMENTS, "sauvegardes_automatiques")
+print(f"Le dossier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
 os.makedirs(dossier_videos, exist_ok=True)
 
 def windows():
@@ -2346,8 +2346,7 @@ class ArriveeTempsAffecteClass(list):
 
 # setup the database
 def chargerDonnees() :
-    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,Parametres,sauvegarde,\
-           ligneTableauGUI
+    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,Parametres,sauvegarde
     noSauvegarde = 1
     sauvegarde=os.path.join(DONNEES,"Courses.db")
     if os.path.exists(sauvegarde) :
@@ -2411,9 +2410,9 @@ def chargerDonnees() :
     #     root["LignesIgnoreesLocal"] = []
     # LignesIgnoreesLocal=root["LignesIgnoreesLocal"]
 
-    if not "ligneTableauGUI" in root :
-        root["ligneTableauGUI"] = [1,0]
-    ligneTableauGUI=root["ligneTableauGUI"]
+    # if not "ligneTableauGUI" in root :
+    root["ligneTableauGUI"] = [1,0] # quand on charge les données, la ligne reprend à 1.
+    # ligneTableauGUI=root["ligneTableauGUI"]
 
     ### paramètres par défaut
     if not "Parametres" in root :
@@ -2806,13 +2805,13 @@ def reinitTableauGUI () :
 
 def alimenteTableauGUI (tableauGUI, coureur, temps, dossardAffecte, ligneAjoutee, derniereLigneStabilisee ):
     """ modifie le tableau tableauGUI des lignes à actualiser dans l'interface graphique """
-    global ligneTableauGUI
+    # global ligneTableauGUI
     if derniereLigneStabilisee < ligneAjoutee :
 ##    if ligneAjoutee < len(tableauGUI) :
 ##        tableauGUI[ligneAjoutee - 1] = formateLigneGUI(coureur, temps, dossardAffecte)
 ##    else :
         tableauGUI.append(formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee))
-    ligneTableauGUI[0] = ligneTableauGUI[0]+1
+    root["ligneTableauGUI"][0] = root["ligneTableauGUI"][0]+1
 
 def formateLigneGUI(coureur, temps, dossardAffecte, ligneAjoutee):
     #print(len(self.lignes)+1)
@@ -6206,7 +6205,7 @@ def dupliqueTemps(tps):
         Retourne un temps disponible dans la liste des temps arrivés (le même temps que celui fourni plus quelques centièmes (en tempsReel calculé)."""
     # nouveauTps = tps
     if tempsClientIsNotInArriveeTemps(tps) :
-        print("On retourne :",tps.tempsReelFormateDateHeure())
+        # print("On retourne :",tps.tempsReelFormateDateHeure())
         return tps
     else :
         print("Le temps",tps.tempsReelFormateDateHeure(),"existe déjà. On ajoute une nouvelle milliseconde tant que l'on ne trouve pas un temps disponible.")
@@ -6842,30 +6841,30 @@ def calculeTousLesTemps(reinitialise = False):
     Si l'argument est True, recalcule tout depuis le début.
     Retourne une liste d'instances de la class Erreur pour traitement par l'interface GUI."""
     #print("Début de CalculeTousLesTemps(",reinitialise,")")
-    global ligneTableauGUI,TableauGUI
+    global TableauGUI
     retour = []
     reinitTableauGUI()
     #print('Parametres["calculateAll"]', Parametres["calculateAll"])
     if Parametres["calculateAll"] or reinitialise :
         Parametres["positionDansArriveeTemps"] = 0
         Parametres["positionDansArriveeDossards"] = 0
-        ligneTableauGUI = [1,0]
+        root["ligneTableauGUI"] = [1,0]
         print("on REINITIALISE")
         # print(globals())
         if 'tableau' in globals() :
-            globals()['tableau'].delTreeviewFrom(ligneTableauGUI[0])
-            print("on efface treeview jusqu'à la ligne",ligneTableauGUI[0])
+            globals()['tableau'].delTreeviewFrom(root["ligneTableauGUI"][0])
+            print("on efface treeview jusqu'à la ligne",root["ligneTableauGUI"][0])
     i = Parametres["positionDansArriveeTemps"]
     j = Parametres["positionDansArriveeDossards"]
     chronosInutilesAvantLeDossard = 0
-    ligneAjoutee = ligneTableauGUI[0]
-    derniereLigneStabilisee = ligneTableauGUI[1]
+    ligneAjoutee = root["ligneTableauGUI"][0]
+    derniereLigneStabilisee = root["ligneTableauGUI"][1]
     #print("DerniereLigneStabilisee au début",derniereLigneStabilisee, "i=", i, "j=",j,"retour",retour)
     #print("len(ArriveeDossards)",len(ArriveeDossards), "len(ArriveeTemps)",len(ArriveeTemps))
     while j < len(ArriveeDossards) and i < len(ArriveeTemps):
         # chaque dossard scanné doit se voir attribué un temps. i < len(ArriveeTemps) à tester plus loin.
         doss = formateDossardNG(ArriveeDossards[j])
-        #print(ligneTableauGUI,"dossard", doss, reinitialise)
+        #print(root["ligneTableauGUI"],"dossard", doss, reinitialise)
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i])
@@ -6953,10 +6952,10 @@ def calculeTousLesTemps(reinitialise = False):
             retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
             ligneAjoutee += 1
             k += 1
-    ligneTableauGUI = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
-    #### ligneTableauGUI[0] = ligneTableauGUI[1] + 1
+    root["ligneTableauGUI"] = [derniereLigneStabilisee + 1 , derniereLigneStabilisee]
+    #### root["ligneTableauGUI"][0] = root["ligneTableauGUI"][1] + 1
     if Parametres["calculateAll"] :
-        # print("DONNEES UTILES GUI:",ligneTableauGUI, tableauGUI)
+        # print("DONNEES UTILES GUI:",root["ligneTableauGUI"], tableauGUI)
         Parametres["calculateAll"] = False
     Parametres["positionDansArriveeTemps"] = i
     Parametres["positionDansArriveeDossards"] = j
@@ -7285,7 +7284,7 @@ def delArriveeTempss():
 
 def delDossardsEtTemps():
     # arreterLObservateurDeFichiersDeDonnees()
-    global ligneTableauGUI
+    # global ligneTableauGUI
 ##    if not Parametres["CourseCommencee"] :
     Parametres["positionDansArriveeTemps"] = 0
     Parametres["positionDansArriveeDossards"] = 0
@@ -7308,7 +7307,7 @@ def delDossardsEtTemps():
     genereAffichageWWW([])
     # root["LignesIgnoreesSmartphone"] = []
     # root["LignesIgnoreesLocal"] = []
-    ligneTableauGUI = [1,0]
+    root["ligneTableauGUI"] = [1,0]
     if os.path.exists("./videos") :
         shutil.rmtree("./videos")
 ##    else :
@@ -7316,7 +7315,7 @@ def delDossardsEtTemps():
     # demarrerLObservateurDeFichiersDeDonnees()
 
 def delCoureurs():
-    global ligneTableauGUI
+    # global ligneTableauGUI
 ##    if not Parametres["CourseCommencee"] :
     Coureurs.effacerTout()
     CoureursParClasseUpdate()
