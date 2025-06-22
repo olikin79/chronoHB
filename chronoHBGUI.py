@@ -1816,7 +1816,7 @@ class TopDepartFrame(Frame) :
         #print("TOP DEPART pour :", listeCochee)
         topDepart(listeCochee)
         self.actualise()
-        rejouerToutesLesActionsMemorisees()
+        # rejouerToutesLesActionsMemorisees()
         print("on reconstruit le menu AnnulDepart")
         self.departsAnnulesRecemment = True
         construireMenuAnnulDepart()
@@ -2049,12 +2049,12 @@ class departDialog:
         tempsDialog = self.myEntryBox.get()
         fixerDepart(self.groupement.nom,tempsDialog)
         self.top.destroy()
-        regenereAffichageGUI()
+        # regenereAffichageGUI()
 
     def restaure(self):
         self.myEntryBox.delete(0, END)
         self.myEntryBox.insert(0, Courses[self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
-        regenereAffichageGUI()
+        # regenereAffichageGUI()
         
     def annul(self):
         self.top.destroy()
@@ -2899,21 +2899,20 @@ def rejouerToutesLesActionsMemorisees() :
     print("REIMPORT DE TOUTES LES DONNEES MEMORISEES")
     print("On supprime tous les temps, tous les dossards arrivés.")
     print("On conserve le listing coureurs, le top départ de chaque course.")
-    Parametres["positionDansArriveeTemps"] = 0
-    Parametres["positionDansArriveeDossards"] = 0
-    Parametres["tempsDerniereRecuperationSmartphone"]=0
-    Parametres["ligneDerniereRecuperationSmartphone"]=1
-    Parametres["tempsDerniereRecuperationLocale"]=0
-    Parametres["ligneDerniereRecuperationLocale"]=1
+
     # on retraite les piques également désormais.
     Parametres["DerniereRecuperationSmartphonePiques"] = {}
     # dictUIDPrecedents.clear()
     delArriveeDossards()
     delArriveeTempss()
     root["ligneTableauGUI"] = [1,0]
-    print("On retraite tous les fichiers de données grace au timer.")
-    timer.reinitErreursATraiter()
+    print("On retraite tous les fichiers de données, actualise le tableau et les erreurs affichées.")
+
+    timer.premiereExecution = True
+    timer.traiterDonnees()
     tableau.reinit()
+    timer.reinitErreursATraiter()
+    
 
 
 
@@ -2977,8 +2976,8 @@ au(x) précédent(s) import(s).")
                 else :
                     retourImport = False # Que des erreurs dans le fichier, le signaler.
                 if retourImport :
-                    rejouerToutesLesActionsMemorisees()
-                    calculeTousLesTemps(True)
+                    # rejouerToutesLesActionsMemorisees()
+                    # calculeTousLesTemps(True)
                     actualiseToutLAffichage()
                     reponse = showinfo("FIN DE L'IMPORT DE DONNEES","L'import à partir du fichier "+nomFichier +" est terminé.\n" +\
     chaineBilan + "Les données précédentes ont été complétées (dispenses, absences, commentaires,...).\n\
@@ -3473,7 +3472,7 @@ class Clock():
         Parametres["traiterDonneesActif"] = False
         self.traiterDonneesARelancer = False
         # exécution initiale.
-        self.root.after(0, self.traiterDonnees) # exécution initiale de la fonction de traitement des données afin d'afficher dans l'interface les données présentes dans les fichiers de données.
+        # self.root.after(0, self.traiterDonnees) # exécution initiale de la fonction de traitement des données afin d'afficher dans l'interface les données présentes dans les fichiers de données.
         self.root.after(0, self.update_clock) # fonction qui actualise certains éléments moins fréquemment (sauvegarde, dépôt FTP, envoi d'email)
         self.root.after(0, self.surveillance_queue) # fonction qui surveille la file self.event_queue et qui actualise l'interface si cette file est non vide.
         demarrerLObservateurDeFichiersDeDonnees(self.event_queue)
@@ -3483,6 +3482,7 @@ class Clock():
             self.premiereExecution = bool(valeur)
             if self.premiereExecution :
                 self.traiterDonnees()
+                rejouerToutesLesActionsMemorisees()
         except :
             print("Valeur fournie pour la propriété self.premiereExecution incorrecte",self.premiereExecution)
         
@@ -3506,45 +3506,8 @@ class Clock():
 
 
     def traiterDonnees(self, event=None):
-        # global tableauGUI
-        # def update_clock(self):
-        #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         global tableauGUI,traitementDonneesRecuperees, listeFichiersDonnees
-        
-        
-        # print("Courses",Courses)
-        # debug pour afficher les coureurs qui n'ont pas une lettre de dossard correspondant au nomStandard de la course dans laquelle ils ont couru
-        # for c in Coureurs.liste() :
-        #     # print(c.nom, c.prenom, c.course, c.dossard)
-        #     if not c.course in c.dossard :
-        #     #     print("RAS")
-        #     # else :
-        #         print(c.nom, c.prenom, "inscrit dans", c.course, "a le dossard", c.dossard)
-        # print("-------------------------------")
-
-        # debug afficher les paramètres du coureur 576A
-        # c= Coureurs.recuperer("576A")
-        # print("Paramètres du coureur 576A",c.nom,c.prenom,c.email, c.emailEnvoiEffectue, c.emailNombreDEnvois)
-
-        #print("test sauvegarde:",derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone),derniereModifFichierDonnneesLocalesRecente(donneesModifLocales))
-        # for file in glob.glob(os.path.join(dossier_data_txt,"donneesSmartphone-pique-*.txt")) :
-        #     if file not in listeFichiersDonnees:
-        #         listeFichiersDonnees.append(file)
-        #         Parametres["tempsDerniereRecuperation"] += [0]
-        # for i, fichier in enumerate(listeFichiersDonnees) :
-        #     if derniereModifFichierDonnneesRecente(fichier, Parametres["tempsDerniereRecuperation"][i]) :
-        #         print("Le fichier",fichier,"a été modifié depuis la dernière actualisation.")
-        #         # if derniereModifFichierDonnneesSmartphoneRecente(donneesSmartphone) or derniereModifFichierDonnneesRFIDRecente(donneesRFID) or derniereModifFichierDonnneesLocalesRecente(donneesModifLocales):
-        #         self.auMoinsUnImport = True
-        #         break
-        
-        ## nouvelle version de gestion des erreurs sans bloquant : on récupère les diverses erreurs liées au traitement des données ou à leur récupération.
-        # traitementSmartphone = traiterDonneesSmartphone(DepuisLeDebut = self.premiereExecution)
-        # # print("traitementSmartphone",traitementSmartphone)
-        # traitementSmartphonePiques = traiterDonneesSmartphonePiques()
-        # # print("traitementSmartphonePiques",traitementSmartphonePiques)
-        # traitementLocal = traiterDonneesLocales(DepuisLeDebut = self.premiereExecution)
-        # print("ANALYSE DES DONNEES DEPUIS LE DEBUT", self.premiereExecution)
+     
         print("Traitement des données NG horodatées. Première exécution =", self.premiereExecution)
         traitementToutesDonnees = traiterToutesDonneesNG(DepuisLeDebut = self.premiereExecution)
         # print("traitementLocal",traitementLocal)
@@ -3574,7 +3537,8 @@ class Clock():
 ##            print("pas de maj de tableau GUI")
         print("Actualisation du tableau GUI dans le thread principal")
         self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")"))
-        # eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")")
+        print("eval(" + str(self.MAJfunction) + "(" + str(tableauGUI))
+        print("premiereExecution=" + str(self.premiereExecution) + ")")
 
         print("Fin de l'actualisation du tableau")
         tableau.makeDefilementAuto()
@@ -3621,6 +3585,7 @@ class Clock():
         self.premiereExecution = False
         # on a reçu des données pendant l'exécution de traiterDonnees(), on le relance.
         if self.traiterDonneesARelancer :
+            print("On relance traiterDonnees() car des données sont arrivées entre temps.")
             self.traiterDonneesARelancer = False
             self.traiterDonnees()
 
@@ -3748,8 +3713,7 @@ class Clock():
     def reinitErreursATraiter(self):
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
-        self.premiereExecution = True
-        self.traiterDonnees()
+
         
     def erreursATraiter(self,listeNouvellesErreursATraiter):
         global tagEnvoiDiplomeEnCours
@@ -3847,7 +3811,7 @@ print("initEffectifs lancé, on arrive dans clock init")
         
 timer=Clock(rootGUI, "tableau.maj")
 
-rejouerToutesLesActionsMemorisees()
+# rejouerToutesLesActionsMemorisees()
 
 
 ####
@@ -3936,9 +3900,9 @@ def actualiseToutLAffichage(toutSaufParametresCourses=False) :
     dossardsZone.actualiseListeDesClasses()
     actualiseEtatBoutonsRadioConfig()
     zoneCoureursAjoutModif.actualiseAffichage()
-    timer.premiereExecution = True
-    timer.traiterDonnees()
-    #timer.reinitErreursATraiter()      
+    ## FAUT IL retraiter toutes les données via le timer ? L'affichage n'est normalement pas lié aux données.
+    # timer.setPremiereExecution(True)
+    timer.reinitErreursATraiter()      
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -4275,8 +4239,8 @@ def tempsDesCoureurs():
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
-    rejouerToutesLesActionsMemorisees()
-    calculeTousLesTemps(True)
+    # rejouerToutesLesActionsMemorisees()
+    # calculeTousLesTemps(True)
     # dépose les pages internet sur le serveur FTP
     depotFTPResultats(initial=True)
     ## décoche les cases, pourtant il faudrait actualiser les valeurs. actualiseZoneAffichageTV()
@@ -4631,7 +4595,7 @@ def recupererSauvegardeGUI(name_file="") :
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
         generateListCoureursPourSmartphone()
-        rejouerToutesLesActionsMemorisees()
+        # rejouerToutesLesActionsMemorisees()
 
 
 class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
