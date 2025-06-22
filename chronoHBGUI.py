@@ -3518,32 +3518,9 @@ class Clock():
         print("Fin de l'actualisation du tableau")
         tableau.makeDefilementAuto()
 
-        ########## GESTION DU MESSAGE D'INFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
-        # si des dossards de certains coureurs n'ont pas encore été imprimés, proposer l'impression via une erreur spcifique à ajouter dans listeNouvellesErreursATraiter
-        # print("Dossards à imprimer à signaler dans l'interface : ", listeDesDossardsAImprimer)
-        nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
-        if Parametres["utilisationDesDossardsDeChronoHB"] :
-            # le logiciel gère les dossards du cross
-            # tant qu'il y a des dossards à imprimer, on le signale.
-            self.listeNouvellesErreursATraiter.append(erreur)
-        else :
-            # le logiciel ne gère pas l'impression des dossards du trail. 
-            # On signale l'import mais on permet d'un clic de supprimer l'information
-            if not "nbreAImprimerAncien" in Parametres.keys() : # cas de la première exécution
-                Parametres["nbreAImprimerAncien"] = 0
-                Parametres["informationNouveauxDossardsImportesAEffacer"] = False
-                print("Initialisation de la variable nbreAImprimerAncien")
-            if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
-                # print("Le nombre de coureurs a changé depuis le dernier import automatique.")
-                # le nombre a changé depuis le dernier clic : on réaffiche le message
-                # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
-                    # le message doit se réafficher 
-                # print("On affiche l'information")
-                self.listeNouvellesErreursATraiter.append(erreur)
-            # else :
-            #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
-            #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
-            #     listeNouvellesErreursATraiter.append(erreur)        
+        ActualiseAffichageTV()
+
+      
 
         # DEVENU POSSIBLE ou INUTILE ? : c'est le clic sur le bouton de l'interface qui provoque la compilation. Inutile de compiler à l'avance ni deux fois.
         # compilation des dossards à imprimer si changement récent.
@@ -3581,6 +3558,34 @@ class Clock():
             DownloadDaemon.start()
             self.compteurTelechargementURLGoogleSheet = 0
         self.compteurTelechargementURLGoogleSheet += 1
+
+
+        ########## GESTION DU MESSAGE D'INFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
+        # si des dossards de certains coureurs n'ont pas encore été imprimés, proposer l'impression via une erreur spcifique à ajouter dans listeNouvellesErreursATraiter
+        # print("Dossards à imprimer à signaler dans l'interface : ", listeDesDossardsAImprimer)
+        nbreAImprimerActuel, erreur = CombienYATIlDossardsAImprimer()
+        if Parametres["utilisationDesDossardsDeChronoHB"] :
+            # le logiciel gère les dossards du cross
+            # tant qu'il y a des dossards à imprimer, on le signale.
+            self.listeNouvellesErreursATraiter.append(erreur)
+        else :
+            # le logiciel ne gère pas l'impression des dossards du trail. 
+            # On signale l'import mais on permet d'un clic de supprimer l'information
+            if not "nbreAImprimerAncien" in Parametres.keys() : # cas de la première exécution
+                Parametres["nbreAImprimerAncien"] = 0
+                Parametres["informationNouveauxDossardsImportesAEffacer"] = False
+                print("Initialisation de la variable nbreAImprimerAncien")
+            if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
+                # print("Le nombre de coureurs a changé depuis le dernier import automatique.")
+                # le nombre a changé depuis le dernier clic : on réaffiche le message
+                # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
+                    # le message doit se réafficher 
+                # print("On affiche l'information")
+                self.listeNouvellesErreursATraiter.append(erreur)
+            # else :
+            #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
+            #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
+            #     listeNouvellesErreursATraiter.append(erreur)  
 
         ip = extract_ip()
         if ip != self.ipActuelle :
@@ -3672,10 +3677,13 @@ class Clock():
 
         # on actualise l'affichageTV à chaque nouvel import.
         #print(self.auMoinsUnImport, "aumoins un changement",checkBoxBarAffichage.auMoinsUnChangement)
-        if self.auMoinsUnImport or checkBoxBarAffichage.auMoinsUnChangement :
+        if self.auMoinsUnImport :
+            depotFTPResultats() # exécute le dépot FTP dans un thread.
+
+        if checkBoxBarAffichage.auMoinsUnChangement :
             ActualiseAffichageTV()
             checkBoxBarAffichage.change(valeur=False)
-            depotFTPResultats() # exécute le dépot FTP dans un thread.
+            
 
         self.auMoinsUnImport = False
 
