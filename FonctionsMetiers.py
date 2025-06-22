@@ -3437,7 +3437,11 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
                     # si le dossard est déjà présent dans la liste des arrivées, on ne l'ajoute pas. On le met juste à jour.
                     if not dossard in ArriveeDossards :
                         # on ajoute le dossard juste après celui mémorisé dans ArriveeDossards car il n'y est pas encore.
-                        retour = addArriveeDossard(dossard, dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)])
+                        try :
+                            dossardPrec = dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)]
+                        except:
+                            dossardPrec = -1
+                        retour = addArriveeDossard(dossard, dossardPrec)
                     dernierDossardDeLaPiquePresentDansArriveeDossards[str(pique)] = dossard
                 else :
                     retour = addArriveeDossard(dossard, dossardPrecedent)
@@ -4099,7 +4103,10 @@ def generateDossardsNG() :
     liste_fichiers_tex_complete=glob.glob(TEXDIR+"**"+os.sep+'*.tex',recursive = True)
     liste_fichiers_pdf_complete=glob.glob("dossards"+os.sep+'*.pdf',recursive = False)
     for file in liste_fichiers_tex_complete + liste_fichiers_pdf_complete :
-        os.remove(file)
+        try :
+            os.remove(file)
+        except: 
+            print("Le fichier", file, "ne sera pas regénéré car il est protégé en écriture (sûrement adobe reader dans lequel il est ouvert).")
     ## générer de nouveaux en-têtes.
     osCWD = os.getcwd()
     #os.chdir("dossards")
