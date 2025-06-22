@@ -6286,7 +6286,7 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard="0A") :
     temps = Temps(tempsReel, 0, 0)
     message = "Temps cherché : " + str(temps.tempsReel) + " soit " + temps.tempsReelFormate() + " pour affectation du dossard " + doss + "."
     CodeRetour = Erreur(312, message , elementConcerne=tempsReel )
-    print(message)
+    # print(message)
     if n != 0 :
         while n > 0 :
             tpsPresent = ArriveeTemps[n-1]
@@ -6800,7 +6800,7 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
                 Parametres["calculateAll"] = True
                 #DonneesAAfficher.reinit() # on regénère le tableau GUI
             except ValueError :
-                message = "DossardPrecedent non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
+                message = "DossardPrecedent " + str(dossPrecedent) + " non trouvé : cela ne devrait pas survenir via l'interface graphique :\n" + infos
                 print(message)
                 retour=Erreur(499,message, elementConcerne=doss)
     else :
