@@ -2435,6 +2435,8 @@ def chargerDonnees() :
         Parametres["ligneDerniereRecuperationRFID"]=1
     if not "ligneDerniereRecuperation" in Parametres :
         Parametres["ligneDerniereRecuperation"]=[1,1,1] # stocke dans l'ordre la ligne dans donneesSmartphone.txt, donneesRFID.txt puis donneesLocales.txt
+    if not "dernierDossardDeLaPiquePresentDansArriveeDossards" in Parametres :
+        Parametres["dernierDossardDeLaPiquePresentDansArriveeDossards"] = {}
     if not "tempsDerniereRecuperationLocale" in Parametres :
         Parametres["tempsDerniereRecuperationLocale"]=0
     if not "ligneDerniereRecuperationLocale" in Parametres :
@@ -2903,6 +2905,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         Parametres["tempsDerniereRecuperation"] = [0,0,0]
         Parametres["DerniereRecuperationSmartphonePiques"] = {}
         Parametres["ligneDerniereRecuperation"] = [1,1,1]
+        Parametres["dernierDossardDeLaPiquePresentDansArriveeDossards"] = {}
         Parametres["calculateAll"] = True
         UIDPrecedents = {}
 
@@ -2916,7 +2919,11 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
     # on récupère les données des fichiers à traiter
     listeDesDonneesATraiter = []
     listeDesTpsServeurDesPremiersElements = []
-    listeLignesDerniereRecuperation = Parametres["ligneDerniereRecuperation"] + [1]*len(listeDesFichiersPique)
+    listeLignesDerniereRecuperation = Parametres["ligneDerniereRecuperation"]
+    # si listeLignesDerniereRecuperation est trop courte, on complète en fonction du nombre de fichiers piques
+    if len(listeLignesDerniereRecuperation) < 3 + len(listeDesFichiersPique) :
+        manque = 3 + len(listeDesFichiersPique) - len(listeLignesDerniereRecuperation)
+        listeLignesDerniereRecuperation += [1]*manque
     
     listeDerniereModifFichierDonnees = [] # #[derniereModifFichierDonnneesSmartphoneRecente(fichierDonneesSmartphone), derniereModifFichierDonnneesRFIDRecente(fichierDonneesRFID), derniereModifFichierDonnneesLocalesRecente(fichierDonneesLocales)]
     for i, fichier in enumerate(listeDesFichiersAAnalyser) :
@@ -2951,7 +2958,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         print("listeDesTpsServeurDesPremiersElements", listeDesTpsServeurDesPremiersElements)
         print("listeDesDonneesATraiter", listeDesDonneesATraiter)
     # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
-    dernierDossardDeLaPiquePresentDansArriveeDossards = {}
+    # dernierDossardDeLaPiquePresentDansArriveeDossards = {}
     while poursuivre and not os.path.exists(fichierFlagAccesConcurrents) :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
@@ -2965,7 +2972,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         # on traite la première ligne de chaque donnée de listeLignesDerniereRecuperation
         ligne = listeDesDonneesATraiter[indiceMin].pop(0)
         if ligne[-4:] == "END\n" : # ligne DOIT ETRE complète (pour éviter les problèmes d'accès concurrant (le cas d'une lecture de ligne alors que l'écriture est non finie)
-            codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = UIDPrecedents ,local=LocalTag, RFID=RFIDtag, pique=PiqueTag, dernierDossardDeLaPiquePresentDansArriveeDossards=dernierDossardDeLaPiquePresentDansArriveeDossards)
+            codeErreur = decodeActionsRecupSmartphone(ligne, UIDPrecedents = UIDPrecedents ,local=LocalTag, RFID=RFIDtag, pique=PiqueTag, dernierDossardDeLaPiquePresentDansArriveeDossards=Parametres["dernierDossardDeLaPiquePresentDansArriveeDossards"])
             if codeErreur.numero :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
