@@ -2172,7 +2172,6 @@ def convert_timestamp_to_epoch(timestamp_str):
             timestamp_str = timestamp_str[:-1] + '+00:00'
         dt_object = datetime.datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%f%z")
         epoch = datetime.datetime(1970, 1, 1, tzinfo=timezone.utc)
-        print("coucou")
         return (dt_object - epoch).total_seconds()
     except ValueError:
         try:
