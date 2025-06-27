@@ -447,8 +447,9 @@ class MonTableau(Frame):
         self.treeview = Treeview(self, height=27, show="headings", columns=self.enTetes, selectmode='browse')
         self.treeview.tag_configure(tagname="erreurs", background="#ff8000") # erreurs en orange
         # tag pour les coureurs qui ont sauté un checkpoint : on les affiche en orange très clair
-        self.treeview.tag_configure(tagname="sauts", background="#ffcc99") # sauts en orange clair
+        self.treeview.tag_configure(tagname="sauts", background="#ff99da") # sauts en orange clair
         self.treeview.tag_configure(tagname="premiers", background="#ffff00") # premiers en or
+        self.treeview.tag_configure(tagname="doublon", background="#00d9ff") # doublons
         self.treeview.column('#0', stretch=0)
         for i, enTete in enumerate(self.enTetes) :
             #print(i, enTete)
@@ -804,6 +805,20 @@ class MonTableau(Frame):
     def maj(self, TableauGUI, premiereExecution=False) :
         #print("tableauGUI", tableauGUI)
         global ArriveeTemps, main_loop
+        # traitement des différents types d'erreurs
+        listeDesDossardsConcerneesParDesErreurs = []
+        listeDesDossardsConcernesParSautDeCheckPoint = [] # pour l'erreur 461
+        listeDesDossardsEnDoublon = [] # pour l'erreur 401.
+        for err in self.listeNouvellesErreursATraiter :
+            if err.dossard :
+                if err.numero == 461 :
+                    listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
+                elif err.numero == 401 : 
+                    listeDesDossardsEnDoublon.append(err.dossard)
+                else :
+                    # pour toutes les autres erreurs, on affiche du orange plus foncé.
+                    listeDesDossardsConcerneesParDesErreurs.append(err.dossard)
+        # traitement de tableauGUI
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
             self.reinit(Reordonner=True)
@@ -825,7 +840,7 @@ class MonTableau(Frame):
                 # print("après get_children()")
                 # print(root["ligneTableauGUI"])
                 for donnee in TableauGUI :
-                    self.majLigne(ligneInitiale, donnee, items)
+                    self.majLigne(ligneInitiale, donnee, items, listeDesDossardsConcerneesParDesErreurs=listeDesDossardsConcerneesParDesErreurs, listeDesDossardsConcernesParSautDeCheckPoint=listeDesDossardsConcernesParSautDeCheckPoint, listeDesDossardsEnDoublon=listeDesDossardsEnDoublon)
                     ligneInitiale += 1
                 ### suppression des lignes en trop en bas du tableau : cas de suppressions de temps, etc...
                 # on supprime tous les items du treeview au delà de premiereLigneASupprimer et on actualise la liste des temps
@@ -875,36 +890,48 @@ class MonTableau(Frame):
         else :
             nbreFileAttenteLabel.config(text="Il ne devrait y avoir personne dans la file d'attente d'arrivée.")
 
-    def metsEnEvidenceErreurs(self, listeDesErreursEnCours, reinitialise = True) :
-        listeDesDossardsConcernees = []
-        listeDesDossardsConcernesParSautDeCheckPoint = [] # cela provoquera l'erreur 461
-        for err in listeDesErreursEnCours :
-            if err.dossard :
-                if err.numero == 461 :
-                    listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
-                else :
-                    # pour toutes les autres erreurs, on affiche du orange plus foncé.
-                    listeDesDossardsConcernees.append(err.dossard)
-            # else :
-            #     print("Erreur sans dossard", err.affiche())
-        # if listeDesDossardsConcernees :
-        #     print("dossards concernés par un affichage spécial :",listeDesDossardsConcernees)
-        #indDansListeDesLignesConcernees = 0
-        #noLigneDansTreeview = 1
-        for iid in self.treeview.get_children() :
-            #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
-            # print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
-            doss = formateDossardNG(self.treeview.item(iid)['values'][self.colonneDossard])
-            if doss in listeDesDossardsConcernees :
-                self.treeview.item(iid, tags="erreurs")
-                #indDansListeDesLignesConcernees += 1
-            elif doss in listeDesDossardsConcernesParSautDeCheckPoint :
-                self.treeview.item(iid, tags="sauts")
-            elif Coureurs.recuperer(doss).rang == 1 :
-                self.treeview.item(iid, tags="premiers")
-            else : #if reinitialise :
-                self.treeview.item(iid, tags=())
-            #noLigneDansTreeview += 1
+    # def metsEnEvidenceErreurs(self, listeDesErreursEnCours, reinitialise = True) :
+    #     listeDesDossardsConcernees = []
+    #     listeDesDossardsConcernesParSautDeCheckPoint = [] # cela provoquera l'erreur 461
+    #     for err in listeDesErreursEnCours :
+    #         if err.dossard :
+    #             if err.numero == 461 :
+    #                 listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
+    #             else :
+    #                 # pour toutes les autres erreurs, on affiche du orange plus foncé.
+    #                 listeDesDossardsConcernees.append(err.dossard)
+    #         # else :
+    #         #     print("Erreur sans dossard", err.affiche())
+    #     # if listeDesDossardsConcernees :
+    #     #     print("dossards concernés par un affichage spécial :",listeDesDossardsConcernees)
+    #     #indDansListeDesLignesConcernees = 0
+    #     #noLigneDansTreeview = 1
+    #     for iid in self.treeview.get_children() :
+    #         #iid = 'I' + self.formateSurNChiffres(noLigneDansTreeview,3)
+    #         # print("Dossard examiné",self.treeview.item(iid)['values'][self.colonneDossard])
+    #         doss = formateDossardNG(self.treeview.item(iid)['values'][self.colonneDossard])
+    #         if doss in listeDesDossardsConcernees :
+    #             self.treeview.item(iid, tags="erreurs")
+    #             # cas des courses non lancées (431), temps négatifs (211).
+    #         elif doss in listeDesDossardsConcernesParSautDeCheckPoint :
+    #             self.treeview.item(iid, tags="sauts")
+    #             # erreur 461 : détecté à un check point non attendu : saut ?
+    #         elif Coureurs.recuperer(doss).rang == 1 :
+    #             self.treeview.item(iid, tags="premiers")
+    #         else : #if reinitialise :
+    #             self.treeview.item(iid, tags=())
+    #         #noLigneDansTreeview += 1
+
+    def colorieCorrectementUneLigneDuTreeview(self, iid, coureur, type_tags=()) :
+        # if listeDesErreursDoublonsDeDossardsEnCours :
+        #     i = 0
+        #     while i < len(listeDesErreursDoublonsDeDossardsEnCours) :
+        #         if coureur.dossard == listeDesErreursDoublonsDeDossardsEnCours[i].dossard :
+        #             type_tags="doublon"
+        #             break
+        #         i += 1
+        self.treeview.item(iid, tags=type_tags)
+        
 
     def setIncoherenceFutureACorriger(self,val):
         self.incoherenceFutureACorriger = val
@@ -925,7 +952,7 @@ class MonTableau(Frame):
             # rejouerToutesLesActionsMemorisees()
             # actualiseToutLAffichage()
                 
-    def majLigne(self, ligne, donnee, items) :
+    def majLigne(self, ligne, donnee, items, listeDesDossardsConcerneesParDesErreurs=[], listeDesDossardsConcernesParSautDeCheckPoint=[], listeDesDossardsEnDoublon=[]) :
         # print(donnee, items)
         #index = int(donnee[0])
         # print("ligne", ligne, "effectif", len(items))
@@ -944,7 +971,7 @@ class MonTableau(Frame):
             ligneAAjouter[self.colonneDossard] = '-'
             ligneAAjouter[self.colonneRang] = '-'
         else :
-            if Coureurs.recuperer(doss).rang :
+            if c.rang :
                 ligneAAjouter[self.colonneRang] = c.rang
             else :
                 ligneAAjouter[self.colonneRang] = "-"
@@ -970,7 +997,7 @@ class MonTableau(Frame):
             # ajout d'une ligne
             self.listeDesTemps.append(donnee[1]) # ajout du temps.
             #print("ajout en ligne", self.effectif +1 , "avec", donnee)
-            self.treeview.insert('', self.effectif, values=tuple(ligneAAjouter))
+            iid = self.treeview.insert('', self.effectif, values=tuple(ligneAAjouter))
             #### diffusion du message immédiate pour la ligne d'arrivée.
             if ligneAAjouter[9] != "-" :#ligneInitiale > derniereLigneStabilisee :
                 # print("ligneInitiale",ligneInitiale,"derniereLigneStabilisee",derniereLigneStabilisee)
@@ -981,6 +1008,19 @@ class MonTableau(Frame):
             # else :
             #     print("ligne ignorée, non transmise via le serveur SSE :", donnee)
             self.effectif += 1
+        # on colorie la ligne correctement lors de l'ajout ou de l'actualisation.
+        type_tags=()
+        if doss in listeDesDossardsEnDoublon :
+            type_tags = "doublon"
+        elif doss in listeDesDossardsConcerneesParDesErreurs :
+            type_tags = "erreurs"
+            # cas des courses non lancées (431), temps négatifs (211).
+        elif doss in listeDesDossardsConcernesParSautDeCheckPoint :
+            type_tags = "sauts"
+            # erreur 461 : détecté à un check point non attendu : saut ?
+        elif c.rang == 1 :
+            type_tags = "premiers"
+        self.colorieCorrectementUneLigneDuTreeview(iid, c, type_tags=type_tags) #, listeDesErreursDoublonsDeDossardsEnCours=listeDesErreursDoublonsDeDossardsEnCours)
             
     def formateSurNChiffres(self,nbre,nbreChiffres) :
         retour = str(nbre)
@@ -1325,7 +1365,7 @@ class ButtonBoxDossards(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         #Combobox(self, width=5, values=('','Abs','Disp'))
-        # def genererUnDossard():        print("Coucou" , pick)           Button(frm, text='DOSSARD', command=genererUnDossard))#
+        # def genererUnDossard():                 Button(frm, text='DOSSARD', command=genererUnDossard))#
         self.coureur = coureur
         def genererUnDossard() :
             print("coureur : ", self.coureur.nom, self.coureur.prenom)
@@ -1513,7 +1553,6 @@ class EntryGroupements(Frame):
 ##                def memoriseValeurBind(event) :
 ##                    numero = int(combobox.get())
 ##                    #combobox.current(numero-1)
-##                    print("coucou", numero)
 ##                    self.updateGroupements()
 ##                    updateDistancesGroupements()
 ##                ligne=Frame(self)
@@ -2749,8 +2788,6 @@ def onClickE(err):
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
 Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en orange ou cliquer sur l'en-tête de colonne 'Dossard'\
 afin de trier le tableau.\n\n\
-Cela provient d'une manipulation volontaire de l'opérateur sur ordinateur (ajout manuel) ou d'un relai de smartphones.\n\
-En effet, un smartphone ne peut pas scanner un même dossard deux fois. Cela provoquerait une erreur.\n\
 Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
 la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
@@ -2796,6 +2833,7 @@ def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCour
             listErreursEnCoursTronquee = listErreursEnCours[:10]
         else :
             listErreursEnCoursTronquee = listErreursEnCours
+        # Actualisation des erreurs dans la liste de boutons à droite de l'interface.
         if listErreursEnCours :
             for grp in listErreursEnCoursTronquee :
                     # lblFrE = Frame(zoneAffichageErreurs)
@@ -2809,7 +2847,8 @@ def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCour
             zoneAffichageErreurs.pack(side=TOP,fill=X)
         else :
             zoneAffichageErreurs.forget()
-        tableau.metsEnEvidenceErreurs(listErreursEnCours)
+        # on ne met plus à jour régulièrement le treeview : devenu inutile puisque réalisé au fil de l'eau à chaque fois qu'une ligne est actualisée lors du traitement des données.
+        # tableau.metsEnEvidenceErreurs(listErreursEnCours)
 
 
 
@@ -3520,8 +3559,6 @@ class Clock():
 
         ActualiseAffichageTV()
 
-      
-
         # DEVENU POSSIBLE ou INUTILE ? : c'est le clic sur le bouton de l'interface qui provoque la compilation. Inutile de compiler à l'avance ni deux fois.
         # compilation des dossards à imprimer si changement récent.
         # if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
@@ -3578,10 +3615,10 @@ class Clock():
             if Parametres["nbreAImprimerAncien"] != nbreAImprimerActuel :
                 # print("Le nombre de coureurs a changé depuis le dernier import automatique.")
                 # le nombre a changé depuis le dernier clic : on réaffiche le message
-                # if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
+                if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
                     # le message doit se réafficher 
-                # print("On affiche l'information")
-                self.listeNouvellesErreursATraiter.append(erreur)
+                    print("On affiche l'information comme quoi des dossards ont été réimportés.")
+                    self.listeNouvellesErreursATraiter.append(erreur)
             # else :
             #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
             #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
@@ -3909,7 +3946,6 @@ def actualiseToutLAffichage(toutSaufParametresCourses=False) :
 ##        #lblDict[grp][1].destroy()
 ##    lblDict.clear()
 ##    listGroupementsCommences = listNomsGroupementsCommences()
-##    #print("coucou",listGroupementsCommences)
 ##    if listGroupementsCommences : 
 ##        for grp in listGroupementsCommences :
 ##            lblFr = Frame(fr)
