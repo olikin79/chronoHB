@@ -287,7 +287,7 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                         etablissement = ""
                     # ici, ajouter un dispositif de vérification sur le dossard demandé : course bien commencée...
                     # ce qui ne peut pas être effectué côté client.
-                    dossardPrecedent = form.getvalue("dossardPrecedent")
+                    dossardPrecedent = formateDossardNG(form.getvalue("dossardPrecedent"))
                     if action == "add" :
                         if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
                             ligneRetour = "DI," + nom + "," + prenom + "," +  classe + "," + categorie + "," + categorieLisible + "," + commentaireArrivee.replace(",",";") + "," + str(doss) + ","
