@@ -107,6 +107,11 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 25/06/25 :
+- correctif gestion des piques. Bug introduit très récemment.
+On ne doit pas retraiter les fichiers piques en entier à chaque fois. Mémorisation dans Parametres du nom du dernier dossard de arrivées dossard de chaque pique.
+
+
 Travail du 22/06/25 :
 - distinction entre les variables root (dictionnaire de données) et rootGUI (tk.tk()). Correction du code pour plus de clarté.
 - nom explicite pour le dossier contenant les sauvegardes automatiques.
