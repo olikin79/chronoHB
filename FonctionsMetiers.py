@@ -1794,10 +1794,11 @@ class Temps():#persistent.Persistent):
         else :
             ch = "-"
         return ch
-    def tempsPlusUnCentieme(self) : 
-        return Temps(self.tempsCoureur+0.01, self.tempsClient, self.tempsServeur)
-    def tempsPlusCentMilliemes(self, n) : 
-        return Temps(self.tempsCoureur+n/100000, self.tempsClient, self.tempsServeur)
+    def tempsPlusUnCentieme(self, n=1) : 
+        return Temps(self.tempsCoureur+n/100, self.tempsClient, self.tempsServeur)
+    # def tempsPlusCentMilliemes(self, n) : 
+    #     # print("on augmente le temps de ", n/100000, "ce qui donne", self.tempsCoureur+n/100000)
+    #     return Temps(self.tempsCoureur+n/100000, self.tempsClient, self.tempsServeur)
     def tempsMoinsUnCentieme(self) :
         return Temps(self.tempsCoureur-0.01, self.tempsClient, self.tempsServeur)
     def dateEpreuve(self) :
@@ -5949,9 +5950,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             RangSexe = [0,0]
             dictRangsDSDEN[nom] = []
             #keyList.append(nom)
+            print("course ",nom,":",ResultatsGroupements[nom])
             ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
             # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
-            #print("course ",nom,":",Resultats[nom])
+            print("course ",nom,":",ResultatsGroupements[nom])
             ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
                 #print(nom, "est une course ou un groupement",Resultats[nom])
             i = 0
@@ -6212,10 +6214,10 @@ def fusionNPC(T1,T2) :
 def fusion(T1,T2) :
     if T1==[] :return T2
     if T2==[] :return T1
-    if estSuperieur(T2[0], T1[0]) :
-        return [T1[0]]+fusion(T1[1 :],T2)
-    else :
+    if estSuperieur(T1[0], T2[0]) :
         return [T2[0]]+fusion(T1,T2[1 :])
+    else :
+        return [T1[0]]+fusion(T1[1 :],T2)
 
 def tempsClientIsNotInArriveeTemps(newTps) :
     """ retourne True si le tempsClient n'est pas présent dans ArriveeTemps."""
@@ -6918,6 +6920,7 @@ def calculeTousLesTemps(reinitialise = False):
             print("on efface treeview jusqu'à la ligne",root["ligneTableauGUI"][0])
     i = Parametres["positionDansArriveeTemps"]
     j = Parametres["positionDansArriveeDossards"]
+    nombreDeDossardsIntercales = 1
     chronosInutilesAvantLeDossard = 0
     ligneAjoutee = root["ligneTableauGUI"][0]
     derniereLigneStabilisee = root["ligneTableauGUI"][1]
@@ -6934,6 +6937,7 @@ def calculeTousLesTemps(reinitialise = False):
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
+                nombreDeDossardsIntercales = 1
                 # tout est désormais bien calé entre les deux listes aux indices i et j qui se correspondent à ce stade.
                 #print("Le dossard", doss, "est affecté manuellement au temps indice n°", i, ". TempsCoureur=",tps.tempsCoureur, ", TempsReelCalculé=",tps.tempsReel)
                 retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
@@ -6941,12 +6945,13 @@ def calculeTousLesTemps(reinitialise = False):
                 j += 1
             else :
                 # on affecte au dossard rencontré le temps i-1 (tant que tout n'est pas recalé).
-                tps = ArriveeTemps[i-1].tempsPlusCentMilliemes(j)
+                tps = ArriveeTemps[i-1].tempsPlusUnCentieme(n=nombreDeDossardsIntercales)
                 dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i-1])
                 # retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps,ligneAjoutee, derniereLigneStabilisee, True)
                 retour += affecteChronoAUnCoureur(doss, tps, '-',ligneAjoutee, derniereLigneStabilisee, True)
                 #retour += "<p><red>Il manque un chrono juste avant le dossard " + str(dossardAffecteAuTps) + ". Le dossard " + str(doss) + " se voit affecté le temps de son prédécesseur.</red></p>\n"
                 j += 1
+                nombreDeDossardsIntercales += 1
         else :
             if doss in ArriveeTempsAffectes[i+1 : ] :
                 # le temps actuel n'est pas affecté mais le dossard scanné est affecté à un autre temps (plus loin), on s'y rend en construisant le tableau affiché avec les temps intermédiaires.
