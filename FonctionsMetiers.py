@@ -162,7 +162,7 @@ def demarrerLObservateurDeFichiersDeDonnees(event_queue) :
     gestionnaire = MonGestionnaireEvenements(event_queue)
     observateur = Observer()
     observateur.schedule(gestionnaire, dossier_data_txt, recursive=True)
-    thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
+    thread_observateur = threading.Thread(target=observateur.start, name="Observateur des changements sur les fichiers de données")
     thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
     thread_observateur.start()
     print("Observateur des fichiers de données démarré. On force le traitement des données ici.")

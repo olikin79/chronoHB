@@ -81,11 +81,11 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 A faire avant les vacances de juillet :
 - pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
 - (FAIT) mettre en place le fonctionnement des antennes secondaires.
-- en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
-- nommer tous les threads exécutés.
+- (CORRIGE) en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
+- (FAIT) nommer tous les threads exécutés.
 - interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
-- tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
+- (FAIT) tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
 Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.

@@ -115,6 +115,7 @@ Cela permettra d'intercaler des coureurs non captés par les antennes principale
 - Correction d'un problème en ouvrant de vieilles sauvegardes : Parametres["dossardDiffusionAutomatique"] oublié à l'intialisation.
 - mise en place le fonctionnement des antennes secondaires.
 - correction trifusion non stable pour les dossards à égalité de temps. Les rangs affichés ne correspondaient pas à l'ordre bien affiché sur la ligne d'arrivée. Corrigé.
+- tous les threads exécutés sont désormais nommés.
 
 Travail du 25/06/25 :
 - correctif gestion des piques. Bug introduit très récemment.
