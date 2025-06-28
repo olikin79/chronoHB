@@ -41,7 +41,7 @@ La solution est toute trouvée dans l'idée de regrouper les tags RFID captés �
 
 Développement sur le boitier :
 - si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
-- recherche du serveur chronoHB sur le réseau local à faire en broadcast
+- (FAIT) recherche du serveur chronoHB sur le réseau local à faire en broadcast
 - (FAIT) pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
 - le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 

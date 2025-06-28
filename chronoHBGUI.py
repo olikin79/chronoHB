@@ -50,8 +50,9 @@ from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 from resultatsDiffusion import * # création puis diffusion des diplomes par email
 
 
+if platform.system() != "Darwin":
+    from CameraMotionDetection import * # camera motion detection
 
-from CameraMotionDetection import * # camera motion detection
 from functools import partial
 
 # pour la communication entre les threads métiers watchdog (surveillance des arrivées sur le serveur web) et l'interface graphique qui doit s'actualsiser.
