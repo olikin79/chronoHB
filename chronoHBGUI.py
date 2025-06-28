@@ -809,15 +809,19 @@ class MonTableau(Frame):
         listeDesDossardsConcerneesParDesErreurs = []
         listeDesDossardsConcernesParSautDeCheckPoint = [] # pour l'erreur 461
         listeDesDossardsEnDoublon = [] # pour l'erreur 401.
-        for err in self.listeNouvellesErreursATraiter :
-            if err.dossard :
+        for err in timer.erreursEnCours :
+            # élimination des erreurs qui ne doivent pas être signalées.
+            if err.dossard : 
                 if err.numero == 461 :
                     listeDesDossardsConcernesParSautDeCheckPoint.append(err.dossard)
+                    print("dossard", err.dossard, "concerné par une erreur", err.numero)
                 elif err.numero == 401 : 
                     listeDesDossardsEnDoublon.append(err.dossard)
-                else :
+                    print("dossard", err.dossard, "concerné par une erreur", err.numero)
+                elif err.numero in [211, 401, 421, 431] :
                     # pour toutes les autres erreurs, on affiche du orange plus foncé.
                     listeDesDossardsConcerneesParDesErreurs.append(err.dossard)
+                    print("dossard", err.dossard, "concerné par une erreur", err.numero)
         # traitement de tableauGUI
         if len(ArriveeTemps)==0 :
             #print("Il n'y a aucun temps à afficher")
@@ -2786,10 +2790,10 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en orange ou cliquer sur l'en-tête de colonne 'Dossard'\
+Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en bleu ou cliquer sur l'en-tête de colonne 'Dossard'\
 afin de trier le tableau.\n\n\
 Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
-la ligne (orange) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
+la ligne (bleue) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
     elif err.numero == 601 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le smartphone " + str(err.smartphone) + " en mode 'pique' a scanné la liste de dossards suivante. Ils seront intégrés dans la " + \
@@ -2836,12 +2840,21 @@ def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCour
         # Actualisation des erreurs dans la liste de boutons à droite de l'interface.
         if listErreursEnCours :
             for grp in listErreursEnCoursTronquee :
+                    # choix de la couleur à utiliser pour le fond du bouton
+                    # par défaut, on choisit la couleur initiale des boutons
+                    couleur = ""
+                    if grp.numero in [211, 421, 431] :
+                        couleur = "#ff8000"
+                    elif grp.numero in [401] :
+                        couleur = "#00d9ff"
+                    elif grp.numero in [461] :
+                        couleur = "#ff99da"
                     # lblFrE = Frame(zoneAffichageErreurs)
                     #lblLegende = Label(lblFrE, text= " : ")
                     #print("bouton avec commande : onClick(",grp,")")
-                    errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0)
+                    errBouton = Button(zoneAffichageErreurs, text= grp.description, command=partial(onClickE,grp), bd=0, background=couleur)
                     #lblLegende.pack(side=LEFT)
-                    errBouton.pack(side=TOP)
+                    errBouton.pack(side=TOP, fill=X, expand=True)
                     #lblFrE.pack(side=TOP)
                     lblListE.append(errBouton)#[lblTemps,lblFrE]
             zoneAffichageErreurs.pack(side=TOP,fill=X)
@@ -2920,12 +2933,13 @@ def rejouerToutesLesActionsMemorisees() :
     delArriveeDossards()
     delArriveeTempss()
     root["ligneTableauGUI"] = [1,0]
+    # réinitialiser toutes les erreurs en cours
+    timer.reinitErreursATraiter()
     print("On retraite tous les fichiers de données, actualise le tableau et les erreurs affichées.")
 
     timer.premiereExecution = True
     timer.traiterDonnees()
     tableau.reinit()
-    timer.reinitErreursATraiter()
     
 
 
@@ -3474,8 +3488,7 @@ class Clock():
         self.affichageDeDroiteAActualiser = True
 ##        self.retour1 = []
 ##        self.retour2 = []
-        self.erreursEnCours = []
-        self.erreursEnCoursNumeros = []
+        self.reinitErreursATraiter()
         self.ipActuelle = ""
         self.dejaDesErreurs = False
         self.auMoinsUnImportPourSauvegarde = False
@@ -3536,7 +3549,45 @@ class Clock():
             if "traitementDonneesRecuperees" not in locals() :
                 traitementDonneesRecuperees = []
 
-        self.listeNouvellesErreursATraiter = traitementToutesDonnees + traitementDonneesRecuperees
+        # éliminer les erreurs de numero nul.
+        # suppression des doublons qui ont été corrigés via des suppressions éventuelles
+        # i = 0
+        # while i < len(retour) :
+        #     err = retour[i]
+        #     if err.numero == 401 : # seule cette erreur a vocation a être traitée
+        #         print("on examine une erreur 401 pour", err.dossard , "listeDesDossardsASupprimerDesDoublonsSiBesoin")
+        #         if err.dossard in listeDesDossardsASupprimerDesDoublonsSiBesoin :
+        #             # on supprime l'erreur de la liste retour
+        #             del retour[i]
+        #             # on supprime l'occurence de dossard de listeDesDossardsASupprimerDesDoublonsSiBesoin
+        #             listeDesDossardsASupprimerDesDoublonsSiBesoin.remove(err.dossard)
+        #             print("On supprime l'erreur 'doublon' car elle a été corrigé pour le dossard", err.dossard)
+        #             # c'est le seul cas où l'on n'incrémente pas i car il doit vérifier l'élément qui vient d'avancer d'un rang dans l'index.
+        #         else :
+        #             i += 1
+        #     else :
+        #         i += 1
+        self.listeNouvellesErreursATraiter = []
+        L = traitementToutesDonnees + traitementDonneesRecuperees
+        for erreur in L :
+            if erreur.numero != 0 :
+                self.listeNouvellesErreursATraiter.append(erreur)
+            elif erreur.description :
+                print("erreur 0 avec description", erreur.description, erreur.dossard)
+                # c'est le cas où il faut vérifier combien d'occurence du dossard sont effectivement présentes 
+                if ArriveeDossards.count(erreur.dossard) <= 1 :
+                    # on supprime toutes les erreurs 401 pour ce dossard.
+                    for n, errDejaAjoutee in enumerate(self.erreursEnCours) :
+                        if errDejaAjoutee.dossard == erreur.dossard :
+                            self.erreursEnCours.pop(n)
+                            self.erreursEnCoursNumeros.pop(n)
+                            # l'erreur peut être générée plusieurs fois alors que le dossard n'est ajouté qu'une seule fois dans self.dossradDejaRencontresErreur401 (notamment lors d'une réouverture)
+                            if erreur.dossard in self.dossradDejaRencontresErreur401 :
+                                self.dossradDejaRencontresErreur401.remove(erreur.dossard)
+        # self.listeNouvellesErreursATraiter = [ erreur for erreur in traitementToutesDonnees + traitementDonneesRecuperees if erreur.numero != 0 or erreur.description ]
+
+        # création des boutons pour traitement des erreurs
+        self.erreursATraiter()
 
         #if self.actualiserAffichageDeDroite(True) :
 ##        for err in listeNouvellesErreursATraiter :
@@ -3565,9 +3616,8 @@ class Clock():
         #     listeDesDossardsAImprimer, listeCouleurs = generateDossardsAImprimer()
         #     Parametres["nbreAImprimerAncien"] = nbreAImprimerActuel
 
-        # création des boutons pour traitement des erreurs
-        self.erreursATraiter(self.listeNouvellesErreursATraiter)
-        actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
+        
+        # actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
 
         # FIN DU SCRIPT
         # se relance dans un temps prédéfini.
@@ -3690,11 +3740,6 @@ class Clock():
         except :
             pass
         
-        # if tagEnvoiDiplomeEnCours :
-        #     # self.listeNouvellesErreursATraiter.append(Erreur(701, "Envoi des diplômes en cours..."))
-        #     self.erreursATraiter(self.listeNouvellesErreursATraiter)
-
-        # fin sauvegarde des données
 
 ##        # actualisation de l'affichage après les départs ou si départ annulé récemment.
 ##        if self.affichageDeDroiteAActualiser : # inutile : fait immédiatement lors e l'annulation. or zoneTopDepart.departsAnnulesRecemment :
@@ -3733,9 +3778,10 @@ class Clock():
     def reinitErreursATraiter(self):
         self.erreursEnCours = []
         self.erreursEnCoursNumeros = []
+        self.dossradDejaRencontresErreur401 = []
 
         
-    def erreursATraiter(self,listeNouvellesErreursATraiter):
+    def erreursATraiter(self):
         global tagEnvoiDiplomeEnCours
         # 331 est une erreur particulière qui peut se corriger seule, suite à une rémontée d'infos du smartphone n°1.
         # Il faut donc la supprimer des erreurs précédentes afin de savoir si celle-ci a disparu ou non à chaque fois.
@@ -3754,16 +3800,16 @@ class Clock():
                 erreur462DejaRencontree = True
                 indiceErreur462DejaRencontree = i
             # # on supprime l'erreur 190 uniquement si on l'a actualisée (càd qu'on l'a déjà rencontrée lors du parcours à rebours)
-            # elif self.erreursEnCoursNumeros[i] == 190 :
-            #     if erreur190DejaRencontree :
-            #         del self.erreursEnCoursNumeros[i]
-            #         del self.erreursEnCours[i]
-            #     else :
-            #         erreur190DejaRencontree = True
+            elif self.erreursEnCoursNumeros[i] == 190 :
+                if erreur190DejaRencontree :
+                    del self.erreursEnCoursNumeros[i]
+                    del self.erreursEnCours[i]
+                else :
+                    erreur190DejaRencontree = True
             i -= 1
 
         indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter = -1
-        for n, erreur in enumerate(listeNouvellesErreursATraiter) :
+        for n, erreur in enumerate(self.listeNouvellesErreursATraiter) :
             ajout = False
             if not erreur.numero in [0, 311, 312, 321, 340, 401, 411, 441, 451, 462]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
@@ -3782,14 +3828,15 @@ class Clock():
                         AlimenteErreur462(self.erreursEnCours[indiceErreur462DejaRencontree], erreur)
                     else :
                         # l'erreur n'a pas été rencontrée dans self.erreursEnCours mais dans listeDesNouvellesErreursATraiter, on alimente au bon endroit
-                        AlimenteErreur462(listeNouvellesErreursATraiter[indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter], erreur)
+                        AlimenteErreur462(self.listeNouvellesErreursATraiter[indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter], erreur)
                 else :
                     # print("Première rencontre de l'erreur 462", erreur462DejaRencontree)
                     # on ajoute l'erreur à la liste des erreurs en cours
                     erreur462DejaRencontree = True
                     indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter = n
                     ajout = True
-            elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 :
+            elif erreur.numero == 401 and ArriveeDossards.count(erreur.dossard) > 1 and erreur.dossard not in self.dossradDejaRencontresErreur401 :
+                self.dossradDejaRencontresErreur401.append(erreur.dossard)
                 ajout = True
             ## alimentation de la liste complète des erreurs à afficher de façon effective.
             if ajout :
@@ -3803,6 +3850,7 @@ class Clock():
                 del self.erreursEnCoursNumeros[i]
                 del self.erreursEnCours[i]
             i -= 1
+        
         # print("Numéros d'erreurs",self.erreursEnCoursNumeros, self.erreursEnCours)
         ### Traitement des erreurs : affichage par une frame dédiée.
         actualiseAffichageErreurs(self.erreursEnCours, tagEnvoiDiplomeEnCours=tagEnvoiDiplomeEnCours)
@@ -4258,7 +4306,8 @@ def tempsDesCoureurs():
 ##    affectationGroupementsFrame.forget()
 ##    affectationDesDistancesFrame.forget()
     GaucheFrameDossards.forget()
-    # rejouerToutesLesActionsMemorisees()
+    # on réactualise l'affichage suite aux modifications effectuées dans un autre menu.
+    rejouerToutesLesActionsMemorisees()
     # calculeTousLesTemps(True)
     # dépose les pages internet sur le serveur FTP
     depotFTPResultats(initial=True)

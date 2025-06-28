@@ -2958,6 +2958,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         print("listeDesDonneesATraiter", listeDesDonneesATraiter)
     # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
     # dernierDossardDeLaPiquePresentDansArriveeDossards = {}
+    listeDesDossardsASupprimerDesDoublonsSiBesoin = []
     while poursuivre and not os.path.exists(fichierFlagAccesConcurrents) :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
@@ -2976,6 +2977,10 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
                 print(ligne)
+            elif not codeErreur.numero and codeErreur.description=="Supprimer erreur 401 si besoin" :
+                # cas très particulier : un dossard est apparu en doublon, puis a été supprimé. Au moment du traitement du doublon l'erreur est générée
+                # il faut la supprimer, si existante, lors d'une suppression de dossard. Chaque suppression supprime une erreur doublon pour que cela fonctionne.
+                listeDesDossardsASupprimerDesDoublonsSiBesoin.append(codeErreur.dossard)
             retour.append(codeErreur)
             if indiceMin < len(Parametres["ligneDerniereRecuperation"]) :
                 Parametres["ligneDerniereRecuperation"][indiceMin] += 1
@@ -2997,7 +3002,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         for liste in listeDesDonneesATraiter :
             if liste :
                 poursuivre = True
-                break        
+                break  
     return retour 
 
 def retourneLeTempsDUneListeDeLignes(liste, indice) :
@@ -7200,7 +7205,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 Coureurs.recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.remove(doss)
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
                 print("Dossard " + str(doss)  + " supprimé du passage sur la ligne d'arrivée en tant que première occurence. Pas de dossard prédécesseur spécifié.")
             except :
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
@@ -7213,7 +7218,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 Coureurs.recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.pop(0)
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
             else :
                 message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
                 print(message)
@@ -7237,7 +7242,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 print(message)
                 retour = Erreur(441, doss, message)
             else :
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
         # else :
         #     print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     else :
