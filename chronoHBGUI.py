@@ -2842,7 +2842,7 @@ def actualiseAffichageErreurs(listErreursEnCoursOriginale, tagEnvoiDiplomeEnCour
             for grp in listErreursEnCoursTronquee :
                     # choix de la couleur à utiliser pour le fond du bouton
                     # par défaut, on choisit la couleur initiale des boutons
-                    couleur = ""
+                    couleur = "#f0f0f0"
                     if grp.numero in [211, 421, 431] :
                         couleur = "#ff8000"
                     elif grp.numero in [401] :
@@ -4673,7 +4673,7 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
         # global popup
         """Handle POST requests for JSON data or delegate to CGI."""
         if self.path == "/rfid-json":
-            print("Requete sur /rfid-json")
+            # print("Requete sur /rfid-json")
             # Récupération de l'heure exacte actuelle en secondes depuis l'époque
             heureReceptionServeur = str(time.time())
             

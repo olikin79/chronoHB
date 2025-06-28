@@ -112,7 +112,8 @@ Travail du 28/06/25 :
 - Les lignes en erreur sont colorées en fonction du type d'erreur. A poursuivre en distinguant tous les types d'erreur ?
 - Premiere implémentation de la gestion des antennes secondaires afin de générer des fichiers "piques" comme venant des smartphones.
 Cela permettra d'intercaler des coureurs non captés par les antennes principales.
-
+- Correction d'un problème en ouvrant de vieilles sauvegardes : Parametres["dossardDiffusionAutomatique"] oublié à l'intialisation.
+- mise en place le fonctionnement des antennes secondaires.
 
 Travail du 25/06/25 :
 - correctif gestion des piques. Bug introduit très récemment.

@@ -79,7 +79,9 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
-- mettre en place le fonctionnement des antennes secondaires.
+- pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
+- (FAIT) mettre en place le fonctionnement des antennes secondaires.
+- en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
 - nommer tous les threads exécutés.
 - interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
