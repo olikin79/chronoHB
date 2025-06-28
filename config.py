@@ -19,6 +19,10 @@ else :
         else:
             print("Le script s'exécute dans l'interpréteur Python.")
             dossierRacineApp = os.path.dirname(__file__)
+    # détection de mac os x
+    elif platform.system() == "Darwin":
+        print("Mac OS détecté")
+        dossierRacineApp = os.path.dirname(__file__)
     else :
         print("OS non windows détecté")
         dossierRacineApp = os.path.dirname(__file__)
