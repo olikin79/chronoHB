@@ -162,7 +162,7 @@ def demarrerLObservateurDeFichiersDeDonnees(event_queue) :
     gestionnaire = MonGestionnaireEvenements(event_queue)
     observateur = Observer()
     observateur.schedule(gestionnaire, dossier_data_txt, recursive=True)
-    thread_observateur = threading.Thread(target=observateur.start, name="Observateur des fichiers de données")
+    thread_observateur = threading.Thread(target=observateur.start, name="Observateur des changements sur les fichiers de données")
     thread_observateur.daemon = True  # Permet de quitter le thread à la fermeture de l'application
     thread_observateur.start()
     print("Observateur des fichiers de données démarré. On force le traitement des données ici.")
@@ -1794,8 +1794,11 @@ class Temps():#persistent.Persistent):
         else :
             ch = "-"
         return ch
-    def tempsPlusUnCentieme(self) : 
-        return Temps(self.tempsCoureur+0.01, self.tempsClient, self.tempsServeur)
+    def tempsPlusUnCentieme(self, n=1) : 
+        return Temps(self.tempsCoureur+n/100, self.tempsClient, self.tempsServeur)
+    # def tempsPlusCentMilliemes(self, n) : 
+    #     # print("on augmente le temps de ", n/100000, "ce qui donne", self.tempsCoureur+n/100000)
+    #     return Temps(self.tempsCoureur+n/100000, self.tempsClient, self.tempsServeur)
     def tempsMoinsUnCentieme(self) :
         return Temps(self.tempsCoureur-0.01, self.tempsClient, self.tempsServeur)
     def dateEpreuve(self) :
@@ -1996,46 +1999,53 @@ class InfosRFID(dict) :
     def __init__(self):
         self.derniersDossardsCaptes = {}
         self.antenne_frame_a_reconstruire = False
-        self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+        self.listeAntennesSecondaires, self.listeNomsAntennesSecondaires = self.listeAntennes(role="secondaire")
         self.listeAntennesSecondairesAReconstruire = False
+        self.dictDernierDossardCapteParAntenneSecondaire = {}
 
     def clear(self) :
         """Efface uniquement les données RFID temporaires (pas les antennes et les associations epc<->dossards) """
         self.derniersDossardsCaptes = {}
 
-    def aEteCapteDepuisPeuParUneAntennePrincipale(self, nom_antenne, epc) :
-        """retourne True si la puce a été détectée auprès d'une antenne principale depuis moins de x secondes
+    def aEteCapteDepuisPeuParLAntenne(self, nom_antenne, epc) :
+        """retourne True si la puce a été détectée auprès de la même antenne depuis moins de x secondes
         False sinon"""
         try : 
-            self.listeAntennesSecondaires
+            self.listeNomsAntennesSecondaires
             self.derniersDossardsCaptes
+            self.dictDernierDossardCapteParAntenneSecondaire
         except :
             self.derniersDossardsCaptes = {}
-            self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+            self.dictDernierDossardCapteParAntenneSecondaire = {}
+            self.listeAntennesSecondaires, self.listeNomsAntennesSecondaires = self.listeAntennes(role="secondaire")
             self.listeAntennesSecondairesAReconstruire = False
         if self.listeAntennesSecondairesAReconstruire :
-            x, self.listeAntennesSecondaires = self.listeAntennes(role="secondaire")
+            self.listeAntennesSecondaires, self.listeNomsAntennesSecondaires = self.listeAntennes(role="secondaire")
             # on va traiter et conserver l'information.
-        if nom_antenne in self.listeAntennesSecondaires :
-            return False
-        print("nom_antenne",nom_antenne)
-        print("derniersDossardsCaptes", self.derniersDossardsCaptes.keys())
+        if nom_antenne in self.listeNomsAntennesSecondaires :
+            delai_antenne = Parametres["delai_antennes_par_tag_secondaire"]
+        else :
+            delai_antenne = Parametres["delai_antennes_par_tag"]
+        # initialisation
+        if nom_antenne not in self.derniersDossardsCaptes.keys() :
+            self.derniersDossardsCaptes[nom_antenne] = {}
+        # print("nom_antenne",nom_antenne)
+        # print("derniersDossardsCaptes", self.derniersDossardsCaptes.keys())
         # print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
         # cas où la puce a été captée par une antenne principale (quelconque). On doit peut-être conserver l'information pour la traiter si elle a 
-        if epc in self.derniersDossardsCaptes.keys() :
-            print("self.derniersDossardsCaptes[epc]",self.derniersDossardsCaptes[epc])
-            print("TEST", time.time() - self.derniersDossardsCaptes[epc], "<", Parametres["delai_antennes_par_tag"])
-            if time.time() - self.derniersDossardsCaptes[epc] < Parametres["delai_antennes_par_tag"] :
-                self.derniersDossardsCaptes[epc] = time.time()
-                print("Le dossard ",EPCtoDossard(epc)," est resté devant l'antenne et ne l'a pas quittée depuis", Parametres["delai_antennes_par_tag"], "secondes.")
-                return True
+        if epc in self.derniersDossardsCaptes[nom_antenne].keys() :
+            print("self.derniersDossardsCaptes[nom_antenne][epc]",self.derniersDossardsCaptes[nom_antenne][epc])
+            print("TEST", time.time() - self.derniersDossardsCaptes[nom_antenne][epc], "<", delai_antenne)
+            if time.time() - self.derniersDossardsCaptes[nom_antenne][epc] < delai_antenne :
+                print("Le dossard ",EPCtoDossard(epc)," est resté devant l'antenne", nom_antenne, "et ne l'a pas quittée depuis", delai_antenne, "secondes.")
+                retour = True
             else :
-                print("Le dossard ",EPCtoDossard(epc)," a quitté l'antenne depuis plus de", Parametres["delai_antennes_par_tag"], "secondes.")
-                self.derniersDossardsCaptes[epc] = time.time()
-                return False
+                print("Le dossard ",EPCtoDossard(epc)," a quitté l'antenne depuis plus de", delai_antenne, "secondes.")
+                retour = False
         else :
-            self.derniersDossardsCaptes[epc] = time.time()
-            return False
+            retour = False
+        self.derniersDossardsCaptes[nom_antenne][epc] = time.time()
+        return retour
         
     def add_lecteur(self, nomLecteur, nomAntenne) :
         """ ajoute un lecteur et-ou son antenne si besoin."""
@@ -2166,7 +2176,7 @@ def convert_timestamp_to_epoch(timestamp_str):
     en secondes depuis l'époque (UTC) - Compatible avec Python < 3.7.
     Retourne un float pour inclure les microsecondes.
     """
-    print("convert_timestamp_to_epoch", timestamp_str)
+    # print("convert_timestamp_to_epoch", timestamp_str)
     try:
         if timestamp_str.endswith('Z'):
             timestamp_str = timestamp_str[:-1] + '+00:00'
@@ -2216,31 +2226,61 @@ def traiterDonneesRFID(data, heureReceptionServeur) : #(epc, reader_name, antenn
     reader_name, tags, json_timestamp_epoch = extractionDonneesCommunesDeDataRFID(data)
     chaineAAjouterDansFichierTexte = ""
     # Traitement des tags reçus
+    print("Traitement de ", data)
     for tag in tags:
         # epc, antenna_port, rssi, seen_count, tag_timestamp_epoch 
         info = extractionDonneesDUnTagRFID(tag, reader_name)
-        print("Heure réception", heureReceptionServeur, "\nHeure d'envoi", json_timestamp_epoch, "\nInfo reçues pour ce tag",info)
-
+        # nom_antenne = info["reader"]+"-"+info["antenna"]
+        try : 
+            nom_antenne = Parametres["donneesRFID"][info["reader"]][info["antenna"]].get_nom_complet()
+        except :
+            nom_antenne = info["reader"]+"-"+info["antenna"]
+        # print("Heure réception", heureReceptionServeur, "\nHeure d'envoi", json_timestamp_epoch, "\nDossard:", EPCtoDossard(info["epc"]), " - Nom-Antenne", nom_antenne)
+        # on gère les deux cas : antenne principale => on alimente le fichier donneesRFID
+        # VS 
+        # antenne secondaire => on regarde si le dossard est déjà arrivé, si oui, on l'ignore. Si non, on alimente un fichier pique par antenne.
         # on filtre les tags reçus en éliminant ceux captés depuis moins de Parametres["delai_antennes_par_tag"] secondes par la même antenne.
-        nom_antenne = info["reader"]+"-"+info["antenna"]
-        if not Parametres["donneesRFID"].aEteCapteDepuisPeuParUneAntennePrincipale(nom_antenne, info["epc"]) :
-            print("Le tag", info["epc"], "est utilisé (non capté récemment par ", nom_antenne, ").")
-            # Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
-            # # reader_name_antenna = f"{reader_name}-{antenna_port}"
-            # # si le popup RFID est actif on lui envoie toutes les infos
-            # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
-            uidTps = info["uid"]
-            uidDossard = info["uid"]+0.1
-            print("UID transmission", info["uid"])
-            chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+","+str(uidTps)+",0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
-            chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,"+str(uidDossard)+"," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
-            # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
-        else :
-            print("Le tag", info["epc"], "a été capté depuis moins de", Parametres["delai_antennes_par_tag"], "secondes par la même antenne.")
-    with open(donneesRFID, "a") as file:
-        # Écrire les lignes dans le fichier en une seule fois.
-        file.write(chaineAAjouterDansFichierTexte)
-        file.close()
+        print("Noms des antennes secondaires", Parametres["donneesRFID"].listeNomsAntennesSecondaires)
+        if not Parametres["donneesRFID"].aEteCapteDepuisPeuParLAntenne(nom_antenne, info["epc"]) :
+            if  nom_antenne not in Parametres["donneesRFID"].listeNomsAntennesSecondaires :
+                print("Le tag", info["epc"], "(", EPCtoDossard(info["epc"]) ,") est utilisé (non capté récemment par l'antenne principale", nom_antenne, ").")
+                # Parametres["donneesRFID"].antenne_exists(nom_antenne).change_lieu(checkPoint=True, numeroCheckPoint=0)
+                # # reader_name_antenna = f"{reader_name}-{antenna_port}"
+                # # si le popup RFID est actif on lui envoie toutes les infos
+                # info = {"epc":epc, "reader":reader_name, "antenna" :antenna_port, "rssi":rssi, "seen_count":seen_count  ,"timestamp":tag_timestamp_epoch, "heureReceptionServeur":heureReceptionServeur, "json_timestamp":json_timestamp_epoch}
+                uidTps = info["uid"]
+                uidDossard = info["uid"]+0.1
+                print("UID transmission", info["uid"])
+                chaineAAjouterDansFichierTexte += "tps,add,"+info["epc"]+","+info["tag_timestamp_epoch"]+","+json_timestamp_epoch+","+heureReceptionServeur+","+str(uidTps)+",0,"+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+                chaineAAjouterDansFichierTexte += "dossard,add,"+info["epc"]+",-1,0,"+str(uidDossard)+"," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+                # chaineAAjouterDansFichierTexte += f"dossard,add,{epc},-1,0,0,{rssi},{reader_name},{antenna_port},END\n"
+            else :
+                # print("Cas traitement antenne secondaire",nom_antenne)
+                dossard = EPCtoDossard(info["epc"])
+                chaineAAjouterDansFichierPique = ""
+                if dossard not in ArriveeDossards :
+                    # si le dernier dossard capté était dans arriveedossard, on ajoute deux lignes dans le fichier pique.
+                    # sinon, on ajoute une seule ligne puisque le prédécesseur n'avait pas été capté non plus par les antennes principales.
+                    if nom_antenne not in Parametres["donneesRFID"].dictDernierDossardCapteParAntenneSecondaire.keys() :
+                        Parametres["donneesRFID"].dictDernierDossardCapteParAntenneSecondaire[nom_antenne] = "-1" # un dossard qui n'existe pas dans ArriveeDossards.
+                    dossardPredecesseur = Parametres["donneesRFID"].dictDernierDossardCapteParAntenneSecondaire[nom_antenne]
+                    if dossardPredecesseur in ArriveeDossards :
+                        chaineAAjouterDansFichierPique += "dossard,add,"+dossardPredecesseur+",-1,"+ nom_antenne +","+str(info["uid"])+"," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+                        print("Le dossard "+dossardPredecesseur+" est ajouté par une antenne secondaire "+ nom_antenne+". On l'utilise comme dans une pique.")
+                    chaineAAjouterDansFichierPique += "dossard,add,"+dossard+",-1,"+ nom_antenne +","+str(info["uid"])+"," + heureReceptionServeur + ","+info["rssi"]+","+info["reader"]+","+info["antenna"]+",END\n"
+                    print("Le dossard "+dossard+" est détecté par une antenne secondaire "+ nom_antenne+". On l'utilise comme dans une pique.")
+                Parametres["donneesRFID"].dictDernierDossardCapteParAntenneSecondaire[nom_antenne]=dossard
+                # pour les antennes secondaires, on écrit au fur et à mesure.
+                if chaineAAjouterDansFichierPique :
+                    with open(os.path.join(dossier_data_txt,"donneesSmartphone-pique-" + nom_antenne + ".txt"), "a") as file:
+                        # Écrire les lignes dans le fichier en une seule fois.
+                        file.write(chaineAAjouterDansFichierPique)
+                        file.close()
+    if chaineAAjouterDansFichierTexte :
+        with open(donneesRFID, "a") as file:
+            # Écrire les lignes dans le fichier en une seule fois.
+            file.write(chaineAAjouterDansFichierTexte)
+            file.close()
 
 def actualiseListeDesAntennes(reader_name, antenne) :
     # print("Actualisation de la liste des antennes", reader_name, antenne)
@@ -2494,6 +2534,8 @@ def chargerDonnees() :
         Parametres["diplomeMdpExpediteur"] = ""
     if not "diplomeDiffusionAutomatique" in Parametres :
         Parametres["diplomeDiffusionAutomatique"] = 0
+    if not "dossardDiffusionAutomatique" in Parametres :
+        Parametres["dossardDiffusionAutomatique"] = 0
     if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     if not "FTPlogin" in Parametres :
@@ -2554,6 +2596,8 @@ def chargerDonnees() :
         Parametres["TroncaturesEPCRealisees"] = []
     if not "delai_antennes_par_tag" in Parametres :
         Parametres["delai_antennes_par_tag"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
+    if not "delai_antennes_par_tag_secondaire" in Parametres :
+        Parametres["delai_antennes_par_tag_secondaire"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     # paramètre interne commun à divers thread. L'un d'eux le met à jour, d'autres le lisent.
     Parametres["traiterDonneesActif"] = False
     ##transaction.commit()
@@ -2958,6 +3002,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         print("listeDesDonneesATraiter", listeDesDonneesATraiter)
     # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
     # dernierDossardDeLaPiquePresentDansArriveeDossards = {}
+    listeDesDossardsASupprimerDesDoublonsSiBesoin = []
     while poursuivre and not os.path.exists(fichierFlagAccesConcurrents) :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
@@ -2976,6 +3021,10 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
                 print(ligne)
+            elif not codeErreur.numero and codeErreur.description=="Supprimer erreur 401 si besoin" :
+                # cas très particulier : un dossard est apparu en doublon, puis a été supprimé. Au moment du traitement du doublon l'erreur est générée
+                # il faut la supprimer, si existante, lors d'une suppression de dossard. Chaque suppression supprime une erreur doublon pour que cela fonctionne.
+                listeDesDossardsASupprimerDesDoublonsSiBesoin.append(codeErreur.dossard)
             retour.append(codeErreur)
             if indiceMin < len(Parametres["ligneDerniereRecuperation"]) :
                 Parametres["ligneDerniereRecuperation"][indiceMin] += 1
@@ -2997,7 +3046,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
         for liste in listeDesDonneesATraiter :
             if liste :
                 poursuivre = True
-                break        
+                break  
     return retour 
 
 def retourneLeTempsDUneListeDeLignes(liste, indice) :
@@ -5901,9 +5950,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             RangSexe = [0,0]
             dictRangsDSDEN[nom] = []
             #keyList.append(nom)
+            print("course ",nom,":",ResultatsGroupements[nom])
             ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
             # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
-            #print("course ",nom,":",Resultats[nom])
+            print("course ",nom,":",ResultatsGroupements[nom])
             ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
                 #print(nom, "est une course ou un groupement",Resultats[nom])
             i = 0
@@ -6164,10 +6214,10 @@ def fusionNPC(T1,T2) :
 def fusion(T1,T2) :
     if T1==[] :return T2
     if T2==[] :return T1
-    if estSuperieur(T2[0], T1[0]) :
-        return [T1[0]]+fusion(T1[1 :],T2)
-    else :
+    if estSuperieur(T1[0], T2[0]) :
         return [T2[0]]+fusion(T1,T2[1 :])
+    else :
+        return [T1[0]]+fusion(T1[1 :],T2)
 
 def tempsClientIsNotInArriveeTemps(newTps) :
     """ retourne True si le tempsClient n'est pas présent dans ArriveeTemps."""
@@ -6870,6 +6920,7 @@ def calculeTousLesTemps(reinitialise = False):
             print("on efface treeview jusqu'à la ligne",root["ligneTableauGUI"][0])
     i = Parametres["positionDansArriveeTemps"]
     j = Parametres["positionDansArriveeDossards"]
+    nombreDeDossardsIntercales = 1
     chronosInutilesAvantLeDossard = 0
     ligneAjoutee = root["ligneTableauGUI"][0]
     derniereLigneStabilisee = root["ligneTableauGUI"][1]
@@ -6886,6 +6937,7 @@ def calculeTousLesTemps(reinitialise = False):
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
+                nombreDeDossardsIntercales = 1
                 # tout est désormais bien calé entre les deux listes aux indices i et j qui se correspondent à ce stade.
                 #print("Le dossard", doss, "est affecté manuellement au temps indice n°", i, ". TempsCoureur=",tps.tempsCoureur, ", TempsReelCalculé=",tps.tempsReel)
                 retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
@@ -6893,12 +6945,13 @@ def calculeTousLesTemps(reinitialise = False):
                 j += 1
             else :
                 # on affecte au dossard rencontré le temps i-1 (tant que tout n'est pas recalé).
-                tps = ArriveeTemps[i-1]
+                tps = ArriveeTemps[i-1].tempsPlusUnCentieme(n=nombreDeDossardsIntercales)
                 dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i-1])
                 # retour += affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps,ligneAjoutee, derniereLigneStabilisee, True)
                 retour += affecteChronoAUnCoureur(doss, tps, '-',ligneAjoutee, derniereLigneStabilisee, True)
                 #retour += "<p><red>Il manque un chrono juste avant le dossard " + str(dossardAffecteAuTps) + ". Le dossard " + str(doss) + " se voit affecté le temps de son prédécesseur.</red></p>\n"
                 j += 1
+                nombreDeDossardsIntercales += 1
         else :
             if doss in ArriveeTempsAffectes[i+1 : ] :
                 # le temps actuel n'est pas affecté mais le dossard scanné est affecté à un autre temps (plus loin), on s'y rend en construisant le tableau affiché avec les temps intermédiaires.
@@ -7200,7 +7253,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 Coureurs.recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.remove(doss)
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
                 print("Dossard " + str(doss)  + " supprimé du passage sur la ligne d'arrivée en tant que première occurence. Pas de dossard prédécesseur spécifié.")
             except :
                 message = "Le dossard " + str(doss) + " n'a pas encore passé la ligne d'arrivée et ne peut donc pas être supprimé."
@@ -7213,7 +7266,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 Coureurs.recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.pop(0)
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
             else :
                 message = "Le premier dossard de la liste ArriveeDossards n'est pas " + str(doss) + " mais " + ArriveeDossards[0] +"."
                 print(message)
@@ -7237,7 +7290,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 print(message)
                 retour = Erreur(441, doss, message)
             else :
-                retour = Erreur(0)
+                retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
         # else :
         #     print("ArriveeDossards ne contient qu'un seul élément. Impossible de supprimer le dossard",dossard,"avec comme prédécesseur",dossardPrecedent,".")
     else :
