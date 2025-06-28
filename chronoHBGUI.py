@@ -362,7 +362,7 @@ async def main():
 
 # on lance le serveur web asynchrone dans un thread
 # asyncio.run(main())
-Thread(name="Serveur web SSE",target=asyncio.run, args=(main(),), daemon=True).start()
+Thread(name="Serveur web SSE : résultats poussés par le serveur",target=asyncio.run, args=(main(),), daemon=True).start()
 
 
 ############ fin du serveur web sse asynchrone ##########   
@@ -630,12 +630,6 @@ class MonTableau(Frame):
                                         local_modifie_temps(heure, heureFinaleFormate)
         ##                                self.change = True
                                         self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
-                                        # traiterToutesDonneesNG()
-                                        # genereResultatsCoursesEtClasses()
-                                        # self.maj(tableauGUI)
-        ##                                traiterDonneesLocales()
-        ##                                genereResultatsCoursesEtClasses()
-        ##                                self.maj(tableauGUI)
                                 except :
                                     print("Saisie invalide. Impossible d'ajouter cette heure :", heure)
                             if column == "#3" :
@@ -643,10 +637,6 @@ class MonTableau(Frame):
                                     local_affecte_dossard(heure, contenuFinal)
                                     self.change = True
                                     self.treeview.set(item, column=column, value=entryedit.get())#treeview.set(item, column=column, value=entryedit.get(0.0, "end"))
-                                    # traiterDonneesLocales()
-                                    # traiterToutesDonneesNG()
-                                    # genereResultatsCoursesEtClasses()
-                                    # self.maj(tableauGUI)
                                 else :
                                     print("Impossible d'affecter un dossard à un temps qui n'existe pas dans le tableau : le tiret indique qu'il manque un temps.")
                         else :
@@ -2305,7 +2295,7 @@ def supprimerDossardAction() :
     supprimerDossardButton.configure(state=NORMAL)
 
 def envoiEmailDeTestLanceur():
-    mon_thread_Diplomes = Thread(target=envoiEmailDeTest, daemon=True)
+    mon_thread_Diplomes = Thread(target=envoiEmailDeTest, daemon=True, name="Envoi d'email de test.")
     mon_thread_Diplomes.envoi_en_cours = True
     mon_thread_Diplomes.nom_prenom = "en cours"
     mon_thread_Diplomes.start()
@@ -2589,7 +2579,7 @@ def activerDesactiverLaVideo():
             print("Motion Detection déjà actif : on modifie le réglage comme coché sur l'interface :",voirVideo.get(), enregistrementVideo.get())
         except :
             print("Motion Detection inactif")
-            recoderT = threading.Thread(name='recorder_thread', target=enregistrerLaVideo, daemon=True)
+            recoderT = threading.Thread(name='Détection de mouvement webcam.', target=enregistrerLaVideo, daemon=True)
             recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             recoderT.start()
     else :
@@ -3203,7 +3193,7 @@ def envoiDossards():
     global mon_thread_Dossards
     try :
         if not mon_thread_Dossards.envoi_en_cours :
-            mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True)
+            mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True, name="Envoi des dossards en arrière plan.")
             mon_thread_Dossards.envoi_en_cours = True
             mon_thread_Dossards.nom_prenom = "initialisation"
             mon_thread_Dossards.start()
@@ -3212,7 +3202,7 @@ def envoiDossards():
     #     tagEnvoiDossardEnCours = True
         # if DEBUG :
         #     print("Début d'envoi de diplômes automatisé...")
-        mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True)
+        mon_thread_Dossards = Thread(target=envoiDossardsSansMessageFinal, daemon=True, name="Envoi des dossards en arrière plan.")
         mon_thread_Dossards.envoi_en_cours = True
         mon_thread_Dossards.nom_prenom = "initialisation"
         mon_thread_Dossards.start()
@@ -3293,7 +3283,7 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
             if reponse :
                 print("Début d'envoi de diplômes manuellement demandé via le menu...")
                 tagEnvoiDiplomeEnCours = True
-                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal, daemon=True)
+                mon_thread_Diplomes = Thread(target=envoiDiplomesMessageFinal, daemon=True, name="Envoi des diplomes en arrière plan.")
                 mon_thread_Diplomes.envoi_en_cours = True
                 mon_thread_Diplomes.nom_prenom = "initialisation"
                 mon_thread_Diplomes.start()
@@ -3301,7 +3291,7 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
             tagEnvoiDiplomeEnCours = True
             # if DEBUG :
             #     print("Début d'envoi de diplômes automatisé...")
-            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal, daemon=True)
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal, daemon=True, name="Envoi des dossards en arrière plan.")
             mon_thread_Diplomes.envoi_en_cours = True
             mon_thread_Diplomes.nom_prenom = "initialisation"
             mon_thread_Diplomes.start()
@@ -3318,7 +3308,7 @@ def depotFTPResultats(initial=False):
         tagDepotFTPEnCours = True
         if DEBUG :
             print("Début de dépôt FTP automatique...")
-        mon_thread_FTP = Thread(target=depotFTPResultatsSansMessage, kwargs={"initial": initial}, daemon=True)
+        mon_thread_FTP = Thread(target=depotFTPResultatsSansMessage, kwargs={"initial": initial}, daemon=True, name="Depot des résultats en FTP")
         mon_thread_FTP.start()
 
 def depotFTPResultatsSansMessage(initial=False):
@@ -3428,7 +3418,7 @@ def ouvrir_popup_patienter(tache, callback=None):
     label.pack(pady=20)
     
     # Lancer la tâche dans un thread
-    thread = threading.Thread(target=tache, daemon=True)
+    thread = threading.Thread(target=tache, daemon=True, name="Exécution de" + str(tache))
     thread.start()
 
     # Fonction pour vérifier l'état du thread
@@ -3630,6 +3620,7 @@ class Clock():
 
     
     def update_clock(self):
+        global mon_thread_Diplomes, mon_thread_Dossards
         #print("Largeur Arriveesframe :",Arriveesframe.winfo_width())
         # global tableauGUI,traitementDonneesRecuperees
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
@@ -3640,7 +3631,7 @@ class Clock():
         if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
-            DownloadDaemon = threading.Thread(name='daemon_download', target=importGoogleSheetAutomatique, daemon=True)
+            DownloadDaemon = threading.Thread(name='Import des données "coureurs" depuis internet.', target=importGoogleSheetAutomatique, daemon=True)
             # DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             DownloadDaemon.start()
             self.compteurTelechargementURLGoogleSheet = 0
@@ -4109,7 +4100,7 @@ def generateDossardsArrierePlanNG():
 (en raison des nombreux QR-codes à générer). Les suivantes seront beaucoup plus rapides car les QR-codes seront conservés.\n\
 Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que les fichiers générés.")
     if reponse :
-        mon_thread = Thread(target=generateDossardsMessageNG)
+        mon_thread = Thread(target=generateDossardsMessageNG, name="Génération des dossards en arrière plan.")
         mon_thread.start()
 
 ##def generateDossardsMessage() :
@@ -4162,7 +4153,7 @@ def affichagePopupPourImpressionRapide() :
 def imprimerArrierePlan(fichiers) :
     for fichier in fichiers :
         arg = dossier_impressions + os.sep + fichier
-        mon_threadImpressions = Thread(target=imprimePDF, args=(arg,))
+        mon_threadImpressions = Thread(target=imprimePDF, args=(arg,), name="Impression en arrière plan.")
         mon_threadImpressions.start()
         # pause d'une seconde pour éviter tout problème.
         time.sleep(1)
@@ -4218,7 +4209,7 @@ absDispZone = AbsDispFrame(GaucheFrameAbsDisp)
 dossardsZone = DossardsFrame(GaucheFrameDossards)
 
 def envoiDiplomeIndividuelsLanceur():
-    mon_thread_Diplomes = Thread(target=envoiDiplomeIndividuels)
+    mon_thread_Diplomes = Thread(target=envoiDiplomeIndividuels, name="Envoi d'un diplome individuel.")
     mon_thread_Diplomes.envoi_en_cours = True
     mon_thread_Diplomes.nom_prenom = "en cours"
     mon_thread_Diplomes.start()
@@ -4778,8 +4769,8 @@ if not "popupRFID" in Parametres :
 # Start the server in a new thread
 port = 8888
 #start_server("/",8888)
-daemon = threading.Thread(name='daemon_server', target=start_server, args=('', port))
-daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+daemon = threading.Thread(name='Serveur CGI chargé destinataire des résultats (smartphone, RFID)', target=start_server, args=('', port), daemon=True)
+# daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
 daemon.start()
 #time.sleep(1)
 
