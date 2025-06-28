@@ -20,7 +20,7 @@ Une personne inscrite plus loin dans le même fichier se voit attribuer deux num
 - (RESOLU) quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
 - le menu "gestion des temps" déborde sur la droite de l'écran.
 - ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
-- augmenter la fréquence de téléchargement du tableur google sheet (1,5x ou 2x plus souvent ?)
+- (RESOLU) augmenter la fréquence de téléchargement du tableur google sheet (1,5x ou 2x plus souvent ?)
 - envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
 - dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
 Ou alors, trouver le bon total sur le nombre de participants et non ceux déjà arrivés.

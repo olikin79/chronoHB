@@ -3496,7 +3496,7 @@ class Clock():
         self.premiereExecution = True
         #self.enPause = False
         self.compteurSauvegarde = 1
-        self.compteurTelechargementURLGoogleSheet = 0
+        self.timerTelechargementURLGoogleSheet = 0
         self.auMoinsUnImport = False
         self.delaiActualisation = 3 # en secondes
         self.affichageDeDroiteAActualiser = True
@@ -3651,15 +3651,14 @@ class Clock():
         tableau.setLargeurColonnesAuto()
 
         
-        # Toutes les minutes, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
-        if telechargerDonneesVar.get() == 1 and (self.compteurTelechargementURLGoogleSheet == 0 or self.compteurTelechargementURLGoogleSheet >= 60//self.delaiActualisation) : # 12 x 5 s  = 1 minute
+        # Toutes les 30s, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
+        if telechargerDonneesVar.get() == 1 and (self.timerTelechargementURLGoogleSheet == 0 or time.time() - self.compteurTelechargementURLGoogleSheet > 30) : 
             # importGoogleSheetAutomatique() à lancer dans un thread pour ne pas bloquer l'interface
             # tentative de téléchargement d'un fichier googlesheet contenant les coureurs à importer automatiquement régulièrement
             DownloadDaemon = threading.Thread(name='Import des données "coureurs" depuis internet.', target=importGoogleSheetAutomatique, daemon=True)
             # DownloadDaemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             DownloadDaemon.start()
-            self.compteurTelechargementURLGoogleSheet = 0
-        self.compteurTelechargementURLGoogleSheet += 1
+            self.timerTelechargementURLGoogleSheet = time.time()
 
 
         ########## GESTION DU MESSAGE D'INFORMATION SUR LES DOSSARDS IMPORTES EN ARRIERE PLAN #############
