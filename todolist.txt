@@ -32,16 +32,17 @@ Si on saisit 42, on n'a pas d'erreur.
 
 
 - ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
-- le dépôt FTP ne s'opère que s'il y a un au moins un import ou s'il y a un changement dans l'affichage TV. Pas très logique.
+- le dépôt FTP ne s'opère que s'il y a un au moins un import.
 A exécuter s'il n'a jamais été exécuté.
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
-- Vérifier que les threads du programme sont bien en mode deamon=True, y compris envoi de mails etc...
 
 
-Bug sur le boitier :
-- (FAIT) si la puissance fournie n'est pas suffisante, on rate des tags RFID => Prendre une batterie externe plus puissante.
+Développement sur le boitier :
+- si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
+- recherche du serveur chronoHB sur le réseau local à faire en broadcast
+- pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
 - le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 
 
@@ -79,14 +80,13 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
-- pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
 - (FAIT) mettre en place le fonctionnement des antennes secondaires.
 - (CORRIGE) en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
 - (FAIT) nommer tous les threads exécutés.
 - interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - (FAIT) tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
-- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
+- Vérifier que les threads du programme sont bien en mode deamon=True, y compris envoi de mails etc...
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
 Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
 - Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
@@ -99,7 +99,6 @@ Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectat
 	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
 - déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
 - déplacer le dossier import vers %appdata%
-- recherche du serveur chronoHB sur le réseau local à faire en broadcast.
 - documenter les nouveautés (partie RFID, etc.).
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
@@ -110,7 +109,12 @@ Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectat
 	* un long cable d'antenne : 10 mètres ou 25 m ? Un deuxième à prévoir si 3 antennes ?
 	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
 
+
 A faire avant début octobre 2025 :
+- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
+
+
+Organisation : 
 - commander les 800 dossards pour le cross du collège,
 - commander 1000 puces RFID autocollantes.
 - commander épingles à nourrice ?
@@ -122,19 +126,19 @@ A faire avant début octobre 2025 :
 A faire avant le cross du collège Bourrillon 2025 :
 - vérifier le dénominateur des personnels de la DSDEN sur le dossard. Il était faux l'an dernier.
 - afficher les diplomes non encore envoyés comme une "erreur" sans action spécifique autre qu'afficher un popup indiquant de cocher la case correspondante ?
-- mode "antenne secondaire" à rendre fonctionnel (identique au mode pique).
+- (FAIT) mode "antenne secondaire" à rendre fonctionnel (identique au mode pique).
 - Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
 En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
 
 
 A faire pour le cross départemental 2025 (novembre) :
+- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
 - mettre dans un thread les actions wifi du boitier (recherche du réseau, connexion au réseau choisi) pour éviter que l'interface de se fige.
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
 
 
 A faire à plus long terme pour un prochain cross du collège ?
-- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur ? 
 Pourrait devenir utile à terme quand des dossards seront perdus, abimés et non renouvelés...
 - implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
 - (FAIT) installeur à terminer
@@ -143,7 +147,7 @@ Pourrait devenir utile à terme quand des dossards seront perdus, abimés et non
 - déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
 - refaire la capture d'écran de la page principale sur la documentation p 15.
 - deplacer les fichiers du serveur web dans www
-- lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
+- (FAIT) lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
 
 
 
