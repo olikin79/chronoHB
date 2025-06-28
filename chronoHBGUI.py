@@ -2649,15 +2649,17 @@ defilementAutoCB.pack(side=LEFT)
 
 time_counter = 0
 
-enregistrementVideo = IntVar()
-enregistrementVideoCB  = Checkbutton(defilementFrameHaut, text='Enregistrement webcam',
-    variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
-enregistrementVideoCB.pack(side=LEFT)
+if platform.system() != "Darwin":
+    enregistrementVideo = IntVar()
+    enregistrementVideoCB  = Checkbutton(defilementFrameHaut, text='Enregistrement webcam',
+        variable=enregistrementVideo, command=activerDesactiverLEnregistrement)
+    enregistrementVideoCB.pack(side=LEFT)
 
-voirVideo = IntVar()
-voirVideoCB  = Checkbutton(defilementFrameHaut, text='Voir webcam',
-    variable=voirVideo, command=voirLaVideo)
-voirVideoCB.pack(side=LEFT)
+    voirVideo = IntVar()
+    voirVideoCB  = Checkbutton(defilementFrameHaut, text='Voir webcam',
+        variable=voirVideo, command=voirLaVideo)
+    voirVideoCB.pack(side=LEFT)
+    
 
 lblHeureActuelle = Label(heureFrame, text= "Heure actuelle : 00:00:00", fg="red", font=("Time", 12))
 lblHeureActuelle.pack(side=TOP)
@@ -5553,17 +5555,18 @@ def actualiseWebcamSensibiliteParametre(event) :
     print("Modification du seuil de détection de la webcam")
     Parametres['webcamSensibility'] = int(webcamScale.get())
 
-webcamF = Frame(GaucheFrameParametresCourses)
-webcamComboL = Label(webcamF, text="Choix de la webcam")
-webcamCombo = Combobox(webcamF, width="2", state="readonly", values=(0,1,2)) # max 3 webcam pour un ordinateur semble raisonnable
-webcamCombo.set(Parametres['webcam'])
-webcamCombo.bind("<<ComboboxSelected>>", actualiseWebcamParametre)
-webcamComboFVide = Frame(webcamF,width=100) # une Frame vide pour utiliser pack() et laisser un peu de place
-webcamScale = Scale(webcamF, orient='horizontal', from_=0, to=100000,
-    resolution=1000, tickinterval=20000, length=450,
-    label='Seuil pour la détection de mouvement (0 : très sensible / 100000 : pas sensible)')
-webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
-webcamScale.set(Parametres['webcamSensibility'])
+if platform.system() != "Darwin":
+    webcamF = Frame(GaucheFrameParametresCourses)
+    webcamComboL = Label(webcamF, text="Choix de la webcam")
+    webcamCombo = Combobox(webcamF, width="2", state="readonly", values=(0,1,2)) # max 3 webcam pour un ordinateur semble raisonnable
+    webcamCombo.set(Parametres['webcam'])
+    webcamCombo.bind("<<ComboboxSelected>>", actualiseWebcamParametre)
+    webcamComboFVide = Frame(webcamF,width=100) # une Frame vide pour utiliser pack() et laisser un peu de place
+    webcamScale = Scale(webcamF, orient='horizontal', from_=0, to=100000,
+        resolution=1000, tickinterval=20000, length=450,
+        label='Seuil pour la détection de mouvement (0 : très sensible / 100000 : pas sensible)')
+    webcamScale.bind("<ButtonRelease-1>", actualiseWebcamSensibiliteParametre)
+    webcamScale.set(Parametres['webcamSensibility'])
 
 # FRame avec les options de connectivité
 ConnectiviteFrame = Frame(GaucheFrameParametresInternet, relief=GROOVE, borderwidth=2)
