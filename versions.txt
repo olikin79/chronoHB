@@ -109,6 +109,7 @@ Pbs persistants urgents :
 ############
 Travail du 28/06/25 :
 - Fin de l'implémentation NG de la gestion des erreurs, indirectement exécutées dans la foulée de l'évènement watchdog 
+- Les lignes en erreur sont colorées en fonction du type d'erreur. A poursuivre en distinguant tous les types d'erreur ?
 - Premiere implémentation de la gestion des antennes secondaires afin de générer des fichiers "piques" comme venant des smartphones.
 Cela permettra d'intercaler des coureurs non captés par les antennes principales.
 

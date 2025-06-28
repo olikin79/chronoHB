@@ -79,10 +79,9 @@ en vérifiant si le coureur est déjà présent en dehors du mode pique : si oui
 - (FAIT) faire en sorte que maj-app-raspberry4.py mette à jour base.py dans le bon dossier.
 
 A faire avant les vacances de juillet :
+- mettre en place le fonctionnement des antennes secondaires.
 - nommer tous les threads exécutés.
-- interfacer le paramètre actualisationAutomatiqueDeLAffichageTV
-- l'actualisation des premiers et erreurs du treeview ne s'effectue pas lors d'un réimport.
-- améliorer la gestion des erreurs qui doit provenir de traiterDonnees() et non du timer plus long destiné au dépôt FTP, emails etc...
+- interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
@@ -102,9 +101,9 @@ Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectat
 - documenter les nouveautés (partie RFID, etc.).
 - (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
-- solliciter Lucie pour le diplome du cross,
+- (FAIT) solliciter Lucie pour le diplome du cross,
 - (FAIT) 2 trepiers à acherter.
-- (EN COURS) commander 
+- (FAIT) commander 
 	* passage de cable sur la ligne d'arrivée si on double les antennes.
 	* un long cable d'antenne : 10 mètres ou 25 m ? Un deuxième à prévoir si 3 antennes ?
 	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?

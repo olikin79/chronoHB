@@ -2521,6 +2521,8 @@ def chargerDonnees() :
         Parametres["diplomeMdpExpediteur"] = ""
     if not "diplomeDiffusionAutomatique" in Parametres :
         Parametres["diplomeDiffusionAutomatique"] = 0
+    if not "dossardDiffusionAutomatique" in Parametres :
+        Parametres["dossardDiffusionAutomatique"] = 0
     if not "actualisationAutomatiqueDeLAffichageTV" in Parametres :
         Parametres["actualisationAutomatiqueDeLAffichageTV"] = False
     if not "FTPlogin" in Parametres :
