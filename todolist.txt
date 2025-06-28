@@ -16,8 +16,8 @@ BUGS constatés au randon trail :
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 - Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent.
 - l'affichage en temps réel sur chrome ne fonctionne pas.
-- l'affichage, parfois, ne s'actualise pas.
-- quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
+- (RESOLU) l'affichage, parfois, ne s'actualise pas.
+- (RESOLU) quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
 - le menu "gestion des temps" déborde sur la droite de l'écran.
 - ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
 - augmenter la fréquence de téléchargement du tableur google sheet (1,5x ou 2x plus souvent ?)
@@ -42,7 +42,7 @@ La solution est toute trouvée dans l'idée de regrouper les tags RFID captés �
 Développement sur le boitier :
 - si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
 - recherche du serveur chronoHB sur le réseau local à faire en broadcast
-- pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
+- (FAIT) pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
 - le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 
 

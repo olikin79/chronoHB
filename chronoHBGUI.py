@@ -119,22 +119,43 @@ rootGUI.iconbitmap(r'favicon.ico')
 # popup_label.pack(expand=True)
  
 
-# from PIL import ImageTk,Image 
+BROADCAST_PORT = 9999
+RESPONSE_PORT = 9998
+LISTEN_ADDRESS = "0.0.0.0" # Écoute sur toutes les interfaces
 
-### temporaire pour un retraitement des données d'un trail où les noms n'étaient pas corrects. Corrigé pour l'avenir.
-##for c in Coureurs.liste() :
-##    print("coureur retraité",c.nom)
-##    c.reformateNomPrenom()
+def start_udp_listener():
+    """
+    Écoute les requêtes de découverte UDP en broadcast et y répond.
+    """
+    # Créer un socket UDP pour recevoir les messages
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    
+    # Lier le socket au port de diffusion et à toutes les interfaces
+    sock.bind((LISTEN_ADDRESS, BROADCAST_PORT))
+    
+    print(f"Le serveur ChronoHB écoute les requêtes de découverte UDP sur le port {BROADCAST_PORT}...")
 
-
-##class Logger(object):
-##    def __init__(self, filename="Default.log"):
-##        self.terminal = sys.stdout
-##        self.log = open(filename, "a")
-##
-##    def write(self, message):
-##        self.terminal.write(message)
-##        self.log.write(message)
+    while True:
+        try:
+            # Attendre de recevoir un message
+            data, addr = sock.recvfrom(1024)
+            message_received = data.decode('utf-8')
+            
+            # Vérifier si le message est la requête de découverte attendue
+            if message_received == "CHRONOHB_DISCOVERY_REQUEST":
+                client_ip = addr[0]
+                print(f"Requête de découverte reçue de {client_ip}. Envoi d'une réponse...")
+                
+                # Envoyer la réponse au client (en utilisant son adresse IP et le port d'écoute)
+                response_message = b"CHRONOHB_DISCOVERY_RESPONSE"
+                sock.sendto(response_message, (client_ip, RESPONSE_PORT))
+                
+        except Exception as e:
+            print(f"Une erreur s'est produite dans le serveur UDP : {e}")
+            break
+        
+# démarrer start_udp_listener dans un thread
+Thread(name="Serveur UDP qui répond au broadcast",target=start_udp_listener, daemon=True).start()
 
 generateListCoureursPourSmartphone()
 
