@@ -1,15 +1,224 @@
-Bugs découverts :
+PRIORISATION DU TRAVAIL :
+
+PRIORITE ABSOLUE : fiabiliser le boitier en terme de puissance.
+si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
+
+############# 0. Organisation : 
+A faire avant début octobre 2025 :
+- commander les 800 dossards pour le cross du collège,
+- commander 1000 puces RFID autocollantes.
+- commander épingles à nourrice ?
+- 2ème malette à créer ?
+- import de la base du collège,
+- coller les 720 puces sur les 720 premiers dossards.
+- association des 720 puces aux 720 premiers dossards.
+
+
+
+############# 1. Travail sur chronoHB :
+a. BUGS :
+
+Avant début Septembre :
+- import effectué en arrière plan ne disparaît pas quand on clique dessus
+- envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
+- l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
+Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
+- l'affichage en temps réel sur chrome ne fonctionne pas.
+- le menu "gestion des temps" déborde sur la droite de l'écran.
+- l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
+- si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
+- le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
+- Bug sur l'application smartphone (à corriger dans Arrivee.pyw) : quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.
+Si on saisit 42, on n'a pas d'erreur.
+- ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
+- le dépôt FTP ne s'opère que s'il y a un au moins un import.
+A exécuter s'il n'a jamais été exécuté.
+- (FAIT 1/2) interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
+- penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
+- déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
+- déplacer le dossier import vers %appdata%
+- blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
+- tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
+Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
+
+
+Avant le cross BOURRILLON :
+- dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
+Ou alors, trouver le bon total sur le nombre de participants et non ceux déjà arrivés.
+- vérifier le dénominateur des personnels de la DSDEN sur le dossard. Il était faux l'an dernier.
+- Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
+En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
+
+
+Avant le cross départemental :
+- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
+- raccourcir automatiquement les noms d'établissement pour les dossards :
+en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
+
+
+Avant la vente du logiciel :
+- Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
+- voir pourquoi la vitesse de défilement n'est pas uniforme : 
+pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
+A creuser pour obtenir une vitesse uniforme.
+- Selon la taille des noms des catégories, les cases à cocher pour l'affichage TV débordent de l'écran. Faire en sorte que cela soit adaptatif.
+Créer un affichage qui dépend de la longueur totale à afficher avec retour à la ligne.
+Actuellement, on coupe en deux lignes les combobox. Il faudrait pouvoir faire plus de deux lignes en fonction de la largeur de 
+la fenêtre parent en pixels.
+- (confirmé) : l'archivage contient-il les vidéos ? on dirait que non! Il faudrait pouvoir choisir.
+- quand on impose Parametres[CategorieDAge]!=1, il faudrait remettre CoursesManuelles à False. Cela n'est pas fait actuellement.
+- si création de QR-codes pour agrafage sur des dossards, les courses A, B, C ne sont pas créées dans l'ordre alphabétique 
+mais dans l'ordre dans lequel on y a ajouté des coureurs. Bizarre mais pas problèmatique.
+- (EN COURS : manque la disparition après un certain temps) filtrage sur chronoHB des puces RFID détectées avant le lancement de la course du coureur.
+Création d'une erreur dédiée qui disparaitra au clic après un popup d'explication.
+- prévoir une interface (html ? ou sur le raspberry pi avec vnc) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
+ d'ajouter un coureur ou un temps.
+En attendant une solution pleinement HTML, étudier la possibilité d'utiliser le mode pique en ajoutant un bouton pour réinitialiser ?
+- (MANQUE LES DOSSARDS) terminer la création de tous les pdf sans texlive (dossards compris)
+- implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
+- possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
+- horodater les logs. Cela pourra être utile en cas de souci.
+- déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
+- refaire la capture d'écran de la page principale sur la documentation p 15.
+- le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
+- afficher les diplomes non encore envoyés comme une "erreur" sans action spécifique autre qu'afficher un popup indiquant de cocher la case correspondante ?
+- (FAIT 1/2 pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
+	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
+- (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
 - Sous Mac OS X, le double clic sur le dossard affecté à un temps ne s'affiche pas à la bonne hauteur. Il est trop bas alors que sous windows, cela semble correct.
 Il faudra introduire deux calculs différents, en fonction de l'OS :-(
-- l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
+- Sous MacOS X, le shebang sera à corriger pour le déploiement du dmg : à creuser pour que les modifications locales restent fonctionnelles avec le DMG. A tester.
+- sous mac os X, les couleurs des dossards n'apparaissent pas correctement.
+
+- ESTHETIQUE :
+	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
+	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
+	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
+	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
+	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
+	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
+	Aucun impact sur les temps calculés et les statistiques. 
+	Impact sur l'affichage TV sur le chronomètre en temps réel affiché en haut ? A vérifier.
+	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
+
+
+b. A IMPLEMENTER :
+Avant début septembre :
+- Créer un publipostage avec les étiquettes du collège.
+- Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
+Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
+- Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
+Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
+Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
+- Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
+- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
+
+
+Avant le prochain Trail de RIEUTORT :
+- processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
+- ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
+- créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
+- documenter les nouveautés (partie RFID, etc.).
+- (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
+- créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+
+A plus long terme :
+- checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
+- courses à étapes implémentées avec RFID uniquement.
+- remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.
+- mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
+Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
+- accepter la pondération pour les challenges par classe.
+- le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
+- prévoir une procédure en cas de plantage au démarrage lié à une base de données incorrecte.
+try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
+Traceback (most recent call last):
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1866, in <module>
+    timer=Clock(root, "tableau.maj")
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1765, in __init__
+    self.update_clock()
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1776, in update_clock
+    traitementLocal = traiterDonneesLocales()
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1162, in traiterDonneesLocales
+    codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1231, in decodeActionsRecupSmartphone
+    retour = addArriveeDossard(dossard, dossardPrecedent)
+  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 2747, in addArriveeDossard
+    coureur = Coureurs[doss-1]
+IndexError: list index out of range
+Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une base correcte.
+
+A ENCORE PLUS LONG TERME : quelques idées en vrac.
+- permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
+les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
+Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
+de vérification et de laisser les coureurs concernés loin des installations.
+- faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
+(interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
+Ainsi, quand on effectue un tri par colonne, actuellement, j'ai mis 3 chiffres tout le temps. Développement court qui devra se baser sur la méthode formateSurNChiffres() 
+en déterminant le nombre total de lignes et on l'appliquant à posteriori à tout le tableau quand ce total dépassera 100, 1000, etc...
+- dans ajout manuel de coureur, la classe devrait être une liste combobox avec les classes précédentes mais permettant de saisir une nouvelle classe.
+- pouvoir choisir l'imprimante vers laquelle on imprime dans les paramètres.
+- quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
+(Inutile en l'état actuel des besoins)
+- l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
+Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain (sans wifi), pourrait afficher les résultats.
+Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
+- si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
+	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
+- dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
+- Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
+
+
+Documentation :
+- documenter : double authentification google.com + mot de passe d'application.
+- documenter l'inscription en ligne via formulaire google form.
+- documenter l'import avec le numéro de dossard fourni.
+- documenter la partie RFID.
+
+############ 2. Travail sur le boitier :
+a. BUGS :
+
+b. A IMPLEMENTER
+
+Avant la vente du boitier :
+- mettre dans un thread les actions wifi du boitier (recherche du réseau, connexion au réseau choisi) pour éviter que l'interface ne se fige.
+- le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
+- Assistance à distance (VPN).
+
+############ 3. Travail sur site web :
+a. BUGS :
+
+
+b. A IMPLEMENTER :
+- processus de mise à jour avec contrôle du paiement.
+- dossards à rétablir avec la création de pdf sans texlive.
+- sortir tous les fichiers de données du dossier d'installation.
+- limitations logicielles dans la version de test à créer : import limité à 20 coureurs.
+- processus de mise à jour à rendre plus simple :
+1. pour le msi distribué (fichiers python compilés distribués).
+2. pour gérer des versions majeures-mineures, sans tout retélécharger à chaque mise à jour
+- mise en place d'un site internet avec : 
+1. page de contact (renseignement achat, signalement de bug via le logiciel).
+2. page de présentation dont vidéos d'explication du fonctionnement + documentation détaillée.
+3. page de paiement de l'application.
+
+
+############ 4. Bug (mineur) sur le programme smartphone : 
+- quand on quitte et que l'on revient dans le menu dossard, cela renvoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
+Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
+
+
+##################### VIELLES NOTES INUTILES ##################
+
+Bugs découverts :
+
+
 - (CORRIGE) Sous MAC OS X, les actions locales ne semblent pas fonctionner (via des requêtes http). Un système de Queue sera préférable pour tous les OS à terme
-- Sous Mac OS X, les actions venant des smartphones vers le script CGI ne fonctionnent pas.
 - (CORRIGE) si on veut modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionne pas.
-- si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
-- le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
 - (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.
-- clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
-- le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
+- (CORRIGE) clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - (CORRIGE) après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 - (A VERIFIER) Le script execute_update_script() exécute "python" dont je ne suis pas sûr d'une exécution correcte sur un ordinateur vierge de python.
@@ -17,45 +226,28 @@ Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des err
 Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 
 BUGS constatés au randon trail : 
-- import effectué en arrière plan ne disparaît pas quand on clique dessus
-- Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
-- l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
-Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
-- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent. Pas constaté à nouveau ! A retester !
-- l'affichage en temps réel sur chrome ne fonctionne pas.
+- (FAUSSE ALERTE) Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent. Pas constaté à nouveau ! A retester !
 - (RESOLU) l'affichage, parfois, ne s'actualise pas.
 - (RESOLU) quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
-- le menu "gestion des temps" déborde sur la droite de l'écran.
-- ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
 - (RESOLU) augmenter la fréquence de téléchargement du tableur google sheet (1,5x ou 2x plus souvent ?)
-- envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
-- dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
-Ou alors, trouver le bon total sur le nombre de participants et non ceux déjà arrivés.
 
 
-Bug sur l'application smartphone :
-- quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.
-Si on saisit 42, on n'a pas d'erreur.
 
 
-- ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
-- le dépôt FTP ne s'opère que s'il y a un au moins un import.
-A exécuter s'il n'a jamais été exécuté.
+
+
 - (CORRIGE) voir la sauvegarde sauvegarde-a-etudier-deux-dossards-arrives-simultanément-classés-a-l-envers.chb 
 où deux coureurs sont classés dans un certain ordre par l'antenne RFID mais les temps réels calculés ne sont pas dans le même ordre. Que faire ?
 La solution est toute trouvée dans l'idée de regrouper les tags RFID captés à moins d'une demi-seconde d'écart dans un même envoi depuis le sender du raspberry.
 
 
 Développement sur le boitier :
-- si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
+
 - (FAIT) recherche du serveur chronoHB sur le réseau local à faire en broadcast
 - (FAIT) pour un redémarrage du boitier (mise à jour) prévoir deux gros boutons (menu) au lieu du popup.
-- le clavier ne comporte pas de point d'exclamation. Décidément, ces claviers !
 
 
-Bug (mineur) sur le programme smartphone : 
-- quand on quitte et que l'on revient dans le menu dossard, cela renvoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
-Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
+
 
 
 A faire avant le trail du 18 mai 2024 :
@@ -90,72 +282,14 @@ A faire avant les vacances de juillet :
 - (FAIT) mettre en place le fonctionnement des antennes secondaires.
 - (CORRIGE) en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
 - (FAIT) nommer tous les threads exécutés.
-- interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - (VIENT DU SERVEUR FTP) le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - (FAIT) tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
-- Vérifier que les threads du programme sont bien en mode deamon=True, y compris envoi de mails etc...
-- Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
-Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
-- Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
-Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
-Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
-- (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
-- penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
-- créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
-- (FAIT pour les imports xlsx) lors des imports xlsx et ods, l'import ne semble s'effectuer que sur la feuille active.
-	Tant mieux s'il n'y en a qu'une mais on doit pouvoir parcourir toutes les feuilles.
-- déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
-- déplacer le dossier import vers %appdata%
-- documenter les nouveautés (partie RFID, etc.).
-- (A TESTER AVEC ROULEAU ORDONNE) associer les dossards en masse aux puces EPC
-- blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - (FAIT) solliciter Lucie pour le diplome du cross,
 - (FAIT) 2 trepiers à acherter.
 - (FAIT) commander 
 	* passage de cable sur la ligne d'arrivée si on double les antennes.
 	* un long cable d'antenne : 10 mètres ou 25 m ? Un deuxième à prévoir si 3 antennes ?
 	* une deuxième antenne RFID, voir une troisième (petite) pour scanner tous les dossards à la récupération ?
-
-
-A faire avant début octobre 2025 :
-- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
-
-
-Organisation : 
-- commander les 800 dossards pour le cross du collège,
-- commander 1000 puces RFID autocollantes.
-- commander épingles à nourrice ?
-- 2ème malette à créer.
-- import de la base du collège,
-- coller les 720 puces sur les 720 premiers dossards.
-- association des 720 puces aux 720 premiers dossards.
-
-A faire avant le cross du collège Bourrillon 2025 :
-- vérifier le dénominateur des personnels de la DSDEN sur le dossard. Il était faux l'an dernier.
-- afficher les diplomes non encore envoyés comme une "erreur" sans action spécifique autre qu'afficher un popup indiquant de cocher la case correspondante ?
-- (FAIT) mode "antenne secondaire" à rendre fonctionnel (identique au mode pique).
-- Gérer les noms de famille très longs sur les diplomes : est-il possible de créer une box avec des retours à la ligne automatique par ce système ?
-En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la largeur de l'image.
-
-
-A faire pour le cross départemental 2025 (novembre) :
-- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
-- mettre dans un thread les actions wifi du boitier (recherche du réseau, connexion au réseau choisi) pour éviter que l'interface de se fige.
-- raccourcir automatiquement les noms d'établissement pour les dossards :
-en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
-- sous mac os X, les couleurs des dossards n'apparaissent pas correctement.
-
-
-A faire à plus long terme pour un prochain cross du collège ?
-Pourrait devenir utile à terme quand des dossards seront perdus, abimés et non renouvelés...
-- implémenter une recherche de coureur par nom, prénom, classe, etc (au lieu du seul numéro de dossard).
-- (FAIT) installeur à terminer
-- possibilité de cliquer dans l'explorateur sur les fichiers chb afin de l'ouvrir dans le programme.
-- horodater les logs. Cela pourra être utile en cas de souci.
-- déplacer toutes les écritures de fichiers vers dossier %TMP% du système (db, dossards, diplomes, resultats, serveur www, etc...)
-- refaire la capture d'écran de la page principale sur la documentation p 15.
-- deplacer les fichiers du serveur web dans www
-- (FAIT) lors du premier dépôt FTP, il faudrait envoyer le dossier media et les images utiles (médailles dans www/media)
 
 
 
@@ -174,8 +308,7 @@ A FAIRE pour le raspberry pi :
 
 #######################################################
 BUGS DECOUVERTS :
-1. tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
-Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
+1. 
 2. (CORRIGE avec la nouvelle gestion des erreurs juin 2025) si on efface toutes les données, les Erreurs restent à droite sauf si on redémarre. Il faut donc juste vider la liste des erreurs quand on réinitailise.
 3. (FAIT) Les boutons AvancerDossard et ReculerDossard ne fonctionnaient plus depuis l'implémentation de traiterDonneesNG() : factorisation et correction du code.
 4. (FAIT) Correctif : l'ajout d'un temps manuellement dans l'interface se faisait uniquement avec la date du jour.
@@ -183,28 +316,13 @@ Aucun ajout de temps ne pouvait fonctionner les jours suivants.
 
 
 DEVELOPPEMENTS AVANT VENTE
-- (MANQUE LES DOSSARDS) terminer la création de tous les pdf sans texlive (dossards compris)
-- processus de mise à jour avec contrôle du paiement.
-- dossards à rétablir avec la création de pdf sans texlive.
-- sortir tous les fichiers de données du dossier d'installation.
-- limitations logicielles dans la version de test à créer : import limité à 20 coureurs.
-- processus de mise à jour à rendre plus simple :
-1. pour le msi distribué (fichiers python compilés distribués).
-2. pour gérer des versions majeures-mineures, sans tout retélécharger à chaque mise à jour
-- mise en place d'un site internet avec : 
-1. page de contact (renseignement achat, signalement de bug via le logiciel).
-2. page de présentation dont vidéos d'explication du fonctionnement + documentation détaillée.
-3. page de paiement de l'application.
+
+
 
 
 PERSPECTIVES DEVELOPPEMENTS RFID (dans l'ordre)
 - (FAIT) tests du lecteur RFID : acquisition des données par le raspberry pi puis transfert immédiat vers chronoHB
 - (FAIT) création d'une interface minimale sur le raspberry pi
-- (EN COURS : manque la disparition après un certain temps) filtrage sur chronoHB des puces RFID détectées avant le lancement de la course du coureur.
-Création d'une erreur dédiée qui disparaitra au clic après un popup d'explication.
-- prévoir une interface (html ? ou sur le raspberry pi avec vnc) avec communication bi-directionnelle permettant de modifier l'ordre des coureurs dans la course,
- d'ajouter un coureur ou un temps.
-En attendant une solution pleinement HTML, étudier la possibilité d'utiliser le mode pique en ajoutant un bouton pour réinitialiser ?
 - (FAIT) fabrication du matériel : gabarit, batterie, écran, boitier étanche à la pluie, bouton d'allumage.
 
 
@@ -259,15 +377,11 @@ utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les gr
 Todolist pour version 1.8 (mai 2023) :
 
 Bugs détectés :
-- quand on impose Parametres[CategorieDAge]!=1, il faudrait remettre CoursesManuelles à False. Cela n'est pas fait actuellement.
-- si création de QR-codes pour agrafage sur des dossards, les courses A, B, C ne sont pas créées dans l'ordre alphabétique 
-mais dans l'ordre dans lequel on y a ajouté des coureurs. Bizarre mais pas problèmatique.
 - (PROBLBLEMENT DISPARU car sûrement lié au bug ci-après corrigé) si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
 Si rédémarrage de l'application, plus de soucis. Pas très gênant car rare en pratique.
 - (CORRIGE) non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
 - (CORRIGE) les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
-- (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
 - l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
 Le serveur la traite comme un doublon grace à l'UID unique lié à la communication. Cela n'a donc aucune incidence en pratique.
 Si un jour, j'ai du temps, autant supprimer ce problème.
@@ -276,7 +390,7 @@ A creuser si du temps. Solution : redémarrer le programme, supprimer le temps e
 la permutation est souhaitée. Cela fonctionne dans l'autre sens.
 
 A ajouter :
-- checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
+
 
 nettoyage des fichiers tex ayant servi à créer les QR-codes. Cela serait ça de moins de présent sur le disque.
 
@@ -285,22 +399,16 @@ Fonctionnalités :
 	* relatifs à l'envoi automatique de diplomes, les logins et mdp d'emails, le nombre de minutes de rétention avant l'envoi des diplomes.
 	* relatifs à l'affichage TV automatique ?
 	* relatifs au dépôt FTP pour site web en temps réel. (rajouter le lien dans le mail diffusé)
-- refaire les captures d'écran p5 de la documentation.
 - tester-simuler les conditions d'échec d'envoi d'un mail avec le diplome. Améliorer éventuellement la détection d'erreur.
 
-- en cas de modification dans l'interface GUI avec les boutons de droite, forcer l'actualisation graphique immédiatement, sans attendre.
+- (FAIT) en cas de modification dans l'interface GUI avec les boutons de droite, forcer l'actualisation graphique immédiatement, sans attendre.
 
 Si possible pour la 1.8 :
-- processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - (FAIT) import + export en .chb des fichiers de données.
 - (FAIT) variable "message dans le mail" : bravo pour ta participation !
 
 
-Documentation :
-- documenter : double authentification google.com + mot de passe d'application.
-- documenter l'inscription en ligne via formulaire google form.
-- documenter l'import avec le numéro de dossard fourni.
-- documenter la partie RFID.
+
 
 
 Trouver win32ui installation. https://stackoverflow.com/questions/42370339/python-3-6-install-win32api
@@ -370,12 +478,6 @@ de vérifier que les critères de validation d'une saisie soient corrects et que
 et uniquement celles-ci.
 
 
-Retour suite au trail de Randon :
-- Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
-- voir pourquoi la vitesse de défilement n'est pas uniforme : 
-pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
-A creuser pour obtenir une vitesse uniforme.
-
 
 Pour déploiement du logiciel sur d'autres ordinateurs et maintenance automatique :
 - mettre au point script de mise à jour de chronoHB.
@@ -400,7 +502,7 @@ MOYENNEMENT PRIORITAIRES :
 
 - rendre scrollable les frames d'impressions de dossards individuelles ou des absents-dispensés.
 
-- sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
+- (ABANDONNE suite au passage au RFID) sur le smartphone, quand un dossard a déjà été scanné, il faudrait pouvoir supprimer facilement toutes les occurences précédentes.
 Cela se produit quand un dossard est scanné par erreur puis supprimé sur le serveur chronoHB. Ensuite, quand on doit le scanner pour de vrai, 
 c'est bloquant. Il faudrait "sortir du mode scan si on y est / afficher un message "voulez vous supprimer le scan précédent de ce dossard ? OUI / NON"
 puis agir si besoin puis revenir à l'écran classique.
@@ -434,75 +536,3 @@ alors celui-ci pourra entrer dans n'importe quel challenge sans limitation. Cela
 toutes les catégories. Pas créé de cas particulier pour cette éventualité (qui ne peut pas survenir en pratique).
 
 
-- ESTHETIQUE :
-	* si on annule toutes les courses, le menu "Annuler" ne disparaît pas. Esthétique !
-	* dans le pdf qui affiche les résultats d'un groupement, quand la colonne vitesse n'est pas assez large,
-	( cas où il y a la vitesse et la VMA ),  les éléments ne sont pas centrés correctement.
-	* la droiteFrame devrait être munie d'un scroll haut-bas afin de gérer le cas où les éléments affichés sont trop nombreux. 
-	Non réussi avec la class dérivée de Frame présente en début de code de chronoHB.py
-	* si un temps est entre minuit et 1H, lors de la fermeture de l'application, le temps affiché est incorrect.
-	Aucun impact sur les temps calculés et les statistiques. 
-	Impact sur l'affichage TV sur le chronomètre en temps réel affiché en haut ? A vérifier.
-	Exemple : 00:44:20:34 devient, après fermeture puis ouverture de l'application 44:20:34.
-
-	
-
-
-A TESTER :
-
-
-
-
-FONCTIONNALITES MANQUANTES OU EVOLUTIONS dans chronoHB.py à plus long terme :
-
-- remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.
-- mise en page du tableau par catégories dans les statistiques : inutile de distinguer le sexe dans deux colonnes.
-Cela a sa raison d'être pour les groupements ou pour les classes (qui sont dans Resultats, à maintenir) mais pas pour les catégories (également dans Résultats).
-- accepter la pondération pour les challenges par classe.
-- le défilement automatique de MonTableau ne s'effectue que par blocs de 2 lignes.
-- trouver les différentes fonctions d'actualisation de l'interface GUI. Il semble y avoir 3 qui font sûrement doublon. A réfléchir.
-Source d'incompréhension en cas de bizarreries d'affichage potentielles. Pas de bug constaté pour l'instant.
-- prévoir une procédure en cas de plantage au démarrage lié à une base de données incorrecte.
-try : except : dans le traitement des données afin d'éviter une interface plantée comme ci-après :
-Traceback (most recent call last):
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1866, in <module>
-    timer=Clock(root, "tableau.maj")
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1765, in __init__
-    self.update_clock()
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\chronoHB.py", line 1776, in update_clock
-    traitementLocal = traiterDonneesLocales()
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1162, in traiterDonneesLocales
-    codeErreur = decodeActionsRecupSmartphone(ligne, local=True)
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 1231, in decodeActionsRecupSmartphone
-    retour = addArriveeDossard(dossard, dossardPrecedent)
-  File "C:\Users\olikin\Documents\GitHub\chronoHB\FonctionsMetiers.py", line 2747, in addArriveeDossard
-    coureur = Coureurs[doss-1]
-IndexError: list index out of range
-
-Devrait lancer recupererSauvegardeGUI() en cas de plantage afin de charger une base correcte.
-
-
-A ENCORE PLUS LONG TERME : quelques idées en vrac.
-- permettre d'afficher sur la TV les vidéos : dans la zone d'affichage, développer un combobox qui affichera
-les noms des dossards concernés (théoriquement) par un enregistrement qu'il serait possible de cocher pour diffusion sur la TV.
-Placer cette diffusion au tout début de la page web, avant les tableaux. Cela permettrait de palier toute demande 
-de vérification et de laisser les coureurs concernés loin des installations.
-- faire en sorte que les numéros de la première colonne du tableauGUI soient systématiquement avec le bon nombre de chiffres
-(interne à la class tableauGUI) si moins de 100 résultats : à deux chiffres. Si moins de mille résultats, à trois chiffres, etc...
-Ainsi, quand on effectue un tri par colonne, actuellement, j'ai mis 3 chiffres tout le temps. Développement court qui devra se baser sur la méthode formateSurNChiffres() 
-en déterminant le nombre total de lignes et on l'appliquant à posteriori à tout le tableau quand ce total dépassera 100, 1000, etc...
-- dans ajout manuel de coureur, la classe devrait être une liste combobox avec les classes précédentes mais permettant de saisir une nouvelle classe.
-- pouvoir choisir l'imprimante vers laquelle on imprime dans les paramètres.
-- quand MonTableau contient plus de 10 colonnes, impossible d'éditer une cellule au delà de la 10ème : problème de base 16 à convertir en base 10 (ou l'inverse, car écrit de mémoire...)
-(Inutile en l'état actuel des besoins)
-- l'affichage.html pourrait être exporté à chaque actualisation vers un serveur ftp sur le web (identifiants+mdp+adresse à renseigner dans les paramètres).
-Ainsi, n'importe quel autre ordintateur relié à internet, plus lointain (sans wifi), pourrait afficher les résultats.
-Actuellement, il faut que le deuxième ordinateur soit sur le même réseau wifi pour afficher la page http://ip-serveur-chronoHB/Affichage.html .
-- si la génération des dossards (ou des résultats ou du xlxs) échouent, c'est probablement lié à un fichier ouvert dans adobe reader ou excel. 
-	Inviter l'utilisateur à fermer ces logiciels par un pop-up.
-- dans les paramètres, permettre de changer l'option : "statistiques en % ou en effectifs".
-- Ajouter un mode sombre via l'interface (case à cocher) pour utiliser la css mode-sombre. 
-- segmenter le code pour séparer les classes de données (AVANT DE DIFFUSER REELLEMENT LE LOGICIEL)
-- Créer un système évitant des incohérences entre les smartphones et la base locale : 
-un numéro de course unique qui empêcherait toute communication tant que les données n'ont pas été coordonnées ou celles du smartphone effacées.
-A réfléchir...
