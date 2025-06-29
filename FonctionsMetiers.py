@@ -5950,10 +5950,10 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             RangSexe = [0,0]
             dictRangsDSDEN[nom] = []
             #keyList.append(nom)
-            print("course ",nom,":",ResultatsGroupements[nom])
+            # print("course ",nom,":",ResultatsGroupements[nom])
             ResultatsGroupements[nom] = triParTemps(ResultatsGroupements[nom])
             # on affecte son rang à chaque coureur dans sa Course (et son score UNSS)
-            print("course ",nom,":",ResultatsGroupements[nom])
+            # print("course ",nom,":",ResultatsGroupements[nom])
             ### inutile car obligatoire vu ce qui précède : if estUnGroupement(nom) :
                 #print(nom, "est une course ou un groupement",Resultats[nom])
             i = 0

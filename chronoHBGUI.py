@@ -2536,9 +2536,10 @@ ZoneParametresTV = Frame(zoneAffichageTV)
 ZoneEntryPageWeb = Frame(ZoneParametresTV) # souhait de mettre les deux entry en gauche droite
 VitesseDefilementFrame = EntryParam("vitesseDefilement", "Vitesse de défilement (conseillée entre 1 et 6)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
 TempsPauseFrame = EntryParam("tempsPause", "Temps de pause sur les premiers (en s)", largeur=5, parent=ZoneEntryPageWeb, nombre = True)
+AffichageTVauto = CheckButtonParam("actualisationAutomatiqueDeLAffichageTV", "Actualisation automatique de l'affichage TV", parent=ZoneEntryPageWeb)
 VitesseDefilementFrame.pack(side=TOP,anchor="w")
 TempsPauseFrame.pack(side=TOP,anchor="w")
-
+AffichageTVauto.pack(side=TOP,anchor="w")
 
 boutonsFrameNavigateur = Frame(ZoneParametresTV)
 ouvrirBouton = Button(boutonsFrameNavigateur, text='Ouvrir un navigateur', command=OuvrirNavigateur, height=2)
@@ -3357,17 +3358,20 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
         else :
             continuer = False
         i -= 1
+    # print("coursesRecemmentCourues", coursesRecemmentCourues)
     listeDeCoursesEtChallengeAvecNomsNonStandards = listNomsGroupementsEtChallenges() 
     listeDeBooleen = [False]*len(listeDeCoursesEtChallengeAvecNomsNonStandards)
     for course in coursesRecemmentCourues :
-        #print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
+        # print("La course", course, "a été courue récemment. On modifie l'état des variables et on regénère l'affichage TV")
         try :
             i = listeDeCoursesEtChallengeAvecNomsNonStandards.index(groupementAPartirDeSonNom(course).nom)
             listeDeBooleen[i] = True
         except :
             print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
-    ## on demande à l'objet d'appliquer les modifications calculées
-    checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
+    ## on demande à l'objet d'appliquer les modifications calculées sauf si plus aucune course n'est courue récemment.(tout est à false)
+    if any(listeDeBooleen) :
+        #print("On modifie l'affichage TV pour les courses récemment courues")
+        checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
 # Fonction pour créer un popup permettant une sélection des fichiers à imprimer 
 
@@ -3500,14 +3504,14 @@ class Clock():
         self.auMoinsUnImport = False
         self.delaiActualisation = 3 # en secondes
         self.affichageDeDroiteAActualiser = True
-##        self.retour1 = []
-##        self.retour2 = []
+        self.listeNouvellesErreursATraiter = []
+        self.listeNouvellesErreursATraiter2 = []
         self.reinitErreursATraiter()
         self.ipActuelle = ""
         self.dejaDesErreurs = False
         self.auMoinsUnImportPourSauvegarde = False
         # self.nbreAImprimerPrecedent = -1
-        nbreAImprimerAncien = 0
+        # nbreAImprimerAncien = 0
         # communication entre les fonctions watchdog de surveillance des fichiers créés par le serveur web et le thread principal tkinter
         self.event_queue = Queue()
         Parametres["traiterDonneesActif"] = False
@@ -3770,7 +3774,7 @@ class Clock():
 
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
-        if Parametres["actualisationAutomatiqueDeLAffichageTV"]  and self.auMoinsUnImport :
+        if Parametres["actualisationAutomatiqueDeLAffichageTV"] :
             corrigerLesCasesCocheesPourLAffichageTV()
 
         # on actualise l'affichageTV à chaque nouvel import.

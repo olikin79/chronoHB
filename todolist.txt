@@ -1,17 +1,20 @@
 Bugs découverts :
+- l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - (CORRIGE) si on veut modifier Parametres["delai_antennes_par_tag"] dans l'interface RFID, cela ne fonctionne pas.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le téléchargement d'une mise à jour fige l'interface. A faire dans un thread.
 - (CORRIGE) dans l'application cx_freeze, les modifications locales ne fonctionnent plus.
 - clignotement des erreurs affichées. On devrait actualiser l'interface uniquement si les erreurs ont changé de valeur ou d'ordre. Comment le savoir ?
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
-- après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
+- (CORRIGE) après recalcul complet, les lignes orange du treeview ne sont pas actualisées et ne redeviennet pas blanches.
 Cela se joue dans metsEnEvidenceErreurs(), peut-être parce que la liste des erreurs n'a pas elle-même été actualisée.
 - (A VERIFIER) Le script execute_update_script() exécute "python" dont je ne suis pas sûr d'une exécution correcte sur un ordinateur vierge de python.
 
 Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 
 BUGS constatés au randon trail : 
+- import effectué en arrière plan ne disparaît pas quand on clique dessus
+- Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
 - l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 - Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent. Pas constaté à nouveau ! A retester !
@@ -136,6 +139,7 @@ A faire pour le cross départemental 2025 (novembre) :
 - mettre dans un thread les actions wifi du boitier (recherche du réseau, connexion au réseau choisi) pour éviter que l'interface de se fige.
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
+- sous mac os X, les couleurs des dossards n'apparaissent pas correctement.
 
 
 A faire à plus long terme pour un prochain cross du collège ?
@@ -168,7 +172,7 @@ A FAIRE pour le raspberry pi :
 BUGS DECOUVERTS :
 1. tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
 Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
-2. si on efface toutes les données, les Erreurs restent à droite sauf si on redémarre. Il faut donc juste vider la liste des erreurs quand on réinitailise.
+2. (CORRIGE avec la nouvelle gestion des erreurs juin 2025) si on efface toutes les données, les Erreurs restent à droite sauf si on redémarre. Il faut donc juste vider la liste des erreurs quand on réinitailise.
 3. (FAIT) Les boutons AvancerDossard et ReculerDossard ne fonctionnaient plus depuis l'implémentation de traiterDonneesNG() : factorisation et correction du code.
 4. (FAIT) Correctif : l'ajout d'un temps manuellement dans l'interface se faisait uniquement avec la date du jour.
 Aucun ajout de temps ne pouvait fonctionner les jours suivants.
@@ -211,7 +215,7 @@ Chercher dans decodeActionsRecupSmartphone() appelé ligne 1853 de FonctionsMeti
 Dans AI2, dans l'idéal, il faudrait que si pique=true, constructeurRequeteHTTP soit appelé avec le dossard qui précède celui en cours d'ajout, sauf pour le premier envoi.
 A défaut, traité dans la fonction python d'import du fichier de données "pique". Par contre, il faut trouver pourquoi l'uid est 0.
 Cela devrait être un nombre aléatoire. Cela l'est quand on clique sur "supprimer les données".
-- FAIT export vers OPUSS
+- (FAIT) export vers OPUSS
 
 
 
@@ -254,10 +258,10 @@ Bugs détectés :
 - quand on impose Parametres[CategorieDAge]!=1, il faudrait remettre CoursesManuelles à False. Cela n'est pas fait actuellement.
 - si création de QR-codes pour agrafage sur des dossards, les courses A, B, C ne sont pas créées dans l'ordre alphabétique 
 mais dans l'ordre dans lequel on y a ajouté des coureurs. Bizarre mais pas problèmatique.
-- si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
+- (PROBLBLEMENT DISPARU car sûrement lié au bug ci-après corrigé) si réimport d'une sauvegarde puis envoi des diplômes, il semble manquer des éléments dans le dictionnaire Courses. L'envoi provoque une erreur.
 Si rédémarrage de l'application, plus de soucis. Pas très gênant car rare en pratique.
-- non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
-- les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
+- (CORRIGE) non application des paramètres renseignés, sauf à relancer l'application. A Trouver.
+- (CORRIGE) les paramètres des boutons radio (type de course,...) ne sont pas mémorisés immédiatement 
 (ni appliqués du coup : cases à cocher non prises en compte sans redémarrage de l'application)).
 - (confirmé) : l'archivage contient-il les vidéos ? on dirait que non!
 - l'application android semble renvoyer la dernière action vers le serveur à chaque fois que l'on revient dans un des deux menus.
@@ -284,8 +288,8 @@ Fonctionnalités :
 
 Si possible pour la 1.8 :
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
-- import + export en .chb des fichiers de données.
-- variable "message dans le mail" : bravo pour ta participation !
+- (FAIT) import + export en .chb des fichiers de données.
+- (FAIT) variable "message dans le mail" : bravo pour ta participation !
 
 
 Documentation :
@@ -336,9 +340,6 @@ ou pour enchainer les smartphones (si panne de batterie ou autre)
 
 - (FAIT) Le status dispensé ou absent devrait être cumulable : élimination du combobox et utilisation de cases à cocher.
 (A VERIFIER) Attention à répercuter ces éventuels deux status dans les pdf générés et dans le tableur xls si tel est le cas.
-
-
-- changer les fichiers textes avec une extension comme .dbc (pour db de chronoHB) afin d'ignorer dans GIT tous les fichiers chb... Plus pratique !
 
 
 Fonctionnalités pour le cross UNSS :

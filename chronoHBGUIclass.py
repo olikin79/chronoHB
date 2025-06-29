@@ -1,6 +1,18 @@
 from tkinter import *
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 
+class CheckButtonParam(Checkbutton):
+    def __init__(self, param, intitule, parent=None):
+        self.param = param
+        self.intitule = intitule
+        self.valeurtk = BooleanVar()
+        if self.param in Parametres :
+            self.valeurtk.set(Parametres[self.param])
+        Checkbutton.__init__(self, parent, text=intitule, variable=self.valeurtk, command=self.memoriseValeur)
+    def memoriseValeur(self) :
+        # Parametres[self.param] = self.valeurtk.get()
+        setParam(self.param, self.valeurtk.get())
+
 class EntryParam(Frame):
     def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
