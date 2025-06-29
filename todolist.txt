@@ -14,7 +14,7 @@ Il faudrait utiliser la version déployée avec cxfreeze. Voir comment faire.
 BUGS constatés au randon trail : 
 - l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
 Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
-- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent.
+- Si on rentre dans le menu réglages RFID, l'affichage ne s'actualise plus avec de nouveaux tags RFID qui arrivent. Pas constaté à nouveau ! A retester !
 - l'affichage en temps réel sur chrome ne fonctionne pas.
 - (RESOLU) l'affichage, parfois, ne s'actualise pas.
 - (RESOLU) quand on génère les résultats, cela n'ouvre pas le bon dossier : il a changé de place.
@@ -47,7 +47,7 @@ Développement sur le boitier :
 
 
 Bug (mineur) sur le programme smartphone : 
-- quand on quitte et que l'on revient dans le menu dossard, cela revoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
+- quand on quitte et que l'on revient dans le menu dossard, cela renvoie le dernier dossard (celui du haut) même s'il avait déjà été reçu par le serveur.
 Pas gênant si le serveur élimine les doublons avec un UID unique mais bon.
 
 
@@ -84,7 +84,7 @@ A faire avant les vacances de juillet :
 - (CORRIGE) en cas de dossards ajoutés avec une pique, les rangs ne sont pas bons. Il faudrait séparer les temps d'un cent-millième de seconde par exemple.
 - (FAIT) nommer tous les threads exécutés.
 - interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
-- le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
+- (VIENT DU SERVEUR FTP) le transfert vers le serveur FTP n'a pas fonctionné : le serveur inaccessible depuis l'extérieur.=> serveur FTP à louer.
 - (FAIT) tester si les pdf des challenges se génèrent dans generateImpressionsNG() : pas sûr de l'avoir implémenté.
 - Vérifier que les threads du programme sont bien en mode deamon=True, y compris envoi de mails etc...
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.

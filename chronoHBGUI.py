@@ -3650,6 +3650,7 @@ class Clock():
         # redimensionnement (uniquement si utile) ici car l'élèvement <Configure> des frames ne semble pas fonctionner.
         tableau.setLargeurColonnesAuto()
 
+        self.listeNouvellesErreursATraiter2 = []
         
         # Toutes les 30s, tentative d'import d'un document googlesheet si renseigné dans les paramètres.
         if telechargerDonneesVar.get() == 1 and (self.timerTelechargementURLGoogleSheet == 0 or time.time() - self.compteurTelechargementURLGoogleSheet > 30) : 
@@ -3668,7 +3669,8 @@ class Clock():
         if Parametres["utilisationDesDossardsDeChronoHB"] :
             # le logiciel gère les dossards du cross
             # tant qu'il y a des dossards à imprimer, on le signale.
-            self.listeNouvellesErreursATraiter.append(erreur)
+            self.listeNouvellesErreursATraiter2.append(erreur)
+            self.erreursATraiter()
         else :
             # le logiciel ne gère pas l'impression des dossards du trail. 
             # On signale l'import mais on permet d'un clic de supprimer l'information
@@ -3682,7 +3684,7 @@ class Clock():
                 if not Parametres["informationNouveauxDossardsImportesAEffacer"] :
                     # le message doit se réafficher 
                     print("On affiche l'information comme quoi des dossards ont été réimportés.")
-                    self.listeNouvellesErreursATraiter.append(erreur)
+                    self.listeNouvellesErreursATraiter2.append(erreur)
             # else :
             #     # print("Le nombre de coureurs n'a pas changé depuis le dernier import automatique.")
             #     # on n'a pas cliqué sur le bouton pour effacer l'information : on l'affiche
@@ -3823,7 +3825,7 @@ class Clock():
             i -= 1
 
         indiceErreur462DejaRencontreeDansListeDesNouvellesErreursATraiter = -1
-        for n, erreur in enumerate(self.listeNouvellesErreursATraiter) :
+        for n, erreur in enumerate(self.listeNouvellesErreursATraiter + self.listeNouvellesErreursATraiter2) :
             ajout = False
             if not erreur.numero in [0, 311, 312, 321, 340, 401, 411, 441, 451, 462]:
                 ### "erreurs" internes qui doivent être ignorées par l'interface graphique (ou gérées juste après)
@@ -5357,11 +5359,12 @@ def packAutresWidgets():
     SauvegardeUSBFrameL.pack(side=TOP,anchor="w")
     SauvegardeUSBFrame.pack(side=LEFT,anchor="w")
     lblCommentaire.pack(side=TOP)
-    webcamComboL.pack(side=LEFT)
-    webcamCombo.pack(side=LEFT)
-    webcamComboFVide.pack(side=LEFT)
-    webcamScale.pack(side=LEFT)
-    webcamF.pack(side=TOP,anchor="w")
+    if platform.system() != "Darwin" :
+        webcamComboL.pack(side=LEFT)
+        webcamCombo.pack(side=LEFT)
+        webcamComboFVide.pack(side=LEFT)
+        webcamScale.pack(side=LEFT)
+        webcamF.pack(side=TOP,anchor="w")
     URLGoogleSheetAImporterEntry.pack(side=TOP,anchor="w")
     GoogleSheetServiceAccountFileEntry.pack(side=TOP,anchor="w")
     emailEntry.pack(side=TOP,anchor="w")
@@ -5392,7 +5395,8 @@ def forgetAutresWidgets():
     SauvegardeUSBFrame.pack_forget()
     lblCommentaire.pack_forget()
     #ModeleDeDossardsFrame.pack_forget()
-    webcamF.pack_forget()
+    if platform.system() != "Darwin" :
+        webcamF.pack_forget()
     URLGoogleSheetAImporterEntry.forget()
     GoogleSheetServiceAccountFileEntry.forget()
     emailEntry.forget()
