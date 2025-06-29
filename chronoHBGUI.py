@@ -3437,7 +3437,7 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
             print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
     ## on demande à l'objet d'appliquer les modifications calculées sauf si plus aucune course n'est courue récemment.(tout est à false)
     if any(listeDeBooleen) :
-        print("On modifie l'affichage TV pour les courses récemment courues\n", listeDeCoursesEtChallengeAvecNomsNonStandards,"\n", listeDeBooleen)
+        # print("On modifie l'affichage TV pour les courses récemment courues\n", listeDeCoursesEtChallengeAvecNomsNonStandards,"\n", listeDeBooleen)
         checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
 # Fonction pour créer un popup permettant une sélection des fichiers à imprimer 

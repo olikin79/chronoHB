@@ -6371,7 +6371,7 @@ def affecteDossardArriveeTempsLocal(tempsReel, dossard="0A") :
             if tpsPresent.tempsReel == tempsReel :
                 ArriveeTempsAffectes[n-1] = doss
                 print("Dossard", doss, "affecté au temps sélectionné", temps.tempsReelFormate())
-                CodeRetour = Erreur(0, message, elementConcerne=tempsReel )
+                CodeRetour = Erreur(0, "", elementConcerne=tempsReel )
                 break
             n -= 1
     Parametres["calculateAll"] = True
