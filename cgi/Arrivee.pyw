@@ -181,6 +181,22 @@ def lireMessageDefaut() :
         contenu = "Bravo <prenom>."
     return contenu
 
+# def lireParametres() :
+#     print("DEBUG: Trying to read params.txt", file=sys.stderr)
+#     try :
+#         # Essayez d'utiliser un chemin absolu pour éliminer les doutes
+#         chemin_params = os.path.join(os.path.dirname(os.path.abspath(__file__)), "params.txt")
+#         print(f"DEBUG: Looking for file at {chemin_params}", file=sys.stderr)
+#         with open(chemin_params, 'r') as f:
+#             contenu = f.read()
+#             print("DEBUG: File read successfully", file=sys.stderr)
+#     except FileNotFoundError:
+#         print("DEBUG: params.txt NOT FOUND, using default.", file=sys.stderr)
+#         contenu = "1"
+#     except Exception as e:
+#         print(f"DEBUG: An unexpected error occurred: {e}", file=sys.stderr)
+#         contenu = "1"
+#     return contenu
 def lireParametres() :
     try :
         with open("params.txt", 'r') as f:
@@ -351,26 +367,18 @@ def generateMessage(dossard, nature, action, uid, noTransmission, tpsCoureurSTR=
         # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
         #                                              fixé à 00 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
                                                     #  fixé à 01 si les courses sont manuelles.
-if len(sys.argv) > 1:
-    local="true"
-    nature = sys.argv[1].lower()
-    action = sys.argv[2].lower() if len(sys.argv) > 2 else ""
-    dossard = sys.argv[3] if len(sys.argv) > 3 else "" # Désormais, les dossards ne sont plus numériques.
-    if dossard == None :
-        dossard = ""
-    dossardPrecedent = sys.argv[4] if len(sys.argv) > 4 else "" # Désormais, les dossards ne sont plus numériques.
-    if dossardPrecedent == None :
-        dossardPrecedent = ""
-    tpsCoureurSTR = sys.argv[5] if len(sys.argv) > 5 else ""
-    uid = 0
-    noTransmission = 0
-else :
-    # logique d'exécution par le serveur web
+                                                    
+try :
+    nature = form.getvalue("nature").lower()
+except: 
+    nature = "" # cas où c'est une exécution locale qui s'est déroulée.
+    
+if nature :
+    # cas d'une exécution via le serveur WEB CGI
     try :
         local = form.getvalue("local")
     except: 
         local = "false"
-    nature = form.getvalue("nature").lower()
     pique = form.getvalue("pique")
     if pique == None :
         pique = ""
@@ -380,11 +388,13 @@ else :
         action = form.getvalue("action").lower()
     except:
         action = ""
-    dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
-    if dossard == None :
-        dossard = ""
-    dossardPrecedent = formateDossardNG(form.getvalue("dossardPrecedent"))
-    if dossardPrecedent == None :
+    try :
+        dossard = formateDossardNG(form.getvalue("dossard")) # Désormais, les dossards ne sont plus numériques.
+    except:
+        dossard = "0A"
+    try :
+        dossardPrecedent = formateDossardNG(form.getvalue("dossardPrecedent"))
+    except :
         dossardPrecedent = "0A"
     tpsCoureurSTR = form.getvalue("tpsCoureur")
     if tpsCoureurSTR == None :
@@ -397,6 +407,20 @@ else :
         noTransmission = int(form.getvalue("noTransmission"))
     except:
         noTransmission = 0
+else :
+    # cas d'une exécution locale interne à python avec subprocess
+    local="true"
+    nature = sys.argv[1].lower()
+    action = sys.argv[2].lower() if len(sys.argv) > 2 else ""
+    dossard = sys.argv[3] if len(sys.argv) > 3 else "" # Désormais, les dossards ne sont plus numériques.
+    if dossard == None :
+        dossard = ""
+    dossardPrecedent = sys.argv[4] if len(sys.argv) > 4 else "" # Désormais, les dossards ne sont plus numériques.
+    if dossardPrecedent == None :
+        dossardPrecedent = ""
+    tpsCoureurSTR = sys.argv[5] if len(sys.argv) > 5 else ""
+    uid = 0
+    noTransmission = 0
     
 # retour au client : erreurs à gérer.
 print("Content-type: text/html; charset=utf-8\n")
