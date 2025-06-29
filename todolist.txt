@@ -1,4 +1,5 @@
 Bugs découverts :
+- la suppression d'un temps depuis l'interface ne semble plus fonctionner.
 - l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - (CORRIGE) Sous MAC OS X, les actions locales ne semblent pas fonctionner (via des requêtes http). Un système de Queue sera préférable pour tous les OS à terme
 - Sous Mac OS X, les actions venant des smartphones vers le script CGI ne fonctionnent pas.

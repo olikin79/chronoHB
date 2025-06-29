@@ -3412,17 +3412,18 @@ def depotFTPResultatsSansMessage(initial=False):
 def corrigerLesCasesCocheesPourLAffichageTV() :
     """Modifie l'affichage TV en fonction des derniers coureurs passés : pour cela, remonte la liste ArriveeTemps"""
     coursesRecemmentCourues = set([])
-    i = len(ArriveeDossards) - 1
+    i = len(ArriveeTemps) - 1
     continuer = True
     while i >= 0 and continuer :
-        doss = ArriveeDossards[i]
         tps = ArriveeTemps[i]
-        #print("on calcule", time.time(),"-", tps.tempsReel ,"=",time.time() - tps.tempsReel)
-        if time.time() - tps.tempsReel < 300 :
-            #print("Le dossard", doss,"a passé la ligne il y a moins de 300 s")
-            coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
-        else :
-            continuer = False
+        doss = tps.dossardAttribue
+        if doss != "0A" :
+            # print("Pour", doss, ", on calcule", time.time(), "-", tps.tempsReel, tps.tempsReelFormate(True), "=", time.time() - tps.tempsReel)
+            if time.time() - tps.tempsReel < 300 :
+                # print("Le dossard", doss,"a été reçu sur le serveur il y a moins de 300 s. On affiche sa catégorie.")
+                coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
+            else :
+                continuer = False
         i -= 1
     # print("coursesRecemmentCourues", coursesRecemmentCourues)
     listeDeCoursesEtChallengeAvecNomsNonStandards = listNomsGroupementsEtChallenges() 
@@ -3436,7 +3437,7 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
             print("La course", course, "n'a pas été trouvée dans", listeDeCoursesEtChallengeAvecNomsNonStandards, "pour un affichage automatisé sur la TV")
     ## on demande à l'objet d'appliquer les modifications calculées sauf si plus aucune course n'est courue récemment.(tout est à false)
     if any(listeDeBooleen) :
-        #print("On modifie l'affichage TV pour les courses récemment courues")
+        print("On modifie l'affichage TV pour les courses récemment courues\n", listeDeCoursesEtChallengeAvecNomsNonStandards,"\n", listeDeBooleen)
         checkBoxBarAffichage.setState(listeDeCoursesEtChallengeAvecNomsNonStandards,listeDeBooleen)
 
 # Fonction pour créer un popup permettant une sélection des fichiers à imprimer 
@@ -3841,6 +3842,7 @@ class Clock():
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
         if Parametres["actualisationAutomatiqueDeLAffichageTV"] :
+            print("On corrige les cases à cocher pour l'affichage TV")
             corrigerLesCasesCocheesPourLAffichageTV()
 
         # on actualise l'affichageTV à chaque nouvel import.

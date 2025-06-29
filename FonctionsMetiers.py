@@ -97,6 +97,13 @@ donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
 dossier_www = os.path.join(DONNEES, "www")
 os.makedirs(dossier_www, exist_ok=True)
 
+# dossier_cgi = os.path.joint(dossier_data_txt, "cgi")
+# TEMPORAIRE en attendant en tout déplacer
+# le dossier cgi est dans le dossier de l'application
+dossier_cgi = os.path.join(os.getcwd(), "cgi")
+os.makedirs(dossier_cgi, exist_ok=True)
+fichier_params_txt = os.path.join(dossier_cgi,"params.txt")
+
 dossier_impressions = os.path.join(DONNEES, "impressions")
 os.makedirs(dossier_impressions, exist_ok=True)
 
@@ -1759,6 +1766,10 @@ class Temps():#persistent.Persistent):
         self.tempsServeur = float(tempsServeur)
         avanceDuTelephone = self.tempsClient - self.tempsServeur
         self.tempsReel = (round(100*(self.tempsCoureur - avanceDuTelephone)))/100 # arrondir au centième car c'est le cas dans les requêtes web et l'interface GUI
+        # dans le cadre de l'actualisation automatique de l'affichage TV, on a besoin de mémoriser à quel dossard est attribué le temps self : 
+        # l'affichage du treeview serait trop long à solliciter d'où cette proprité excédentaire (dédiée uniquement à corrigerLesCasesCocheesPourLAffichageTV()).
+        self.dossardAttribue = "0A" 
+        
     def tempsCoureurFormate(self, HMS = True) :
         if self.tempsReel :
             ch = formaterTemps(self.tempsCoureur, HMS)#time.strftime("%H:%M:%S:",time.gmtime(self.tempsCoureur)) + partieDecimale
@@ -7149,6 +7160,7 @@ def categorieDuDernierDepart() :
 
 
 def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee, tpsNonSaisi=False):
+    tps.dossardAttribue = doss
     arrivee = tps.tempsReel
     coureur = Coureurs.recuperer(doss)
     cat = coureur.course # categorie(Parametres["CategorieDAge"])
@@ -8741,7 +8753,7 @@ def setParametres() :
             crossParClasse = "0"
     else :
         crossParClasse = "1"
-    with open("params.txt", 'w') as f:
+    with open(fichier_params_txt, 'w') as f:
         f.write(crossParClasse)  # à compléter avec d'autres paramètres si besoin de les envoyer vers le smartphone.
     f.close()
 
