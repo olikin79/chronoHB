@@ -396,32 +396,98 @@ def conversionTempsRequetesHTTP(temps) :
     else :
         return temps
 
-def requeteLocale(requete) :
-    print("requete :", requete)
-    r = requests.get(requete)
+# def requeteLocale(requete) :
+#     print("requete :", requete)
+#     r = requests.get(requete)
 
 def local_ajoute_dossard(dossard, dossardPrecedent) :
-    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
-    requeteLocale(requete) 
+    # Appeler le script Arrivee.pyw avec des arguments
+    # Notez que 'python' peut être 'python3' selon votre configuration
+    command = ['dossard', 'add', dossard, dossardPrecedent]
+    local_commande(command)
 
 def local_supprime_dossard(dossard, dossardPrecedent) :
-    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
-    requeteLocale(requete) 
+    # Appeler le script Arrivee.pyw avec des arguments
+    # Notez que 'python' peut être 'python3' selon votre configuration
+    command = ['dossard', 'del', dossard, dossardPrecedent]
+    local_commande(command)    
+
+# def local_ajoute_dossard(dossard, dossardPrecedent) :
+#     requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=add&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+#     requeteLocale(requete) 
+
+# def local_supprime_dossard(dossard, dossardPrecedent) :
+#     requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=dossard&action=del&dossard='+dossard+'&dossardPrecedent='+dossardPrecedent
+#     requeteLocale(requete) 
 
 def local_efface_temps(temps, dossard="0") :
-    temps = conversionTempsRequetesHTTP(temps)
-    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard='+dossard+'&tpsCoureur='+str(temps)
-    requeteLocale(requete) 
-
+    command = ['tps', 'del', dossard, "0", str(temps)]
+    local_commande(command)  
+    
 def local_ajoute_temps(temps, dossard="0") :
-    temps = conversionTempsRequetesHTTP(temps)
-    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard='+dossard+'&tpsCoureur='+str(temps)
-    requeteLocale(requete) 
+    command = ['tps', 'add', dossard, "0", str(temps)]
+    local_commande(command)  
+    
+# def local_efface_temps(temps, dossard="0") :
+#     temps = conversionTempsRequetesHTTP(temps)
+#     requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=del&dossard='+dossard+'&tpsCoureur='+str(temps)
+#     requeteLocale(requete) 
+
+# def local_ajoute_temps(temps, dossard="0") :
+#     temps = conversionTempsRequetesHTTP(temps)
+#     requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=add&dossard='+dossard+'&tpsCoureur='+str(temps)
+#     requeteLocale(requete) 
 
 def local_affecte_dossard(temps, dossard) :
-    temps = conversionTempsRequetesHTTP(temps)
-    requete = 'http://127.0.0.1:8888/cgi/Arrivee.pyw?local=true&nature=tps&action=affecte&dossard='+dossard+'&tpsCoureur='+str(temps)
-    requeteLocale(requete) 
+    command = ['tps', 'affecte', dossard, "0", str(temps)]
+    local_commande(command)
+
+def local_commande(command) :
+    try:
+        aExecuter = [sys.executable, os.path.join('cgi', 'Arrivee.pyw')] + command
+        print("Exécution de la commande locale:", aExecuter)
+        
+        # MODIFICATION ICI :
+        # Remplacez 'capture_output=True' par 'stdout=subprocess.PIPE'
+        # pour gérer la capture manuellement.
+        result = subprocess.run(
+            aExecuter,
+            check=True,
+            stdout=subprocess.PIPE, # Capture la sortie standard
+            stderr=subprocess.STDOUT, # Redirige la sortie d'erreur vers la sortie standard
+            text=True # Décode la sortie en texte
+        )
+        
+        # Maintenant, toute la sortie (y compris les erreurs) est dans result.stdout
+        # print("Sortie du script (stdout+stderr) :")
+        # print(result.stdout)
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Erreur d'exécution : le script a retourné le code {e.returncode}")
+        # La sortie d'erreur est dans e.stdout puisque nous l'avons redirigée
+        print(f"Sortie complète (incluant l'erreur) : {e.stdout}")
+        
+    except FileNotFoundError:
+        print("Erreur : Interpréteur Python introuvable.")
+# def local_commande(command) :
+#     # Appeler le script Arrivee.pyw avec des arguments
+#     # Notez que 'python' peut être 'python3' selon votre configuration
+#     # command = ['python', 'Arrivee.pyw', 'dossard', dossard, dossardPrecedent]
+#     try:
+#         # Utilisez subprocess.run() pour exécuter la commande
+#         # capture_output=True pour capturer la sortie du script
+#         # text=True pour décoder la sortie en texte
+#         aExecuter = [sys.executable, os.path.join('cgi','Arrivee.pyw')]+command
+#         print("Exécution de la commande :", aExecuter)
+#         result = subprocess.run(aExecuter, check=True, capture_output=True, text=True)
+#         print("Sortie du script :")
+#         print(result.stdout)
+#     except subprocess.CalledProcessError as e:
+#         print(f"Erreur d'exécution : le script a retourné le code {e.returncode}")
+#         print(f"Sortie d'erreur : {e.stderr}")
+#     except FileNotFoundError:
+#         print("Erreur : 'python' ou 'python3' introuvable. Assurez-vous que Python est dans votre PATH.")
+
 
 def local_modifie_temps(tempsInitial, tempsFinal, dossard="0") :
     local_efface_temps(tempsInitial, dossard)
@@ -6009,7 +6075,7 @@ def execute_update_script():
     """Exécute le script update.py une fois"""
     print("Exécution du script update.py...")
     try:
-        subprocess.run(["python", "maj/update.py"], check=True)
+        subprocess.run([sys.executable, "maj/update.py"], check=True)
         print("Script update.py exécuté avec succès.")
     except subprocess.CalledProcessError as e:
         boiteDialogueInfoReboot(f"Erreur lors de l'exécution de update.py : {e}")

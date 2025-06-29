@@ -1,3 +1,4 @@
+#!/Users/olivier/micromamba/bin/python3
 import time
 tpsServeur = time.time()
 # on récupère l'heure locale le plus tôt possible après la requête afin de calculer un éventuel décalage entre le client et le serveur le plus précis possible.
@@ -203,7 +204,7 @@ def formateDossardNG(doss) :
             doss = str(doss).upper()
     return doss.replace(" ","")
 
-def generateMessage(dossard, nature, action, uid, noTransmission):     
+def generateMessage(dossard, nature, action, uid, noTransmission, tpsCoureurSTR="", dossardPrecedent="") :     
     global local
     ## protection contre les espaces éventuellement saisis
     dossard = formateDossardNG(dossard)
@@ -221,7 +222,6 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         noDossard = ""
     donnees = "Coureurs" + lettre + ".txt"
     if nature == "tps" :
-        tpsCoureurSTR = form.getvalue("tpsCoureur")
         tpsCoureur = time.mktime(time.strptime(tpsCoureurSTR[:-3], "%m/%d/%y-%H:%M:%S"))+ (int(tpsCoureurSTR[-2:])/100)
         if local == "true" :
             tpsClient = tpsServeur
@@ -287,7 +287,6 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
                         etablissement = ""
                     # ici, ajouter un dispositif de vérification sur le dossard demandé : course bien commencée...
                     # ce qui ne peut pas être effectué côté client.
-                    dossardPrecedent = formateDossardNG(form.getvalue("dossardPrecedent"))
                     if action == "add" :
                         if commentaireArrivee != "" and commentaireArrivee != "\n" : # protection "replace" ci-dessous car le retour vers le smartphone comporte des virgules. Elles sont donc interdites dans les commentaires.
                             ligneRetour = "DI," + nom + "," + prenom + "," +  classe + "," + categorie + "," + categorieLisible + "," + commentaireArrivee.replace(",",";") + "," + str(doss) + ","
@@ -349,34 +348,54 @@ def generateMessage(dossard, nature, action, uid, noTransmission):
         # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
         #                                              fixé à 00 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
                                                     #  fixé à 01 si les courses sont manuelles.
-
-local = form.getvalue("local")
-nature = form.getvalue("nature").lower()
-pique = form.getvalue("pique")
-if pique == None :
-    pique = ""
-else :
-    pique = pique.lower()
-try :
-    action = form.getvalue("action").lower()
-except:
-    action = ""
-dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
-if dossard == None :
-    dossard = "" 
-try :
-    uid = int(form.getvalue("UID"))
-except:
-    uid = 0 # cas de la vieille application pour smartphone, pré-06/07/22. Compatibilité ascendante assurée.
-try :
-    noTransmission = int(form.getvalue("noTransmission"))
-except:
+if len(sys.argv) > 1:
+    local="true"
+    nature = sys.argv[1].lower()
+    action = sys.argv[2].lower() if len(sys.argv) > 2 else ""
+    dossard = sys.argv[3] if len(sys.argv) > 3 else "" # Désormais, les dossards ne sont plus numériques.
+    if dossard == None :
+        dossard = ""
+    dossardPrecedent = sys.argv[4] if len(sys.argv) > 4 else "" # Désormais, les dossards ne sont plus numériques.
+    if dossardPrecedent == None :
+        dossardPrecedent = ""
+    tpsCoureurSTR = sys.argv[5] if len(sys.argv) > 5 else ""
+    uid = 0
     noTransmission = 0
+else :
+    # logique d'exécution par le serveur web
+    local = form.getvalue("local")
+    nature = form.getvalue("nature").lower()
+    pique = form.getvalue("pique")
+    if pique == None :
+        pique = ""
+    else :
+        pique = pique.lower()
+    try :
+        action = form.getvalue("action").lower()
+    except:
+        action = ""
+    dossard = form.getvalue("dossard") # Désormais, les dossards ne sont plus numériques.
+    if dossard == None :
+        dossard = ""
+    dossardPrecedent = formateDossardNG(form.getvalue("dossardPrecedent"))
+    if dossardPrecedent == None :
+        dossardPrecedent = "0A"
+    tpsCoureurSTR = form.getvalue("tpsCoureur")
+    if tpsCoureurSTR == None :
+        tpsCoureurSTR = ""
+    try :
+        uid = int(form.getvalue("UID"))
+    except:
+        uid = 0 # cas de la vieille application pour smartphone, pré-06/07/22. Compatibilité ascendante assurée.
+    try :
+        noTransmission = int(form.getvalue("noTransmission"))
+    except:
+        noTransmission = 0
     
 # retour au client : erreurs à gérer.
 print("Content-type: text/html; charset=utf-8\n")
 
-generateMessage(dossard,nature,action,uid,noTransmission)
+generateMessage(dossard,nature,action,uid,noTransmission,tpsCoureurSTR=tpsCoureurSTR, dossardPrecedent=dossardPrecedent)
     
 # supprimer le fichier de flag d'accès concurrents
 # (s'il existe) pour permettre un nouvel accès au serveur.

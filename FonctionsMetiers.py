@@ -3020,7 +3020,7 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
             if codeErreur.numero :
                 # une erreur s'est produite
                 print("Code erreur :", codeErreur.numero)
-                print(ligne)
+                # print(ligne)
             elif not codeErreur.numero and codeErreur.description=="Supprimer erreur 401 si besoin" :
                 # cas très particulier : un dossard est apparu en doublon, puis a été supprimé. Au moment du traitement du doublon l'erreur est générée
                 # il faut la supprimer, si existante, lors d'une suppression de dossard. Chaque suppression supprime une erreur doublon pour que cela fonctionne.

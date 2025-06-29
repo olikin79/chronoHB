@@ -111,7 +111,7 @@ Travail du 29/06/25 :
 - Actualisation automatique de l'affichage sur la TV. Effets : 
 	* Dès qu'un participant d'une course passe, cela coche cette course.
 	* 5 minutes après le passage du dernier coureur, cela supprime la coche d'une course (sauf si aucune course n'a d'arrivée depuis : dans ce cas, on laisse l'affichage tel quel).
-
+- les actions locales ne passent plus via le script CGI mais par une commande locale. Les effets dans l'interface sont désormais immédiats. Gros gain de réactivité.
 
 
 Travail du 28/06/25 :
