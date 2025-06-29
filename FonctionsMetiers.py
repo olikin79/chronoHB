@@ -92,7 +92,7 @@ print(f"Le fichier contenant les données récupérées depuis les smartphones, 
 donneesModifLocales = os.path.join(dossier_data_txt,"donneesModifLocale.txt")
 donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
 donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
-fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
+# fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
 
 dossier_www = os.path.join(DONNEES, "www")
 os.makedirs(dossier_www, exist_ok=True)
@@ -3003,7 +3003,9 @@ def traiterToutesDonneesNG(DepuisLeDebut = False) :
     # ajout pour gestion des piques. On a besoin de mémoriser le numéro du dernier dossard d'une pique donnée dans ArriveeDossard
     # dernierDossardDeLaPiquePresentDansArriveeDossards = {}
     listeDesDossardsASupprimerDesDoublonsSiBesoin = []
-    while poursuivre and not os.path.exists(fichierFlagAccesConcurrents) :
+    # while os.path.exists(fichierFlagAccesConcurrents) :
+    #     time.sleep(0.1)
+    while poursuivre :
         # print(listeDesTpsServeurDesPremiersElements)
         # on détermine l'indice du plus petit nombre non nul de listeDesTpsServeurDesPremiersElements
         indiceMin = IndiceDuPlusPetitNombreNonNul(listeDesTpsServeurDesPremiersElements)

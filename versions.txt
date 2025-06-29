@@ -112,6 +112,8 @@ Travail du 29/06/25 :
 	* Dès qu'un participant d'une course passe, cela coche cette course.
 	* 5 minutes après le passage du dernier coureur, cela supprime la coche d'une course (sauf si aucune course n'a d'arrivée depuis : dans ce cas, on laisse l'affichage tel quel).
 - les actions locales ne passent plus via le script CGI mais par une commande locale. Les effets dans l'interface sont désormais immédiats. Gros gain de réactivité.
+- suppression du flag fichierFlagAccesConcurrents qui provoquait une absence d'actualisation par traiterToutesDonneesNG lorsqu'un accès web était simultané.
+La gestion des lignes incomplètes des fichiers de données existe déjà via le END attendu en fin de ligne. Retour à la gestion initiale.
 
 
 Travail du 28/06/25 :

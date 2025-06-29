@@ -76,12 +76,12 @@ def definir_dossier_donnees(nom_application="ChronoHB"):
 DONNEES = definir_dossier_donnees()
 dossier_data_txt = os.path.join(DONNEES, "data")
 
-fichierFlagAccesConcurrents = os.path.join(DONNEES,"flagAccesConcurrents.txt")
-# créer ce fichier s'il n'existe pas déjà
-if not os.path.exists(fichierFlagAccesConcurrents) :
-    with open(fichierFlagAccesConcurrents, 'w') as f:
-        f.write("0")
-    f.close()
+# fichierFlagAccesConcurrents = os.path.join(DONNEES,"flagAccesConcurrents.txt")
+# # créer ce fichier s'il n'existe pas déjà
+# if not os.path.exists(fichierFlagAccesConcurrents) :
+#     with open(fichierFlagAccesConcurrents, 'w') as f:
+#         f.write("0")
+#     f.close()
 
 import sys
 sys.stderr = sys.stdout
@@ -182,10 +182,10 @@ def lireMessageDefaut() :
     return contenu
 
 def lireParametres() :
-    with open("params.txt", 'r') as f:
-        contenu = f.read()
-    f.close()
-    if contenu  == "" :
+    try :
+        with open("params.txt", 'r') as f:
+            contenu = f.read()
+    except :
         contenu = "1" # paramètre par défaut si fichier inexistant (protection)
     return contenu
 
@@ -344,7 +344,10 @@ def generateMessage(dossard, nature, action, uid, noTransmission, tpsCoureurSTR=
         print("IP trouvee")
     elif nature == "crossparclasse" :
         paramsLigne=lireParametres()
-        print("CC,"+paramsLigne.split(";")[0])  # CC = Catégories par Classe
+        try : 
+            print("CC,"+paramsLigne.split(";")[0])  # CC = Catégories par Classe
+        except :
+            print("CC,1")
         # le premier paramètre sera "crossParClasse" : fixé à 1 si les catégories sont issues de l'initiale du nom des classes
         #                                              fixé à 00 si les catégories sont issues de l'âge des coureurs (catégories officielles Athlétisme)
                                                     #  fixé à 01 si les courses sont manuelles.
@@ -363,7 +366,10 @@ if len(sys.argv) > 1:
     noTransmission = 0
 else :
     # logique d'exécution par le serveur web
-    local = form.getvalue("local")
+    try :
+        local = form.getvalue("local")
+    except: 
+        local = "false"
     nature = form.getvalue("nature").lower()
     pique = form.getvalue("pique")
     if pique == None :
@@ -397,12 +403,12 @@ print("Content-type: text/html; charset=utf-8\n")
 
 generateMessage(dossard,nature,action,uid,noTransmission,tpsCoureurSTR=tpsCoureurSTR, dossardPrecedent=dossardPrecedent)
     
-# supprimer le fichier de flag d'accès concurrents
-# (s'il existe) pour permettre un nouvel accès au serveur.
-try :
-    if os.path.exists(fichierFlagAccesConcurrents) :
-        os.remove(fichierFlagAccesConcurrents)
-except OSError as e:
-    print("Erreur lors de la suppression du fichier de flag d'accès concurrents :", e)
-except :
-    pass
+# # supprimer le fichier de flag d'accès concurrents
+# # (s'il existe) pour permettre un nouvel accès au serveur.
+# try :
+#     if os.path.exists(fichierFlagAccesConcurrents) :
+#         os.remove(fichierFlagAccesConcurrents)
+# except OSError as e:
+#     print("Erreur lors de la suppression du fichier de flag d'accès concurrents :", e)
+# except :
+#     pass
