@@ -145,9 +145,12 @@ class Popup(tk.Toplevel):
             # label.pack(side=tk.LEFT)
             self.doublons = tk.StringVar()
             # self.doublons.set(str(Parametres["delai_antennes_par_tag"]))
-            self.doublonsEntry = EntryParam("delai_antennes_par_tag", "Délai de suppression des doublons RFID captés par les antennes", parent=frameDoublonsReglage, largeur=5, nombre = True)
+            self.doublonsEntry = EntryParam("delai_antennes_par_tag", "Délai de suppression des doublons RFID captés par les antennes principales", parent=frameDoublonsReglage, largeur=5, nombre = True)
             #IntegerEntry(frameDoublonsReglage, value=Parametres["delai_antennes_par_tag"], textvariable=self.doublons, width=5)
             self.doublonsEntry.pack(side=tk.LEFT)
+            self.doublonsEntryS = EntryParam("delai_antennes_par_tag_secondaire", ", par les antennes secondaires", parent=frameDoublonsReglage, largeur=5, nombre = True)
+            #IntegerEntry(frameDoublonsReglage, value=Parametres["delai_antennes_par_tag"], textvariable=self.doublons, width=5)
+            self.doublonsEntryS.pack(side=tk.LEFT)
             tk.Label(frameDoublonsReglage, text="secondes", justify="left").pack(side=tk.LEFT)
             frameDoublonsReglage.grid(row=0, column=0, sticky="w")
             # label = tk.Label(frame, text="Placement des antennes sur la course :", justify="left")
@@ -206,7 +209,7 @@ class Popup(tk.Toplevel):
             # exécuter construireFrameArrivee() à chaque fois que le nombre d'antennes à l'arrivée change
             self.comboboxNbreAntenne.grid(row=7, column=1, sticky="w")
             # label d'information complémentaire
-            label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur.\nLes antennes secondaires, plutôt en aval de la ligne d'arrivée, permettent de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.", justify="left")
+            label = tk.Label(frame, text="Les antennes principales sont placées sur la ligne d'arrivée et déterminent le temps exact du coureur et son rang.\nLes antennes secondaires, plutôt en aval de la ligne d'arrivée, permettent de recaler un coureur qui n'aurait pas été détecté par une des antennes principales.\nUn coureur qui n'a pas été capté par les antennes principales est replacé juste derrière son prédecesseur détecté par l'antenne secondaire.", justify="left")
             label.grid(row=8, column=0, columnspan=3, sticky="w")
             self.frameArrivee = tk.Frame(frame)
             self.frameArrivee.grid(row=9, column=0, columnspan=3, sticky="nsew")

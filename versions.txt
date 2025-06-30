@@ -114,7 +114,7 @@ Travail du 30/06/26 :
 - suppression de texlive du dépôt. A remplacer pour les dossards par reportlab. Les dossards ne seront plus utilisés sauf si usage sans RFID.
 
 - Application smartphone : ajout d'une case à cocher dans les paramètres pour permettre une saisie alphanumérique des dossards si besoin ou numérique si suffisant.
-
+- interfaçage du paramètre de délai des antennes secondaires.
 
 Travail du 29/06/25 :
 - Actualisation automatique de l'affichage sur la TV. Effets : 
