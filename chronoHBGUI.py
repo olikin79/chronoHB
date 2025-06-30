@@ -4908,15 +4908,17 @@ class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
 
 def start_server(path, port=8888):
     '''Start a simple webserver serving path on port'''
-    PORT = 8888
-    server_address = (path, PORT)
+    # print("Démarrage du serveur web CGI sur le port", port)   
+    server_address = ('', port)
 ##    httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
 ##    httpd.serve_forever()
     server = HTTPServer
-    handler = CustomCGIHTTPRequestHandler# CGIHTTPRequestHandler
-    handler.cgi_directories = ["/cgi"]
+    # handler = CustomCGIHTTPRequestHandler# CGIHTTPRequestHandler
+    handler_class = partial(CustomCGIHTTPRequestHandler, directory=path)
+    # handler.cgi_directories = ["/cgi"]
+    CustomCGIHTTPRequestHandler.cgi_directories = ["/cgi"]
     print("Serveur actif sur le port :", port)
-    httpd = server(server_address, handler)
+    httpd = server(server_address, handler_class)
     httpd.serve_forever()
 
 
@@ -4927,12 +4929,46 @@ if not "popupRFID" in Parametres :
 # Start the server in a new thread
 port = 8888
 #start_server("/",8888)
-daemon = threading.Thread(name='Serveur CGI chargé destinataire des résultats (smartphone, RFID)', target=start_server, args=('', port), daemon=True)
+daemon = threading.Thread(name='Serveur CGI chargé destinataire des résultats (smartphone, RFID)', target=start_server, args=(dossier_web, port), daemon=True)
 # daemon.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
 daemon.start()
 #time.sleep(1)
 
+# actualise si besoin les fichiers présents dans dossier_web avec ceux présents dans cgi, dans le dossier de l'application : on crée ainsi dossier_web/cgi s'il n'existe pas.
+dossier_cgi_web = os.path.join(dossier_web, "cgi")
+os.makedirs(dossier_cgi_web, exist_ok=True)
 
+
+def copytree_update(src, dst):
+    os.makedirs(dst, exist_ok=True)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            copytree_update(s, d)
+        else:
+            if not os.path.exists(d) or os.path.getmtime(s) > os.path.getmtime(d):
+                shutil.copy2(s, d)
+
+copytree_update(dossier_cgi, dossier_cgi_web)
+# Copie les fichiers de cgi, y compris les sous répertoires et leurs fichiers, vers dossier_cgi_web
+# crée les dossiers si besoin.
+# for fichier in glob.glob(os.path.join(dossier_cgi, "*"), recursive=True):
+#     # actualise si dates différentes, copie de toute l'arboresence de façon récursive
+    
+#     if not os.path.exists(os.path.join(dossier_cgi_web, os.path.basename(fichier))) or \
+#        os.path.getmtime(fichier) > os.path.getmtime(os.path.join(dossier_cgi_web, os.path.basename(fichier))):
+#         shutil.copy(fichier, dossier_cgi_web)
+
+# copie également les fichiers html_local vers la racine de dossier_web
+# os.makedirs(dossier_html_local, exist_ok=True)
+
+# for fichier in glob.glob(os.path.join(dossier_html_local, "*")):
+#     # actualise si dates différentes
+#     if not os.path.exists(os.path.join(dossier_web, os.path.basename(fichier))) or \
+#        os.path.getmtime(fichier) > os.path.getmtime(os.path.join(dossier_web, os.path.basename(fichier))):
+#         shutil.copy(fichier, dossier_web)
+copytree_update(dossier_html_local, dossier_web)
 
 # broadcast_thread = threading.Thread(name='broadcast_thread',target=broadcast_messages, daemon=True)
 # broadcast_thread.start()

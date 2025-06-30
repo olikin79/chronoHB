@@ -94,14 +94,18 @@ donneesSmartphone = os.path.join(dossier_data_txt,"donneesSmartphone.txt")
 donneesRFID = os.path.join(dossier_data_txt,"donneesRFID.txt")
 # fichierFlagAccesConcurrents = os.path.join(dossier_data_txt,"flagAccesConcurrents.txt")
 
-dossier_www = os.path.join(DONNEES, "www")
-os.makedirs(dossier_www, exist_ok=True)
+dossier_web = os.path.join(DONNEES, "web")
+os.makedirs(dossier_web, exist_ok=True)
+
 
 # dossier_cgi = os.path.joint(dossier_data_txt, "cgi")
 # TEMPORAIRE en attendant en tout déplacer
 # le dossier cgi est dans le dossier de l'application
+dossier_html_local = os.path.join(os.getcwd(), "html_local")
 dossier_cgi = os.path.join(os.getcwd(), "cgi")
-os.makedirs(dossier_cgi, exist_ok=True)
+# os.makedirs(dossier_cgi, exist_ok=True)
+
+messageDefautFile = os.path.join(dossier_web,"messageDefaut.txt")
 fichier_params_txt = os.path.join(dossier_cgi,"params.txt")
 
 dossier_impressions = os.path.join(DONNEES, "impressions")
@@ -2635,7 +2639,7 @@ def chargerDonnees() :
                 ArriveeTempsAffectes[i] = str(ArriveeTempsAffectes[i])
             i += 1
     ### ajout important pour que le fichier "messageDefaut.txt" soit disponible pour les smartphones
-    if not os.path.exists("messageDefaut.txt") :
+    if not os.path.exists(messageDefautFile) :
         setParam("messageDefaut", Parametres["messageDefaut"])
     return globals()
     
@@ -2644,7 +2648,7 @@ def setParam(parametre, valeur) :
     Parametres[parametre] = valeur
     print("Modificaton du paramètre", parametre, "en", Parametres[parametre])
     if parametre == "messageDefaut" : # cas particulier où le fichier texte nécessaire au serveur web doit être réactualisé immédiatement.
-        with open("messageDefaut.txt", 'w') as f:
+        with open(messageDefautFile, 'w') as f:
             f.write(valeur)
         f.close()
 
@@ -7587,7 +7591,7 @@ def genereAffichageTV(listeDesGroupements) :
               .replace("@@heuresDeparts@@",str(heuresDeparts))\
               .replace("@@vitesseDefilement@@",str(Parametres["vitesseDefilement"]))
 
-    with open("Affichage-Contenu.html","w", encoding='utf8') as f :
+    with open(os.path.join(dossier_web, "Affichage-Contenu.html"),"w", encoding='utf8') as f :
         f.write(contenu)
     f.close()
 
