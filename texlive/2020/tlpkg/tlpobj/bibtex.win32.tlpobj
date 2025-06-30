@@ -1,8 +1,0 @@
-name bibtex.win32
-category Package
-revision 53994
-shortdesc win32 files of bibtex
-containersize 41744
-containerchecksum 60cf79dac3b06275aa36b9e353eb9bbe63ff3f047cef67969aba3cd7389b8af70e77a3a34fc9f221f6029b2d1c456627cb3b78cc69ad830771f17d788c610493
-binfiles arch=win32 size=25
- bin/win32/bibtex.exe

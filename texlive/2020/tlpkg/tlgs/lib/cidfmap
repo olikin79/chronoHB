@@ -1,9 +1,0 @@
-%!
-% $Id: cidfmap 44039 2017-04-25 20:52:40Z reinhardk $
-%
-% This file is part of TeX Live.
-% Don't edit this file.  It will be overwritten by TeX Live updates. 
-
-(cidfmap.TeXLive) .runlibfile
-
-%EOF
