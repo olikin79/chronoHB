@@ -1849,8 +1849,9 @@ def extract_ip():
 #print("IP",extract_ip())
 
 
-
-
+# largeur minimale et maximale de DroiteFrame.
+N_INFERIEUR = 600
+N_SUPERIEUR = 1000
 DroiteFrame = Frame(rootGUI)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(rootGUI)
 
@@ -4400,8 +4401,82 @@ def tempsDesCoureurs():
     # dépose les pages internet sur le serveur FTP
     depotFTPResultats(initial=True)
     ## décoche les cases, pourtant il faudrait actualiser les valeurs. actualiseZoneAffichageTV()
-    GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
-    DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+    # GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
+    # DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+
+    # Appeler la fonction pour gérer le placement des frames
+    packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
+
+# Un dictionnaire pour stocker l'état de configuration pour chaque fenêtre parent
+_is_configuring_flags = {}
+
+def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieur, nsuperieur):
+    """
+    Packs two frames in a parent window, dynamically adjusting their sizes
+    based on the parent's width.
+    
+    This version uses unbinding/rebinding to prevent infinite loops.
+    
+    Args:
+        parent_window (tk.Tk or tk.Toplevel): The parent window.
+        gauche_frame (tk.Frame): The left frame, which will expand.
+        droite_frame (tk.Frame): The right frame, with a fixed width based on thresholds.
+        ninferieur (int): The lower pixel threshold for the parent window's width.
+        nsuperieur (int): The upper pixel threshold for the parent window's width.
+    """
+    
+    # La fonction de rappel pour l'événement <Configure>
+    def on_configure(event):
+        # 1. Obtenir la largeur de la fenêtre parent
+        # Forcer la mise à jour pour obtenir une largeur correcte
+        parent_window.update_idletasks()
+        parent_width = parent_window.winfo_width()
+        
+        # 2. Déconnecter temporairement la fonction pour éviter la boucle infinie
+        parent_window.unbind("<Configure>", on_configure)
+
+        try:
+            # 3. Oublier les anciens agencements
+            gauche_frame.pack_forget()
+            droite_frame.pack_forget()
+
+            # 4. Appliquer la nouvelle logique de largeur
+            if parent_width < ninferieur:
+                # Fixer la largeur de la frame de droite à la moitié de Ninferieur
+                droite_frame.configure(width=int(ninferieur / 2))
+                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=0)
+
+            elif parent_width > nsuperieur:
+                # Fixer la largeur de la frame de droite à la moitié de Nsuperieur
+                droite_frame.configure(width=int(nsuperieur / 2))
+                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=0)
+
+            else:
+                # Revenir au fonctionnement "moitié-moitié"
+                droite_frame.configure(width=0)  # Réinitialiser la largeur
+                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
+        
+        finally:
+            # 5. Reconnecter la fonction à l'événement
+            # Cette étape est cruciale, même en cas d'erreur
+            parent_window.bind("<Configure>", on_configure)
+
+    # L'agencement initial des frames est fait ici
+    # Elles se partagent l'espace 50/50 au démarrage
+    gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+    droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
+
+    # Lier l'événement de redimensionnement à la fenêtre parent
+    parent_window.bind("<Configure>", on_configure)
+    
+    # ASTUCE pour l'initialisation : Forcer la "géométrie" au démarrage
+    # Nous utilisons after_idle pour un appel différé et non bloquant
+    # C'est souvent plus fiable que update_idletasks
+    parent_window.after_idle(lambda: on_configure(None))
+    
 
 def distanceDesCourses():
     nettoieGroupements()
@@ -6256,8 +6331,10 @@ CoureursParClasseUpdate()
 
 actualiseToutLAffichage()
 
-GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
-DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+# GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
+# DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
+# Appeler la fonction pour gérer le placement des frames
+packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
 
 ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 
