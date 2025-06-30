@@ -1852,8 +1852,9 @@ def extract_ip():
 # largeur minimale et maximale de DroiteFrame.
 N_INFERIEUR = 1000
 N_SUPERIEUR = 1400
-DroiteFrame = Frame(rootGUI)# non fonctionnel ScrollFrame(root)
-GaucheFrame = Frame(rootGUI)
+ConteneurPrincipal = Frame(rootGUI)
+DroiteFrame = Frame(ConteneurPrincipal)# non fonctionnel ScrollFrame(root)
+GaucheFrame = Frame(ConteneurPrincipal)
 
 GaucheFrameCoureur = Frame(rootGUI)
 GaucheFrameAbsDisp = Frame(rootGUI)
@@ -4323,8 +4324,7 @@ def imprimerDossards(buttonBarMode = 0) :
         print("Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
         return
     Parametres["buttonBarMode"] = buttonBarMode
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameParametresInternet.forget()
@@ -4337,8 +4337,7 @@ def imprimerDossards(buttonBarMode = 0) :
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
 
 def saisieAbsDisp(classeOuCategorie="") :
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameParametresInternet.forget()
@@ -4355,8 +4354,7 @@ def saisieAbsDisp(classeOuCategorie="") :
     
     
 def ajoutManuelCoureur():
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
@@ -4369,8 +4367,7 @@ def ajoutManuelCoureur():
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
 def modifManuelleCoureur(dossard=0):
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
@@ -4404,9 +4401,11 @@ def tempsDesCoureurs():
     ## décoche les cases, pourtant il faudrait actualiser les valeurs. actualiseZoneAffichageTV()
     # GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
     # DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
-
+    ConteneurPrincipal.pack(side=TOP, fill=BOTH, expand=1)
     # Appeler la fonction pour gérer le placement des frames
     packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
+
+_on_configure_funcid = [None] # Utilisé pour stocker la référence de la fonction de configuration
 
 def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieur, nsuperieur):
     """
@@ -4421,7 +4420,8 @@ def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieu
         ninferieur (int): The lower pixel threshold for the parent window's width.
         nsuperieur (int): The upper pixel threshold for the parent window's width.
     """
-
+    global _on_configure_funcid
+    
     def on_configure(event=None):
         # 1. Obtenir la largeur de la fenêtre parent
         parent_window.update_idletasks() # Assure que la géométrie est à jour
@@ -4457,17 +4457,20 @@ def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieu
         gauche_frame.place(relx=0, rely=0, relheight=1, width=target_gauche_width)
 
     # Initialiser la liaison de l'événement Configure
-    parent_window.bind("<Configure>", on_configure)
+    _on_configure_funcid[0] = parent_window.bind("<Configure>", on_configure)
 
     # Appeler la fonction de configuration une première fois après un court délai.
     # Ceci garantit que la fenêtre est rendue et a une taille avant le calcul initial.
     parent_window.after_idle(on_configure)
     
+def desactiveAffichageConteneurPrincipal():
+    global _on_configure_funcid
+    rootGUI.unbind("<Configure>", _on_configure_funcid[0])
+    ConteneurPrincipal.forget()
 
 def distanceDesCourses():
     nettoieGroupements()
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4477,8 +4480,7 @@ def distanceDesCourses():
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
 def parametrerDossardsDiplomes():
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4490,8 +4492,7 @@ def parametrerDossardsDiplomes():
     GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
     
 def parametresInternet() :
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4501,8 +4502,7 @@ def parametresInternet() :
     GaucheFrameParametresInternet.pack(side = TOP,fill=X)
 
 def parametresDesCourses():
-    GaucheFrame.place_forget()
-    DroiteFrame.place_forget()
+    desactiveAffichageConteneurPrincipal()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -6317,6 +6317,7 @@ CoureursParClasseUpdate()
 
 actualiseToutLAffichage()
 
+ConteneurPrincipal.pack(side=TOP, fill=BOTH, expand=1)
 packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
 
 # GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
