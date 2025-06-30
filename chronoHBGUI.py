@@ -1850,8 +1850,8 @@ def extract_ip():
 
 
 # largeur minimale et maximale de DroiteFrame.
-N_INFERIEUR = 600
-N_SUPERIEUR = 1000
+N_INFERIEUR = 1000
+N_SUPERIEUR = 1400
 DroiteFrame = Frame(rootGUI)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(rootGUI)
 
@@ -2479,16 +2479,16 @@ gestionDossards = Frame(ModifDonneesFrame)
 ajouterTemps = Frame(ModifDonneesFrame)
 ajouterDossardApres = Frame(ModifDonneesFrame)
 
-gestionTempsButton = Button(menuInitial, text="Gérer les heures d'arrivée", width=30, command=gestionTempsAction)
-gestionDossardsButton = Button(menuInitial, text="Gérer les dossards arrivés", width=30, command=gestionDossardsAction)
+gestionTempsButton = Button(menuInitial, text="Gérer les heures d'arrivée", width=20, command=gestionTempsAction)
+gestionDossardsButton = Button(menuInitial, text="Gérer les dossards arrivés", width=20, command=gestionDossardsAction)
 gestionTempsButton.pack(side=LEFT)
 gestionDossardsButton.pack(side=LEFT)
 menuInitial.pack()
 
-ajouterTempsButton = Button(gestionTemps, text="Ajouter une heure\nd'arrivée", width=20, command=ajouterTempsAction)
-dupliquerTempsButton = Button(gestionTemps, text="Dupliquer une heure\nd'arrivée", width=20, command=dupliquerTempsAction)
-supprimerTempsButton = Button(gestionTemps, text="Supprimer une heure\nd'arrivée", width=20, command=supprimerTempsAction)
-AnnulerTempsButton = Button(gestionTemps, text="Retour", width=5, command=annulerTempsDossards)
+ajouterTempsButton = Button(gestionTemps, text="Ajouter une heure\nd'arrivée", width=11, command=ajouterTempsAction)
+dupliquerTempsButton = Button(gestionTemps, text="Dupliquer une heure\nd'arrivée", width=11, command=dupliquerTempsAction)
+supprimerTempsButton = Button(gestionTemps, text="Supprimer une heure\nd'arrivée", width=12, command=supprimerTempsAction)
+AnnulerTempsButton = Button(gestionTemps, text="Retour", width=10, height=2,command=annulerTempsDossards)
 ajouterTempsButton.pack(side=LEFT)
 dupliquerTempsButton.pack(side=LEFT)
 supprimerTempsButton.pack(side=LEFT)
@@ -2497,11 +2497,11 @@ AnnulerTempsButton.pack(side=LEFT)
 gestionDossards1=Frame(gestionDossards)
 gestionDossards2=Frame(gestionDossards)
 
-ajouterDossardApresButton = Button(gestionDossards1, text="Ajouter un dossard après", width=20, command=ajouterDossardApresAction)
+ajouterDossardApresButton = Button(gestionDossards1, text="Ajouter un dossard après", width=15, command=ajouterDossardApresAction)
 avancerDossardButton = Button(gestionDossards1, text="Avancer le dossard", width=15, command=avancerDossardAction)
 reculerDossardButton = Button(gestionDossards1, text="Reculer le dossard", width=15, command=reculerDossardAction)
 supprimerDossardButton = Button(gestionDossards2, text="Supprimer le dossard sélectionné", width=30, command=supprimerDossardAction)
-annulerDossardButton = Button(gestionDossards2, text="Retour", width=20, command=annulerTempsDossards)
+annulerDossardButton = Button(gestionDossards2, text="Retour", width=15, command=annulerTempsDossards)
 ajouterDossardApresButton.pack(side=LEFT)
 avancerDossardButton.pack(side=LEFT)
 reculerDossardButton.pack(side=LEFT)
@@ -3659,7 +3659,8 @@ class Clock():
             if erreur.numero != 0 :
                 self.listeNouvellesErreursATraiter.append(erreur)
             elif erreur.description :
-                print("erreur 0 avec description", erreur.description, erreur.dossard)
+                if DEBUG :
+                    print("erreur 0 avec description", erreur.description, erreur.dossard)
                 # c'est le cas où il faut vérifier combien d'occurence du dossard sont effectivement présentes 
                 if ArriveeDossards.count(erreur.dossard) <= 1 :
                     # on supprime toutes les erreurs 401 pour ce dossard.
@@ -4407,75 +4408,60 @@ def tempsDesCoureurs():
     # Appeler la fonction pour gérer le placement des frames
     packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
 
-# Un dictionnaire pour stocker l'état de configuration pour chaque fenêtre parent
-_is_configuring_flags = {}
-
 def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieur, nsuperieur):
     """
-    Packs two frames in a parent window, dynamically adjusting their sizes
-    based on the parent's width.
-    
-    This version uses unbinding/rebinding to prevent infinite loops.
-    
+    Places both frames (gauche_frame and droite_frame) using place(),
+    dynamically adjusting their sizes based on the parent window's width.
+    The right frame will have a fixed width based on thresholds.
+
     Args:
         parent_window (tk.Tk or tk.Toplevel): The parent window.
-        gauche_frame (tk.Frame): The left frame, which will expand.
-        droite_frame (tk.Frame): The right frame, with a fixed width based on thresholds.
+        gauche_frame (tk.Frame): The left frame, which will expand to fill remaining space.
+        droite_frame (tk.Frame): The right frame, which will have a fixed width.
         ninferieur (int): The lower pixel threshold for the parent window's width.
         nsuperieur (int): The upper pixel threshold for the parent window's width.
     """
-    
-    # La fonction de rappel pour l'événement <Configure>
-    def on_configure(event):
+
+    def on_configure(event=None):
         # 1. Obtenir la largeur de la fenêtre parent
-        # Forcer la mise à jour pour obtenir une largeur correcte
-        parent_window.update_idletasks()
+        parent_window.update_idletasks() # Assure que la géométrie est à jour
         parent_width = parent_window.winfo_width()
+
+        # 2. Calculer la largeur cible de la DroiteFrame
+        if parent_width < ninferieur:
+            target_droite_width = int(ninferieur / 2)
+        elif parent_width > nsuperieur:
+            target_droite_width = int(nsuperieur / 2)
+        else:
+            # Si entre les seuils, DroiteFrame prend la moitié de la largeur du parent
+            target_droite_width = int(parent_width / 2)
+
+        # Assurez-vous que la largeur ne soit pas négative ou nulle si le parent est trop petit
+        if target_droite_width < 1:
+            target_droite_width = 1 # Largeur minimale pour qu'elle soit visible
+
+        # 3. Placer la DroiteFrame
+        # Elle est ancrée à droite (relx=1) et sa largeur est fixe (width).
+        # Le 'anchor="ne"' est crucial pour qu'elle s'agrandisse vers la gauche.
+        droite_frame.place(relx=1, rely=0, relheight=1, width=target_droite_width, anchor="ne")
+
+        # 4. Placer la GaucheFrame
+        # Elle commence à gauche (relx=0) et sa largeur est calculée
+        # comme le reste de l'espace après la DroiteFrame.
+        target_gauche_width = parent_width - target_droite_width
         
-        # 2. Déconnecter temporairement la fonction pour éviter la boucle infinie
-        parent_window.unbind("<Configure>", on_configure)
+        # S'assurer que la largeur de gauche n'est pas négative
+        if target_gauche_width < 1:
+            target_gauche_width = 1 # Largeur minimale pour qu'elle soit visible
 
-        try:
-            # 3. Oublier les anciens agencements
-            gauche_frame.pack_forget()
-            droite_frame.pack_forget()
+        gauche_frame.place(relx=0, rely=0, relheight=1, width=target_gauche_width)
 
-            # 4. Appliquer la nouvelle logique de largeur
-            if parent_width < ninferieur:
-                # Fixer la largeur de la frame de droite à la moitié de Ninferieur
-                droite_frame.configure(width=int(ninferieur / 2))
-                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=0)
-
-            elif parent_width > nsuperieur:
-                # Fixer la largeur de la frame de droite à la moitié de Nsuperieur
-                droite_frame.configure(width=int(nsuperieur / 2))
-                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=0)
-
-            else:
-                # Revenir au fonctionnement "moitié-moitié"
-                droite_frame.configure(width=0)  # Réinitialiser la largeur
-                gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-                droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
-        
-        finally:
-            # 5. Reconnecter la fonction à l'événement
-            # Cette étape est cruciale, même en cas d'erreur
-            parent_window.bind("<Configure>", on_configure)
-
-    # L'agencement initial des frames est fait ici
-    # Elles se partagent l'espace 50/50 au démarrage
-    gauche_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-    droite_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
-
-    # Lier l'événement de redimensionnement à la fenêtre parent
+    # Initialiser la liaison de l'événement Configure
     parent_window.bind("<Configure>", on_configure)
-    
-    # ASTUCE pour l'initialisation : Forcer la "géométrie" au démarrage
-    # Nous utilisons after_idle pour un appel différé et non bloquant
-    # C'est souvent plus fiable que update_idletasks
-    parent_window.after_idle(lambda: on_configure(None))
+
+    # Appeler la fonction de configuration une première fois après un court délai.
+    # Ceci garantit que la fenêtre est rendue et a une taille avant le calcul initial.
+    parent_window.after_idle(on_configure)
     
 
 def distanceDesCourses():
@@ -6331,10 +6317,11 @@ CoureursParClasseUpdate()
 
 actualiseToutLAffichage()
 
+packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
+
 # GaucheFrame.pack(side = LEFT,fill=BOTH, expand=1)
 # DroiteFrame.pack(side = RIGHT,fill=BOTH, expand=1)
 # Appeler la fonction pour gérer le placement des frames
-packGaucheAndRightFrame(rootGUI, GaucheFrame, DroiteFrame, N_INFERIEUR, N_SUPERIEUR)
 
 ConnectiviteFrame.pack(side=TOP,anchor="w",fill=X)
 
