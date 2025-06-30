@@ -48,7 +48,8 @@ function reCharger() {
 // Vérifie périodiquement le chargement
 function testChargement() {
     reCharger();
-    setTimeout(testChargement, 2000);
+    // INUTILE CAR APPELE PAR LA FONCTION changeContenus() en temps voulu
+    // setTimeout(testChargement, 8000);
 }
 
 // Démarre le processus de vérification

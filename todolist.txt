@@ -20,8 +20,6 @@ a. BUGS :
 
 Avant début Septembre :
 - l'affichage en temps réel sur chrome ne fonctionne pas.
-- (FAIT) le menu "gestion des temps" déborde sur la droite de l'écran.
-- l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
 - Bug sur l'application smartphone (à corriger dans Arrivee.pyw) : quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.
@@ -36,6 +34,7 @@ A exécuter s'il n'a jamais été exécuté.
 - blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.
 Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug existe depuis toujours et n'a jamais été découvert.
+- (BUG PERSISTANT SUR FIREFOX-SAFARI mais pas sur CHROME) l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 
 
 Avant le cross BOURRILLON :
