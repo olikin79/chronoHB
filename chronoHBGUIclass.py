@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter.filedialog import *
 from FonctionsMetiers import * # tous les fonctions métiers de chronoHB
 
 class CheckButtonParam(Checkbutton):
@@ -14,11 +15,12 @@ class CheckButtonParam(Checkbutton):
         setParam(self.param, self.valeurtk.get())
 
 class EntryParam(Frame):
-    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5, fenetreDeSelectionDeFichiers = False):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         self.param = param
         self.intitule = intitule
         self.largeur = largeur
+        self.fenetreDeSelectionDeFichiers = fenetreDeSelectionDeFichiers
         if self.param in Parametres :
             self.valeur = Parametres[self.param]
         else :
@@ -79,6 +81,9 @@ class EntryParam(Frame):
         #self.checkbuttons.append(chk)
         self.lbl.pack(side=LEFT) 
         self.entry.pack(side=LEFT) # à la verticale
+        if self.fenetreDeSelectionDeFichiers :
+            self.bouton = Button(self, text="Sélectionner", command=self.ouvertureSelectionFichiers)
+            self.bouton.pack(side=LEFT)
     def actualise(self):
         self.valeur = Parametres[self.param]
         self.entry.delete(0, END)
@@ -89,6 +94,19 @@ class EntryParam(Frame):
                 self.entry.insert(1.0,str(self.valeur))
             else :
                 self.entry.insert(0,str(self.valeur))
+    def ouvertureSelectionFichiers(self) :
+        # récupérer le chemin vers Mes Documents sous windows ou vers Documents sur mac os ou linux
+        CURRENT_DIRECTORY = DOCUMENTS
+        # CURRENT_DIRECTORY = os.getcwd()
+        options = {
+                    'initialdir': CURRENT_DIRECTORY,
+                    'title': 'Choisir le fichier json permettant de modifier des fichiers de votre compte google',
+                    'filetypes': (("Fichiers json","*.json"),)
+                }
+        retour = askopenfilename(**options)
+        if retour :
+            setParam(self.param, retour)
+            self.actualise()
 
 
 class PasswordEntry(Entry):

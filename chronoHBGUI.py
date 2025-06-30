@@ -4323,8 +4323,8 @@ def imprimerDossards(buttonBarMode = 0) :
         print("Les dossards ne sont pas générés par ChronoHB, il n'est donc pas possible de les imprimer sans modifier le réglage dans 'paramètres généraux'.")
         return
     Parametres["buttonBarMode"] = buttonBarMode
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameParametresInternet.forget()
@@ -4337,8 +4337,8 @@ def imprimerDossards(buttonBarMode = 0) :
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
 
 def saisieAbsDisp(classeOuCategorie="") :
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameCoureur.forget()
     GaucheFrameParametresCourses.forget()
     GaucheFrameParametresInternet.forget()
@@ -4355,8 +4355,8 @@ def saisieAbsDisp(classeOuCategorie="") :
     
     
 def ajoutManuelCoureur():
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
@@ -4369,8 +4369,8 @@ def ajoutManuelCoureur():
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
 def modifManuelleCoureur(dossard=0):
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameDossards.forget()
     GaucheFrameParametresCourses.forget()
@@ -4466,8 +4466,8 @@ def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieu
 
 def distanceDesCourses():
     nettoieGroupements()
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4477,8 +4477,8 @@ def distanceDesCourses():
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
 def parametrerDossardsDiplomes():
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4490,8 +4490,8 @@ def parametrerDossardsDiplomes():
     GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
     
 def parametresInternet() :
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -4501,8 +4501,8 @@ def parametresInternet() :
     GaucheFrameParametresInternet.pack(side = TOP,fill=X)
 
 def parametresDesCourses():
-    GaucheFrame.forget()
-    DroiteFrame.forget()
+    GaucheFrame.place_forget()
+    DroiteFrame.place_forget()
     GaucheFrameAbsDisp.forget()
     GaucheFrameCoureur.forget()
     GaucheFrameDossards.forget()
@@ -5721,7 +5721,7 @@ Label(FTPFrame, text="PARAMETRES EXPORT DES RESULTATS EN TEMPS REEL :").pack(sid
 FTPFrame.pack(side=TOP,anchor="w",fill=X)
 
 URLGoogleSheetAImporterEntry = EntryParam( "URLGoogleSheetAImporter", "URL de téléchargement d'un fichier tableur Google Sheet", largeur=120, parent=ImportTempsReelFrame)
-GoogleSheetServiceAccountFileEntry = EntryParam( "GoogleSheetServiceAccountFile", "Chemin vers le fichier json d'authentification de votre compte google", largeur=120, parent=ImportTempsReelFrame)
+GoogleSheetServiceAccountFileEntry = EntryParam( "GoogleSheetServiceAccountFile", "Chemin vers le fichier json d'authentification de votre compte google", largeur=120, parent=ImportTempsReelFrame, fenetreDeSelectionDeFichiers=True)
 
 emailEntry = EntryParam( "email", "Adresse(s) email qui envoie(nt) des résultats (séparées par un point virgule)", largeur=80, parent=EnvoiDiplomeFrame)
 emailMDPEntry = EntryParam( "emailMDP", "Mot(s) de passe d'application email (séparés par un point virgule)", largeur=60, parent=EnvoiDiplomeFrame, password=True)
