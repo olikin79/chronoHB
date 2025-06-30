@@ -19,7 +19,7 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- l'affichage en temps réel sur chrome ne fonctionne pas.
+- (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
 - Bug sur l'application smartphone (à corriger dans Arrivee.pyw) : quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.

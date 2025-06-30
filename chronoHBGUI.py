@@ -3844,7 +3844,7 @@ class Clock():
         # actualisation automatique de l'affichage sur la TV : si aucun coureur d'une course n'est passé depuis longtemps, on décoche.
         # si un coureur d'une course vient de passer la ligne dans les x dernières minutes, alors on coche la case
         if Parametres["actualisationAutomatiqueDeLAffichageTV"] :
-            print("On corrige les cases à cocher pour l'affichage TV")
+            # print("On corrige les cases à cocher pour l'affichage TV")
             corrigerLesCasesCocheesPourLAffichageTV()
 
         # on actualise l'affichageTV à chaque nouvel import.

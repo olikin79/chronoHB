@@ -111,6 +111,9 @@ Travail du 30/06/26 :
 - le menu "gestion des temps" débordait sur la droite de l'écran avec de faibles résolutions.
 - la fenêtre de droite a une taille minimale et maximale pour voir tous les boutons sur les basses résolutions et privilégier le tableau des temps sur les hautes résolutions.
 - taille des boutons de gestion des temps et des dossards remodelée pour coller avec la dimension 
+- suppression de texlive du dépôt. A remplacer pour les dossards par reportlab. Les dossards ne seront plus utilisés sauf si usage sans RFID.
+
+- Application smartphone : ajout d'une case à cocher dans les paramètres pour permettre une saisie alphanumérique des dossards si besoin ou numérique si suffisant.
 
 
 Travail du 29/06/25 :
