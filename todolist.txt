@@ -19,12 +19,8 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- import effectué en arrière plan ne disparaît pas quand on clique dessus
-- envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
-- l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
-Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 - l'affichage en temps réel sur chrome ne fonctionne pas.
-- le menu "gestion des temps" déborde sur la droite de l'écran.
+- (FAIT) le menu "gestion des temps" déborde sur la droite de l'écran.
 - l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas.
@@ -51,12 +47,16 @@ En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la
 
 
 Avant le cross départemental :
+- import effectué en arrière plan ne disparaît pas quand on clique dessus
 - permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
+- l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
+Une personne inscrite plus loin dans le même fichier se voit attribuer deux numéros de dossards dans la base.
 
 
 Avant la vente du logiciel :
+- envoi individuel des diplomes est bloqué si les dossards ne sont pas gérés par ChronoHB. Bizarre !
 - Améliorer le fichiers LOG d'import en mettant mieux en évidence les erreurs par rapport aux imports réussis.
 - voir pourquoi la vitesse de défilement n'est pas uniforme : 
 pour une vitesse fixée, quand il y a peu de gens, cela défile vite et quand il y a plus de monde, cela défile plus doucement.
