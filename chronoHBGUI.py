@@ -4969,7 +4969,7 @@ copytree_update(dossier_cgi, dossier_cgi_web)
 #        os.path.getmtime(fichier) > os.path.getmtime(os.path.join(dossier_web, os.path.basename(fichier))):
 #         shutil.copy(fichier, dossier_web)
 copytree_update(dossier_html_local, dossier_web)
-
+copytree_update(dossier_www, dossier_web_resultats)
 # broadcast_thread = threading.Thread(name='broadcast_thread',target=broadcast_messages, daemon=True)
 # broadcast_thread.start()
 

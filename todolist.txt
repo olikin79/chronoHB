@@ -28,7 +28,7 @@ Si on saisit 42, on n'a pas d'erreur.
 A exécuter s'il n'a jamais été exécuté.
 - (FAIT) interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
 - penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
-- (FAIT 1/2 : il reste à déplacer www dans os.path.join(dossier_web, "resultats")) déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
+- (FAIT) déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
 - déplacer le dossier import vers %appdata%
 - (FAIT) blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 - tableau.getTemps() devrait chercher la date affichée dans ArriveeTemps pour trouver ton vrai indice.

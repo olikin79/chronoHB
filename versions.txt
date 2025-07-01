@@ -107,6 +107,10 @@ Pbs persistants urgents :
 
 
 ############
+Travail du 01/07/25 :
+- déplacement de www vers dossier_web_resultats (dans %appdata% ou similaire)
+
+
 Travail du 30/06/26 :
 - le menu "gestion des temps" débordait sur la droite de l'écran avec de faibles résolutions.
 - la fenêtre de droite a une taille minimale et maximale pour voir tous les boutons sur les basses résolutions et privilégier le tableau des temps sur les hautes résolutions.
