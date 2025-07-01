@@ -37,8 +37,43 @@ if os.path.exists(dossierRacineApp + os.sep + ".." + os.sep + "DEBUG.txt") :
 print("MODE DEBUG AUTOMATIQUE", DEBUG)
 
 
+# cette fonction est dupliquée dans Arrivee.pyw pour éviter un import complet de FonctionsMetiers
+# lors des appels CGI. Toute modification ayant lieu ici, doit être répercutée dans Arrivee.pyw.
+def definir_dossier_donnees(nom_application="ChronoHB"):
+    """
+    Crée le dossier de données de l'application s'il n'existe pas
+    et retourne le chemin complet vers ce dossier.
+    """
+    systeme = platform.system()
+    chemin_donnees = None
+
+    if systeme == "Windows":
+        chemin_appdata = os.environ.get('APPDATA')
+        if chemin_appdata:
+            chemin_donnees = os.path.join(chemin_appdata, nom_application)
+    elif systeme == "Darwin":  # macOS
+        chemin_bibliotheque_support = os.path.expanduser("~/Library/Application Support")
+        chemin_donnees = os.path.join(chemin_bibliotheque_support, nom_application)
+    elif systeme == "Linux":
+        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
+        if xdg_config_home:
+            chemin_donnees = os.path.join(xdg_config_home, nom_application)
+        else:
+            chemin_donnees = os.path.expanduser(os.path.join("~", ".config", nom_application))
+
+    if chemin_donnees:
+        os.makedirs(chemin_donnees, exist_ok=True)  # Crée le dossier s'il n'existe pas
+        return chemin_donnees
+    else:
+        raise OSError(f"Système d'exploitation non pris en charge : {systeme}")
+
+
+DONNEES = definir_dossier_donnees()
+print(f"Le dossier de données de l'application est : {DONNEES}")
+
+
 # fichier journal 
-LOGDIR="logs"
+LOGDIR=os.path.join(DONNEES,"logs")
 if not os.path.exists(LOGDIR) :
     os.makedirs(LOGDIR)
 

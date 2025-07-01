@@ -38,53 +38,13 @@ import urllib.request
 # pour créer des sauvegardes et les décompresser. v2.0
 import zipfile
 
-# #### DEBUG
-# DEBUG = False
-
-#### pour la diffusion des résultats sur internet , sur serveur FTP, FTPS.
-from config import *
-from ftplib import FTP
-import paramiko
-
-# version = "2.1.0"
-
-from FonctionsGenerationPDF import *
-
 import platform
 
-# cette fonction est dupliquée dans Arrivee.pyw pour éviter un import complet de FonctionsMetiers
-# lors des appels CGI. Toute modification ayant lieu ici, doit être répercutée dans Arrivee.pyw.
-def definir_dossier_donnees(nom_application="ChronoHB"):
-    """
-    Crée le dossier de données de l'application s'il n'existe pas
-    et retourne le chemin complet vers ce dossier.
-    """
-    systeme = platform.system()
-    chemin_donnees = None
-
-    if systeme == "Windows":
-        chemin_appdata = os.environ.get('APPDATA')
-        if chemin_appdata:
-            chemin_donnees = os.path.join(chemin_appdata, nom_application)
-    elif systeme == "Darwin":  # macOS
-        chemin_bibliotheque_support = os.path.expanduser("~/Library/Application Support")
-        chemin_donnees = os.path.join(chemin_bibliotheque_support, nom_application)
-    elif systeme == "Linux":
-        xdg_config_home = os.environ.get('XDG_CONFIG_HOME')
-        if xdg_config_home:
-            chemin_donnees = os.path.join(xdg_config_home, nom_application)
-        else:
-            chemin_donnees = os.path.expanduser(os.path.join("~", ".config", nom_application))
-
-    if chemin_donnees:
-        os.makedirs(chemin_donnees, exist_ok=True)  # Crée le dossier s'il n'existe pas
-        return chemin_donnees
-    else:
-        raise OSError(f"Système d'exploitation non pris en charge : {systeme}")
+# paramètres par défaut communs à tous les fichiers 
+from config import *
 
 
-DONNEES = definir_dossier_donnees()
-print(f"Le dossier de données de l'application est : {DONNEES}")
+
 
 dossier_data_txt = os.path.join(DONNEES, "data")
 os.makedirs(dossier_data_txt, exist_ok=True)
@@ -99,6 +59,9 @@ os.makedirs(dossier_web, exist_ok=True)
 
 dossier_web_resultats = os.path.join(dossier_web, "resultats")
 os.makedirs(dossier_web_resultats, exist_ok=True)
+
+dossier_import = os.path.join(dossier_data_txt, "import")
+os.makedirs(dossier_import, exist_ok=True)
 
 ### Dossiers sources copiés vers d'autres destinations pour ne pas écrire dans le dossier d'installation.
 dossier_html_local = os.path.join(os.getcwd(), "html_local")
@@ -128,6 +91,15 @@ os.makedirs(dossier_videos, exist_ok=True)
 dossier_db = os.path.join(DOCUMENTS, "sauvegardes_automatiques")
 print(f"Le dossier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
 os.makedirs(dossier_videos, exist_ok=True)
+
+#### pour la diffusion des résultats sur internet , sur serveur FTP, FTPS.
+from ftplib import FTP
+import paramiko
+
+from FonctionsGenerationPDF import *
+
+
+
 
 def windows():
     if platform.system() == "Windows" :
@@ -8436,9 +8408,9 @@ def importGoogleSheetAutomatique() :
             URLATelecharger = remplacer_edit_par_export(Parametres["URLGoogleSheetAImporter"])
             print("URL à télécharger :", URLATelecharger)
             # télécharge le fichier et le place dans un dossier "import" à la racine du projet
-            if not os.path.exists("import") :
-                os.makedirs("import")
-            fichierTelecharge = "import/fichierGoogleSheetImporte.xlsx"
+            if not os.path.exists(dossier_import) :
+                os.makedirs(dossier_import)
+            fichierTelecharge = os.path.join(dossier_import, "fichierGoogleSheetImporte.xlsx")
             urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
             print("Fichier téléchargé :", fichierTelecharge)
             BilanCreationModifErreur, d = recupImportNG(fichierTelecharge, tolerance = True, googleSheet=True)

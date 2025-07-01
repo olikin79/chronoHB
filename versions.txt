@@ -109,7 +109,7 @@ Pbs persistants urgents :
 ############
 Travail du 01/07/25 :
 - déplacement de www vers dossier_web_resultats (dans %appdata% ou similaire)
-
+- déplacmeent du dossier "import" (fichier tableur téléchargé), LOGDIR vers %appdata%
 
 Travail du 30/06/26 :
 - le menu "gestion des temps" débordait sur la droite de l'écran avec de faibles résolutions.
