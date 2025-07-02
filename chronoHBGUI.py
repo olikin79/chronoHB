@@ -108,7 +108,7 @@ CoureursParClasse = {}
 
 rootGUI = Tk() # initial box declaration
 rootGUI.title("ChronoHB")
-rootGUI.iconbitmap(r'favicon.ico')
+rootGUI.iconbitmap(r'www/favicon.ico')
 
 ### popup pour faire patienter
 # Création du popup de démarrage
@@ -1126,7 +1126,7 @@ class MonTableau(Frame):
         item_text = "-"
         for item in self.treeview.selection():
             item_text = self.treeview.item(item, "values")
-        ## print(item_text,'item_text')
+            print(item_text,'item_text')
         try :
             indiceDeLaLigneSelectionnee = int(item_text[0])-1
         except :
@@ -2293,12 +2293,13 @@ def dateDuJour():
 
 def dupliquerTempsAction() :
     tempsSelectionne = tableau.getTemps()
-    if tempsSelectionne :
+    if tempsSelectionne and tempsSelectionne != "-" :
         print("Duplique le temps en ajoutant une ou plusieurs millisecondes afin de trouver un temps disponible.", tempsSelectionne.tempsReelFormateDateHeure())
         tpsDisponible = dupliqueTemps(tempsSelectionne)
         tempsReel = tpsDisponible.tempsReelFormateDateHeure()
-        print("Ajout du temps disponible", tempsReel)
-        local_ajoute_temps(tempsReel)
+        if tempsReel and tempsReel != "-" :
+            print("Ajout du temps disponible", tempsReel)
+            local_ajoute_temps(tempsReel)
         # pas de retour au menu initial annulerTempsDossards()
     else :
         mess = "Sélectionner un temps à dupliquer."
