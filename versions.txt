@@ -1,10 +1,12 @@
 Travail du 02/07/25 :
 - favicon déplacé. Sécurisation de la duplication d'un temps sélectionné si ligne sans temps.
+- Correction chemin vers dossier résultats exportés.
 
 
 Travail du 01/07/25 :
 - déplacement de www vers dossier_web_resultats (dans %appdata% ou similaire)
 - déplacmeent du dossier "import" (fichier tableur téléchargé), LOGDIR vers %appdata%
+
 
 Travail du 30/06/26 :
 - le menu "gestion des temps" débordait sur la droite de l'écran avec de faibles résolutions.
@@ -15,7 +17,6 @@ Travail du 30/06/26 :
 - interfaçage du paramètre de délai des antennes secondaires.
 
 - Application smartphone : ajout d'une case à cocher dans les paramètres pour permettre une saisie alphanumérique des dossards si besoin ou numérique si suffisant.
-
 
 
 Travail du 29/06/25 :

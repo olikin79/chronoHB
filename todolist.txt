@@ -20,17 +20,9 @@ a. BUGS :
 
 Avant début Septembre :
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
-- (CORRIGE) si on veut supprimer le premier dossard arrivé de la liste, il affiche comme prédécesseur None dans le fichier donneesModifLocale.txt.
-- (CORRIGE) Bug sur l'application smartphone (à corriger dans Arrivee.pyw) : quand on saisit un dossard sous forme 42A (par exemple), cela génère une erreur dans l'interface.
-Si on saisit 42, on n'a pas d'erreur.
 - (FAIT? Si c'est dans envoiDossardPourUnCoureurSurUnMail(), cela a l'air géré) ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
 - (INUTILE : c'est très bien ainsi) le dépôt FTP ne s'opère que s'il y a un au moins un import.
 A exécuter s'il n'a jamais été exécuté.
-- (FAIT) interfacer le paramètre actualisationAutomatiqueDeLAffichageTV et celui avec le délai des antennes secondaires.
-- penser à virer le fichier totemic-studio-283006-47ca14481350.json de la mise à jour 2.3.1
-- (FAIT) déplacer cgi dans www et déplacer www dans %appdata%. Tester l'import depuis smartphone + le serveur web de résultats.
-- déplacer le dossier import vers %appdata%
-- (FAIT) blinder la case self.nbreDossards.get() pour empêcher une saisie non numérique et à autoriser une saisie libre en plus des nbres prévus.
 
 
 Avant le cross BOURRILLON :

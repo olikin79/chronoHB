@@ -2771,9 +2771,11 @@ chargerDonnees()
 
 #### export excel des résultats
 
+def nomDossierResultats() :
+    return Parametres["intituleCross"].replace(" ","-")
 
 def exportXLSX():
-    fichier = os.path.join(dossier_resultats,Parametres["intituleCross"], '_resultats.xlsx')
+    fichier = os.path.join(dossier_resultats,nomDossierResultats(), '_resultats.xlsx')
     if os.path.exists(fichier) :
         os.remove(fichier)
     workbook = xlsxwriter.Workbook(fichier)
@@ -4644,7 +4646,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
     retour = [] # en cas d'erreur, retourne les messages à afficher à l'utilisateur
     listeDesFichiersACreer = []
     listeDesContenus = []
-    pathImpressions = os.path.join(dossier_resultats,Parametres["intituleCross"].replace(" ","-"))
+    pathImpressions = os.path.join(dossier_resultats,nomDossierResultats())
 
     StatsEffectifs = True ## à basculer dans les paramètres
     ContenuLignesCategories = []
