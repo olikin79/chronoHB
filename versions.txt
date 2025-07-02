@@ -1,6 +1,7 @@
 Travail du 02/07/25 :
 - favicon déplacé. Sécurisation de la duplication d'un temps sélectionné si ligne sans temps.
 - Correction chemin vers dossier résultats exportés.
+- largeur de la fenêtre GaucheFrame et des boutons corrigée sous windows. Gestion du cas mac OS X et windows séparément.
 
 
 Travail du 01/07/25 :

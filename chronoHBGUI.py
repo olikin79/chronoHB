@@ -1850,8 +1850,13 @@ def extract_ip():
 
 
 # largeur minimale et maximale de DroiteFrame.
-N_INFERIEUR = 1000
-N_SUPERIEUR = 1400
+if platform.system() == "Darwin":
+    N_INFERIEUR = 1000
+    N_SUPERIEUR = 1400
+else :
+    N_INFERIEUR = 900
+    N_SUPERIEUR = 1000
+
 ConteneurPrincipal = Frame(rootGUI)
 DroiteFrame = Frame(ConteneurPrincipal)# non fonctionnel ScrollFrame(root)
 GaucheFrame = Frame(ConteneurPrincipal)
@@ -2313,6 +2318,7 @@ def supprimerTempsAction() :
     supprimerTempsButton.configure(state=DISABLED)
     test = tableau.getTemps()
     if test :
+        print("test", test)
         tempsReel = test.tempsReelFormateDateHeure()
         print("suppression du temps", tempsReel)
         if tempsReel != "-" : #si on essaie de supprimer une ligne qui ne contient aucun temps, on ignore.
@@ -2487,9 +2493,14 @@ gestionTempsButton.pack(side=LEFT)
 gestionDossardsButton.pack(side=LEFT)
 menuInitial.pack()
 
-ajouterTempsButton = Button(gestionTemps, text="Ajouter une heure\nd'arrivée", width=11, command=ajouterTempsAction)
-dupliquerTempsButton = Button(gestionTemps, text="Dupliquer une heure\nd'arrivée", width=11, command=dupliquerTempsAction)
-supprimerTempsButton = Button(gestionTemps, text="Supprimer une heure\nd'arrivée", width=12, command=supprimerTempsAction)
+if platform.os == "Darwin" :
+    largeur = 11
+else:
+    largeur = 15
+
+ajouterTempsButton = Button(gestionTemps, text="Ajouter une heure\nd'arrivée", width=largeur, command=ajouterTempsAction)
+dupliquerTempsButton = Button(gestionTemps, text="Dupliquer une heure\nd'arrivée", width=largeur, command=dupliquerTempsAction)
+supprimerTempsButton = Button(gestionTemps, text="Supprimer une heure\nd'arrivée", width=largeur+1, command=supprimerTempsAction)
 AnnulerTempsButton = Button(gestionTemps, text="Retour", width=10, height=2,command=annulerTempsDossards)
 ajouterTempsButton.pack(side=LEFT)
 dupliquerTempsButton.pack(side=LEFT)
@@ -2499,7 +2510,7 @@ AnnulerTempsButton.pack(side=LEFT)
 gestionDossards1=Frame(gestionDossards)
 gestionDossards2=Frame(gestionDossards)
 
-ajouterDossardApresButton = Button(gestionDossards1, text="Ajouter un dossard après", width=15, command=ajouterDossardApresAction)
+ajouterDossardApresButton = Button(gestionDossards1, text="Ajouter un dossard après", width=largeur+4, command=ajouterDossardApresAction)
 avancerDossardButton = Button(gestionDossards1, text="Avancer le dossard", width=15, command=avancerDossardAction)
 reculerDossardButton = Button(gestionDossards1, text="Reculer le dossard", width=15, command=reculerDossardAction)
 supprimerDossardButton = Button(gestionDossards2, text="Supprimer le dossard sélectionné", width=30, command=supprimerDossardAction)

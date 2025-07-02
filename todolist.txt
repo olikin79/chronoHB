@@ -19,6 +19,9 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
+- taille des boutons sous windows, taille de gaucheFrame sous windows à différencier de mac OS X.
+- catégorie absente de l'export tableur des résultats en mode "cross du collège".
+- date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
 - (FAIT? Si c'est dans envoiDossardPourUnCoureurSurUnMail(), cela a l'air géré) ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
 - (INUTILE : c'est très bien ainsi) le dépôt FTP ne s'opère que s'il y a un au moins un import.
