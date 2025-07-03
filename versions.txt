@@ -1,6 +1,6 @@
 Travail du 03/07/25 :
 - cas où l'on passe d'un menu de configuration à un autre. Le unbind a déjà été exécuté.
-
+- le clic sur l'heure de départ ne fonctionnait plus pour la modifier, n'actualisait plus l'interface. Corrigé.
 
 Travail du 02/07/25 :
 - favicon déplacé. Sécurisation de la duplication d'un temps sélectionné si ligne sans temps.

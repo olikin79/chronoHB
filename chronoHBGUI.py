@@ -2177,12 +2177,12 @@ class departDialog:
         tempsDialog = self.myEntryBox.get()
         fixerDepart(self.groupement.nom,tempsDialog)
         self.top.destroy()
-        # regenereAffichageGUI()
+        regenereAffichageGUI()
 
     def restaure(self):
         self.myEntryBox.delete(0, END)
         self.myEntryBox.insert(0, Courses[self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
-        # regenereAffichageGUI()
+        regenereAffichageGUI()
         
     def annul(self):
         self.top.destroy()
