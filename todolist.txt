@@ -19,7 +19,7 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- taille des boutons sous windows, taille de gaucheFrame sous windows à différencier de mac OS X.
+- passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".
 - date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
@@ -39,7 +39,6 @@ En améliorant incruster_multitexts, on doit pouvoir le faire en récupérant la
 
 Avant le cross départemental :
 - le message "import de x coureurs effectué en arrière plan.\n Cliquer ici pour faire disparaitre ce message" donne un bouton qui ne fonctionne pas. Import effectué en arrière plan ne disparaît pas quand on clique dessus
-- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
 - raccourcir automatiquement les noms d'établissement pour les dossards :
 en gardant le type d'établissement ("Collège" ou "Lycée") puis le dernier mot du nom ("Bourrillon", "Haut-Gévaudan") à partir du dernier espace ?
 - l'import du tableur google sheet avec la première ligne vide génère un dossard qui ne devrait pas exister.
@@ -115,16 +114,23 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
-- Créer un publipostage avec les étiquettes du collège.
+- Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
+- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
+- Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
+
+
+Avant le cross H. Bourrillon :
+- créer des dossards : Collège H. Bourrillon, Logo H.B., Bande couleur et numéro en blanc , nom de la course ?
+- (FAIT 1/2) Créer un publipostage avec les étiquettes du collège.
 - Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
 Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
 - Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
 Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
 Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
-- Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
-- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
-- Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
-- Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
+
+
+Avant le trail départemental :
+- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
 
 
 Avant le prochain Trail de RIEUTORT :
@@ -137,6 +143,7 @@ Avant le prochain Trail de RIEUTORT :
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 
 A plus long terme :
+- Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
 - checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
 - courses à étapes implémentées avec RFID uniquement.
 - remplacer l'usage de xlswriter par openpyxl lors de l'export => possibilité d'éliminer cette dépendance.

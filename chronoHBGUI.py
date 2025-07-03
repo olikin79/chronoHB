@@ -4477,7 +4477,10 @@ def packGaucheAndRightFrame(parent_window, gauche_frame, droite_frame, ninferieu
     
 def desactiveAffichageConteneurPrincipal():
     global _on_configure_funcid
-    rootGUI.unbind("<Configure>", _on_configure_funcid[0])
+    try :
+        rootGUI.unbind("<Configure>", _on_configure_funcid[0])
+    except :
+        pass # cas où l'on passe d'un menu de configuration à un autre. Le unbind a déjà été exécuté.
     ConteneurPrincipal.forget()
 
 def distanceDesCourses():
