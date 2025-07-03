@@ -19,7 +19,7 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- passer d'un menu de configuration à un autre ne marche plus.
+- (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".
 - date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
