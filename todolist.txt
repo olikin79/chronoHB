@@ -29,7 +29,7 @@ A exécuter s'il n'a jamais été exécuté.
 
 
 Avant le cross BOURRILLON :
-- le clic sur l'heure de départ ne fonctionne plus pour la modifier n'actualise pas l'interface. Un redémarrage ou un recalcul forcé corrige le problème.
+- (CORRIGE) le clic sur l'heure de départ ne fonctionne plus pour la modifier n'actualise pas l'interface. Un redémarrage ou un recalcul forcé corrige le problème.
 - (BUG PERSISTANT SUR FIREFOX-SAFARI mais pas sur CHROME) l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
 Ou alors, trouver le bon total sur le nombre de participants et non ceux déjà arrivés.
