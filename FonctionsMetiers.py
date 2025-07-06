@@ -658,6 +658,8 @@ class DictionnaireDeCoureurs(dict) :
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self.importerAncienneListe(AncienneListeAImporter)
         self["CoureursElimines"] = {"A" : []}
+        self.seriesDeCouleurSuccessives = {}
+        self.dossardsPerdus = {}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
     def repareCourseUNSS(self) :
         for coureur in self.liste() :
@@ -783,6 +785,7 @@ class DictionnaireDeCoureurs(dict) :
             if not course in self.keys() :
                 self[course] = []
                 self["CoureursElimines"][course]=[]
+            self.initialiseSeriesDeCouleursSuccessives(course, coureur)
             if dossard : # le dossard est spécifié, on impose le numéro.
                 coureur.setDossard(dossard)
                 nbreCoureursDansCourse = len(self[course])
@@ -810,6 +813,53 @@ class DictionnaireDeCoureurs(dict) :
                     return str(len(self[course])) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
+    def prochainDossardDisponible(self, course):
+        """Retourne le prochain dossard disponible dans la course donnée"""
+        if not course in self.keys() :
+            self[course] = []
+            self["CoureursElimines"][course]=[]
+        dossardAttribue = "0A"
+        # on essaye de voir si on peut attribuer un dossard dont le coureur aurait été effacé.
+        if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
+            # on récupère le premier indice libre et qui n'est pas dans self.dossardsPerdus 
+            i = 0
+            while i < len(self["CoureursElimines"][course]) and self["CoureursElimines"][course][i] in self.dossardsPerdus.get(course, []) :
+                i += 1
+            if i < len(self["CoureursElimines"][course]) :
+                premierIndiceLibre = self["CoureursElimines"][course][i]
+                # on supprime l'indice libre de la liste des indices libres
+                self["CoureursElimines"][course].pop(i)
+                dossardAttribue = str(premierIndiceLibre+1) + course # on fixe le dossard du coureur
+        # à défaut, on attribue un numéro de dossard en fin de liste.
+        if not dossardAttribue:
+            if Parametres["plusieursSeriesDeCouleurSuccessives"] : # les séries de couleur sont activées, on attribue le dossard suivant dans la série de couleur.
+                if course in self.seriesDeCouleurSuccessives.keys() :
+                    nombreDeDossardsDisponibles = self.seriesDeCouleurSuccessives[course]
+                    # on détermine à partir de quel rang un dossard est disponible, en commençant par la lettre A, puis B,...
+                    totalDeSCoureursDesCoursesPrecedentes = 0
+                    lettreCourseExaminee = "A"
+                    while lettreCourseExaminee != course :
+                        totalDeSCoureursDesCoursesPrecedentes += len(self.seriesDeCouleurSuccessives[lettreCourseExaminee])
+                        lettreCourseExaminee = chr(ord(lettreCourseExaminee) + 1)
+                    # on recherche le premier dossard disponible à partir du rang totalDeSCoureursDesCoursesPrecedentes : cela correspond au premier coureur non vide de self[course]
+                    while totalDeSCoureursDesCoursesPrecedentes < 
+                    for i in range(totalDeSCoureursDesCoursesPrecedentes, len(self[course])):
+                        if self[course][i] is None:
+                            dossardAttribue = str(i+1) + course
+                            break
+                else :
+                    print("Ne devrait jamais survenir. La course fournie en argument n'existe pas :", course)
+            else :
+                # cas historique : on donne le prochain numéro disponible.
+                dossardAttribue = str(len(self[course])+1) + course
+        return dossardAttribue
+    
+    def initialiseSeriesDeCouleursSuccessives(self, course, coureur) :
+        if course not in self.seriesDeCouleurSuccessives:
+            self.seriesDeCouleurSuccessives[course] = {coureur.nomGroupement: [100, 0]} # dictionnaire contenant un dictionnaire par groupement. 
+            # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
+        if coureur.nomGroupement not in self.seriesDeCouleurSuccessives[course]:
+            self.seriesDeCouleurSuccessives[course][coureur.nomGroupement] = [100, 0]
     def cles(self):
         # if DEBUG :
         #     print("cles(self)", self.keys())
