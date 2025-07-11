@@ -6,6 +6,7 @@ Travail du 11/07/25 :
 - Sélecteur de couleur sous mac os X opérationnel.
 - Ajout du bleu foncé dans le sélecteur de couleur.
 
+
 Travail du 07/07/25 :
 - le choix courses du collège ou UNSS force le mode CoursesManuelles==False. Cela ne convenait pas.
 

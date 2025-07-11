@@ -652,6 +652,44 @@ def incrementeDecompteParCategoriesDAgeEtRetourneSonRang(catFFA , DecompteParCat
             break
     return rangDansCategorie
 
+def supprimerDesNombresAPartirDeNEtDiminuerLesPlusGrands(liste, n, difference):
+    """Supprime les éléments de la liste d'entiers fournie plus grands ou égaux à n
+    et strictement plus petits que n + difference.
+    Diminue de difference tous les entiers supérieurs à n + difference.
+    Retourne la liste résultante
+    """
+    nouvelle_liste = []
+    for x in liste:  # Parcourir les éléments directement est plus sûr
+        if x >= n and x < n + difference:
+            # L'élément est dans la plage à supprimer, on ne l'ajoute pas à la nouvelle liste
+            pass
+        elif x > n + difference:
+            nouvelle_liste.append(x - difference)
+        else:
+            # L'élément n'est ni à supprimer, ni à modifier
+            nouvelle_liste.append(x)
+    return nouvelle_liste
+
+def ajouteDesNombresAPartirDeNEtAugmenterLesPlusGrands(liste, n, difference):
+    """liste est une liste d'entiers ordonnée.
+        Dès que l'entier n est rencontré, on insère difference nombres, incrémentés de 1 en 1 à cette position.
+        Une fois ceci fait, on augmente les plus grands de difference.
+        On retourne la liste résultante.
+    """
+    nouvelle_liste = []
+    for x in liste:
+        if x < n:
+            nouvelle_liste.append(x)
+        elif x == n:
+            # On ajoute n, n+1, ..., n+difference-1
+            nouvelle_liste.extend(range(n, n + difference))
+            # On ajoute l'élément x après les nouveaux éléments
+            nouvelle_liste.append(x+ difference)
+        else:
+            # L'élément est plus grand que n, on l'ajoute après avoir augmenté
+            nouvelle_liste.append(x + difference)
+    return nouvelle_liste
+
 class DictionnaireDeCoureurs(dict) :
     def __init__(self, AncienneListeAImporter=[]):
         super().__init__()
@@ -661,12 +699,15 @@ class DictionnaireDeCoureurs(dict) :
         self.seriesDeCouleurSuccessives = {}
         self.dossardsPerdus = {}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
+        self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
+        
     def repareCourseUNSS(self) :
         for coureur in self.liste() :
             coureur.actualiseCategorie()
             # print(coureur.nom , coureur.categorie(Parametres["CategorieDAge"]))
             # print(Parametres["CategorieDAge"])
         # self.initEffectifs()
+        
     def initEffectifs(self):
         """ permet de connaître le nombre total de coureurs de chaque sexe et de chaque catégorie : pour les catégories, on considère ceux qui sont inférieurs qui doivent être battus."""
         self.nombreDeCoureursParSexe = [0,0]
@@ -755,6 +796,99 @@ class DictionnaireDeCoureurs(dict) :
         """Initialise le dictionnaire des coureurs éliminés pour chaque course."""
         if not "CoureursElimines" in self.keys() :
             self["CoureursElimines"] = {'A': []}
+    
+    def forceTousLesDossardsAPartirDuRang(self, course, rang) :
+        """Force tous les dossards des coureurs suite à un déplacement de ceux-ci."""
+        for coureur in self[course][rang:] :
+            coureur.setDossard(formateDossardNG(rang + 1, course=course))
+    
+    def affecteNouveauNombreDeDossardsPourUnGroupement(self, course, gpmt, nombreDeDossards):
+        """Affecte un nouveau nombre de dossards pour un groupement de coureurs."""
+        try :
+            # compatibilité pour les anciennes versions de l'application.
+            self.listeDesNomsDeGroupements 
+        except : # si la liste des groupements n'est pas initialisée, on ne fait rien.
+            self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
+            
+        if not course in self.seriesDeCouleurSuccessives.keys() :
+            self.seriesDeCouleurSuccessives[course] = {}
+        if not gpmt in self.seriesDeCouleurSuccessives[course].keys() :
+            self.seriesDeCouleurSuccessives[course][gpmt] = [1000, 0]
+        valeurPrecedente = self.seriesDeCouleurSuccessives[course][gpmt][0]
+        difference = nombreDeDossards - valeurPrecedente
+        self.seriesDeCouleurSuccessives[course][gpmt][0] = nombreDeDossards
+        Nmin, Nmax = self.plageNumerosAutorises(course, gpmt)
+        if difference > 0 :
+            # on ajoute difference coureurs vides
+            for i in range(difference):
+                self[course].insert(Nmin+valeurPrecedente,Coureur("","","",""))
+            self["CoureursElimines"][course] = ajouteDesNombresAPartirDeNEtAugmenterLesPlusGrands(self["CoureursElimines"][course], Nmin+valeurPrecedente, difference)
+            self.forceTousLesDossardsAPartirDuRang(course, Nmin+nombreDeDossards)
+            retour = True # l'augmentation est toujours possible
+        else :
+            # on supprime des coureurs uniquement si tous les coureurs entre les positions Nmax et Nmin+valeurPrecedente sont vides.
+            retour = True
+            for i in range(Nmax+1, Nmin+valeurPrecedente):
+                if i not in self["CoureursElimines"][course] :
+                    print("Impossible de diminuer le nombre de dossards pour le groupement", gpmt, "de la course", course, "car il y a un coureur à la position", i)
+                    retour = False
+                    break
+            if retour : # on peut diminuer le nombre de dossards
+                self[course] = self[course][:Nmax+1] + self[course][Nmin+valeurPrecedente:] # on supprime les coureurs vides entre Nmin+valeurPrecedente et Nmax
+                self["CoureursElimines"][course] = supprimerDesNombresAPartirDeNEtDiminuerLesPlusGrands(self["CoureursElimines"][course], Nmax, -difference)
+                self.forceTousLesDossardsAPartirDuRang(course, Nmax+1)
+        if not retour : # on rétablit la valeur antérieure.
+            self.seriesDeCouleurSuccessives[course][gpmt][0] = valeurPrecedente
+        return retour
+    
+    def changeLOrdreDesGroupements(self, nouvelOrdreDesGroupements) :
+        """normalement, nouvelOrdreDesGroupements doit contenir exactement les mêmes éléments que self.listeDesNomsDeGroupements dans un ordre éventuellement différent.
+        Par sécurité, on vérifie qu'aucun élément n'a été enlevé ni ajouté par ce biais.
+        Les éléments ajoutés ne sont pas répercutés dans self.listeDesNomsDeGroupements, les éléments enlevés sont placés en fin de self.listeDesNomsDeGroupements"""
+        ancienneListe = list(self.listeDesNomsDeGroupements)
+        # changement de l'ordre dans la liste self.listeDesNomsDeGroupements
+        self.listeDesNomsDeGroupements = []
+        for nom in nouvelOrdreDesGroupements :
+            if nom in ancienneListe :
+                self.listeDesNomsDeGroupements.append(nom)
+        for nom in ancienneListe :
+            if nom not in self.listeDesNomsDeGroupements :
+                self.listeDesNomsDeGroupements.append(nom)
+        # répercution du changement sur les dossards des coureurs
+        retour = self.deplaceLesCoureursDejaAffectes()
+        if not retour :
+            self.listeDesNomsDeGroupements = ancienneListe
+        return retour
+    
+    def deplaceLesCoureursDejaAffectes(self):
+        """Déplace les coureurs déjà affectés dans les nouvelles séries de dossards.
+        S'il n'y a pas assez de place pour tous les coureurs, n'opère aucun changement.
+        Travaille sur un dictionnaire temporaire self.dictionnaireDuplique à part avant de remplacer."""
+        retour = False # si le retour == False, l'affichage GUI rétablira les valeurs antérieures
+        self.dictionnaireDuplique = {}
+        # on fait le ménage dans le dictionnaire self.seriesDeCouleurSuccessives : si des groupements ont fusionné, on les supprime.
+        for course in self.seriesDeCouleurSuccessives.keys() :
+            for gpmt in self.seriesDeCouleurSuccessives[course].keys() :
+                if not gpmt in listNomsGroupements(nomStandard=True) :
+                    # le groupement n'existe plus, on le supprime.
+                    del self.seriesDeCouleurSuccessives[course][gpmt]
+                    self.listeDesNomsDeGroupements.remove(gpmt)
+        # on déplace les coureurs déjà affectés dans les nouvelles séries de dossards
+        for course in self.cles() :
+            for gpmt in self.listeDesNomsDeGroupements :
+                effectifMax = self.seriesDeCouleurSuccessives[course][gpmt][0] # nombre de dossards maximum
+                effectifActuel = len(self[course]) - len(self["CoureursElimines"][course]) # nombre de coureurs non éliminés
+                if gpmt in self.dictionnaireDuplique :
+                    self.dictionnaireDuplique[gpmt] = self.seriesDeCouleurSuccessives[course][gpmt]
+        return retour
+    
+    def lettreDUneCategorie(self, categorie):
+        """Retourne la lettre de la course correspondant à la catégorie fournie."""
+        for course in self.seriesDeCouleurSuccessives.keys() :
+            for gpmt in self.seriesDeCouleurSuccessives[course].keys() :
+                if gpmt == categorie:
+                    return course
+        return None
     
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
         L = []
@@ -892,8 +1026,7 @@ class DictionnaireDeCoureurs(dict) :
         numeroMaximalAutorise = 10000000
          # on alimente la course avec des coureurs vides si un effectif maximum est prévu (si plusieursSeriesDeCouleurSuccessives==True)  :
         if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-            listeDesGroupements = listNomsGroupements(nomStandard=True)
-            for gpmt in listeDesGroupements :
+            for gpmt in self.listeDesNomsDeGroupements :
                 # paramètres par défaut, si inexistant
                 if course not in self.seriesDeCouleurSuccessives:
                     self.seriesDeCouleurSuccessives[course] = {gpmt: [1000, 0]} # dictionnaire contenant un dictionnaire par groupement. 
@@ -914,18 +1047,17 @@ class DictionnaireDeCoureurs(dict) :
         totalDesCoureursDesCoursesPrecedentes = 0
          # on alimente la course avec des coureurs vides si un effectif maximum est prévu (si plusieursSeriesDeCouleurSuccessives==True)  :
         if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-            listeDesGroupements = listNomsGroupements(nomStandard=True)
             # si une nouvelle lettre de course est imposée et non présente, on l'ajoute
-            if coureur.categorie(Parametres["CategorieDAge"]) not in listeDesGroupements :
-                listeDesGroupements.append(coureur.categorie(Parametres["CategorieDAge"]))
-            for gpmt in listeDesGroupements :
+            if coureur.categorie(Parametres["CategorieDAge"]) not in self.listeDesNomsDeGroupements :
+                self.listeDesNomsDeGroupements.append(coureur.categorie(Parametres["CategorieDAge"]))
+            for gpmt in self.listeDesNomsDeGroupements :
                 # paramètres par défaut, si inexistant
                 if course not in self.seriesDeCouleurSuccessives:
-                    self.seriesDeCouleurSuccessives[course] = {gpmt: [150, 0]} # dictionnaire contenant un dictionnaire par groupement. 
+                    self.seriesDeCouleurSuccessives[course] = {gpmt: [200, 0]} # dictionnaire contenant un dictionnaire par groupement. 
                     # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
                 if gpmt not in self.seriesDeCouleurSuccessives[course]:
-                    self.seriesDeCouleurSuccessives[course][gpmt] = [150, 0]
-                # on incrémente totalDeSCoureursDesCoursesPrecedentes
+                    self.seriesDeCouleurSuccessives[course][gpmt] = [200, 0]
+                # on incrémente totalDesCoureursDesCoursesPrecedentes
                 totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt][0]
         return totalDesCoureursDesCoursesPrecedentes
     
@@ -3967,7 +4099,7 @@ def listNomsGroupementsNonCommences(nomStandard = True):
 
 def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
     retour = []
-    for groupement in root["Groupements"] :
+    for groupement in sorted(root.get("Groupements",[]), key=lambda x: x.nomStandard) :
         if groupement.listeDesCourses :
             if nomStandard :
                 nom = groupement.nomStandard

@@ -1393,6 +1393,39 @@ class CheckboxAbsDisp(Frame):
         self.checkbuttonAbs.pack(side=LEFT) # à la verticale ou pas ?
         self.checkbuttonDisp.pack(side=LEFT)
         self.lbl.pack(side=LEFT)
+
+class ComboboxNbreDossardsCategorie(Combobox):
+    def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W, course=None, gpmt=None):
+        Combobox.__init__(self, parent, width=5, values=picks)
+        self.course = course
+        self.gpmt = gpmt
+        # le combobox doit être modifiable mais on propose des valeurs préféfinies : 50, 100, 150, 200, 250, 300
+        # on peut écrire dans le combobox
+        self['state'] = 'normal' 
+        self['values'] = picks # on propose les valeurs de la liste des dossards
+        self.pack(side=side, anchor=anchor)
+        # on refuse toute saisie non numérique
+        self['validate'] = 'key'
+        self['validatecommand'] = (self.register(self.validate), '%P') # %P est la valeur du champ après modification
+        # on récupère la valeur initiale du combobox dans le dictionnaire des paramètres root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt]
+        # print('root["Coureurs"].seriesDeCouleurSuccessives', root["Coureurs"].seriesDeCouleurSuccessives)
+        # print('self.course', self.course, 'self.gpmt', self.gpmt)
+        if self.course in root["Coureurs"].seriesDeCouleurSuccessives and self.gpmt in root["Coureurs"].seriesDeCouleurSuccessives[self.course] :
+            self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt][0])
+        # on complète la méthode bind d'origine pour mémoriser la valeur sélectionnée dans le dictionnaire des paramètres
+        def memoriseValeurBind(event) :
+            print("Valeur sélectionnée :", self.get(), "dossards maximum pour la course", self.course, "et le gpmt", self.gpmt)
+            root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
+        self.bind("<<ComboboxSelected>>", memoriseValeurBind)
+        # exécute également memoriseValeurBind lors d'un appui sur Entrée ou lors d'une sortie du combobox
+        self.bind("<Return>", memoriseValeurBind)
+        self.bind("<FocusOut>", memoriseValeurBind)
+    def validate(self, P):
+        """Validation de la saisie dans le combobox : on n'accepte que les chiffres"""
+        if P == "" or P.isdigit():
+            return True
+        else:
+            return False
         
 
 class ComboboxAbsDisp(Frame):
@@ -1604,6 +1637,13 @@ class EntryCourse(Frame):
         self.lbl2.pack(side=LEFT)
         self.entry.pack(side=LEFT)
         self.uniteLabel.pack(side=LEFT)
+        if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+            # label "nombre de dossards dédiés"
+            # print("self.groupement", self.groupement, type(self.groupement))
+            # print("self.groupement.listeDesCourses[0]", self.groupement.listeDesCourses[0])
+            lblNbreDossards = Label(self, text="Nombre de dossards dédiés :")
+            lblNbreDossards.pack(side=LEFT)
+            self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[110,150,200], course=root["Coureurs"].lettreDUneCategorie(self.groupement.listeDesCourses[0]), gpmt=self.groupement.nomStandard)
         self.color_selector.pack(side=LEFT)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
         #self.actualiseEtat()
@@ -4579,6 +4619,7 @@ def actualiseEtatBoutonsRadioConfig():
         rb3.configure(state='disabled')
         rbCM1.configure(state='disabled')
         rbCM2.configure(state='disabled')
+        cbutilisationDesSeriesDeDossardsDeChronoHBCheck.configure(state='disabled')
         rbLbl.pack(side=TOP,anchor="w")
     else :
         rb1.configure(state='normal')
@@ -4586,6 +4627,7 @@ def actualiseEtatBoutonsRadioConfig():
         rb3.configure(state='normal')
         rbCM1.configure(state='normal')
         rbCM2.configure(state='normal')
+        cbutilisationDesSeriesDeDossardsDeChronoHBCheck.configure(state='normal')
         rbLbl.forget()
 
 GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
@@ -5542,31 +5584,22 @@ def choixCC():		# Fonction associée à Catégories par Classes
     Parametres["CategorieDAge"]=0
     choixCNM() # on force le mode courses automatiques
     forgetAutresWidgets()
-    NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
-    NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
-    classeIgnoreesPourChallengeFrame.pack(side=LEFT,anchor="w")
     packAutresWidgets()
     
 def choixCA():		# Fonction associée à catégories par Age
     print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=1
     forgetAutresWidgets()
-    NbreCoureursChallengeFrameL.pack_forget()
-    NbreCoureursChallengeFrame.pack_forget()
-    classeIgnoreesPourChallengeFrame.pack_forget()
-    packAutresWidgets()
+    packAutresWidgets(CA = True) # on n'affiche pas les challenges qui ne concernent que le cross du collège et l'UNSS
 
 def choixUNSS():		# Fonction associée à catégories par Age
     print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=2
     choixCNM() # on force le mode courses automatiques
     forgetAutresWidgets()
-    NbreCoureursChallengeFrameL.pack_forget()
-    NbreCoureursChallengeFrame.pack_forget()
-    classeIgnoreesPourChallengeFrame.pack_forget()
     packAutresWidgets()
 
-def packAutresWidgets():
+def packAutresWidgets(CA=False) :
     if Parametres["CategorieDAge"] == 1 :
         CoursesManuellesFrame.pack(side=TOP,anchor="w")       
     if Parametres["CoursesManuelles"] :
@@ -5574,9 +5607,17 @@ def packAutresWidgets():
         CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
         cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
         choixCMQRCodes()
-    cbutilisationDesSeriesDeDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
-    cbutilisationDesSeriesDeDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
-    cbutilisationDesDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
+    else :
+        cbutilisationDesSeriesDeDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
+        cbutilisationDesSeriesDeDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
+    if CA :
+        NbreCoureursChallengeFrameL.pack_forget()
+        NbreCoureursChallengeFrame.pack_forget()
+        classeIgnoreesPourChallengeFrame.pack_forget()
+    else :
+        NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
+        NbreCoureursChallengeFrame.pack(side=TOP,anchor="w")
+        classeIgnoreesPourChallengeFrame.pack(side=TOP,anchor="w")
     cbutilisationDesDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
     cbListingsFrame.pack(side=TOP,anchor="w")
     cbListingsLbl.pack(side=LEFT,anchor="w")
@@ -5721,6 +5762,24 @@ cbCMgenererQRCodesSuppl = Checkbutton(CoursesManuellesFrameChoixSupplementaires,
 cbCMgenererQRCodesSupplNombre = EntryParam("nbreDossardsAGenererPourCourseManuelles", "Nombre de QR-codes désiré par course : ",\
                                         largeur=3, parent=CoursesManuellesFrameChoixSupplementaires, nombre=True)
 
+def choixUtilisationDesSeriesDeDossardsDeChronoHB():
+    if cbutilisationDesSeriesDeDossardsDeChronoHB.get() :
+        Parametres["plusieursSeriesDeCouleurSuccessives"]=True
+    else :
+        Parametres["plusieursSeriesDeCouleurSuccessives"]=False
+    print("Case à cocher utilisation des séries de dossards de ChronoHB :", Parametres["plusieursSeriesDeCouleurSuccessives"])
+
+cbutilisationDesSeriesDeDossardsDeChronoHB = BooleanVar()
+if Parametres["plusieursSeriesDeCouleurSuccessives"]:
+    cbutilisationDesSeriesDeDossardsDeChronoHB.set(True)
+else :
+    cbutilisationDesSeriesDeDossardsDeChronoHB.set(False)
+
+cbutilisationDesSeriesDeDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
+# cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChcbutilisationDesSeriesDeDossardsDeChronoHBFrameronoHBFrame, text="Impression des dossards avec ChronoHB")
+cbutilisationDesSeriesDeDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesSeriesDeDossardsDeChronoHBFrame, text="Utilisation de séries de dossards de couleurs différentes par catégorie.", variable=cbutilisationDesSeriesDeDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesSeriesDeDossardsDeChronoHB)
+
+
 ### choix de génération de documents qui apparaissent pour tous les types de courses.
 def choixQRCodesListing():
     if cbgenererListingQRCodes.get() :
@@ -5729,12 +5788,6 @@ def choixQRCodesListing():
         Parametres["genererListingQRcodes"]=False
     print("Case à cocher générer listing QR-codes :", Parametres["genererListingQRcodes"])
 
-def choixUtilisationDesSeriesDeDossardsDeChronoHB():
-    if cbutilisationDesSeriesDeDossardsDeChronoHB.get() :
-        Parametres["plusieursSeriesDeCouleurSuccessives"]=True
-    else :
-        Parametres["plusieursSeriesDeCouleurSuccessives"]=False
-    print("Case à cocher utilisation des séries de dossards de ChronoHB :", Parametres["plusieursSeriesDeCouleurSuccessives"])
 
 def choixUtilisationDesDossardsDeChronoHB():
     if cbutilisationDesDossardsDeChronoHB.get() :
@@ -5761,15 +5814,6 @@ if Parametres["genererListingQRcodes"]:
 else :
     cbgenererListingQRCodes.set(False)
 
-cbutilisationDesSeriesDeDossardsDeChronoHB = BooleanVar()
-if Parametres["plusieursSeriesDeCouleurSuccessives"]:
-    cbutilisationDesSeriesDeDossardsDeChronoHB.set(True)
-else :
-    cbutilisationDesSeriesDeDossardsDeChronoHB.set(False)
-
-cbutilisationDesSeriesDeDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
-# cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChcbutilisationDesSeriesDeDossardsDeChronoHBFrameronoHBFrame, text="Impression des dossards avec ChronoHB")
-cbutilisationDesSeriesDeDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesSeriesDeDossardsDeChronoHBFrame, text="Utilisation de séries de dossards de couleurs différentes par catégorie.", variable=cbutilisationDesSeriesDeDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesSeriesDeDossardsDeChronoHB)
 
 
 cbutilisationDesDossardsDeChronoHB = BooleanVar()
@@ -5778,13 +5822,13 @@ if Parametres["utilisationDesDossardsDeChronoHB"]:
 else :
     cbutilisationDesDossardsDeChronoHB.set(False)
 
-cbutilisationDesDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
+# cbutilisationDesDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
 # cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChronoHBFrame, text="Impression des dossards avec ChronoHB")
-cbutilisationDesDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesDossardsDeChronoHBFrame, text="Impression des dossards avec ChronoHB", variable=cbutilisationDesDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesDossardsDeChronoHB)
 
 
 cbListingsFrame = Frame(GaucheFrameParametresCourses)
-cbListingsLbl = Label(cbListingsFrame,text="En cas de pertes de dossards : ")
+cbListingsLbl = Label(cbListingsFrame,text="DOSSARDS : ")
+cbutilisationDesDossardsDeChronoHBCheck = Checkbutton(cbListingsFrame, text="Impression des dossards avec ChronoHB", variable=cbutilisationDesDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesDossardsDeChronoHB)
 cbCMgenererListing = Checkbutton(cbListingsFrame, text="Générer un tableau des associations noms-dossards", variable=cbgenererListing, onvalue=1, offvalue=0, command=choixListing)
 cbCMgenererListingQRCodes = Checkbutton(cbListingsFrame, text="Générer un listing des QR-codes", variable=cbgenererListingQRCodes, onvalue=1, offvalue=0, command=choixQRCodesListing)
 
