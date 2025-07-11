@@ -1485,6 +1485,32 @@ class ButtonBoxDossards(Frame):
         self.combobox.pack(side=TOP, expand=YES) # à la verticale
         #self.lbl.pack(side=LEFT)
 
+# class ColorSelector(Frame):
+#     def __init__(self, parent, colors, groupement, *args, **kwargs):
+#         super().__init__(parent, *args, **kwargs)
+#         self.colors = colors
+#         self.groupement = groupement
+#         self.selected_color = None
+    
+#         # Étiquette pour afficher la couleur sélectionnée
+#         self.label_selected_color = Label(self, text="Dossard choisi", bg=groupement.getCouleur(), width=13) #, height=2)
+#         self.label_selected_color.pack(side=LEFT)# pady=10)
+
+#         # Cadre pour contenir les boutons de couleur
+#         self.frame_colors = Frame(self)
+#         self.frame_colors.pack()
+
+#         # Création des boutons carrés pour chaque couleur
+#         for color in self.colors:
+#             button = Button(self.frame_colors, bg=color, width=1, height=1, command=lambda c=color: self.select_color(c))
+#             button.pack(side=LEFT, padx=0)
+
+#     def select_color(self, color):
+#         """Met à jour l'étiquette avec la couleur sélectionnée"""
+#         self.selected_color = color
+#         self.label_selected_color.config(text="Dossard choisi", bg=color)
+#         groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setCouleur(color)
+
 class ColorSelector(Frame):
     def __init__(self, parent, colors, groupement, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -1492,30 +1518,35 @@ class ColorSelector(Frame):
         self.groupement = groupement
         self.selected_color = None
     
-        # Étiquette pour afficher la couleur sélectionnée
-        self.label_selected_color = Label(self, text="Dossard choisi", bg=groupement.getCouleur(), width=13) #, height=2)
-        self.label_selected_color.pack(side=LEFT)# pady=10)
+        # Label to display the selected color
+        self.label_selected_color = Label(self, text="Dossard choisi", bg=groupement.getCouleur(), width=13)
+        self.label_selected_color.pack(side=tk.LEFT)
 
-        # Cadre pour contenir les boutons de couleur
+        # Frame to hold the color swatches
         self.frame_colors = Frame(self)
         self.frame_colors.pack()
 
-        # Création des boutons carrés pour chaque couleur
+        # Create Canvas widgets for each color
         for color in self.colors:
-            button = Button(self.frame_colors, bg=color, width=1, height=1, command=lambda c=color: self.select_color(c))
-            button.pack(side=LEFT, padx=0)
+            # Use a Canvas instead of a Button
+            canvas = tk.Canvas(self.frame_colors, width=20, height=20, bd=0, highlightthickness=0)
+            canvas.pack(side=tk.LEFT, padx=1)
+            canvas.create_rectangle(0, 0, 20, 20, fill=color, outline=color)
+            canvas.bind("<Button-1>", lambda event, c=color: self.select_color(c))
 
     def select_color(self, color):
-        """Met à jour l'étiquette avec la couleur sélectionnée"""
+        """Updates the label with the selected color"""
         self.selected_color = color
         self.label_selected_color.config(text="Dossard choisi", bg=color)
+        # Ensure your groupementAPartirDeSonNom function correctly identifies and updates the group
         groupementAPartirDeSonNom(self.groupement.nomStandard, nomStandard=True).setCouleur(color)
+
 
 class EntryCourse(Frame):
     def __init__(self, groupement, parent=None):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         # Liste des couleurs
-        colors = ['white', 'yellow', 'light green', 'pink', 'light blue', 'orange','#D8BFD8']
+        colors = ['white', 'yellow', 'light green', 'pink', 'light blue', "#416DFF", 'orange','#D8BFD8']
         self.groupement = groupement
         self.nomCourse = groupement.nom
         self.distance = self.groupement.distance
@@ -4389,27 +4420,13 @@ def imprimerDossards(buttonBarMode = 0) :
         return
     Parametres["buttonBarMode"] = buttonBarMode
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameCoureur.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameDistanceCourses.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
-    GaucheFrameAbsDisp.forget()
+    forgetAllFrames()
     dossardsZone.actualiseAffichage()
     GaucheFrameDossards.pack(fill=BOTH, expand=1)
 
 def saisieAbsDisp(classeOuCategorie="") :
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameCoureur.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameDistanceCourses.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
-    GaucheFrameDossards.forget()
+    forgetAllFrames()
     absDispZone.actualiseListeDesClasses() # si on change de type de catégorie, il faut actualiser la combobox qui actualise l'affichage.
     GaucheFrameAbsDisp.pack(side=TOP,fill=X)
     if classeOuCategorie :
@@ -4419,27 +4436,13 @@ def saisieAbsDisp(classeOuCategorie="") :
     
 def ajoutManuelCoureur():
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameDistanceCourses.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
+    forgetAllFrames()
     zoneCoureursAjoutModif.setAjout(True)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
 
 def modifManuelleCoureur(dossard=0):
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameDistanceCourses.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
+    forgetAllFrames()
     zoneCoureursAjoutModif.setAjout(False)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
     if dossard :
@@ -4448,15 +4451,7 @@ def modifManuelleCoureur(dossard=0):
 
 
 def tempsDesCoureurs():
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameCoureur.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameDistanceCourses.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
-    GaucheFrameDossards.forget()
+    forgetAllFrames()
     # on réactualise l'affichage suite aux modifications effectuées dans un autre menu.
     rejouerToutesLesActionsMemorisees()
     # calculeTousLesTemps(True)
@@ -4535,49 +4530,42 @@ def desactiveAffichageConteneurPrincipal():
         pass # cas où l'on passe d'un menu de configuration à un autre. Le unbind a déjà été exécuté.
     ConteneurPrincipal.forget()
 
+
+def forgetAllFrames():
+    """
+    Forget all frames in the main container.
+    This is used to clear the current view before displaying a new frame.
+    """
+    global rootGUI, GaucheFrame, DroiteFrame
+    for widget in rootGUI.winfo_children():
+        widget.forget()
+
+
+def regrouperCategories() :
+    desactiveAffichageConteneurPrincipal()
+    forgetAllFrames()
+    updateZoneGroupements()
+    affectationGroupementsFrame.pack(side=TOP,fill=X)
+
 def distanceDesCourses():
     nettoieGroupements()
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameCoureur.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
+    forgetAllFrames()
     GaucheFrameDistanceCourses.pack(side = TOP,fill=X)
 
 def parametrerDossardsDiplomes():
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameCoureur.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameDistanceCourses.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresInternet.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
+    forgetAllFrames()
     GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
     
 def parametresInternet() :
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameCoureur.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameDistanceCourses.forget()
-    GaucheFrameParametresCourses.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
+    forgetAllFrames()
     GaucheFrameParametresInternet.pack(side = TOP,fill=X)
 
 def parametresDesCourses():
     desactiveAffichageConteneurPrincipal()
-    GaucheFrameAbsDisp.forget()
-    GaucheFrameCoureur.forget()
-    GaucheFrameDossards.forget()
-    GaucheFrameDistanceCourses.forget()
-    GaucheFrameParametresDossardsDiplomes.forget()
-    GaucheFrameParametresInternet.forget()
-##    affectationGroupementsFrame.forget()
-##    affectationDesDistancesFrame.forget()
+    forgetAllFrames()
     actualiseEtatBoutonsRadioConfig()
     GaucheFrameParametresCourses.pack(side = TOP,fill=X)
 
@@ -4601,10 +4589,10 @@ def actualiseEtatBoutonsRadioConfig():
         rbLbl.forget()
 
 GroupementsEtDistancesFrame = Frame(GaucheFrameDistanceCourses)
-affectationGroupementsFrame = Frame(GroupementsEtDistancesFrame, relief=GROOVE)
+affectationGroupementsFrame = Frame(rootGUI, relief=GROOVE)
 affectationDesDistancesFrame = Frame(GroupementsEtDistancesFrame, borderwidth=3)
 
-affectationGroupementsFrame.pack(side=LEFT,fill=X)
+# affectationGroupementsFrame.pack(side=TOP,fill=X)
 affectationDesDistancesFrame.pack(side=LEFT,fill=X)
 GroupementsEtDistancesFrame.pack(side=TOP,fill=X)
 
@@ -4659,7 +4647,7 @@ def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
     actualiserDistanceDesCourses()
 
 def actualiserDistanceDesCourses():
-    updateZoneGroupements()
+    # updateZoneGroupements()
     affectationDesDistancesFrame.pack(side=LEFT)
     global listeDesEntryGroupements
     # actualisation des champs pour la saisie des distances
@@ -4723,8 +4711,6 @@ boutonsParametresGroupementsFrame = Frame(affectationDesDistancesFrame)
 boutonNettoyage = Button(boutonsParametresGroupementsFrame, text="Nettoyer les courses vides", command=nettoieCourseManuellesAction)
 boutonRecopie = Button(boutonsParametresGroupementsFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 
-def regrouperCategories() :
-    
 
 def affecterDistances() :
     distanceDesCourses()

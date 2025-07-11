@@ -2,7 +2,9 @@ Travail du 11/07/25 :
 - sécurisation de certains imports SIECLE qui contenaient des classes dans un format non numériques dans les cellules : ="47"
 - correction du code d'import de séries de dossards : si la course n'existait pas encore, il fallait l'initialiser.
 - implémentation fonction ouvrir_fichier_multiplateforme()
-
+- Séparation du menu "paramètres des courses" en deux. Mise à l'écart du "Regroupement de catégories".
+- Sélecteur de couleur sous mac os X opérationnel.
+- Ajout du bleu foncé dans le sélecteur de couleur.
 
 Travail du 07/07/25 :
 - le choix courses du collège ou UNSS force le mode CoursesManuelles==False. Cela ne convenait pas.

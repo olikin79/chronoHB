@@ -19,6 +19,7 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
+- menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
 - remplacer toute référence à Groupements par root["Groupements"]
 - (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".
