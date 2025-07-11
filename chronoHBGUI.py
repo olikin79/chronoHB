@@ -1620,7 +1620,7 @@ class EntryGroupements(Frame):
 ##        lblCat = Label(self, text="Catégories")
 ##        lblGroup = Label(self, text="Groupement affecté")
         if Courses :
-            ch = "Affecter à chaque catégorie un numéro de groupement.\nUn groupement permet de faire concourir des coureurs de catégories différentes dans une même course."
+            ch = "Affecter à chaque catégorie un numéro de groupement.\nUn groupement permet de faire concourir\ndes coureurs de catégories différentes\ndans une même course."
         else :
             ch = "Veuillez importer des coureurs. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide."
         lbl = Label(self, text=ch)
@@ -3117,8 +3117,60 @@ au(x) précédent(s) import(s).")
     L'ordre des colonnes est indifférent.\n\nLE FICHIER JOURNAL VA S'OUVRIR.")
                 #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
                 if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
-                    os.startfile(filePath)
-                
+                    ouvrir_fichier_multiplateforme(filePath)
+                    
+                    
+def ouvrir_fichier_multiplateforme(chemin_fichier):
+    """
+    Ouvre un fichier avec son application par défaut, quel que soit le système d'exploitation.
+
+    Args:
+        chemin_fichier (str): Le chemin absolu ou relatif du fichier à ouvrir.
+    """
+    # Vérifie si le fichier existe avant d'essayer de l'ouvrir
+    if not os.path.exists(chemin_fichier):
+        print(f"Erreur : Le fichier '{chemin_fichier}' n'existe pas.")
+        return
+
+    # Détermine le système d'exploitation
+    os_system = platform.system()
+    print(f"Ouverture du fichier '{chemin_fichier}' sur le système d'exploitation : {os_system}")
+    
+    if os_system == 'Windows':
+        try:
+            # Sur Windows, utilise os.startfile pour ouvrir le fichier
+            os.startfile(chemin_fichier)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Windows.")
+        except AttributeError:
+            # Solution de secours si os.startfile n'est pas disponible (cas rare)
+            subprocess.run(['start', '', chemin_fichier], shell=True, check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Windows (via subprocess).")
+        except Exception as e:
+            print(f"Erreur lors de l'ouverture du fichier sur Windows : {e}")
+
+    elif os_system == 'Darwin':  # 'Darwin' est le nom de système pour macOS
+        try:
+            # Sur macOS, utilise la commande 'open'
+            subprocess.run(['open', chemin_fichier], check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur macOS.")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'ouverture du fichier sur macOS : {e}")
+            print("Assurez-vous que l'application par défaut pour ce type de fichier est configurée.")
+        except FileNotFoundError:
+            print("Erreur : La commande 'open' n'a pas été trouvée. Assurez-vous d'être sur macOS.")
+
+    elif os_system == 'Linux':
+        try:
+            # Sur Linux, utilise 'xdg-open' qui est compatible avec la plupart des environnements de bureau
+            subprocess.run(['xdg-open', chemin_fichier], check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Linux.")
+        except FileNotFoundError:
+            print("Erreur : La commande 'xdg-open' n'a pas été trouvée. Assurez-vous que votre environnement de bureau est configuré.")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'ouverture du fichier sur Linux : {e}")
+
+    else:
+        print(f"Système d'exploitation '{os_system}' non pris en charge pour l'ouverture automatique de fichiers.")
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -4671,6 +4723,8 @@ boutonsParametresGroupementsFrame = Frame(affectationDesDistancesFrame)
 boutonNettoyage = Button(boutonsParametresGroupementsFrame, text="Nettoyer les courses vides", command=nettoieCourseManuellesAction)
 boutonRecopie = Button(boutonsParametresGroupementsFrame, text="Recopier la première distance partout", command=actionBoutonRecopie)
 
+def regrouperCategories() :
+    
 
 def affecterDistances() :
     distanceDesCourses()
@@ -5023,6 +5077,7 @@ menubar.add_cascade(label="Réinitialisation", menu=resetmenu)
 filemenu.add_command(label="Paramètres généraux", command=affecterParametres)
 filemenu.add_command(label="Paramètres internet", command=affecterParametresInternet)
 filemenu.add_command(label="Import XLSX, ODS, CSV (actualise-complète les coureurs actuellement dans la base)", command=importSIECLEAction) # pour l'instant, importe le dernier CSV présent dans le dossier racine.
+filemenu.add_command(label="Regrouper des catégories", command=regrouperCategories)
 filemenu.add_command(label="Paramètres des courses", command=affecterDistances)
 filemenu.add_command(label="Paramètres des dossards et diplômes", command=parametrerDossardsDiplomes)
 filemenu.add_command(label="Générer tous les dossards, listings, ...", command=generateDossardsArrierePlanNG)
@@ -5092,15 +5147,15 @@ class CoureurFrame(Frame) :
         self.vma = 0
         self.lblemail = Label(self.parent, text="e-mail (facultatif) :")
         self.lblemail2 = Label(self.parent, text="e-mail 2 (facultatif) :")
-        self.emailE = Entry(self.parent)
+        self.emailE = Entry(self.parent,width=50)
         self.emailE.bind("<KeyRelease>", self.reactiverBoutons)
-        self.emailE2 = Entry(self.parent)
+        self.emailE2 = Entry(self.parent,width=50)
         self.emailE2.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblVMA = Label(self.parent, text="VMA en km/h (facultatif) :")
         self.vmaE = Entry(self.parent)
         self.vmaE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblCommentaire = Label(self.parent, text="Commentaire à l'arrivée (facultatif) :")
-        self.commentaireArriveeE = Entry(self.parent)
+        self.commentaireArriveeE = Entry(self.parent,width=50)
         self.commentaireArriveeE.bind("<KeyRelease>", self.reactiverBoutons)
         self.lblEtab = Label(self.parent, text="Etablissement :")
 ##        self.etabE = Entry(self.parent)
@@ -5499,6 +5554,7 @@ zoneCoureursAjoutModif = CoureurFrame(GaucheFrameCoureur)
 def choixCC():		# Fonction associée à Catégories par Classes
     print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=0
+    choixCNM() # on force le mode courses automatiques
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack(side=TOP,anchor="w")
     NbreCoureursChallengeFrame.pack(side=LEFT,anchor="w")
@@ -5517,6 +5573,7 @@ def choixCA():		# Fonction associée à catégories par Age
 def choixUNSS():		# Fonction associée à catégories par Age
     print('Case à cocher : ',str(svRadio.get()))
     Parametres["CategorieDAge"]=2
+    choixCNM() # on force le mode courses automatiques
     forgetAutresWidgets()
     NbreCoureursChallengeFrameL.pack_forget()
     NbreCoureursChallengeFrame.pack_forget()
@@ -5531,8 +5588,9 @@ def packAutresWidgets():
         CoursesManuellesFrameChoixSupplementaires.pack(side=TOP,anchor="w")
         cbCMgenererQRCodesSuppl.pack(side=TOP,anchor="w")
         choixCMQRCodes()
+    cbutilisationDesSeriesDeDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
+    cbutilisationDesSeriesDeDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
     cbutilisationDesDossardsDeChronoHBFrame.pack(side=TOP,anchor="w")
-    # cbutilisationDesDossardsDeChronoHBLbl.pack(side=LEFT,anchor="w")
     cbutilisationDesDossardsDeChronoHBCheck.pack(side=LEFT,anchor="w")
     cbListingsFrame.pack(side=TOP,anchor="w")
     cbListingsLbl.pack(side=LEFT,anchor="w")
@@ -5685,6 +5743,13 @@ def choixQRCodesListing():
         Parametres["genererListingQRcodes"]=False
     print("Case à cocher générer listing QR-codes :", Parametres["genererListingQRcodes"])
 
+def choixUtilisationDesSeriesDeDossardsDeChronoHB():
+    if cbutilisationDesSeriesDeDossardsDeChronoHB.get() :
+        Parametres["plusieursSeriesDeCouleurSuccessives"]=True
+    else :
+        Parametres["plusieursSeriesDeCouleurSuccessives"]=False
+    print("Case à cocher utilisation des séries de dossards de ChronoHB :", Parametres["plusieursSeriesDeCouleurSuccessives"])
+
 def choixUtilisationDesDossardsDeChronoHB():
     if cbutilisationDesDossardsDeChronoHB.get() :
         Parametres["utilisationDesDossardsDeChronoHB"]=True
@@ -5709,6 +5774,17 @@ if Parametres["genererListingQRcodes"]:
     cbgenererListingQRCodes.set(True)
 else :
     cbgenererListingQRCodes.set(False)
+
+cbutilisationDesSeriesDeDossardsDeChronoHB = BooleanVar()
+if Parametres["plusieursSeriesDeCouleurSuccessives"]:
+    cbutilisationDesSeriesDeDossardsDeChronoHB.set(True)
+else :
+    cbutilisationDesSeriesDeDossardsDeChronoHB.set(False)
+
+cbutilisationDesSeriesDeDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
+# cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChcbutilisationDesSeriesDeDossardsDeChronoHBFrameronoHBFrame, text="Impression des dossards avec ChronoHB")
+cbutilisationDesSeriesDeDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesSeriesDeDossardsDeChronoHBFrame, text="Utilisation de séries de dossards de couleurs différentes par catégorie.", variable=cbutilisationDesSeriesDeDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesSeriesDeDossardsDeChronoHB)
+
 
 cbutilisationDesDossardsDeChronoHB = BooleanVar()
 if Parametres["utilisationDesDossardsDeChronoHB"]:
