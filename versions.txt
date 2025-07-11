@@ -1,3 +1,12 @@
+Travail du 11/07/25 :
+- sécurisation de certains imports SIECLE qui contenaient des classes dans un format non numériques dans les cellules : ="47"
+- correction du code d'import de séries de dossards : si la course n'existait pas encore, il fallait l'initialiser.
+- implémentation fonction ouvrir_fichier_multiplateforme()
+
+
+Travail du 07/07/25 :
+- le choix courses du collège ou UNSS force le mode CoursesManuelles==False. Cela ne convenait pas.
+
 Travail du 03/07/25 :
 - cas où l'on passe d'un menu de configuration à un autre. Le unbind a déjà été exécuté.
 - le clic sur l'heure de départ ne fonctionnait plus pour la modifier, n'actualisait plus l'interface. Corrigé.
