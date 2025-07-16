@@ -810,7 +810,7 @@ class DictionnaireDeCoureurs(dict) :
         """Initialise le dictionnaire des coureurs éliminés pour chaque course."""
         if force or not "CoureursElimines" in self.keys() :
             self["CoureursElimines"] = {'A': []}
-            print("self.keys()",self.keys())
+            # print("self.keys()",self.keys())
     
     def forceTousLesDossardsAPartirDuRang(self, course, rang) :
         """Force tous les dossards des coureurs suite à un déplacement de ceux-ci."""
@@ -879,7 +879,8 @@ class DictionnaireDeCoureurs(dict) :
             indiceDansGroupements = 0
             # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
             prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
-            print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
+            prochainRangAPartirDuquelLeGroupementDoitChangerInitial = prochainRangAPartirDuquelLeGroupementDoitChanger
+            # print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
             rangDansListeDeDestination = 0
             print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
             # Initialisation du groupement courant pour comparaison
@@ -918,13 +919,19 @@ class DictionnaireDeCoureurs(dict) :
                     else:
                         current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
                         prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
-                        print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
+                        prochainRangAPartirDuquelLeGroupementDoitChangerInitial = prochainRangAPartirDuquelLeGroupementDoitChanger
+                        # print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
                         print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
                 # else: Le groupement n'a pas changé, mais le rang max est atteint.
                 # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
                 # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
                 # La logique d'ajout suivante s'en chargera.
-
+                
+                # cas où il manque de la place, on force l'agrandissement du nombre de dossards pour ce groupement pour que cela rentre.
+                if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChangerInitial :
+                    self.seriesDeCouleurSuccessives[course][current_groupement_name] += 1
+                    # print("Pas assez de place pour le coureur, on augmente self.seriesDeCouleurSuccessives[course][current_groupement_name] de 1", self.seriesDeCouleurSuccessives[course][current_groupement_name])
+                    prochainRangAPartirDuquelLeGroupementDoitChangerInitial += 1
 
                 # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
                 coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
@@ -1002,11 +1009,12 @@ class DictionnaireDeCoureurs(dict) :
         # L.sort(key=lambda x: root["Groupements"].index(groupementAPartirDUneCategorie(x.categorie(Parametres["CategorieDAge"]))) if x.categorie(Parametres["CategorieDAge"]) is not None and x.nom and x.prenom else len(root["Groupements"]))
         L.sort(key=lambda x: root["Groupements"].index(groupementAPartirDUneCategorie(x.categorie(Parametres["CategorieDAge"]))))
         # on affiche la liste retournée, coureur par coureur.
-        print("Liste retournée par listeParGroupementDansLOrdreDeGroupements")
-        i = 0
-        for c in L :
-            print(i, "Coureur", c.nom, c.prenom, c.sexe, c.dossard, c.categorie(Parametres["CategorieDAge"]))
-            i += 1
+        # if DEBUG :
+        #     print("Liste retournée par listeParGroupementDansLOrdreDeGroupements")
+        #     i = 0
+        #     for c in L :
+        #         print(i, "Coureur", c.nom, c.prenom, c.sexe, c.dossard, c.categorie(Parametres["CategorieDAge"]))
+        #         i += 1
         return L
     
     def listeParCouleurDeDossard(self) :

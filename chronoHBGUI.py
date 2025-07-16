@@ -1420,8 +1420,8 @@ class ComboboxNbreDossardsCategorie(Combobox):
         def memoriseValeurBind(event) :
             print("Valeur sélectionnée :", self.get(), "dossards maximum pour la course", self.course, "et le gpmt", self.gpmt)
             root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
-            root["Coureurs"].afficher()
-            print("Ici, on réimpose les nombres dans l'interface, fixés par la recontstruction éventuelle. A faire")
+            # root["Coureurs"].afficher()
+            confirmeLesEffectifsParGroupement()
         self.bind("<<ComboboxSelected>>", memoriseValeurBind)
         # exécute également memoriseValeurBind lors d'un appui sur Entrée ou lors d'une sortie du combobox
         self.bind("<Return>", memoriseValeurBind)
@@ -1433,6 +1433,7 @@ class ComboboxNbreDossardsCategorie(Combobox):
         else:
             return False
         
+
 
 class ComboboxAbsDisp(Frame):
     def __init__(self, coureur, parent=None, picks=[], side=LEFT, vertical=True, anchor=W):
@@ -1649,11 +1650,17 @@ class EntryCourse(Frame):
             # print("self.groupement.listeDesCourses[0]", self.groupement.listeDesCourses[0])
             lblNbreDossards = Label(self, text="Nombre de dossards dédiés :")
             lblNbreDossards.pack(side=LEFT)
-            groupementAPartirDUneCategorie
+            # groupementAPartirDUneCategorie
             self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[110,150,200], course=root["Coureurs"].lettreDUnGroupement(self.groupement.nomStandard), gpmt=self.groupement.nomStandard)
         self.color_selector.pack(side=LEFT)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
         #self.actualiseEtat()
+    def setNbreDossards(self, nombre) :
+        self.comboboxNbreDossards.set(nombre)
+        print("Modif de la combobox car le nombre de dossards fixé est insuffisant.", nombre)
+    
+    def getNbreDossards(self) :
+        return self.comboboxNbreDossards.get()
         
     def formateValeur(self):
         self.entryNom.delete(0, END)
@@ -4771,6 +4778,15 @@ def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
 ##                supprimeCourseDuGroupementEtNettoieGroupements(cat)
     # on actualise l'affichage par rapport à cela comme cela se fait dans les autres modes.
     actualiserDistanceDesCourses()
+
+def confirmeLesEffectifsParGroupement() :
+    """Si la reconstruction du dictionnaire de coureurs manque de place dans le cas des seriesDeCouleur alors, on réimpose les valeurs modifiées par le dictionnaire dans les entry de l'interface."""
+    global listeDesEntryGroupements, root
+    for n, entry in enumerate(listeDesEntryGroupements) :
+        if str(root["Coureurs"].seriesDeCouleurSuccessives["A"][root["Groupements"][n].nomStandard]) != entry.getNbreDossards() :
+            print("On impose le nombre", root["Coureurs"].seriesDeCouleurSuccessives["A"][root["Groupements"][n].nomStandard], "au groupement", root["Groupements"][n].nomStandard, "car le combobox contient entry.getNbreDossards=", entry.getNbreDossards())
+            entry.setNbreDossards(root["Coureurs"].seriesDeCouleurSuccessives["A"][root["Groupements"][n].nomStandard])
+        
 
 def actualiserDistanceDesCourses():
     # updateZoneGroupements()
