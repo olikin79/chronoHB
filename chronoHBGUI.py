@@ -1651,7 +1651,7 @@ class EntryCourse(Frame):
             lblNbreDossards = Label(self, text="Nombre de dossards dédiés :")
             lblNbreDossards.pack(side=LEFT)
             # groupementAPartirDUneCategorie
-            self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[110,150,200], course=root["Coureurs"].lettreDUnGroupement(self.groupement.nomStandard), gpmt=self.groupement.nomStandard)
+            self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[100,150,200], course=root["Coureurs"].lettreDUnGroupement(self.groupement.nomStandard), gpmt=self.groupement.nomStandard)
         self.color_selector.pack(side=LEFT)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
         #self.actualiseEtat()
@@ -3231,7 +3231,7 @@ Cela peut figer momentanément l'interface...")
             file = open(filePath, "a")
             tmp = sys.stdout # sauvegarde de la sortie standard.
             sys.stdout = file
-            BilanCreationModifErreur, d = recupImportNG(file_path)
+            BilanCreationModifErreur, d, reconstruction = recupImportNG(file_path)
             # fin de la redirection des logs temporaire
             file.close()
             sys.stdout = tmp
@@ -3260,6 +3260,8 @@ au(x) précédent(s) import(s).")
                 else :
                     retourImport = False # Que des erreurs dans le fichier, le signaler.
                 if retourImport :
+                    if reconstruction :
+                        root["Coureurs"].reconstruireCoureurs() # cas exceptionnel où il y aurait plus de 100 coureurs par catégorie et où tous n'auraient pas pu être placés. dans le cas des seriesDeCouleur
                     # rejouerToutesLesActionsMemorisees()
                     # calculeTousLesTemps(True)
                     actualiseToutLAffichage()

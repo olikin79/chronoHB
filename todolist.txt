@@ -19,8 +19,9 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
+- possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
 - menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
-- remplacer toute référence à Groupements par root["Groupements"]
+- (FAIT) remplacer toute référence à Groupements par root["Groupements"], idem pour Coureurs et pour Courses.
 - (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".
 - date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
@@ -50,6 +51,9 @@ Une personne inscrite plus loin dans le même fichier se voit attribuer deux num
 
 
 Avant la vente du logiciel :
+- Voir si ce serait pertinent de remplacer la liste root["Coureurs"][course] par un dictionnaire. Ce éviterait de tenir à jour la liste des dossards effacés.
+Par contre, cela imposerait un tri par certaines méthodes. Toutes seraient à reconstruire.
+- possibilité de changer l'ordre des groupements par un drag and drop (voir tmp_reordonnerFrame.py pour un modèle). A améliorer pour permettre de déposer juste à côté.
 - vérifier que le dossard d'un dispensé n'est pas considéré comme imprimé.
 - vérifier l'import des dates avec des années à deux chiffres. Faire en sorte que l'année soit mémorisée à 4 chiffres dans self.naissance.
 - alignement des boites de gauche dans paramètres des courses.

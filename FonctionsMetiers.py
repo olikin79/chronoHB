@@ -1078,32 +1078,11 @@ class DictionnaireDeCoureurs(dict) :
                     self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
                     retour = formateDossardNG(dossardDisponible, course=course) # str(dossardDisponible) + course
                 else :
-                    retour = Erreur(11, courteDescription="Aucun dossard disponible dans les séries de numéros paramétrées.")
-                # on ajoute la catégorie à la liste self.listeDesNomsDeGroupements si des series de couleurs successives existent
-                # if Parametres["plusieursSeriesDeCouleurSuccessives"]:
-                #     categorie = coureur.categorie(Parametres["CategorieDAge"])
-                #     gpmt = groupementAPartirDUneCategorie(categorie)
-                #     trouve = False
-                #     for gpmt in root["Groupements"] :
-                #         if categorie in gpmt.listeDesCourses :
-                #             trouve = True
-                #             break
-                #     if not trouve :
-                #         self.listeDesGroupements.append(categorie)
-                #     print("ATTENTION : ici, il faudra vérifier la bonne gestion du cas où la catégorie est dans un groupement.")
-                # if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
-                #     premierIndiceLibre = self["CoureursElimines"][course].pop(0)
-                #     coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
-                #     self[course][premierIndiceLibre]= coureur
-                #     #self.nombreDeCoureurs += 1
-                #     self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
-                #     return str(premierIndiceLibre+1) + course
-                # else : # aucun indice libre, on ajoute à la fin
-                #     coureur.setDossard(str(len(self[course])+1) + course) # on fixe le dossard du coureur
-                #     self[course].append(coureur)
-                #     #self.nombreDeCoureurs += 1
-                #     self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
-                #     return str(len(self[course])) + course
+                    print("Ici, implémenter l'import d'un trop grand nombre de coureurs avec des séries imposées trop petites. Les mettre à la fin.")
+                    coureur.setDossard(formateDossardNG(len(self[course]),course=course))
+                    self[course].append(coureur)
+                    self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+                    retour = Erreur(11, courteDescription='Aucun dossard disponible dans les séries de numéros paramétrées. Il faudra modifier le nombre de dossard par série dans "Paramètres des courses" pour corriger automatiquement la base.')
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
         return retour
@@ -1193,7 +1172,7 @@ class DictionnaireDeCoureurs(dict) :
                 totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return totalDesCoureursDesCoursesPrecedentes
     
-    def initialiseSeriesDeCouleursSuccessives(self, course, gpmtNom, effectifImpose = 100) :
+    def initialiseSeriesDeCouleursSuccessives(self, course, gpmtNom, effectifImpose = 2) :
         if not course in self.keys() :
             self[course] = []
             self["CoureursElimines"][course]=[]
@@ -6906,6 +6885,7 @@ def dossardValide(dossard) :
 def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", etablissementNature = "", absent=None, dispense=None, temps=0,\
                 commentaireArrivee="", VMA="0", aImprimer = True, licence = "", course="", dossard="", email="", email2="",\
                 CoureursParClasseUpdateActif = True) : #, courseDonneeSousSonNomStandard = False):
+    reconstruire = False # utile pour le cas où le nombre de dossards par catégorie prévu (100) ne serait pas suffisant.
     try :
         # print("addCoureur", nom, prenom, sexe, classe, naissance,  absent, dispense, temps, commentaireArrivee, VMA, course)
         vma = float(VMA)
@@ -7066,10 +7046,14 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 
             # gestion de l'erreur : création d'un dossard impossible : le seul cas est le manque de dossards disponibles quand on a pris le paramètre seriesDeDossardDeCouleur
             if isinstance(dossard, Erreur) :
-                retourCreation = [0,0,1,0]
-                print("Erreur", dossard.numero, "Impossible d'ajouter le coureur ", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
-                  lettreCourse, " ",course)
-                print(dossard.description)
+                if dossard.numero == 11 :
+                    reconstruire = True # on considère l'erreur 11 comme une erreur interne qui provoque la reconstruction de la base après import.
+                else :
+                    # une autre erreur créée lors de l'ajout du coureur sera considérée réellement et affichée comme telle.
+                    retourCreation = [0,0,1,0]
+                    print("Erreur", dossard.numero, "Impossible d'ajouter le coureur ", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
+                    lettreCourse, " ",course)
+                    print(dossard.description)
             elif dossard == "0A" : # obsolète mais conservé en cas d'erreur d'appréciation du code transformé.
                 retourCreation = [0,0,1,0]
                 print("Impossible d'ajouter le coureur ", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
@@ -7097,7 +7081,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         retour,d  = [0,0,1,0], ""
     if CoureursParClasseUpdateActif :
         CoureursParClasseUpdate()
-    return retour, d
+    return retour, d, reconstruire
 ##    except :
 ##        print("Impossible d'ajouter " + nom + " " + prenom + " avec les paramètres fournis : VMA invalide,...")
 ##        print(nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense, temps, commentaireArrivee, VMA, aImprimer)
@@ -8747,7 +8731,7 @@ def traitementDesDonneesAImporter(donneesBrutes, googleSheet=False, nom_feuille_
 ##             if i == 1 :
 ##                 print("Première ligne du fichier importé:")
 ##                 print(row)
-             retourCreationModifErreur, d = creerCoureur(row, informations)
+             retourCreationModifErreur, d, reconstruction = creerCoureur(row, informations)
 
              if googleSheet :
                  coordonneesCellule = colonneDossards + str(i+1) # i+1 car on commence à 0 et la première ligne est l'en-tête
@@ -8764,7 +8748,7 @@ def traitementDesDonneesAImporter(donneesBrutes, googleSheet=False, nom_feuille_
         i+=1
     # if not 'd' in locals():
     #     d = ''
-    return BilanCreationModifErreur, d
+    return BilanCreationModifErreur, d, reconstruction
 
 ## écriture dans un google sheet dans une cellule donnée
 # Portée des autorisations nécessaires (lecture et écriture pour Sheets)
@@ -8817,13 +8801,14 @@ def recupImportNG(fichierSelectionne="", tolerance = False, googleSheet=False) :
     # try :
     BilanCreationModifErreur = [0,0,0,0]
     d = ""
+    reconstruction = False
     if fichierSelectionne != "" and os.path.exists(fichierSelectionne) :
         if fichierSelectionne[-4:].lower() == "xlsx" :
-            BilanCreationModifErreur, d = recupXLSX(fichierSelectionne, tolerance = tolerance, googleSheet=googleSheet)
+            BilanCreationModifErreur, d,reconstruction = recupXLSX(fichierSelectionne, tolerance = tolerance, googleSheet=googleSheet)
         elif fichierSelectionne[-3:].lower() == "ods":
-            BilanCreationModifErreur, d = recupODS(fichierSelectionne)
+            BilanCreationModifErreur, d, reconstruction = recupODS(fichierSelectionne)
         elif fichierSelectionne[-3:].lower() == "csv":
-            BilanCreationModifErreur, d = recupCSV(fichierSelectionne)
+            BilanCreationModifErreur, d, reconstruction = recupCSV(fichierSelectionne)
     # except : 
     #     # cas où une erreur a été créée lors de la création d'un coureur.
     #     BilanCreationModifErreur = [0,0,1,0]
@@ -8836,7 +8821,7 @@ def recupImportNG(fichierSelectionne="", tolerance = False, googleSheet=False) :
         # pas utile de créer une sauvegarde alors que rien n'a été modifié suite à l'import : ecrire_sauvegardeNG(sauvegarde, "-apres-IMPORT-DONNEES")
 ##    else :
 ##        print("Pas de fichier correct sélectionné. N'arrivera jamais avec l'interface graphique normalement.")
-    return BilanCreationModifErreur, d
+    return BilanCreationModifErreur, d, reconstruction
 
 def remplacer_edit_par_export(url):
     # Trouver la position de "/edit"
@@ -8860,7 +8845,7 @@ def importGoogleSheetAutomatique() :
             fichierTelecharge = os.path.join(dossier_import, "fichierGoogleSheetImporte.xlsx")
             urllib.request.urlretrieve(URLATelecharger, fichierTelecharge)
             print("Fichier téléchargé :", fichierTelecharge)
-            BilanCreationModifErreur, d = recupImportNG(fichierTelecharge, tolerance = True, googleSheet=True)
+            BilanCreationModifErreur, d, reconstruction = recupImportNG(fichierTelecharge, tolerance = True, googleSheet=True)
             print("Import du google sheet terminé.")
         except :
             print("Erreur lors de l'import du google sheet.")
@@ -8873,6 +8858,7 @@ def recupXLSX(fichierSelectionne="", tolerance = False, googleSheet=False) :
     ''' traite le fichier xlsx fourni en argument pour l'import des coureurs'''
     #try :
     #print(fichierSelectionne)
+    reconstruction = False
     wb_obj = load_workbook(fichierSelectionne)
     # on peut parcourir toutes les feuilles de calculs du fichier
     for sheet in wb_obj.worksheets:
@@ -8910,7 +8896,7 @@ def recupXLSX(fichierSelectionne="", tolerance = False, googleSheet=False) :
                 donneesBrutes.append(ligne)
         # print("Données brutes récupérées du tableur", donneesBrutes)
         ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-        BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes, googleSheet=googleSheet, nom_feuille_travail=sheet.title)
+        BilanCreationModifErreur, d, reconstruction = traitementDesDonneesAImporter(donneesBrutes, googleSheet=googleSheet, nom_feuille_travail=sheet.title)
         if BilanCreationModifErreur[0] + BilanCreationModifErreur[1] == 0 :
             print("Aucun coureur créé ou modifié avec la feuille", sheet.title)
         else :
@@ -8919,7 +8905,7 @@ def recupXLSX(fichierSelectionne="", tolerance = False, googleSheet=False) :
     wb_obj.close()
         #except :
         #    print("Erreur : probablement pas un fichier xlsx valide...")
-    return BilanCreationModifErreur, d
+    return BilanCreationModifErreur, d, reconstruction
 
 # def recupODS(fichierSelectionne=""):
 #     ''' traite le fichier ods fourni en argument pour l'import des coureurs et retourne un tableau à 4 éléments [création, modif, erreurs, identiques]'''
@@ -8979,6 +8965,7 @@ def recupXLSX(fichierSelectionne="", tolerance = False, googleSheet=False) :
 
 def recupODS(fichierSelectionne=""):
     ''' traite le fichier ods fourni en argument pour l'import des coureurs et retourne un tableau à 4 éléments [création, modif, erreurs, identiques]'''
+    reconstruction = False
     try:
         doc = ezodf.opendoc(fichierSelectionne)
         sheet = doc.sheets[0] # lis la première feuille
@@ -9018,7 +9005,7 @@ def recupODS(fichierSelectionne=""):
         # doc.close()
         # print("Données brutes récupérées du tableur ODS", donneesBrutes)
         ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-        BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
+        BilanCreationModifErreur, d, reconstruction = traitementDesDonneesAImporter(donneesBrutes)
 
         # Assumons que BilanCreationModifErreur est une liste: [creation, modification, erreur, identique]
         bilan = [0, 0, 0, 0] # Initialisation par défaut en cas de problème
@@ -9032,10 +9019,10 @@ def recupODS(fichierSelectionne=""):
                 BilanCreationModifErreur.get('identique', 0)
             ]
         # Sinon, on garde la valeur par défaut [0, 0, 0, 0]
-        return bilan, d
+        return bilan, d, reconstruction
     except Exception as e:
         print(f"Erreur : probablement pas un fichier ODS valide ou erreur lors de la lecture : {e}")
-        return [0, 0, 0, 0], {}
+        return [0, 0, 0, 0], {}, False
 
 def traiter_chaine_si_import_google_sheet(chaine, tolerance = False, ligne =-1):
     ''' Fonction destinée à traiter les cellules importées depuis un fichier Google Sheet 
@@ -9089,15 +9076,16 @@ def recupCSV(fichierSelectionne=""):
     ''' traite le fichier csv (séparateur point virgule) fourni en argument pour l'import des coureurs'''
     #print("fichierSelectionne",fichierSelectionne)
     BilanCreationModifErreur = [0,0,0,0]
+    reconstruction = False
     try :
         with open(fichierSelectionne, encoding='utf-8') as csvfile:
             donneesBrutes = csv.reader(csvfile, delimiter=';')
             #print(donneesBrutes)
             ### traitement déporté dans la fonction ci-dessus traitementDesDonneesAImporter
-            BilanCreationModifErreur, d = traitementDesDonneesAImporter(donneesBrutes)
+            BilanCreationModifErreur, d, reconstruction = traitementDesDonneesAImporter(donneesBrutes)
     except :
         print("Erreur : probablement un mauvais encodage...")
-    return BilanCreationModifErreur, d
+    return BilanCreationModifErreur, d, reconstruction
 
 
 #### Import CSV ancienne génération (avant 2022)
@@ -9189,6 +9177,7 @@ def creerCoureur(listePerso, informations) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     print("Informations:",infos)
+    reconstruction = False
     doss=""
     nom=""
     prenom=""
@@ -9321,8 +9310,7 @@ def creerCoureur(listePerso, informations) :
     if nom and prenom and (sexe.upper() == "G" or sexe.upper() =="F") : # trois informations essentielles OBLIGATOIRES VALIDES
         # print("test 06102023", type(email), email, type(emailDeux))
         # on crée le coureur avec toutes les informations utiles.
-        # print('addCoureur(',nom, prenom, sexe , 'classe=',clas, 'naissance=',convertir_nombre_en_date(naiss), 'absent=',abse, 'dispense=',disp, 'commentaireArrivee=',supprLF(comment), 'VMA=',vma, email, emailDeux)
-        retourCreationModifErreur, d = addCoureur(nom, prenom, sexe , classe=clas, \
+        retourCreationModifErreur, d, reconstruction = addCoureur(nom, prenom, sexe , classe=clas, \
                                             naissance=naiss, etablissement = etab, etablissementNature = nature, absent=abse, dispense=disp,\
                                             temps=0, commentaireArrivee=supprLF(comment), VMA=vma, licence=lic, course=courseManuelle, \
                                             dossard=doss, email=str(email), email2=str(emailDeux), CoureursParClasseUpdateActif=False)
@@ -9340,7 +9328,7 @@ def creerCoureur(listePerso, informations) :
         except :
             retourCreationModifErreur, d = [0,0,1,0] , "0"
             print("Une ligne ne contient pas un des éléments indispensable (nom, prénom ou sexe).")
-    return retourCreationModifErreur, d
+    return retourCreationModifErreur, d, reconstruction
 
 
 def supprLF(ch) :
