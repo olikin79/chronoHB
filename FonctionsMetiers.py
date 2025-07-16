@@ -691,16 +691,16 @@ def ajouteDesNombresAPartirDeNEtAugmenterLesPlusGrands(liste, n, difference):
     return nouvelle_liste
 
 class DictionnaireDeCoureurs(dict) :
-    def __init__(self, AncienneListeAImporter=[]):
+    def __init__(self, AncienneListeAImporter=[], force=False):
         super().__init__()
+        self.clear() # vide le dictionnaire : utile quand on reconstruit entièrementle dictionnaire.
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self.importerAncienneListe(AncienneListeAImporter)
-        self.initCoureursElimines()
-        self.seriesDeCouleurSuccessives = {}
+        self.initCoureursElimines(force=force)
+        self.seriesDeCouleurSuccessives = {'A':{}}
         self.dossardsPerdus = {}
-        self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
-        # inutile de maintenir une liste à part : root["GRoupements"] contient l'information UNIQUE et restera dans l'ordre imposé par l'interface. Inutile de maintenir deux listes à jour.
-        # self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
+        self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes
+        self['A']=[]
         self.finOptimisation()
         
     def finOptimisation(self):
@@ -805,10 +805,11 @@ class DictionnaireDeCoureurs(dict) :
             self.optimisationListeDossards = True
         return L
     
-    def initCoureursElimines(self) :
+    def initCoureursElimines(self, force=False) :
         """Initialise le dictionnaire des coureurs éliminés pour chaque course."""
-        if not "CoureursElimines" in self.keys() :
+        if force or not "CoureursElimines" in self.keys() :
             self["CoureursElimines"] = {'A': []}
+            print("self.keys()",self.keys())
     
     def forceTousLesDossardsAPartirDuRang(self, course, rang) :
         """Force tous les dossards des coureurs suite à un déplacement de ceux-ci."""
@@ -867,67 +868,77 @@ class DictionnaireDeCoureurs(dict) :
         self.initialiseSeriesDeCouleursSuccessives(course, gpmt.nomStandard)
         return totalActuel + self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
 
-    # def reconstruireDictionnaire(self):
-    #     self.finOptimisation()
-    #     if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-    #         dictionnaireReconstruit = DictionnaireDeCoureurs()
-    #         course = "A"
-    #         indiceDansGroupements = 0
-    #         # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
-    #         prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
-    #         rangDansListeDeDestination = 0
-    #         print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
+    def reconstruireCoureurs(self):
+        global root
+        listeActuelleDeCoureursOrdonneeParGroupement = self.listeParGroupementDansLOrdreDeGroupements()
+        self.__init__(force=True) # on force la réinitialisation de toutes les propriétés
+        if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+            course = "A"
+            print("len réel", len(self[course]))
+            indiceDansGroupements = 0
+            # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
+            prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+            rangDansListeDeDestination = 0
+            print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
+            # Initialisation du groupement courant pour comparaison
+            current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
 
-    #         # Initialisation du groupement courant pour comparaison
-    #         current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+            for n, coureur in enumerate(listeActuelleDeCoureursOrdonneeParGroupement) :
+                gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
 
-    #         for n, coureur in enumerate(self.listeParGroupementDansLOrdreDeGroupements()) :
-    #             gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
+                # if DEBUG :
+                #     print("Groupement actuel dans Groupements" , current_groupement_name, "Groupement du coureur examiné", gpmtDuCoureurExamine, "rang destination", rangDansListeDeDestination)
+                # Logique pour gérer le changement de groupement et/ou les "trous"
+                # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
+                #     # On a atteint ou dépassé le rang où le groupement doit changer
+                #     # (ou la taille max pour le groupement actuel est atteinte)
 
-    #             # Logique pour gérer le changement de groupement et/ou les "trous"
-    #             # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
-    #             #     # On a atteint ou dépassé le rang où le groupement doit changer
-    #             #     # (ou la taille max pour le groupement actuel est atteinte)
-
-    #             if gpmtDuCoureurExamine != current_groupement_name:
-    #                 # Le groupement du coureur actuel est différent du groupement attendu,
-    #                 # ce qui indique un changement de groupement.
-    #                 # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
-    #                 while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
-    #                     dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
-    #                     dictionnaireReconstruit[course].append(Coureur("","",""))
-    #                     rangDansListeDeDestination += 1
-
-    #                 # On avance à l'indice du prochain groupement
-    #                 indiceDansGroupements += 1
-    #                 # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
-    #                 if indiceDansGroupements >= len(root["Groupements"]):
-    #                     # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
-    #                     # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
-    #                     print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
-    #                     # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
-    #                     # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
-    #                     pass
-    #                 else:
-    #                     current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
-    #                     prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
-    #                     print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
-    #             # else: Le groupement n'a pas changé, mais le rang max est atteint.
-    #             # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
-    #             # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
-    #             # La logique d'ajout suivante s'en chargera.
+                if gpmtDuCoureurExamine != current_groupement_name:
+                    # Le groupement du coureur actuel est différent du groupement attendu,
+                    # ce qui indique un changement de groupement.
+                    # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
+                    # print("Ajout de coureur vide du rang rangDansListeDeDestination", rangDansListeDeDestination, "len réel", len(self[course]))
+                    while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+                        self["CoureursElimines"][course].append(rangDansListeDeDestination)
+                        self[course].append(Coureur("","",""))
+                        rangDansListeDeDestination += 1
+                    # print("au rang rangDansListeDeDestination", rangDansListeDeDestination, "prochainRangAPartirDuquelLeGroupementDoitChanger", prochainRangAPartirDuquelLeGroupementDoitChanger, "len réel", len(self[course]))
+                    # On avance à l'indice du prochain groupement
+                    indiceDansGroupements += 1
+                    # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
+                    if indiceDansGroupements >= len(root["Groupements"]):
+                        # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
+                        # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
+                        print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
+                        # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
+                        # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
+                        pass
+                    else:
+                        current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+                        prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+                        print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
+                # else: Le groupement n'a pas changé, mais le rang max est atteint.
+                # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
+                # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
+                # La logique d'ajout suivante s'en chargera.
 
 
-    #             # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
-    #             coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
-    #             dictionnaireReconstruit[course].append(coureur)
-    #             rangDansListeDeDestination += 1
+                # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
+                coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+                self[course].append(coureur)
+                self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+                # if DEBUG :
+                #     print(coureur.dossard,coureur.nom, coureur.prenom, coureur.categorie(Parametres["CategorieDAge"]), "placé en mosition", rangDansListeDeDestination, "len self[course] réel", len(self[course]))
+                rangDansListeDeDestination += 1
 
-    #         # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
-    #         while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
-    #             dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
-    #             dictionnaireReconstruit[course].append(Coureur("","",""))
-    #             rangDansListeDeDestination += 1
+            # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
+            # print("Ajout de coureur vide du rang", rangDansListeDeDestination)
+            while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+                self["CoureursElimines"][course].append(rangDansListeDeDestination)
+                self[course].append(Coureur("","",""))
+                rangDansListeDeDestination += 1
+            # print("au rang", rangDansListeDeDestination)
+            # print("FIN DE RECONSTRUIRE COUREURS INTERNE AU DICIONNAIREDECOUREURS. Longueur", len(self[course]))
 
     #         return dictionnaireReconstruit
     # def reconstruireDictionnaire(self):
@@ -1096,6 +1107,7 @@ class DictionnaireDeCoureurs(dict) :
             self["CoureursElimines"][course]=[]
         dossardAttribue = "0A"
         self.initialiseSeriesDeCouleursSuccessives(course, groupementAPartirDUneCategorie(categorie)) # sans effet si Parametres["plusieursSeriesDeCouleurSuccessives"] == False. Si True, ajoute des coureurs vides pour compléter les séries de dossards disponibles.
+        self.remplirSeriesDeCouleursSucessives(course)
         # on essaye de voir si on peut attribuer un dossard dont le coureur aurait été effacé.
         if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
             # pour le premier coureur d'un groupement, celui-ci nexiste pas encore
@@ -1165,25 +1177,30 @@ class DictionnaireDeCoureurs(dict) :
             # cat = coureur.categorie(Parametres["CategorieDAge"])
             # groupementDuCoureur = groupementAPartirDUneCategorie(cat)
             for gpmt in root["Groupements"] :
-                if course not in self.seriesDeCouleurSuccessives.keys() :
-                    self.seriesDeCouleurSuccessives[course] = {gpmt.nomStandard: 100} # dictionnaire contenant un dictionnaire par groupement. 
-                    # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
-                if gpmt.nomStandard not in self.seriesDeCouleurSuccessives[course].keys() :
-                    self.seriesDeCouleurSuccessives[course][gpmt.nomStandard] = 100
+                self.initialiseSeriesDeCouleursSuccessives(course, gpmt.nomStandard)
                 # on complète self[course] avec des coureurs vides pour tous les groupements.
                 # on incrémente totalDesCoureursDesCoursesPrecedentes
                 totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return totalDesCoureursDesCoursesPrecedentes
     
-    def initialiseSeriesDeCouleursSuccessives(self, course, gpmt) :
-        global root, Parametres
+    def initialiseSeriesDeCouleursSuccessives(self, course, gpmtNom) :
+        if not course in self.keys() :
+            self[course] = []
+            self["CoureursElimines"][course]=[]
+        if course not in self.seriesDeCouleurSuccessives.keys() :
+            self.seriesDeCouleurSuccessives[course] = {gpmtNom: 100} # dictionnaire contenant un dictionnaire par groupement. 
+            # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
+        if gpmtNom not in self.seriesDeCouleurSuccessives[course].keys() :
+            self.seriesDeCouleurSuccessives[course][gpmtNom] = 100
+    
+    def remplirSeriesDeCouleursSucessives(self, course) :
         totalDesCoureursTousGroupements = self.nombreDeDossardssDeTousLesGroupements(course)
         indiceCoureurAjoute = len(self[course])
-        while len(self[course]) < totalDesCoureursTousGroupements :
+        while indiceCoureurAjoute < totalDesCoureursTousGroupements :
             self[course].append(Coureur("","","",""))
             self["CoureursElimines"][course].append(indiceCoureurAjoute)
             indiceCoureurAjoute += 1
-        print("Fin de l'initialisation par initialiseSeriesDeCouleursSuccessives")
+        print("Fin du remplissage artificiel remplirSeriesDeCouleursSuccessives")
             
     def cles(self):
         # if DEBUG :
@@ -5750,6 +5767,7 @@ def updateNomGroupement(nomStandard, nomChoisi) :
 
 def updateGroupements(categorie, placeInitiale, placeFinale):
     """Gère la mise à jour ordonnée de la liste root["Groupements"] en ne laissant aucun groupement vie, sans course"""
+    global root
     print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
     # print("Groupements initial :")
     # for grp in Groupements :
@@ -5762,10 +5780,9 @@ def updateGroupements(categorie, placeInitiale, placeFinale):
         else :
             root["Groupements"][placeFinale-1].addCourse(categorie)
         nettoieGroupements()
-        if DEBUG :
-            print("Groupements final :")
-            for grp in root["Groupements"] :
-                print(grp.nom,grp.listeDesCourses)
+        print("Groupements final ordonné (après modification):")
+        for grp in root["Groupements"] :
+            print(grp.nom,grp.listeDesCourses)
 
 def supprimeCourseDuGroupementEtNettoieGroupements(course):
     """ Utilisé uniquement lors des courses manuelles où des courses sont identiques aux groupements. Les courses sont créées manuellement

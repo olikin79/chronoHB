@@ -1774,7 +1774,7 @@ class EntryGroupement(Frame):
             self.numero = int(self.combobox.get())
             #updateDistancesGroupements()
             #actualiserDistanceDesCourses()
-            reconstruireCoureurs()
+            root["Coureurs"].reconstruireCoureurs()
             if DEBUG :
                 ch = "Groupements dans l'ordre : "
                 for gpmt in root["Groupements"] :
@@ -1795,75 +1795,75 @@ class EntryGroupement(Frame):
 ##        else :
 ##            self.combobox.configure(state="normal")
 
-def reconstruireCoureurs() :
-    global root
-    if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-        root["Coureurs"].finOptimisation()
-        dictionnaireReconstruit = DictionnaireDeCoureurs()
-        course = "A"
-        indiceDansGroupements = 0
-        # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
-        prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
-        rangDansListeDeDestination = 0
-        print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
+# def reconstruireCoureurs() :
+#     global root
+#     if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+#         root["Coureurs"].finOptimisation()
+#         dictionnaireReconstruit = DictionnaireDeCoureurs()
+#         course = "A"
+#         indiceDansGroupements = 0
+#         # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
+#         prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+#         rangDansListeDeDestination = 0
+#         print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
 
-        # Initialisation du groupement courant pour comparaison
-        current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+#         # Initialisation du groupement courant pour comparaison
+#         current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
 
-        for n, coureur in enumerate(root["Coureurs"].listeParGroupementDansLOrdreDeGroupements()) :
-            gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
+#         for n, coureur in enumerate(root["Coureurs"].listeParGroupementDansLOrdreDeGroupements()) :
+#             gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
 
-            # Logique pour gérer le changement de groupement et/ou les "trous"
-            # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
-            #     # On a atteint ou dépassé le rang où le groupement doit changer
-            #     # (ou la taille max pour le groupement actuel est atteinte)
+#             # Logique pour gérer le changement de groupement et/ou les "trous"
+#             # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
+#             #     # On a atteint ou dépassé le rang où le groupement doit changer
+#             #     # (ou la taille max pour le groupement actuel est atteinte)
 
-            if gpmtDuCoureurExamine != current_groupement_name:
-                # Le groupement du coureur actuel est différent du groupement attendu,
-                # ce qui indique un changement de groupement.
-                # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
-                while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
-                    dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
-                    dictionnaireReconstruit[course].append(Coureur("","",""))
-                    rangDansListeDeDestination += 1
+#             if gpmtDuCoureurExamine != current_groupement_name:
+#                 # Le groupement du coureur actuel est différent du groupement attendu,
+#                 # ce qui indique un changement de groupement.
+#                 # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
+#                 while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+#                     dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+#                     dictionnaireReconstruit[course].append(Coureur("","",""))
+#                     rangDansListeDeDestination += 1
 
-                # On avance à l'indice du prochain groupement
-                indiceDansGroupements += 1
-                # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
-                if indiceDansGroupements >= len(root["Groupements"]):
-                    # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
-                    # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
-                    print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
-                    # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
-                    # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
-                    pass
-                else:
-                    current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
-                    prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
-                    print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
-            # else: Le groupement n'a pas changé, mais le rang max est atteint.
-            # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
-            # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
-            # La logique d'ajout suivante s'en chargera.
+#                 # On avance à l'indice du prochain groupement
+#                 indiceDansGroupements += 1
+#                 # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
+#                 if indiceDansGroupements >= len(root["Groupements"]):
+#                     # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
+#                     # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
+#                     print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
+#                     # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
+#                     # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
+#                     pass
+#                 else:
+#                     current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+#                     prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+#                     print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
+#             # else: Le groupement n'a pas changé, mais le rang max est atteint.
+#             # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
+#             # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
+#             # La logique d'ajout suivante s'en chargera.
 
-            # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
-            # c = Coureur(coureur.nom, coureur.prenom, coureur.sexe, formateDossardNG(rangDansListeDeDestination + 1, course=course))
-            coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
-            dictionnaireReconstruit[course].append(coureur)
-            # dictionnaireReconstruit[course].append(c)
-            dictionnaireReconstruit.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
-            if DEBUG :
-                print(coureur.dossard,coureur.nom, coureur.prenom, coureur.categorie(Parametres["CategorieDAge"]), "placé en mosition", rangDansListeDeDestination)
-            rangDansListeDeDestination += 1
+#             # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
+#             # c = Coureur(coureur.nom, coureur.prenom, coureur.sexe, formateDossardNG(rangDansListeDeDestination + 1, course=course))
+#             coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+#             dictionnaireReconstruit[course].append(coureur)
+#             # dictionnaireReconstruit[course].append(c)
+#             dictionnaireReconstruit.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+#             if DEBUG :
+#                 print(coureur.dossard,coureur.nom, coureur.prenom, coureur.categorie(Parametres["CategorieDAge"]), "placé en mosition", rangDansListeDeDestination)
+#             rangDansListeDeDestination += 1
 
-        # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
-        while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
-            dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
-            dictionnaireReconstruit[course].append(Coureur("","",""))
-            rangDansListeDeDestination += 1
-        root["Coureurs"].clear()
-        root["Coureurs"] = dictionnaireReconstruit
-        print("FIN DE RECONSTRUIRE COUREURS")
+#         # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
+#         while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+#             dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+#             dictionnaireReconstruit[course].append(Coureur("","",""))
+#             rangDansListeDeDestination += 1
+#         root["Coureurs"].clear()
+#         root["Coureurs"] = dictionnaireReconstruit
+#         print("FIN DE RECONSTRUIRE COUREURS")
 
 class Combobar(ScrollFrame):
     def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W, nombreColonnes = 6):
@@ -5362,6 +5362,7 @@ class CoureurFrame(Frame) :
     
 
     def reinitialiserChamps(self):
+        global root
         # ménage
         self.nomE.delete(0, END)
         self.prenomE.delete(0, END)
@@ -5375,7 +5376,6 @@ class CoureurFrame(Frame) :
         if not self.ajoutCoureur :
             # si un dossard sélectionné, remettre les valeurs initiales enregistrées.
             doss = str(self.choixDossardCombo.get())
-            # print("dossard:",doss)
             if doss : # la combobox n'est pas vide   
                 coureur = root["Coureurs"].recuperer(doss)
                 # print("licence", coureur.licence)
