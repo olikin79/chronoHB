@@ -697,7 +697,8 @@ class DictionnaireDeCoureurs(dict) :
         self.nombreDeCoureurs = len(AncienneListeAImporter)
         self.importerAncienneListe(AncienneListeAImporter)
         self.initCoureursElimines(force=force)
-        self.seriesDeCouleurSuccessives = {'A':{}}
+        if not hasattr(self, 'seriesDeCouleurSuccessives'):
+            self.seriesDeCouleurSuccessives = {'A': {}}
         self.dossardsPerdus = {}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes
         self['A']=[]
@@ -819,12 +820,12 @@ class DictionnaireDeCoureurs(dict) :
             n += 1
 
    
-    # def affecteNouveauNombreDeDossardsPourUnGroupement(self, course, gpmt, nombreDeDossards):
-    #     """Affecte un nouveau nombre de dossards pour un groupement de root["Coureurs"]."""
-        # print("Affecte", nombreDeDossards, "pour le groupement", gpmt, "Course", course)
-        # self.initialiseseriesDeCouleurSuccessives(course, gpmt)
-        # self.seriesDeCouleurSuccessives[course][gpmt] = nombreDeDossards
-        # return self.reconstruireDictionnaire()
+    def affecteNouveauNombreDeDossardsPourUnGroupement(self, course, gpmt, nombreDeDossards):
+        """Affecte un nouveau nombre de dossards pour un groupement de root["Coureurs"]."""
+        print("Affecte", nombreDeDossards, "pour le groupement", gpmt, "Course", course)
+        self.initialiseSeriesDeCouleursSuccessives(course, gpmt)
+        self.seriesDeCouleurSuccessives[course][gpmt] = nombreDeDossards
+        self.reconstruireCoureurs()
     
     def lettreDUnGroupement(self, groupementNomStandard):
         """Retourne la lettre de la course correspondant au groupement fourni."""
@@ -874,10 +875,11 @@ class DictionnaireDeCoureurs(dict) :
         self.__init__(force=True) # on force la réinitialisation de toutes les propriétés
         if Parametres["plusieursSeriesDeCouleurSuccessives"] :
             course = "A"
-            print("len réel", len(self[course]))
+            # print("len réel", len(self[course]))
             indiceDansGroupements = 0
             # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
             prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+            print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
             rangDansListeDeDestination = 0
             print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
             # Initialisation du groupement courant pour comparaison
@@ -916,6 +918,7 @@ class DictionnaireDeCoureurs(dict) :
                     else:
                         current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
                         prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+                        print("self.seriesDeCouleurSuccessives[course]", self.seriesDeCouleurSuccessives[course])
                         print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
                 # else: Le groupement n'a pas changé, mais le rang max est atteint.
                 # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
@@ -1162,7 +1165,6 @@ class DictionnaireDeCoureurs(dict) :
                 numeroMinimalAutorise += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return numeroMinimalAutorise, numeroMaximalAutorise
     
-    # def initialiseseriesDeCouleurSuccessives(self, course, gpmt):
         
     
     def nombreDeDossardssDeTousLesGroupements(self, course):
@@ -1183,15 +1185,15 @@ class DictionnaireDeCoureurs(dict) :
                 totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return totalDesCoureursDesCoursesPrecedentes
     
-    def initialiseSeriesDeCouleursSuccessives(self, course, gpmtNom) :
+    def initialiseSeriesDeCouleursSuccessives(self, course, gpmtNom, effectifImpose = 100) :
         if not course in self.keys() :
             self[course] = []
             self["CoureursElimines"][course]=[]
         if course not in self.seriesDeCouleurSuccessives.keys() :
-            self.seriesDeCouleurSuccessives[course] = {gpmtNom: 100} # dictionnaire contenant un dictionnaire par groupement. 
+            self.seriesDeCouleurSuccessives[course] = {gpmtNom: effectifImpose} # dictionnaire contenant un dictionnaire par groupement. 
             # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
         if gpmtNom not in self.seriesDeCouleurSuccessives[course].keys() :
-            self.seriesDeCouleurSuccessives[course][gpmtNom] = 100
+            self.seriesDeCouleurSuccessives[course][gpmtNom] = effectifImpose
     
     def remplirSeriesDeCouleursSucessives(self, course) :
         totalDesCoureursTousGroupements = self.nombreDeDossardssDeTousLesGroupements(course)
@@ -1268,6 +1270,7 @@ class DictionnaireDeCoureurs(dict) :
             else :
                 print("Impossible d'effacer l'élément", element, "des Coureurs actuels")
     def afficher(self, groupement = None) :
+        print("Liste des effectifs paramétrés", self.seriesDeCouleurSuccessives)
         print("Liste des clés", self.cles())
         for course in self.cles() :
             print("Course",course, 'self["CoureursElimines"][course]', self["CoureursElimines"][course])
