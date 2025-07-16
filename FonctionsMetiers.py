@@ -699,7 +699,13 @@ class DictionnaireDeCoureurs(dict) :
         self.seriesDeCouleurSuccessives = {}
         self.dossardsPerdus = {}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes.
-        self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
+        # inutile de maintenir une liste à part : root["GRoupements"] contient l'information UNIQUE et restera dans l'ordre imposé par l'interface. Inutile de maintenir deux listes à jour.
+        # self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
+        self.finOptimisation()
+        
+    def finOptimisation(self):
+        self.optimisationListeCoureurs = False
+        self.optimisationListeDossards = False
         
     def repareCourseUNSS(self) :
         for coureur in self.liste() :
@@ -719,16 +725,17 @@ class DictionnaireDeCoureurs(dict) :
                 self.nombreDeCoureursParSexe[1] += 1
             else :
                 self.nombreDeCoureursParSexe[0] += 1
-            if Parametres["CategorieDAge"] > 0 :
-                incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
+            # if Parametres["CategorieDAge"] > 0 :
+            #     incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe)
+        self.initEffectifsExecuteUneFois = True
     def evolutionDUnAuxEffectifsTotaux(self, coureur, evolution=1):
         self.nombreDeCoureurs += evolution
         if coureur.sexe == "F" :
             self.nombreDeCoureursParSexe[1] += evolution
         else :
             self.nombreDeCoureursParSexe[0] += evolution
-        if Parametres["CategorieDAge"] > 0 :
-            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+        # if Parametres["CategorieDAge"] > 0 :
+            # incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
     # def getTotalParCategorie(self,catFFA, sexe):
     #     return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA , self.nombreDeCoureursParCategorie, sexe)
     def getTotalDeLaCourse(self, coureur) :
@@ -762,10 +769,11 @@ class DictionnaireDeCoureurs(dict) :
         # actualiser les dossards de tous les coureurs déjà présents 
         for c in self["A"] :
             doss = str(c.dossard)
-            if not doss[-1].isalpha():
+            if doss and not doss[-1].isalpha():
                 c.setDossard(doss + "A")
     def recuperer(self, dossard) :
         doss = formateDossardNG(dossard)
+        c = Coureur("","","") # on retourne un objet Coureur mais vide.
         try : 
             if doss[-1].isalpha():
                 # nouvelle implémentation des dossards
@@ -775,21 +783,26 @@ class DictionnaireDeCoureurs(dict) :
                 # compatibilité ascendante avec l'ancienne application et les dossards entièrement numériques / utilise l'entrée A.
                 c = self["A"][int(doss)-1]
         except :
-            c = Coureur("","","") # on retourne un objet Coureur mais vide.
+            pass
         return c
 
     def listeDossards(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
-        L = []
-        self.initCoureursElimines()
-        for e in self.cles() :
-            #print(self["CoureursElimines"][e])
-            i = 0
-            indicesLibres = self["CoureursElimines"][e]
-            for c in self[e] :
-                if not i in indicesLibres :
-                    L.append(c.dossard)
-                    #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
-                i += 1
+        if self.optimisationListeDossards :
+            L = self.listeDossardsOptimisation
+        else :
+            L = []
+            self.initCoureursElimines()
+            for e in self.cles() :
+                #print(self["CoureursElimines"][e])
+                i = 0
+                indicesLibres = self["CoureursElimines"][e]
+                for c in self[e] :
+                    if not i in indicesLibres :
+                        L.append(c.dossard)
+                        #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
+                    i += 1
+            self.listeDossardsOptimisation = L
+            self.optimisationListeDossards = True
         return L
     
     def initCoureursElimines(self) :
@@ -799,110 +812,189 @@ class DictionnaireDeCoureurs(dict) :
     
     def forceTousLesDossardsAPartirDuRang(self, course, rang) :
         """Force tous les dossards des coureurs suite à un déplacement de ceux-ci."""
-        for coureur in self[course][rang:] :
-            coureur.setDossard(formateDossardNG(rang + 1, course=course))
+        n = rang
+        while n < len(self[course]) :
+            self[course][n].setDossard(formateDossardNG(n + 1, course=course))
+            n += 1
+
+   
+    # def affecteNouveauNombreDeDossardsPourUnGroupement(self, course, gpmt, nombreDeDossards):
+    #     """Affecte un nouveau nombre de dossards pour un groupement de root["Coureurs"]."""
+        # print("Affecte", nombreDeDossards, "pour le groupement", gpmt, "Course", course)
+        # self.initialiseseriesDeCouleurSuccessives(course, gpmt)
+        # self.seriesDeCouleurSuccessives[course][gpmt] = nombreDeDossards
+        # return self.reconstruireDictionnaire()
     
-    def affecteNouveauNombreDeDossardsPourUnGroupement(self, course, gpmt, nombreDeDossards):
-        """Affecte un nouveau nombre de dossards pour un groupement de coureurs."""
-        try :
-            # compatibilité pour les anciennes versions de l'application.
-            self.listeDesNomsDeGroupements 
-        except : # si la liste des groupements n'est pas initialisée, on ne fait rien.
-            self.listeDesNomsDeGroupements = listNomsGroupements(nomStandard=True)
-            
-        if not course in self.seriesDeCouleurSuccessives.keys() :
-            self.seriesDeCouleurSuccessives[course] = {}
-        if not gpmt in self.seriesDeCouleurSuccessives[course].keys() :
-            self.seriesDeCouleurSuccessives[course][gpmt] = [1000, 0]
-        valeurPrecedente = self.seriesDeCouleurSuccessives[course][gpmt][0]
-        difference = nombreDeDossards - valeurPrecedente
-        self.seriesDeCouleurSuccessives[course][gpmt][0] = nombreDeDossards
-        Nmin, Nmax = self.plageNumerosAutorises(course, gpmt)
-        if difference > 0 :
-            # on ajoute difference coureurs vides
-            for i in range(difference):
-                self[course].insert(Nmin+valeurPrecedente,Coureur("","","",""))
-            self["CoureursElimines"][course] = ajouteDesNombresAPartirDeNEtAugmenterLesPlusGrands(self["CoureursElimines"][course], Nmin+valeurPrecedente, difference)
-            self.forceTousLesDossardsAPartirDuRang(course, Nmin+nombreDeDossards)
-            retour = True # l'augmentation est toujours possible
+    def lettreDUnGroupement(self, groupementNomStandard):
+        """Retourne la lettre de la course correspondant au groupement fourni."""
+        if Parametres["CoursesManuelles"] :
+            course = "A"
+            # non fonctionnel pour l'instant. Pas forcément pertinent.
+            # actuellement, en mode "CoursesManuelles", il ne doit y avoir la possibilité d'affecter des seriesDeCouleurSuccessives à une lettre de course.
+            for course in self.seriesDeCouleurSuccessives.keys() :
+                for gpmt in self.seriesDeCouleurSuccessives[course].keys() :
+                    if gpmt == groupementNomStandard :
+                        return course
         else :
-            # on supprime des coureurs uniquement si tous les coureurs entre les positions Nmax et Nmin+valeurPrecedente sont vides.
-            retour = True
-            for i in range(Nmax+1, Nmin+valeurPrecedente):
-                if i not in self["CoureursElimines"][course] :
-                    print("Impossible de diminuer le nombre de dossards pour le groupement", gpmt, "de la course", course, "car il y a un coureur à la position", i)
-                    retour = False
-                    break
-            if retour : # on peut diminuer le nombre de dossards
-                self[course] = self[course][:Nmax+1] + self[course][Nmin+valeurPrecedente:] # on supprime les coureurs vides entre Nmin+valeurPrecedente et Nmax
-                self["CoureursElimines"][course] = supprimerDesNombresAPartirDeNEtDiminuerLesPlusGrands(self["CoureursElimines"][course], Nmax, -difference)
-                self.forceTousLesDossardsAPartirDuRang(course, Nmax+1)
-        if not retour : # on rétablit la valeur antérieure.
-            self.seriesDeCouleurSuccessives[course][gpmt][0] = valeurPrecedente
-        return retour
-    
-    def changeLOrdreDesGroupements(self, nouvelOrdreDesGroupements) :
-        """normalement, nouvelOrdreDesGroupements doit contenir exactement les mêmes éléments que self.listeDesNomsDeGroupements dans un ordre éventuellement différent.
-        Par sécurité, on vérifie qu'aucun élément n'a été enlevé ni ajouté par ce biais.
-        Les éléments ajoutés ne sont pas répercutés dans self.listeDesNomsDeGroupements, les éléments enlevés sont placés en fin de self.listeDesNomsDeGroupements"""
-        ancienneListe = list(self.listeDesNomsDeGroupements)
-        # changement de l'ordre dans la liste self.listeDesNomsDeGroupements
-        self.listeDesNomsDeGroupements = []
-        for nom in nouvelOrdreDesGroupements :
-            if nom in ancienneListe :
-                self.listeDesNomsDeGroupements.append(nom)
-        for nom in ancienneListe :
-            if nom not in self.listeDesNomsDeGroupements :
-                self.listeDesNomsDeGroupements.append(nom)
-        # répercution du changement sur les dossards des coureurs
-        retour = self.deplaceLesCoureursDejaAffectes()
-        if not retour :
-            self.listeDesNomsDeGroupements = ancienneListe
-        return retour
-    
-    def deplaceLesCoureursDejaAffectes(self):
-        """Déplace les coureurs déjà affectés dans les nouvelles séries de dossards.
-        S'il n'y a pas assez de place pour tous les coureurs, n'opère aucun changement.
-        Travaille sur un dictionnaire temporaire self.dictionnaireDuplique à part avant de remplacer."""
-        retour = False # si le retour == False, l'affichage GUI rétablira les valeurs antérieures
-        self.dictionnaireDuplique = {}
-        # on fait le ménage dans le dictionnaire self.seriesDeCouleurSuccessives : si des groupements ont fusionné, on les supprime.
-        for course in self.seriesDeCouleurSuccessives.keys() :
-            for gpmt in self.seriesDeCouleurSuccessives[course].keys() :
-                if not gpmt in listNomsGroupements(nomStandard=True) :
-                    # le groupement n'existe plus, on le supprime.
-                    del self.seriesDeCouleurSuccessives[course][gpmt]
-                    self.listeDesNomsDeGroupements.remove(gpmt)
-        # on déplace les coureurs déjà affectés dans les nouvelles séries de dossards
-        for course in self.cles() :
-            for gpmt in self.listeDesNomsDeGroupements :
-                effectifMax = self.seriesDeCouleurSuccessives[course][gpmt][0] # nombre de dossards maximum
-                effectifActuel = len(self[course]) - len(self["CoureursElimines"][course]) # nombre de coureurs non éliminés
-                if gpmt in self.dictionnaireDuplique :
-                    self.dictionnaireDuplique[gpmt] = self.seriesDeCouleurSuccessives[course][gpmt]
-        return retour
-    
-    def lettreDUneCategorie(self, categorie):
-        """Retourne la lettre de la course correspondant à la catégorie fournie."""
-        for course in self.seriesDeCouleurSuccessives.keys() :
-            for gpmt in self.seriesDeCouleurSuccessives[course].keys() :
-                if gpmt == categorie:
-                    return course
-        return None
+            return "A"
     
     def liste(self) : ##### On élimine du retour les indices libres présents dans self["CoureursElimines"]
-        L = []
-        self.initCoureursElimines()
-        for e in self.cles() :
-            #print(self["CoureursElimines"][e])
-            i = 0
-            indicesLibres = self["CoureursElimines"][e]
-            for c in self[e] :
-                if not i in indicesLibres :
-                    L.append(c)
-                    #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
-                i += 1
+        try : # compatibilité ascendante des sauvegardes
+            self.optimisationListeCoureurs
+        except: 
+            self.finOptimisation()
+        if self.optimisationListeCoureurs :
+            L = self.listeOptimisation
+        else :
+            L = []
+            self.initCoureursElimines()
+            for e in self.cles() :
+                #print(self["CoureursElimines"][e])
+                i = 0
+                indicesLibres = self["CoureursElimines"][e]
+                for c in self[e] :
+                    if not i in indicesLibres and c.nom and c.prenom :
+                        L.append(c)
+                        #print("Coureur non effacé listé",c.nom, c.prenom, c.dossard)
+                    i += 1
+            self.listeOptimisation = L
+            self.optimisationListeCoureurs = True
         return L
+    
+    def ajouteLEffectifDuGroupementDeRang(self, i, totalActuel, course="A") :
+        global root, Parametres
+        gpmt = root["Groupements"][i]
+        self.initialiseSeriesDeCouleursSuccessives(course, gpmt.nomStandard)
+        return totalActuel + self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
+
+    # def reconstruireDictionnaire(self):
+    #     self.finOptimisation()
+    #     if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+    #         dictionnaireReconstruit = DictionnaireDeCoureurs()
+    #         course = "A"
+    #         indiceDansGroupements = 0
+    #         # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
+    #         prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+    #         rangDansListeDeDestination = 0
+    #         print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
+
+    #         # Initialisation du groupement courant pour comparaison
+    #         current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+
+    #         for n, coureur in enumerate(self.listeParGroupementDansLOrdreDeGroupements()) :
+    #             gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
+
+    #             # Logique pour gérer le changement de groupement et/ou les "trous"
+    #             # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
+    #             #     # On a atteint ou dépassé le rang où le groupement doit changer
+    #             #     # (ou la taille max pour le groupement actuel est atteinte)
+
+    #             if gpmtDuCoureurExamine != current_groupement_name:
+    #                 # Le groupement du coureur actuel est différent du groupement attendu,
+    #                 # ce qui indique un changement de groupement.
+    #                 # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
+    #                 while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+    #                     dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+    #                     dictionnaireReconstruit[course].append(Coureur("","",""))
+    #                     rangDansListeDeDestination += 1
+
+    #                 # On avance à l'indice du prochain groupement
+    #                 indiceDansGroupements += 1
+    #                 # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
+    #                 if indiceDansGroupements >= len(root["Groupements"]):
+    #                     # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
+    #                     # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
+    #                     print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
+    #                     # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
+    #                     # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
+    #                     pass
+    #                 else:
+    #                     current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+    #                     prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+    #                     print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
+    #             # else: Le groupement n'a pas changé, mais le rang max est atteint.
+    #             # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
+    #             # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
+    #             # La logique d'ajout suivante s'en chargera.
+
+
+    #             # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
+    #             coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+    #             dictionnaireReconstruit[course].append(coureur)
+    #             rangDansListeDeDestination += 1
+
+    #         # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
+    #         while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+    #             dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+    #             dictionnaireReconstruit[course].append(Coureur("","",""))
+    #             rangDansListeDeDestination += 1
+
+    #         return dictionnaireReconstruit
+    # def reconstruireDictionnaire(self):
+    #     self.finOptimisation()
+    #     # l'interface empêchera de mancer cette commande si des courses A et B sont disponibles (Courses manuelles)
+    #     if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+    #         dictionnaireReconstruit = DictionnaireDeCoureurs()
+    #         course = "A"
+    #         indiceDansGroupements = 0
+    #         listeDesCoureursElimines = []
+    #         prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+    #         rangDansListeDeDestination = 0
+    #         print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
+    #         for n, coureur in enumerate(self.listeParGroupementDansLOrdreDeGroupements()) :
+    #             gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard # on force le groupement à être créé s'il n'existe pas.
+    #             if prochainRangAPartirDuquelLeGroupementDoitChanger < rangDansListeDeDestination : # on devrait changer de groupement au plus tôt
+    #                 # deux cas : soit le groupement a changé : c'est le cas courant où il y a de la place / soit le groupement est toujours la même : dans ce cas, on agrandit la catégorie d'un pour faire rentrer tous les coureurs
+    #                 if gpmtDuCoureurExamine != root["Groupements"][indiceDansGroupements].nomStandard : # on change de groupement
+    #                     indiceDansGroupements += 1 # on passe au groupement suivant (qui devrait obligatoirement être celui gpmtDuCoureurExamine)
+    #                     # le cas courant impose d'augmenter prochainRangAPartirDuquelLeGroupementDoitChanger pour tenir compte du nouveau groupement en cours
+    #                     prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+    #                     print("On passe du groupement :", root["Groupements"][indiceDansGroupements].nomStandard, "au groupement", gpmtDuCoureurExamine,"Prochain rang de changement", prochainRangAPartirDuquelLeGroupementDoitChanger)
+    #                 # else :
+    #                     # cas où on agrandit car pas assez de dossards prévus dans les paramètres pour ce groupement
+    #                     # on ne fait rien à part ajouter le coureur.
+    #                 # on ajoute le coureur suivant.
+    #                 coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+    #                 dictionnaireReconstruit[course].append(coureur)
+    #             else :
+    #                 # on examine si le groupement a changé au niveau du coureur à transférer
+    #                 if gpmtDuCoureurExamine != root["Groupements"][indiceDansGroupements].nomStandard : # on change de groupement donc on remplit avec des coureurs vides jusqu'au rang attendu
+    #                     while prochainRangAPartirDuquelLeGroupementDoitChanger >= rangDansListeDeDestination + 1 :
+    #                         dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+    #                         dictionnaireReconstruit[course].append(Coureur("","",""))
+    #                         rangDansListeDeDestination += 1
+    #                     indiceDansGroupements += 1 # on passe au groupement suivant (qui devrait obligatoirement être celui gpmtDuCoureurExamine)
+    #                     # le cas courant impose d'augmenter prochainRangAPartirDuquelLeGroupementDoitChanger pour tenir compte du nouveau groupement en cours
+    #                     prochainRangAPartirDuquelLeGroupementDoitChanger = self.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+    #                     print("On passe du gropement :", root["Groupements"][indiceDansGroupements].nomStandard, "au groupement", gpmtDuCoureurExamine, "prochainRangAPartirDuquelLeGroupementDoitChanger", prochainRangAPartirDuquelLeGroupementDoitChanger)
+    #                 # cas ultra classique où on tombe toujours sur des coureurs du même groupement, on les recopie.
+    #                 # on ajoute le coureur dans le dictionnaire reconstruit
+    #                 coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+    #                 dictionnaireReconstruit[course].append(coureur)
+    #             rangDansListeDeDestination += 1
+    #         return dictionnaireReconstruit
+            # pour la vérification.
+            # self.afficher()
+            # # print(self["CoureursElimines"][course])
+                
+    def listeParGroupementDansLOrdreDeGroupements(self) :
+        global root, Parametres
+        """Retourne une liste des coureurs présents dans self.liste(), ordonnée selon les groupements présents dans root["Groupements"].
+        On peut récupérer le groupement d'un coureur de la liste L par la commande : groupementAPartirDUneCategorie(x.categorie(Parametres["CategorieDAge"])) """
+        L = self.liste()
+        if L and DEBUG:
+            groupement = groupementAPartirDUneCategorie(L[0].categorie(Parametres["CategorieDAge"]))
+            print("Nom groupement dont la modification provoque la reconstruction :",groupement.nomStandard)
+        # L.sort(key=lambda x: root["Groupements"].index(groupementAPartirDUneCategorie(x.categorie(Parametres["CategorieDAge"]))) if x.categorie(Parametres["CategorieDAge"]) is not None and x.nom and x.prenom else len(root["Groupements"]))
+        L.sort(key=lambda x: root["Groupements"].index(groupementAPartirDUneCategorie(x.categorie(Parametres["CategorieDAge"]))))
+        # on affiche la liste retournée, coureur par coureur.
+        print("Liste retournée par listeParGroupementDansLOrdreDeGroupements")
+        i = 0
+        for c in L :
+            print(i, "Coureur", c.nom, c.prenom, c.sexe, c.dossard, c.categorie(Parametres["CategorieDAge"]))
+            i += 1
+        return L
+    
     def listeParCouleurDeDossard(self) :
         L = self.liste()
         # tri de la liste de coureurs par couleur de dossard
@@ -917,12 +1009,16 @@ class DictionnaireDeCoureurs(dict) :
             os.remove(file)
         self.__init__()
     def ajouter(self, coureur, course="", dossard = ""): # course serait une lettre "A", "B", "C", ...
+        retour = ""
         # compatibilité avec les anciennes sauvegardes
         try : 
             self.dossardsPerdus
+            if course :
+                self[course]
         except :
             self.seriesDeCouleurSuccessives = {}
             self.dossardsPerdus = {}
+        self.finOptimisation()
         # ajout dans le premier coureur vide de la course.
         # retourne le dossard affecté
         if dossard : 
@@ -946,7 +1042,7 @@ class DictionnaireDeCoureurs(dict) :
                 self[course].append(coureur)
                 #self.nombreDeCoureurs += 1
                 self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
-                return dossard
+                retour = dossard
             else : # le dossard affecté n'est pas spécifié, on affecte le coureur créé au premier dossard libre.
                 dossardDisponible, depuisCoureursElimines = self.prochainDossardDisponible(course, coureur)
                 if dossardDisponible != "0A" :
@@ -958,9 +1054,21 @@ class DictionnaireDeCoureurs(dict) :
                     else :
                         self[course].append(coureur)
                     self.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
-                    return formateDossardNG(dossardDisponible, course=course) # str(dossardDisponible) + course
+                    retour = formateDossardNG(dossardDisponible, course=course) # str(dossardDisponible) + course
                 else :
-                    return Erreur(11, courteDescription="Aucun dossard disponible dans les séries de numéros paramétrées.")
+                    retour = Erreur(11, courteDescription="Aucun dossard disponible dans les séries de numéros paramétrées.")
+                # on ajoute la catégorie à la liste self.listeDesNomsDeGroupements si des series de couleurs successives existent
+                # if Parametres["plusieursSeriesDeCouleurSuccessives"]:
+                #     categorie = coureur.categorie(Parametres["CategorieDAge"])
+                #     gpmt = groupementAPartirDUneCategorie(categorie)
+                #     trouve = False
+                #     for gpmt in root["Groupements"] :
+                #         if categorie in gpmt.listeDesCourses :
+                #             trouve = True
+                #             break
+                #     if not trouve :
+                #         self.listeDesGroupements.append(categorie)
+                #     print("ATTENTION : ici, il faudra vérifier la bonne gestion du cas où la catégorie est dans un groupement.")
                 # if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
                 #     premierIndiceLibre = self["CoureursElimines"][course].pop(0)
                 #     coureur.setDossard(str(premierIndiceLibre+1) + course) # on fixe le dossard du coureur
@@ -976,19 +1084,25 @@ class DictionnaireDeCoureurs(dict) :
                 #     return str(len(self[course])) + course
         else :
             print("Le coureur", coureur.nom, coureur.prenom,"existe déjà dans la base. On ne peut pas l'ajouter deux fois. Ne devrait jamais arriver.")
+        return retour
             
     def prochainDossardDisponible(self, course, coureur):
         """Retourne le prochain dossard disponible dans la course donnée : retourne 0A si aucun dossard disponible (cas où Parametres["plusieursSeriesDeCouleurSuccessives"]==True)"""
+        global root, Parametres
         depuisCoureursElimines = False
         categorie = coureur.categorie(Parametres["CategorieDAge"])
         if not course in self.keys() :
             self[course] = []
             self["CoureursElimines"][course]=[]
         dossardAttribue = "0A"
-        self.initialiseSeriesDeCouleursSuccessives(course, coureur) # sans effet si Parametres["plusieursSeriesDeCouleurSuccessives"] == False
+        self.initialiseSeriesDeCouleursSuccessives(course, groupementAPartirDUneCategorie(categorie)) # sans effet si Parametres["plusieursSeriesDeCouleurSuccessives"] == False. Si True, ajoute des coureurs vides pour compléter les séries de dossards disponibles.
         # on essaye de voir si on peut attribuer un dossard dont le coureur aurait été effacé.
         if self["CoureursElimines"][course] : # il est possible d'intercaler le coureur dans la liste existante suite à une suppression
-            numeroMinimal, numeroMaximal = self.plageNumerosAutorises(course, nomGroupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"]), nomStandard = True))
+            # pour le premier coureur d'un groupement, celui-ci nexiste pas encore
+            groupement = nomGroupementAPartirDUneCategorie(categorie, nomStandard = True)
+            if not groupement : 
+                groupement = categorie
+            numeroMinimal, numeroMaximal = self.plageNumerosAutorises(course, groupement)
             # on récupère le premier indice libre et qui n'est pas dans self.dossardsPerdus et qui est dans la plage autorisée
             i = 0
             pasTrouve = True
@@ -1006,7 +1120,7 @@ class DictionnaireDeCoureurs(dict) :
                 # on supprime l'indice libre de la liste des indices libres
                 self["CoureursElimines"][course].pop(i)
                 depuisCoureursElimines = True
-                dossardAttribue = str(premierIndiceLibre+1) + course # on fixe le dossard du coureur
+                dossardAttribue = formateDossardNG(premierIndiceLibre+1, course=course) # on fixe le dossard du coureur
                 
         # à défaut, si pas de CoureursElimines ou si aucun ne correspond à la plage autorisée. on attribue un numéro de dossard en fin de liste.
         if dossardAttribue == "0A" :
@@ -1020,55 +1134,56 @@ class DictionnaireDeCoureurs(dict) :
         return dossardAttribue, depuisCoureursElimines
     
     def plageNumerosAutorises(self, course, groupement):
-        """Retourne le nombre de coureurs jusqu'à la course donnée, y compris la course fournie en argument.
-        dans le cas des SeriesDeDossardsDeCourleur """
+        """Retourne les numéros d'indices attribuable dans self[course] dans le cas des SeriesDeDossardsDeCourleur """
+        global root, Parametres
         numeroMinimalAutorise = 0 # c'est l'indice dans self[course] donc le dossard vaudra un de plus. Le premier dossard sera donc bien 1.
         numeroMaximalAutorise = 10000000
          # on alimente la course avec des coureurs vides si un effectif maximum est prévu (si plusieursSeriesDeCouleurSuccessives==True)  :
         if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-            for gpmt in self.listeDesNomsDeGroupements :
+            for gpmt in root["Groupements"] :
                 # paramètres par défaut, si inexistant
-                if course not in self.seriesDeCouleurSuccessives:
-                    self.seriesDeCouleurSuccessives[course] = {gpmt: [1000, 0]} # dictionnaire contenant un dictionnaire par groupement. 
-                    # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
-                if gpmt not in self.seriesDeCouleurSuccessives[course]:
-                    self.seriesDeCouleurSuccessives[course][gpmt] = [1000, 0]
                 # si groupement == gpmt , on stoppe tout et on retourne
-                if gpmt == groupement :
-                    numeroMaximalAutorise = numeroMinimalAutorise + self.seriesDeCouleurSuccessives[course][gpmt][0] -1
+                if gpmt.nomStandard == groupement :
+                    numeroMaximalAutorise = numeroMinimalAutorise + self.seriesDeCouleurSuccessives[course][gpmt.nomStandard] -1
                     break
                 # on incrémente totalDeSCoureursDesCoursesPrecedentes
-                numeroMinimalAutorise += self.seriesDeCouleurSuccessives[course][gpmt][0]
+                numeroMinimalAutorise += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return numeroMinimalAutorise, numeroMaximalAutorise
     
-    def nombreDeCoureursDeTousLesGroupements(self, course, coureur):
-        """Retourne le nombre de coureurs jusqu'à la course donnée, y compris la course fournie en argument.
+    # def initialiseseriesDeCouleurSuccessives(self, course, gpmt):
+        
+    
+    def nombreDeDossardssDeTousLesGroupements(self, course):
+        global root, Parametres
+        """Retourne le nombre de dossards de tous les groupements pour la course fournie en argument.
         dans le cas des SeriesDeDossardsDeCourleur """
+        global root, Parametres
         totalDesCoureursDesCoursesPrecedentes = 0
          # on alimente la course avec des coureurs vides si un effectif maximum est prévu (si plusieursSeriesDeCouleurSuccessives==True)  :
         if Parametres["plusieursSeriesDeCouleurSuccessives"] :
-            # si une nouvelle lettre de course est imposée et non présente, on l'ajoute
-            if coureur.categorie(Parametres["CategorieDAge"]) not in self.listeDesNomsDeGroupements :
-                self.listeDesNomsDeGroupements.append(coureur.categorie(Parametres["CategorieDAge"]))
-            for gpmt in self.listeDesNomsDeGroupements :
-                # paramètres par défaut, si inexistant
-                if course not in self.seriesDeCouleurSuccessives:
-                    self.seriesDeCouleurSuccessives[course] = {gpmt: [200, 0]} # dictionnaire contenant un dictionnaire par groupement. 
+            # si un NOUVEAU groupement est imposé et non présent, on l'ajoute
+            # cat = coureur.categorie(Parametres["CategorieDAge"])
+            # groupementDuCoureur = groupementAPartirDUneCategorie(cat)
+            for gpmt in root["Groupements"] :
+                if course not in self.seriesDeCouleurSuccessives.keys() :
+                    self.seriesDeCouleurSuccessives[course] = {gpmt.nomStandard: 100} # dictionnaire contenant un dictionnaire par groupement. 
                     # Le premier élément de la liste est le nombre de dossard disponible, le deuxième est le nombre déjà attribué
-                if gpmt not in self.seriesDeCouleurSuccessives[course]:
-                    self.seriesDeCouleurSuccessives[course][gpmt] = [200, 0]
+                if gpmt.nomStandard not in self.seriesDeCouleurSuccessives[course].keys() :
+                    self.seriesDeCouleurSuccessives[course][gpmt.nomStandard] = 100
+                # on complète self[course] avec des coureurs vides pour tous les groupements.
                 # on incrémente totalDesCoureursDesCoursesPrecedentes
-                totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt][0]
+                totalDesCoureursDesCoursesPrecedentes += self.seriesDeCouleurSuccessives[course][gpmt.nomStandard]
         return totalDesCoureursDesCoursesPrecedentes
     
-    def initialiseSeriesDeCouleursSuccessives(self, course, coureur) :
-        # on complète self[course] avec des coureurs vides pour tous les groupements.
-        totalDesCoureursTousGroupements = self.nombreDeCoureursDeTousLesGroupements(course, coureur)
+    def initialiseSeriesDeCouleursSuccessives(self, course, gpmt) :
+        global root, Parametres
+        totalDesCoureursTousGroupements = self.nombreDeDossardssDeTousLesGroupements(course)
         indiceCoureurAjoute = len(self[course])
         while len(self[course]) < totalDesCoureursTousGroupements :
             self[course].append(Coureur("","","",""))
             self["CoureursElimines"][course].append(indiceCoureurAjoute)
             indiceCoureurAjoute += 1
+        print("Fin de l'initialisation par initialiseSeriesDeCouleursSuccessives")
             
     def cles(self):
         # if DEBUG :
@@ -1077,6 +1192,7 @@ class DictionnaireDeCoureurs(dict) :
         if "CoureursElimines" in L :
             L.remove("CoureursElimines")
         return L
+    
     def existe(self,element):
         """Retourne "" si le coureur n'existe pas et son dossard sinon"""
         #print("existe(self,",element,")")
@@ -1128,23 +1244,30 @@ class DictionnaireDeCoureurs(dict) :
                 #self.nombreDeCoureurs -= 1
                 self["CoureursElimines"][cle].append(indice)
                 self["CoureursElimines"][cle].sort() # on trie les indices pour que le prochain numéro réattribuée soit le plus petit.
+            self.finOptimisation()
         except :
             if isinstance(element, Coureur):
                 print("Impossible d'effacer l'élément", element.nom, element.prenom, "des Coureurs actuels")
             else :
                 print("Impossible d'effacer l'élément", element, "des Coureurs actuels")
-    def afficher(self) :
+    def afficher(self, groupement = None) :
+        print("Liste des clés", self.cles())
         for course in self.cles() :
-            print("Course",course)
+            print("Course",course, 'self["CoureursElimines"][course]', self["CoureursElimines"][course])
             indicesLibres = self["CoureursElimines"][course]
-            i = 0
+            j = 0
             for coureur in self[course] :
-                if not i in indicesLibres :
-                    print("Indice " + str(i)+ course +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.course)
-                i += 1
+                if groupement :
+                    if not j in indicesLibres and groupement.nomStandard == groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard:
+                        print("Indice " + str(j) +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.course)
+                else :
+                    if not j in indicesLibres :
+                        print("Indice " + str(j) +":", coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.course)
+                j += 1
     def reindexer(self,transcription) :
         """ réindexe les entrées de ce dictionnaire et tous les dossards qu'ils contiennent"""
         for ancienNom in transcription.keys() :
+            self.finOptimisation()
             if transcription[ancienNom] != ancienNom :
                 self[transcription[ancienNom]] = self[ancienNom]
                 del self[ancienNom]
@@ -1157,7 +1280,16 @@ class DictionnaireDeCoureurs(dict) :
 ##            if not self[nom] : # si c'est vide, on élimine.
 ##                del self[nom]
 
-
+def ajouteUnGroupementPourLaCategorieSiBesoin(categorieAAjouter) :
+    """Ajoute le groupement à root["Groupements"] si le groupement n'existe pas encore, repéré par son nomStandard"""
+    estPresent = False
+    for grpment in root["Groupements"] :
+        if categorieAAjouter in grpment.listeDesCourses :
+            estPresent = True
+            break
+    if not estPresent:
+        print("Création du groupement à partir de la catégorie", categorieAAjouter)
+        root["Groupements"].append(Groupement(categorieAAjouter,[categorieAAjouter])) # on crée les groupements de même nom que les catégories existantes.
 
 class Erreur():
     """ Une erreur de chronoHB"""
@@ -1932,7 +2064,7 @@ class Groupement():
                 self.nombreDeCoureursFTotal += evolution
             else :
                 self.nombreDeCoureursGTotal += evolution
-            incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
+            # incrementeDecompteParCategoriesDAgeEtRetourneSonRang(coureur.categorieFFA() , self.nombreDeCoureursParCategorie, coureur.sexe, evolution=evolution)
     def getTotalParCategorie(self,catFFA, sexe):
         return getDecompteParCategoriesDAgeEtRetourneTotal(catFFA, self.nombreDeCoureursParCategorie, sexe)
     def setCouleur(self, couleur) :
@@ -1992,7 +2124,7 @@ class Groupement():
 
     def actualiseProprieteGroupementDesCourses(self):
         for c in self.listeDesCourses :
-            Courses[c].setNomGroupement(self.nomStandard)
+            root["Courses"][c].setNomGroupement(self.nomStandard)
     def affichageInfoTerminal(self) :
         print("Groupement", self.nom, "de nom standard", self.nomStandard,"contenant les courses",self.listeDesCourses,"de distance",self.distance)
 
@@ -2639,7 +2771,7 @@ class ArriveeTempsAffecteClass(list):
 
 # setup the database
 def chargerDonnees() :
-    global root,Coureurs,Courses,Groupements,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,Parametres,sauvegarde
+    global root,ArriveeTemps,ArriveeTempsAffectes,ArriveeDossards,Parametres,sauvegarde
     noSauvegarde = 1
     sauvegarde=os.path.join(DONNEES,"Courses.db")
     if os.path.exists(sauvegarde) :
@@ -2656,7 +2788,7 @@ def chargerDonnees() :
     if not "Courses" in root :
         #print("Courses n'est pas dans root : on le crée vide.")
         root["Courses"] = {}
-    Courses=root["Courses"]
+    # Courses=root["Courses"]
     if not "Groupements" in root :
         root["Groupements"] = []
         # compatibilité ascendante pour pouvoir importer de vieilles sauvegardes (avant création des groupements).
@@ -2665,15 +2797,8 @@ def chargerDonnees() :
         for cat in Courses :
             L.append(Courses[cat].categorie)
         for cat in L :
-            estPresent = False
-            for grpment in root["Groupements"] :
-                if cat in grpment.listeDesCourses :
-                    estPresent = True
-                    break
-            if not estPresent:
-                print("Création du groupement à partir de la catégorie", cat)
-                root["Groupements"].append(Groupement(cat,[cat])) # on crée les groupements de même nom que les catégories existantes.
-    Groupements=root["Groupements"]
+            ajouteUnGroupementPourLaCategorieSiBesoin(cat)
+    # Groupements=root["Groupements"]
     if not "ArriveeTemps" in root :
         root["ArriveeTemps"] = ArriveeTempsClass()
     # ArriveeTemps=root["ArriveeTemps"]
@@ -2852,17 +2977,22 @@ def chargerDonnees() :
     if not "delai_antennes_par_tag_secondaire" in Parametres :
         Parametres["delai_antennes_par_tag_secondaire"] = 30 # par défaut, on ignore tout tag capté par la même antenne pendant 30 secondes.
     if not "plusieursSeriesDeCouleurSuccessives" in Parametres :
-        Parametres["plusieursSeriesDeCouleurSuccessives"] = True
+        Parametres["plusieursSeriesDeCouleurSuccessives"] = False # initialement non présent ni imposé dans les anciennes sauvegardes, il est impératif qu'il reste à False pour pouvoir importer les vieux fichiers
     # paramètre interne commun à divers thread. L'un d'eux le met à jour, d'autres le lisent.
     Parametres["traiterDonneesActif"] = False
     ##transaction.commit()
     if not "Coureurs" in root:
         #root["Coureurs"] = persistent.list.PersistentList()
         root["Coureurs"] = DictionnaireDeCoureurs()
-    Coureurs=root["Coureurs"]
+    # compatbilité assurée avec d'anciennes sauvegardes chronoHB
+    try : 
+        root["Coureurs"].initEffectifsExecuteUneFois
+    except :
+        root["Coureurs"].initEffectifs() # on initialise les effectifs si ce n'est pas déjà fait. Utile pour les anciennes bases de données.
+    # Coureurs=root["Coureurs"]
     tagConvertionEnCours = False
-    if isinstance(Coureurs,list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
-        Coureurs = DictionnaireDeCoureurs(AncienneListeAImporter=Coureurs)
+    if isinstance(root["Coureurs"],list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
+        root["Coureurs"] = DictionnaireDeCoureurs(AncienneListeAImporter=root["Coureurs"])
         tagConvertionEnCours = True
     if tagConvertionEnCours :
         ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
@@ -2897,7 +3027,7 @@ chargerDonnees()
 
 # Parametres["donneesRFID"] = InfosRFID()
 # n'execute qu'une seule fois cette commande TEMPORAIRE
-# Coureurs.repareCourseUNSS()
+# root["Coureurs"].repareCourseUNSS()
 
 
     ### commande fonctionnelle mais pas propre car le logo doit se trouver dans la distribution, dans win32
@@ -3073,7 +3203,7 @@ def exportXLSX():
         j += 1
     i = 0
     ### remplissage du tableur avec les propriétés, coureur par coureur (ligne par ligne)
-    L = Coureurs.liste()
+    L = root["Coureurs"].liste()
     while i < len(L) :
         coureur = L[i]
         ligne = i + 2
@@ -3660,7 +3790,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             dossard = formateDossardNG(dossard)
             # si le coureur ayant ce dossard fait partie d'une course dont le départ n'a pas été donné,
             # on utilise l'erreur 462 afin de créer un affichage temporaire dédié.
-            coureur = Coureurs.recuperer(dossard)
+            coureur = root["Coureurs"].recuperer(dossard)
             groupementAPartirDeSonNom(coureur.course, nomStandard = True)
             if coureur.course and not Courses[coureur.course].depart :
                 err = Erreur(462, courteDescription="", elementConcerne=dossard, listeDesDossardsConcernes=[dossard], coureurs=[coureur])
@@ -3778,7 +3908,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     return retour
 
 def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
-    cat = Coureurs.recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
+    cat = root["Coureurs"].recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     try :
         Courses[cat].setARegenererPourImpression(True)
@@ -3898,8 +4028,8 @@ def listCourses():
 def listEtablissements():
     # print(Coureurs.afficher())
     retour = []
-    if Coureurs.nombreDeCoureurs !=0:
-        for coureur in Coureurs.liste() :
+    if root["Coureurs"].nombreDeCoureurs !=0:
+        for coureur in root["Coureurs"].liste() :
             # print(coureur)
             if coureur.etablissement not in retour :
                 retour.append(coureur.etablissement)
@@ -3909,8 +4039,8 @@ def listEtablissements():
 def listCategories(nomStandard=True):
     retour = []
     nom = ""
-    if Coureurs.nombreDeCoureurs != 0:
-        for coureur in Coureurs.liste() :
+    if root["Coureurs"].nombreDeCoureurs != 0:
+        for coureur in root["Coureurs"].liste() :
             if nomStandard :
                 nom = coureur.course
             else :
@@ -3924,9 +4054,9 @@ def listCategories(nomStandard=True):
 
 def listClasses():
     retour = []
-    if Coureurs.nombreDeCoureurs != 0:
+    if root["Coureurs"].nombreDeCoureurs != 0:
         #print("There are classes.")
-        for coureur in Coureurs.liste() :
+        for coureur in root["Coureurs"].liste() :
             if coureur.classe not in retour :
                 retour.append(coureur.classe)
         retour = sorted(retour, key=lambda x: (x is None, x))
@@ -3935,39 +4065,39 @@ def listClasses():
 
 def listDossardsDUneClasse(classe):
     retour = []
-    if Coureurs.nombreDeCoureurs != 0:
-        for coureur in Coureurs.liste() :
+    if root["Coureurs"].nombreDeCoureurs != 0:
+        for coureur in root["Coureurs"].liste() :
             if coureur.classe == classe :
                 retour.append(coureur.dossard)
     return retour
 
 def listDossardsDUnGroupement(nom):
     retour = []
-    if Coureurs.nombreDeCoureurs!=0:
-        for coureur in Coureurs.liste() :
+    if root["Coureurs"].nombreDeCoureurs!=0:
+        for coureur in root["Coureurs"].liste() :
             if nomGroupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])) == nom :
                 retour.append(coureur.dossard)
     return retour
 
 def listDossardsDUneCategorie(cat):
     retour = []
-    if Coureurs.nombreDeCoureurs!=0:
-        for coureur in Coureurs.liste() :
+    if root["Coureurs"].nombreDeCoureurs!=0:
+        for coureur in root["Coureurs"].liste() :
             if coureur.categorie(Parametres["CategorieDAge"]) == cat :
                 retour.append(coureur.dossard)
     return retour
 
 def listCoureursDUneClasse(classe):
     retour = []
-    if Coureurs.nombreDeCoureurs != 0:
-        for coureur in Coureurs.liste()  :
+    if root["Coureurs"].nombreDeCoureurs != 0:
+        for coureur in root["Coureurs"].liste()  :
             if coureur.classe == classe :
                 retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
 def listCoureursDUneCourse(course, nomStandard=True):
     retour = []
-    for coureur in Coureurs.liste()  :
+    for coureur in root["Coureurs"].liste()  :
         #print("fonction listCoureursDUneCourse")
         if nomStandard :
             nom = coureur.course
@@ -3979,22 +4109,22 @@ def listCoureursDUneCourse(course, nomStandard=True):
 
 def listCoureursDUneCategorie(categorie):
     retour = []
-    for coureur in Coureurs.liste()  :
+    for coureur in root["Coureurs"].liste()  :
         if coureur.categorie(Parametres["CategorieDAge"]) == categorie :
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
 def listCoureursDUnEtablissement(etablissement):
     retour = []
-    for coureur in Coureurs.liste() :
+    for coureur in root["Coureurs"].liste() :
         if coureur.etablissement == etablissement :
             retour.append(coureur)
     return triParNomPrenomCoureurs(retour)
 
 ##def listCoureursDUneCourse(course):
 ##    retour = []
-##    if Coureurs.nombreDeCoureurs !=0:
-##        for coureur in Coureurs.liste()  :
+##    if root["Coureurs"].nombreDeCoureurs !=0:
+##        for coureur in root["Coureurs"].liste()  :
 ##            if coureur.categorie() == course :
 ##                retour.append(coureur)
 ##    return triParNomPrenomCoureurs(retour)
@@ -4004,13 +4134,13 @@ def listChallenges():
     et si l'on trouve une course dont le nom standard est identique en G et en F'''
     listeCourses = []
     retour = []
-    if len(Courses)!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
+    if len(root["Courses"])!=0 and (Parametres["CategorieDAge"]== 0 or Parametres["CategorieDAge"]== 2) :
         # print("There are Courses.", Courses)
-        # print("Coureurs", Coureurs.afficher())
-        for cat in Courses :
+        # print("Coureurs", root["Coureurs"].afficher())
+        for cat in root["Courses"] :
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-            listeCourses.append(Courses[cat].categorie)
+            listeCourses.append(root["Courses"][cat].categorie)
         # print("liste des courses examinées", listeCourses)
         for cat in listeCourses :
             if Parametres["CategorieDAge"]== 0 :
@@ -4035,7 +4165,7 @@ def listChallenges():
 
 def listCoursesEtChallenges():
     retour = []
-    if len(Courses)!=0:
+    if len(root["Courses"])!=0:
         for cat in Courses :
             #tests Courses[cat].top()
             #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
@@ -4073,7 +4203,7 @@ def listNomsGroupementsCommences(nomStandard = True):
     for groupement in root["Groupements"] :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            if nomDeLaPremiereCourseDuGroupement in root["Courses"].keys() and root["Courses"][nomDeLaPremiereCourseDuGroupement].temps != 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -4090,7 +4220,7 @@ def listNomsGroupementsNonCommences(nomStandard = True):
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             #print("nomDeLaPremiereCourseDuGroupement",nomDeLaPremiereCourseDuGroupement)
             #print("C:",Courses)
-            if nomDeLaPremiereCourseDuGroupement in Courses.keys() and Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            if nomDeLaPremiereCourseDuGroupement in root["Courses"].keys() and root["Courses"][nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 if nomStandard :
                     retour.append(groupement.nomStandard)
                 else :
@@ -4099,7 +4229,7 @@ def listNomsGroupementsNonCommences(nomStandard = True):
 
 def listNomsGroupements(nomStandard = False, sansSlashNiEspace = False):
     retour = []
-    for groupement in sorted(root.get("Groupements",[]), key=lambda x: x.nomStandard) :
+    for groupement in root.get("Groupements",[]) :
         if groupement.listeDesCourses :
             if nomStandard :
                 nom = groupement.nomStandard
@@ -4122,15 +4252,15 @@ def listNomsGroupementsEtChallenges(nomStandard = False):
 def listNomGroupements():
     retour = []
     # tri par ordre alphabétique de nomStandard (en cas de créations inversée)
-    Groupements.sort(key=lambda x: x.nomStandard)
-    for groupement in Groupements :
+    # Groupements.sort(key=lambda x: x.nomStandard) # on ne trie plus les groupements par ordre alphabétique puisque l'ordre va compter désormais.
+    for groupement in root["Groupements"] :
         # print("Nom des groupements", groupement.nomStandard)
         retour.append(groupement.nom)
     return retour
 
 def listGroupementsCommences():
     retour = []
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
@@ -4139,7 +4269,7 @@ def listGroupementsCommences():
 
 def listGroupementsNonCommences(nomStandard = False):
     retour = []
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
             if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
@@ -4156,7 +4286,7 @@ def topDepart(listeDeGroupements):
 
 # pour corriger un départ depuis l'interface
 def fixerDepart(nomGroupement,temps):
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         if groupement.nom == nomGroupement :
             for categorie in groupement.listeDesCourses :
                 Courses[categorie].setTempsHMS(temps)
@@ -4165,17 +4295,17 @@ def fixerDepart(nomGroupement,temps):
 
 def generateListCoureursPourSmartphone() :
     """ on génère désormais un fichier CoureursA.txt, CoureursB.txt, etc... par course pour une recherche rapide à la n-ème ligne des coordonnées du coureur en fonction de son dossard.
-        on ajoute Coureurs.txt qui contient tous les coureurs de toutes les courses pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
+        on ajoute root["Coureurs"].txt qui contient tous les coureurs de toutes les courses pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
     """
     fichierDonneesSmartphoneAvecTousLesCoureurs = "Coureurs.txt"
     fichierDonneesSmartphone = "Coureurs"
     print("Création du fichier pour les smartphones\nCatégorie d'age paramétrée : ",Parametres["CategorieDAge"])
     fComplet = open(fichierDonneesSmartphoneAvecTousLesCoureurs, 'w')
-    print("Clés coureurs ", Coureurs.cles())
-    for lettre in Coureurs.cles() :
+    print("Clés coureurs ", root["Coureurs"].cles())
+    for lettre in root["Coureurs"].cles() :
         if lettre :
             with open(fichierDonneesSmartphone + lettre + ".txt", 'w') as f :
-                for coureur in Coureurs[lettre] :
+                for coureur in root["Coureurs"][lettre] :
                     try :
                         #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
                         #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
@@ -4285,7 +4415,7 @@ def generateQRcode(n):
 def generateQRcodes() :
     print("Création des QR-codes nécessaires")
     i = 0
-    L = Coureurs.liste()
+    L = root["Coureurs"].liste()
     while i < len(L) :
         generateQRcode(L[i].dossard)
         i += 1
@@ -4293,7 +4423,7 @@ def generateQRcodes() :
     
 def generateQRcodesCoursesManuelles() :
     print("Création des QR-codes nécessaires pour les coursesManuelles")
-    L = Coureurs.cles()
+    L = root["Coureurs"].cles()
     for lettre in L :
         i = 1
         while i <= Parametres["nbreDossardsAGenererPourCourseManuelles"] :
@@ -4435,7 +4565,7 @@ def generateDossardsNG() :
         f.close()
     ### création de tous les dossards + ceux par catégorie complétés.
     with open(TEXDIR+"0-tousLesDossards.tex", 'a',encoding="utf-8") as f :
-        listeDeCoureurs = Coureurs.liste()
+        listeDeCoureurs = root["Coureurs"].liste()
         codeLatex, listeCouleurs = retourneDossardsNG(listeDeCoureurs, completeFichierParCategorie=True, imprimerLesAbsentsEtDispenses=False)
         # la génération globale de tous les dossards implique son impression par l'opérateur. On suppose que cela sera effectué.
         for c in listeDeCoureurs :
@@ -4483,10 +4613,10 @@ def generateDossardsNG() :
         ## création d'un fichier de QR-codes pour impression - plastifiage - agrafage sur d'autres dossards existants.
         with open(TEXDIR+ fichier + ".tex", 'a',encoding="utf-8") as fL :
             fL.write(enteteQR + "\n\n")
-            L = Coureurs.cles()
-            Coureurs.afficher()
+            L = root["Coureurs"].cles()
+            root["Coureurs"].afficher()
             print("Affichage des Coureurs pour comprendre")
-            print("Clés",Coureurs.cles())
+            print("Clés",root["Coureurs"].cles())
             for nomCourse in L :
                 alimenteListingPourCourse(nomCourse, fL)
                 if nomCourse != L[:-1] :
@@ -4509,7 +4639,7 @@ def generateDossardsNG() :
 def CombienYATIlDossardsAImprimer() :
     """ retourne True s'il y a des dossards à imprimer"""
     retour = 0
-    for coureur in Coureurs.liste() :
+    for coureur in root["Coureurs"].liste() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
             retour += 1
     if retour :
@@ -4548,7 +4678,7 @@ def generateDossardsAImprimer() :
 ##    f.close()
     ##  génère la liste des coureurs concernés par l'impression
     listeAImprimer = []
-    for coureur in Coureurs.listeParCouleurDeDossard() :
+    for coureur in root["Coureurs"].listeParCouleurDeDossard() :
         if not coureur.dispense and not coureur.absent and coureur.aImprimer : # si le coureur a été créé manuellement et n'a pas été imprimé.
             listeAImprimer.append([coureur,groupementAPartirDeSonNom(coureur.course, nomStandard=True).getCouleur()])
             retour.append(coureur.dossard)
@@ -4742,23 +4872,23 @@ def CoureursParClasseUpdate():
     CoureursParClasse.clear()
     CoureursParClasseOrdonnes.clear()
     if Parametres["CategorieDAge"] == 2 : # cas UNSS
-        for c in Coureurs.liste() :
+        for c in root["Coureurs"].liste() :
             if not c.etablissement in CoureursParClasse.keys() :
                 CoureursParClasse[c.etablissement]=[]
             CoureursParClasse[c.etablissement].append(c)
     elif Parametres["CategorieDAge"] == 1 : # cas catégories d'age
         if Parametres["CoursesManuelles"] :
-            for c in Coureurs.liste() :
+            for c in root["Coureurs"].liste() :
                 if not c.course in CoureursParClasse.keys() :
                     CoureursParClasse[c.course]=[]
                 CoureursParClasse[c.course].append(c)
         else :
-            for c in Coureurs.liste() :
+            for c in root["Coureurs"].liste() :
                 if not c.categorie(True) in CoureursParClasse.keys() :
                     CoureursParClasse[c.categorie(True)]=[]
                 CoureursParClasse[c.categorie(True)].append(c)
     else : # cas cross de collège
-        for c in Coureurs.liste() :
+        for c in root["Coureurs"].liste() :
             if not c.classe in CoureursParClasse.keys() :
                 CoureursParClasse[c.classe]=[]
             CoureursParClasse[c.classe].append(c)
@@ -4962,11 +5092,11 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
         if nomFichierPdfDecoupe[0] == "Classe" :
             catG = nomFichierPdfDecoupe[1][0] + "-G"
             catF = nomFichierPdfDecoupe[1][0] + "-F"
-            if catG in Courses.keys() :
+            if catG in root["Courses"].keys() :
                 aSupprimerG = Courses[catG].aRegenererPourImpression
             else :
                 aSupprimerG = False
-            if catF in Courses.keys() :
+            if catF in root["Courses"].keys() :
                 aSupprimerF = Courses[catF].aRegenererPourImpression
             else :
                 aSupprimerF = False
@@ -5517,7 +5647,7 @@ def compilerTousLesTex(TEXDIR, PDFDIR):
 
 def listeDesCategoriesDUnGroupement(nomGroupement):
     retour = []
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         if groupement.nomStandard == nomGroupement :
             retour = groupement.listeDesCourses
             break
@@ -5528,7 +5658,7 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
     retour = None
     ### j'aurais dû choisir un dictionnaire mais, en l'état, je ne change pas un ensemble qui fonctionne.
     ### il me faudrait changer tous les appels aux groupements partout dans le code pour optimiser.
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         if nomStandard :
             if groupement.nomStandard == nomGroupement or nomGroupement in groupement.listeDesCourses : ### ajout UNSS
                 retour = groupement
@@ -5545,7 +5675,7 @@ def ancienGroupementAPartirDUneCategorie(categorie):
     où les Courses n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     retour = None
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         for cat in groupement.listeDesCourses :
             if cat == categorie :
                 retour = groupement
@@ -5573,6 +5703,7 @@ def nomGroupementAPartirDUneCategorie(categorie, nomStandard = True):
     # return retour
 
 def groupementAPartirDUneCategorie(categorie):
+    global root
     """ retourne un objet groupement à partir d'un nom de catégorie ou de course"""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     # retour = None
@@ -5587,13 +5718,13 @@ def groupementAPartirDUneCategorie(categorie):
     try :
         #print("Croupements",Groupements)
         #print("nomGroupement",Courses[categorie].nomGroupement)
-        retour = Groupements[findIndex(Courses[categorie].nomGroupement, Groupements)] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+        retour = root["Groupements"][findIndex(root["Courses"][categorie].nomGroupement, root["Groupements"])] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         try :
-            retour = Groupements[findIndex(Courses[categorie].initNomGroupement(categorie), Groupements)]# Courses[categorie].initNomGroupement(categorie)
+            retour = root["Groupements"][findIndex(root["Courses"][categorie].initNomGroupement(categorie), root["Groupements"])]# Courses[categorie].initNomGroupement(categorie)
         except:
             retour = None
-            print("ERREUR : groupementAPartirDUneCategorie", categorie, "n'a pas de groupement")
+            print("ERREUR : groupementAPartirDUneCategorie", categorie, "n'a pas de groupement. Ici, on pourrait ajouter la création du groupement pour cette catégorie mais ce ne serait pas corriger le cause qui est ailleurs.")
     return retour
 
 def findIndex(nom, L):
@@ -5608,40 +5739,42 @@ def findIndex(nom, L):
 
 def nettoieGroupements() :
     """ supprime les listes vides de Groupements, créées par l'interface si un utilisateur décide d'effectuer des regroupements non incrémentés à partir de 1."""
-    i = len(Groupements) - 1
+    i = len(root["Groupements"]) - 1
     while i >= 0 :
-        if not Groupements[i].listeDesCourses :
-            del Groupements[i]
+        if not root["Groupements"][i].listeDesCourses :
+            del root["Groupements"][i]
         i -= 1
 
 def updateNomGroupement(nomStandard, nomChoisi) :
     groupementAPartirDeSonNom(nomStandard).setNom(nomChoisi)
 
 def updateGroupements(categorie, placeInitiale, placeFinale):
+    """Gère la mise à jour ordonnée de la liste root["Groupements"] en ne laissant aucun groupement vie, sans course"""
     print("Mise à jour de Groupements : ",categorie,"déplacée du groupement ", placeInitiale, "vers le",placeFinale)
     # print("Groupements initial :")
     # for grp in Groupements :
         # print(grp.listeDesCourses)
         # print(grp.nom)
     if placeInitiale != placeFinale :
-        Groupements[placeInitiale-1].removeCourse(categorie)
-        if placeFinale - 1 == len(Groupements) :
-            Groupements.append(Groupement(categorie,[categorie]))
+        root["Groupements"][placeInitiale-1].removeCourse(categorie)
+        if placeFinale - 1 == len(root["Groupements"]) :
+            root["Groupements"].append(Groupement(categorie,[categorie]))
         else :
-            Groupements[placeFinale-1].addCourse(categorie)
+            root["Groupements"][placeFinale-1].addCourse(categorie)
         nettoieGroupements()
-        #print("Groupements final :")
-        #for grp in Groupements :
-        #    print(grp.nom,grp.listeDesCourses)
+        if DEBUG :
+            print("Groupements final :")
+            for grp in root["Groupements"] :
+                print(grp.nom,grp.listeDesCourses)
 
 def supprimeCourseDuGroupementEtNettoieGroupements(course):
     """ Utilisé uniquement lors des courses manuelles où des courses sont identiques aux groupements. Les courses sont créées manuellement
     et peuvent exister sans coureur dedans, ce qui n'arrive jamais sinon."""
     i = 0
-    for g in Groupements :
+    for g in root["Groupements"] :
         if course in g.listeDesCourses :
             g.removeCourse(course)
-            del Groupements[i]
+            del root["Groupements"][i]
         i += 1
 
 # def absentsDispensesAbandonsEnTex() :
@@ -5649,7 +5782,7 @@ def supprimeCourseDuGroupementEtNettoieGroupements(course):
 #     Ldisp = []
 #     Labandon = []
 #     #print(Resultats)
-#     for c in Coureurs.liste() :
+#     for c in root["Coureurs"].liste() :
 #         if c.absent :
 #             Labs.append(c)
 #             #print(c.nom, c.prenom, "était absent.")
@@ -5718,7 +5851,7 @@ def absentsDispensesAbandonsNG() :
     Ldisp = []
     Labandon = []
     #print(Resultats)
-    for c in Coureurs.liste() :
+    for c in root["Coureurs"].liste() :
         if c.absent :
             Labs.append(c)
             #print(c.nom, c.prenom, "était absent.")
@@ -5877,7 +6010,7 @@ def dossardSuivantDansArriveeDossards(dossard):
 
 # def listCoureurs():
     # if len(Coureurs)==0:
-        # print("There are no Coureurs.")
+        # print("There are no root["Coureurs"].")
         # return
     # for coureur in Coureurs :
         # print(coureur.dossard, coureur.nom, coureur.prenom, coureur.sexe, coureur.naissance, coureur.classe, coureur.absent, \
@@ -5926,11 +6059,11 @@ def generateResultatsChallenge(nom,listeOrdonneeParTempsDesDossardsDeLaClasse,nb
     #listeDesRangs = []
     nbreDeCoureursPrisEnCompte = int(nbreDeCoureursPrisEnCompte)
     # on ne classe pas l'équipe de la DSDEN dans les résultats.
-    # print("classe" , Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
-    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and Coureurs.recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in Parametres["classeIgnoreesPourChallenge"].split(";") :
+    # print("classe" , root["Coureurs"].recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe , "ignorée pour challenge", classeIgnoreesPourChallenge.split(";"), root["Coureurs"].recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe in classeIgnoreesPourChallenge.split(";"))
+    if len(listeOrdonneeParTempsDesDossardsDeLaClasse) > 0 and root["Coureurs"].recuperer(listeOrdonneeParTempsDesDossardsDeLaClasse[0]).classe not in Parametres["classeIgnoreesPourChallenge"].split(";") :
         while (ng < nbreDeCoureursPrisEnCompte or nf < nbreDeCoureursPrisEnCompte) and i < len(listeOrdonneeParTempsDesDossardsDeLaClasse):
             doss = listeOrdonneeParTempsDesDossardsDeLaClasse[i]
-            coureur = Coureurs.recuperer(doss)
+            coureur = root["Coureurs"].recuperer(doss)
             if coureur.temps != 0 :
                 if ng < nbreDeCoureursPrisEnCompte and coureur.sexe == "G" :
                     #print("le coureur",coureur.prenom,"est en rang",coureur.rang," ng=",ng)
@@ -5974,7 +6107,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
     if listeOrdonneeParScoreDesDossardsDeLaClasse :
         # paramétrage en fonction du type de challenge : collège, LGT ou LP
         doss = listeOrdonneeParScoreDesDossardsDeLaClasse[0]
-        coureur = Coureurs.recuperer(doss)
+        coureur = root["Coureurs"].recuperer(doss)
         # si le premier coureur est en lycée pro, tous le sont (normalement). Sinon, le problème est en amont.
         if coureur.etablissementNature and coureur.etablissementNature.upper() == "LP" :
             nbreDeFillesNecessairesParEquipe = 0
@@ -5999,7 +6132,7 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
         ### parcours de la liste ordonnée fournie pour la séparer par sexe
         while i < len(listeOrdonneeParScoreDesDossardsDeLaClasse):
             doss = listeOrdonneeParScoreDesDossardsDeLaClasse[i]
-            coureur = Coureurs.recuperer(doss)
+            coureur = root["Coureurs"].recuperer(doss)
             if coureur.temps > 0 :
                 if coureur.sexe == "F" :
                     toutesLesFilles.append(coureur)
@@ -6126,7 +6259,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     ResultatsGroupementsPourImpressions.clear()
     #listeDesClasses = []
     # ETAPE 1 : on alimente Resultats avec les coureurs des classes (cross du collège), des catégories d'athlétisme, ou des catégories par établissement (UNSS)
-    for coureur in Coureurs.liste() :
+    for coureur in root["Coureurs"].liste() :
         doss = coureur.dossard
         cat = coureur.categorie(Parametres["CategorieDAge"])
         if cat :
@@ -6223,7 +6356,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
             #print("Groupement", nom, "NbreArrivéesTotal", nbreArriveesGroupement, ResultatsGroupements[nom])
             while i < nbreArriveesGroupement :
                 doss = ResultatsGroupements[nom][i]
-                coureur = Coureurs.recuperer(doss)
+                coureur = root["Coureurs"].recuperer(doss)
                 groupementAPartirDeSonNom(nom,nomStandard = True).evolutionDUnAuxEffectifsTotaux(coureur)
                 #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
                 if coureur.temps > 0 :
@@ -6267,7 +6400,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
         # i = 0
         # while i < len(Resultats[nom]) :
             # doss = Resultats[nom][i]
-            # coureur = Coureurs[doss-1]
+            # coureur = root["Coureurs"][doss-1]
             # #print("coureur",coureur.nom,"(",doss,")",coureur.tempsFormate(),coureur.temps)
             # if coureur.temps > 0 :
             # ### si le coureur doit apparaître dans le tableau des résultats, on lui affecte un rang
@@ -6352,20 +6485,20 @@ def estSuperieurNPC(d1, d2):
         return d1.nom > d2.nom
 
 def estSuperieurNP(d1, d2):
-    if Coureurs.recuperer(d1).nom == Coureurs.recuperer(d2).nom :
+    if root["Coureurs"].recuperer(d1).nom == root["Coureurs"].recuperer(d2).nom :
         # si les noms sont égaux, on compare les prénoms
-        return Coureurs.recuperer(d1).prenom > Coureurs.recuperer(d2).prenom
+        return root["Coureurs"].recuperer(d1).prenom > root["Coureurs"].recuperer(d2).prenom
     else :
-        return Coureurs.recuperer(d1).nom > Coureurs.recuperer(d2).nom
+        return root["Coureurs"].recuperer(d1).nom > root["Coureurs"].recuperer(d2).nom
 
 def estSuperieur(d1, d2):
-    if Coureurs.recuperer(d1).temps == 0 or Coureurs.recuperer(d1).temps == -1 :
+    if root["Coureurs"].recuperer(d1).temps == 0 or root["Coureurs"].recuperer(d1).temps == -1 :
         # si le temps est nul, c'est que la ligne d'arrivée n'a pas été franchie. si -1 c'est que le départ n'a pas été donné
         return True
-    elif Coureurs.recuperer(d2).temps == 0 or Coureurs.recuperer(d2).temps == -1:
+    elif root["Coureurs"].recuperer(d2).temps == 0 or root["Coureurs"].recuperer(d2).temps == -1:
         return False
     else :
-        return Coureurs.recuperer(d1).temps > Coureurs.recuperer(d2).temps
+        return root["Coureurs"].recuperer(d1).temps > root["Coureurs"].recuperer(d2).temps
 
 def estSuperieurS(E1, E2):
     ''' on trie par EquipeClasse.score puis en fonction de listeDesRangs()'''
@@ -6387,14 +6520,14 @@ def estSuperieurS(E1, E2):
             
 def estSuperieurSUNSS(E1, E2):
     ''' on trie par coureur.scoreUNSS puis en fonction de coureur.rang'''
-    if Coureurs.recuperer(E1).scoreUNSS == Coureurs.recuperer(E2).scoreUNSS :
+    if root["Coureurs"].recuperer(E1).scoreUNSS == root["Coureurs"].recuperer(E2).scoreUNSS :
         try :
-            retour = Coureurs.recuperer(E1).rang > Coureurs.recuperer(E2).rang
+            retour = root["Coureurs"].recuperer(E1).rang > root["Coureurs"].recuperer(E2).rang
         except :
             retour = True #pas de départage possible.
         return retour 
     else :
-        return Coureurs.recuperer(E1).scoreUNSS > Coureurs.recuperer(E2).scoreUNSS
+        return root["Coureurs"].recuperer(E1).scoreUNSS > root["Coureurs"].recuperer(E2).scoreUNSS
 
 def triParNomPrenomCoureurs(listeDeCoureurs):
     return trifusionNPC(listeDeCoureurs)
@@ -6708,12 +6841,12 @@ def delArriveeTemps(tempsCoureur, dossard="0A") :
 
 
 def coureurExists(nom, prenom) :
-    return Coureurs.existe(Coureur(nom, prenom, "G"))
+    return root["Coureurs"].existe(Coureur(nom, prenom, "G"))
     # retour = 0
     # i=0
     # while i < len (Coureurs) and not retour :
-        # if Coureurs[i].nom.lower() == nom.lower() and Coureurs[i].prenom.lower() == prenom.lower() :
-            # retour = Coureurs[i].dossard
+        # if root["Coureurs"][i].nom.lower() == nom.lower() and root["Coureurs"][i].prenom.lower() == prenom.lower() :
+            # retour = root["Coureurs"][i].dossard
         # i += 1
     # return retour
 
@@ -6756,7 +6889,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
     if ajoutEstIlValide(nom, prenom,sexe, classe, naissance, etablissement, etablissementNature, course, dossard) :
         dossardTrouve = coureurExists(nom, prenom)
         dossardNonSpecifieEtLesNomsPrenomsExistent = (dossard == "" and dossardTrouve != "")
-        dossardSpecifieEtDejaOccupe = (dossard != "" and Coureurs.existe(dossard))
+        dossardSpecifieEtDejaOccupe = (dossard != "" and root["Coureurs"].existe(dossard))
         if dossardSpecifieEtDejaOccupe or dossardNonSpecifieEtLesNomsPrenomsExistent : ##"commentaire en urgence" 
             if dossard == "" :
                 dossard = dossardTrouve
@@ -6764,9 +6897,9 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             # if (dossard != "" and dossardTrouve == dossard) or  :            
             ### on actualise des propriétés du coureur.
             auMoinsUnChangement = False
-            coureur = Coureurs.recuperer(dossard)
+            coureur = root["Coureurs"].recuperer(dossard)
             # si les paramètres sont identiques à l'existant, on ne fait rien et on ne référence pas cette actualisation pour l'interface graphique.
-            #print("Actualisation de ", Coureurs[dossard-1].nom, Coureurs[dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
+            #print("Actualisation de ", root["Coureurs"][dossard-1].nom, root["Coureurs"][dossard-1].prenom, "(", dossard, "): status, VMA, commentaire à l'arrivée.")
             if coureur.sexe != sexe :
                 coureur.setSexe(sexe)
                 print("sexe changé de",coureur.sexe,"en",sexe)
@@ -6848,10 +6981,10 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
             if auMoinsUnChangement :
                 print("On a mis à jour les caractéristiques du coureur au dossard", dossard)
                 if not Parametres["CoursesManuelles"] :
-                    addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
+                    addCourse(root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
                     # pour toutes les courses automatiques, on doit actualiser la course si besoin.
                 print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
-                      commentaireArrivee, " (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
+                      commentaireArrivee, " (catégorie :", root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
                       "Course manuelle:",course,")")
                 retour, d = [0,1,0,0], dossard
             else :
@@ -6862,6 +6995,8 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
         else :
             retourCreation = [1,0,0,0] # par défaut, il n'y a pas d'erreur
             ### on crée le coureur (il n'a pas encore de numéro de dossard)
+            
+            
             if Parametres["CoursesManuelles"] :
             ####    on cherche si la course proposée existe dans son nom et on trouve la lettre correspondante. 
             ####    Si non, on la crée et on récupère la lettre.
@@ -6878,29 +7013,31 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                     #nomStandard = addCourse(course)
             else :
                 lettreCourse = "A"
-                # addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
-            if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
-                # si oui, alors, on crée le coureur.
-                print("temp", not Coureurs.existe(dossard), lettreCourse, " == ", formateDossardNG(dossard)[-1])
-                if (not Coureurs.existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
-                    # création avec le dossard imposé.
-                    print("c'est ici que l'on ajoute le coureur à mettre à jour.")
-                    dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
+            
+            coureurAAjouter = Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
                                                 etablissementNature=etablissementNature, absent=absent,\
                                                 dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
                                                 aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email, email2=email2), dossard = dossard)
+                                                course=lettreCourse, email=email, email2=email2)
+            
+            if not Parametres["CoursesManuelles"] :
+                addCourse(coureurAAjouter.categorie(Parametres["CategorieDAge"]))
+            
+            if dossard != "" : # si un numéro de dossard est proposé à l'import de nouveaux coureurs, on teste si il est libre.
+                # si oui, alors, on crée le coureur.
+                print("temp", not root["Coureurs"].existe(dossard), lettreCourse, " == ", formateDossardNG(dossard)[-1])
+                if (not root["Coureurs"].existe(dossard)) and lettreCourse == formateDossardNG(dossard)[-1] : # le dossard est libre et la lettre du dossard correcte.
+                    # création avec le dossard imposé.
+                    print("c'est ici que l'on ajoute le coureur à mettre à jour.")
+                    dossard = root["Coureurs"].ajouter(coureurAAjouter, dossard = dossard)
                 else :
                     print("ERREUR : le dossard ", dossard, "n'est pas libre et ne correspond pas au coureur en cours de création (ou à la lettre de course :", lettreCourse,").")
             else :
                 # 
-                dossard = Coureurs.ajouter(Coureur( nom, prenom, sexe, classe=classe, naissance=naissance, etablissement=etablissement,\
-                                                etablissementNature=etablissementNature, absent=absent,\
-                                                dispense=dispense, temps=temps, commentaireArrivee=commentaireArrivee, VMA=vma,\
-                                                aImprimer=aImprimer,\
-                                                course=lettreCourse, email=email, email2=email2), course = lettreCourse)
+                dossard = root["Coureurs"].ajouter(coureurAAjouter, course = lettreCourse)
+                
             # gestion de l'erreur : création d'un dossard impossible : le seul cas est le manque de dossards disponibles quand on a pris le paramètre seriesDeDossardDeCouleur
-            if type(dossard) == Erreur :
+            if isinstance(dossard, Erreur) :
                 retourCreation = [0,0,1,0]
                 print("Erreur", dossard.numero, "Impossible d'ajouter le coureur ", nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, "dans course",\
                   lettreCourse, " ",course)
@@ -6919,13 +7056,13 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 # print("lettreCourse",lettreCourse)
             else :
                 print("ajout de la course automatique si besoin")
-                lettreCourse = addCourse(Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
-                print(Coureurs.recuperer(dossard).nom, Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                lettreCourse = addCourse(root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"]))
+                print(root["Coureurs"].recuperer(dossard).nom, root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"]))
             ##print("dossard récupéré:",dossard)
             ##transaction.commit()
             
-            #print(" (catégorie :", Coureurs.recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
-            ## Coureurs[-1].setCourse(addCourse(course))
+            #print(" (catégorie :", root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"]),")", "Course :", course)
+            ## root["Coureurs"][-1].setCourse(addCourse(course))
             retour, d = retourCreation, dossard
     else :
         print("Il manque un paramètre obligatoire (valide) pour créer le coureur. nom=",nom," ; prénom=",prenom," ; sexe=",sexe," ; classe=",classe," ; naissance=",naissance," ; course=",course," ; établissement=",etablissement," ; établissementType=", etablissementNature)
@@ -6943,7 +7080,7 @@ def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
         si la course n'existe pas, retourne la prochaine lettre disponible dans l'ordre alphabétique"""
     trouve = False
     a = 1
-    for g in Groupements :
+    for g in root["Groupements"] :
         if g.nom == course :
             trouve = True
             break
@@ -6952,7 +7089,7 @@ def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
     if not trouve :
          # print("Recherche de la première lettre non encore utilisée")
         for a in range(1,27) :
-            if not chr(a+64) in Courses.keys() :
+            if not chr(a+64) in root["Courses"].keys() :
                 break
         retour = chr(a+64)
         print("La première lettre non encore utilisée est", retour)
@@ -6962,7 +7099,7 @@ def lettreCourseEnModeCoursesManuelles(course):#, avecCreation=True) :
 
 def estDansGroupementsEnModeManuel(course):
     retour = ""
-    for g in Groupements :
+    for g in root["Groupements"] :
         if g.nomStandard == course :
             retour = g.nomStandard
             break
@@ -6988,28 +7125,21 @@ def addCourse(course, lettreCourse="") :
             #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
             if not lettreCourse in Courses :
                 print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
-                Groupements.append(Groupement(lettreCourse,[lettreCourse]))
-                Groupements[-1].setNom(course)
+                root["Groupements"].append(Groupement(lettreCourse,[lettreCourse]))
+                root["Groupements"][-1].setNom(course)
                 c = Course(course)
-                Courses.update({lettreCourse : c})
+                root["Courses"].update({lettreCourse : c})
             return lettreCourse
         else :
             # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
-            estPresent = False
-            for grpment in Groupements :
-                if course in grpment.listeDesCourses :
-                    estPresent = True
-                    break
-            if not estPresent:
-                print("Création du groupement dans addCourse", course)
-                Groupements.append(Groupement(course,[course]))
+            ajouteUnGroupementPourLaCategorieSiBesoin(course)
                 #print("Groupements = ",[i.nom for i in Groupements])
             # création de la course si elle n'existe pas.
             #print(course, " est dans ", Courses,"?")
-            if course not in Courses :
+            if course not in root["Courses"] :
                 print("Création de la course", course)
                 c = Course(course)
-                Courses.update({course : c})
+                root["Courses"].update({course : c})
             return course
             #print("cat",Courses[course].categorie)
     else :
@@ -7017,7 +7147,7 @@ def addCourse(course, lettreCourse="") :
 
 def estDansGroupementsEnModeManuel(course):
     retour = ""
-    for g in Groupements :
+    for g in root["Groupements"] :
         if g.nomStandard == course :
             retour = g.nomStandard
             break
@@ -7076,7 +7206,8 @@ def formateDossardNG(doss, course="") :
                 doss = str(doss) + "A"
         else :
             doss = str(doss).upper()
-    return doss.replace(" ","")
+        doss = doss.replace(" ","")
+    return doss
 
 def addArriveeDossard(dossard, dossardPrecedent=-1) :
     """ajoute un dossard sur la ligne d'arrivée dans l'ordre si non précisé. Si l'index est précisé, insère à l'endroit précisé par dossardPrecedent
@@ -7084,8 +7215,8 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
         Retourne 0 s'il n'y a pas d'erreur."""
     doss = formateDossardNG(dossard)
     dossPrecedent = formateDossardNG(dossardPrecedent)
-    if Coureurs.existe(doss) :
-        coureur = Coureurs.recuperer(doss)
+    if root["Coureurs"].existe(doss) :
+        coureur = root["Coureurs"].recuperer(doss)
         if Parametres["CategorieDAge"] :
             infos = "dossard " + str(dossard) + " - " + coureur.nom + " " + coureur.prenom + " (" + coureur.categorie(Parametres["CategorieDAge"]) + ")."
         else :
@@ -7102,20 +7233,20 @@ def addArriveeDossard(dossard, dossardPrecedent=-1) :
                 #Mais si l'envoi des données du smartphone vers le serveur ne s'est pas vu accuser réception, le smartphone envoie une deuxième fois le dossard et on a un bloquant.
                 # Désormais, le deuxième envoi est ignoré pour que l'interface ne se bloque plus sur cette erreur précise.
                 # return message
-        elif not Coureurs.existe(doss) :#doss > len(Coureurs) or doss < 1 :
+        elif not root["Coureurs"].existe(doss) :#doss > len(Coureurs) or doss < 1 :
             message = "Numéro de dossard incorrect :\n"  + infos
             print(message)
             retour=Erreur(411,message,elementConcerne=doss)
-        elif Coureurs.recuperer(doss).absent :
+        elif root["Coureurs"].recuperer(doss).absent :
             message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car absent :\n" + infos
             print(message)
             retour=Erreur(421,message,elementConcerne=doss)
-        elif Coureurs.recuperer(doss).dispense :
+        elif root["Coureurs"].recuperer(doss).dispense :
             message = "Ce coureur ne devrait pas avoir passé la ligne d'arrivée car dispensé :\n" + infos
             print(message)
             retour=Erreur(421,message,elementConcerne=doss)
-        elif Coureurs.recuperer(doss).course in Courses.keys() and not Courses[Coureurs.recuperer(doss).course].depart :
-            message = "La course " + groupementAPartirDeSonNom(Coureurs.recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
+        elif root["Coureurs"].recuperer(doss).course in root["Courses"].keys() and not root["Courses"][root["Coureurs"].recuperer(doss).course].depart :
+            message = "La course " + groupementAPartirDeSonNom(root["Coureurs"].recuperer(doss).course, nomStandard = True).nom + " n'a pas encore commencé. Ce coureur ne devrait pas avoir passé la ligne d'arrivée :\n" + infos
             print(message)
             retour=Erreur(431,message,elementConcerne=doss)
         ### changement comportemental du logiciel : Même s'il y a une erreur, on ajoute le dossard dans ArriveeDossards au bon endroit. Ainsi, il apparaîtra dans l'interface. L'erreur sera signalée et devra être corrigée.
@@ -7211,7 +7342,7 @@ def calculeTousLesTemps(reinitialise = False):
         ### debug
         tps = ArriveeTemps[i]
         dossardAffecteAuTps = formateDossardNG(ArriveeTempsAffectes[i])
-        if (dossardAffecteAuTps != "0" and dossardAffecteAuTps != "0A") and Coureurs.existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
+        if (dossardAffecteAuTps != "0" and dossardAffecteAuTps != "0A") and root["Coureurs"].existe(dossardAffecteAuTps) : # dossardAffecteAuTps <= len(Coureurs) :
             # 2ème test pour s'assurer que le dossard affecté existe. Prévient des bugs de saisie smartphones.
             # un dossard est affecté. On doit trouver le dossard dans ArriveeDossards
             if dossardAffecteAuTps == doss :
@@ -7242,7 +7373,7 @@ def calculeTousLesTemps(reinitialise = False):
                     retour.append(Erreur(321,message, elementConcerne=doss))
                     chronosInutilesAvantLeDossard = doss
                 #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps)
-                coureur = Coureurs.recuperer(doss)
+                coureur = root["Coureurs"].recuperer(doss)
                 alimenteTableauGUI (tableauGUI, coureurVide, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
                 i += 1
                 #retour += affecteChronoAUnCoureur(doss, tps)
@@ -7370,7 +7501,7 @@ def categorieDuDernierDepart() :
 ##                        retour += "<p><red>Il y a un (des) chrono(s) inutilisé(s) juste avant le dossard " + str(doss) + "</red></p>\n"
 ##                        chronosInutilesAvantLeDossard = doss
 ##                    #DonneesAAfficher.append(coureurVide,tps, dossardAffecteAuTps)
-##                    coureur = Coureurs[doss - 1]
+##                    coureur = root["Coureurs"][doss - 1]
 ##                    alimenteTableauGUI (tableauGUI, coureurVide, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee)
 ##                    i += 1
 ##                    #retour += affecteChronoAUnCoureur(doss, tps)
@@ -7427,7 +7558,7 @@ def categorieDuDernierDepart() :
 def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee, tpsNonSaisi=False):
     tps.dossardAttribue = doss
     arrivee = tps.tempsReel
-    coureur = Coureurs.recuperer(doss)
+    coureur = root["Coureurs"].recuperer(doss)
     cat = coureur.course # categorie(Parametres["CategorieDAge"])
     retour = []
     try :
@@ -7477,18 +7608,18 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
 def tupleEtablissement() :
     '''retourne un tuple avec tous les établissements de tous les coureurs'''
     L = []
-    for c in Coureurs.liste() :
+    for c in root["Coureurs"].liste() :
         if not c.etablissement in L :
             L.append(c.etablissement)
     return tuple(L)
 
 ##def reindexDossards(numeroInitial) :
-##    """ Réindexe tous les numéros de dossards des coureurs en cas d'insertion ou de suppression dans la liste Coureurs.\
+##    """ Réindexe tous les numéros de dossards des coureurs en cas d'insertion ou de suppression dans la liste root["Coureurs"].\
 ##    Le dossard doit toujours être égal à l'index + 1 """
 ##    if not Parametres["CourseCommencee"] :
 ##        i = numeroInitial
 ##        while i < len(Coureurs) :
-##            coureur = Coureurs[i]
+##            coureur = root["Coureurs"][i]
 ##            #print("on rénumérote les dossards pour", coureur.nom, coureur.prenom)
 ##            coureur.setDossard(i+1)
 ##            i += 1
@@ -7496,15 +7627,15 @@ def tupleEtablissement() :
 
 def delCoureur(dossard):
     if not Parametres["CourseCommencee"] :
-        course = Coureurs.recuperer(dossard).course
-        Coureurs.efface(dossard)
+        course = root["Coureurs"].recuperer(dossard).course
+        root["Coureurs"].efface(dossard)
         delCourse(course)
         print("Coureur effacé :", dossard,".")
     # doss = int(dossard)
     # if not Parametres["CourseCommencee"] :
         # if doss-1 < len(Coureurs) :
-            # categorie = Coureurs[doss - 1].categorie(Parametres["CategorieDAge"])
-            # del Coureurs[doss-1]
+            # categorie = root["Coureurs"][doss - 1].categorie(Parametres["CategorieDAge"])
+            # del root["Coureurs"][doss-1]
             # # plus besoin car les dossards correspondront toujours avec le nouveau dictionnaire Coureurs : reindexDossards(doss-1)
             # delCourse(categorie)
             # print("Coureur effacé :", dossard,".")
@@ -7529,7 +7660,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
             # l'ancienne version de chronoHB utilisait -1 pour indiquer qu'il n'y avait pas de prédécesseur.
             # dans ce cas, on supprime la première occurence de dossard, si possible (ancienne version de delArriveeDossard finalement)
             try :
-                Coureurs.recuperer(doss).setTemps(0)
+                root["Coureurs"].recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.remove(doss)
                 retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
@@ -7542,7 +7673,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
             if formateDossardNG(ArriveeDossards[0]) == doss :
                 # on supprime le premier élément de la liste.
                 print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
-                Coureurs.recuperer(doss).setTemps(0)
+                root["Coureurs"].recuperer(doss).setTemps(0)
                 Parametres["calculateAll"] = True
                 ArriveeDossards.pop(0)
                 retour = Erreur(0, courteDescription="Supprimer erreur 401 si besoin", elementConcerne=doss)
@@ -7559,7 +7690,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
                 if formateDossardNG(ArriveeDossards[i]) == doss and formateDossardNG(ArriveeDossards[i-1]) == dossardPrec :
                     # suppression de l'élément i de la liste.
                     print("Suppression du dossard", doss, "avec comme prédécesseur", dossardPrec)
-                    Coureurs.recuperer(doss).setTemps(0)
+                    root["Coureurs"].recuperer(doss).setTemps(0)
                     Parametres["calculateAll"] = True
                     ArriveeDossards.pop(i)
                     pasTrouve = False
@@ -7581,7 +7712,7 @@ def delArriveeDossard(dossard, dossardPrecedent="-1"):
     # doss = formateDossardNG(dossard)
     # if not Parametres["CourseCommencee"] :
         # try :
-            # Coureurs.recuperer(doss).setTemps(0)
+            # root["Coureurs"].recuperer(doss).setTemps(0)
             # #if doss != ArriveeDossards[-1] :
             # Parametres["calculateAll"] = True
             # #transaction.commit()
@@ -7607,13 +7738,13 @@ def delArriveeDossards():
 
 
 def delTousLesTempsDesCoureurs():
-    for c in Coureurs.liste() :
+    for c in root["Coureurs"].liste() :
         c.setRang(0)
         c.setTemps(0)
     print("Tous les temps des coureurs effacés")
 
 def delTousLesDeparts():
-    for key, value in Courses.items() :
+    for key, value in root["Courses"].items() :
         value.reset()
     print("Tous les top départs effacés")
 
@@ -7663,7 +7794,7 @@ def delDossardsEtTemps():
 def delCoureurs():
     # global ligneTableauGUI
 ##    if not Parametres["CourseCommencee"] :
-    Coureurs.effacerTout()
+    root['Coureurs'] = DictionnaireDeCoureurs()
     CoureursParClasseUpdate()
     print("Coureurs effacés")
     delCourses()
@@ -7686,7 +7817,7 @@ def nettoieCoursesManuelles():
     """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
     # recherche des courses avec coureurs mises dans L
     L = []
-    for c in Coureurs.liste() :
+    for c in root["Coureurs"].liste() :
         if not c.course in L :
             L.append(c.course)
     # création de CoursesNew et GroupementsNew
@@ -7705,21 +7836,21 @@ def nettoieCoursesManuelles():
             newGroupements[-1].setListeDesCourses([nouveauNom])
             i+=1
     # réindexation des noms de courses des coureurs
-    for c in Coureurs.liste() :
+    for c in root["Coureurs"].liste() :
         c.setCourse(transcription[c.course])
-    Coureurs.reindexer(transcription)
+    root["Coureurs"].reindexer(transcription)
     # nettoyage avec garbage collector
     Courses = newCourses
-    Groupements = newGroupements
-    # Coureurs.afficher()
+    root["Groupements"] = newGroupements
+    # root["Coureurs"].afficher()
     #print(newCourses, newGroupements, Courses, Groupements)
-    return Courses, Groupements        
+    return Courses, root["Groupements"]        
             
 
     
 def delCourse(categorie) :
-    if categorie in Courses :
-        c = Courses[categorie]
+    if categorie in root["Courses"] :
+        c = root["Courses"][categorie]
         ### VERSION AVEC LA PROPRIETE effectif DONT L'UTILITE EST DISCUTABLE : il est RARE de supprimer un coureur importé.
         #effectif = c.effectif
 ##        if effectif == 0 :
@@ -7732,8 +7863,8 @@ def delCourse(categorie) :
 ##      ANCIENNE VERSION (restaurée) QUAND L'EFFECTIF N'ETAIT PAS UNE PROPRIETE DE l'objet Course
         i=0
         stop = False
-        L = Coureurs.liste()
-        while i < Coureurs.nombreDeCoureurs and not stop :
+        L = root["Coureurs"].liste()
+        while i < root["Coureurs"].nombreDeCoureurs and not stop :
             coureur = L[i]
             if coureur.categorie(Parametres["CategorieDAge"]) == categorie :
                 stop = True
@@ -7742,13 +7873,13 @@ def delCourse(categorie) :
             print("Categorie", categorie, "conservée.")
         else :
             print("Suppression de la course", categorie, "devenue inutile.")
-            Courses.pop(categorie)
+            root["Courses"].pop(categorie)
             ### ICI, actualisation des groupements en supprimant les groupements qui n'ont que cette course.
-            for g in Groupements :
+            for g in root["Groupements"] :
                 if categorie in g.listeDesCourses :
                     g.listeDesCourses.remove(categorie)
                     if not g.listeDesCourses : # si le groupement est vide, on le vire
-                        Groupements.remove(g)
+                        root["Groupements"].remove(g)
                     break # une course ne peut être que dans un groupement. Poursuite du parcours inutile.
             ##transaction.commit()
     else :
@@ -7757,7 +7888,7 @@ def delCourse(categorie) :
 ##def actualiseCourses():
 ##    i = 0
 ##    while i < len(Coureurs) :
-##        coureur = Coureurs[i]
+##        coureur = root["Coureurs"][i]
 ##        creerCourse(coureur.categorie(CategorieDAge))
 ##        i += 1
 
@@ -7862,8 +7993,8 @@ def genereHeureDepartHTML(groupement) :
         retour = [1,0,0,0,0,0] # les challenges n'ont pas d'heure de départ
     else :
         # print("Coucou temp ",groupement)
-        if Courses and groupementAPartirDeSonNom(groupement, nomStandard = True) and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in Courses.keys() :
-            c = Courses[groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
+        if root["Courses"] and groupementAPartirDeSonNom(groupement, nomStandard = True) and groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0] in root["Courses"].keys() :
+            c = root["Courses"][groupementAPartirDeSonNom(groupement, nomStandard = True).listeDesCourses[0]]
             #print("TEST HTML :",c.label, c.temps)
             if c.temps :
                 retour = c.departFormate(affichageHTML=True) # le groupement a été lancé. On récupère son heure.
@@ -8114,10 +8245,10 @@ def creerFichierClasseNG(nom, entete, estGroupement):
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in Dossards :
-        if Coureurs.recuperer(dossard).temps >= 0 :
+        if root["Coureurs"].recuperer(dossard).temps >= 0 :
             newline, ArrDispAbsAband = genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAband, rangCourse)
-            if Coureurs.recuperer(dossard).temps > 0 or garderAbsDispAbandons or \
-               (not Coureurs.recuperer(dossard).absent and not Coureurs.recuperer(dossard).dispense and garderAbandons) :
+            if root["Coureurs"].recuperer(dossard).temps > 0 or garderAbsDispAbandons or \
+               (not root["Coureurs"].recuperer(dossard).absent and not root["Coureurs"].recuperer(dossard).dispense and garderAbandons) :
             # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
                 tableau += [newline]
     return [entete[0].replace("@nom@",denomination)] +  ["<p>"] + [tableau], ArrDispAbsAband
@@ -8180,10 +8311,10 @@ def creerFichierClasse(nom, entete, estGroupement):
     #VMApresente = yATIlUneVMA(Dossards)
     ArrDispAbsAband = [0,0,0,0,0,0,0,0,[]] # le dernier élément contient tous les temps de la classe pour établir moyenne et médiane en bout de calcul
     for dossard in Dossards :
-        if Coureurs.recuperer(dossard).temps >= 0 :
+        if root["Coureurs"].recuperer(dossard).temps >= 0 :
             newline, ArrDispAbsAband = genereLigneTableauTEXclasse(dossard, ArrDispAbsAband, rangCourse)
-            if Coureurs.recuperer(dossard).temps > 0 or garderAbsDispAbandons or \
-               (not Coureurs.recuperer(dossard).absent and not Coureurs.recuperer(dossard).dispense and garderAbandons) :
+            if root["Coureurs"].recuperer(dossard).temps > 0 or garderAbsDispAbandons or \
+               (not root["Coureurs"].recuperer(dossard).absent and not root["Coureurs"].recuperer(dossard).dispense and garderAbandons) :
             # si tps >0 (a couru) OU on garde tout le monde OU si pas absent ni disp et que l'on garde les abandons, on le prend.
                 tableau += newline
     return entete + "\n\n" + titre.replace("@nom@",denomination) + "\n\n" + tableau, ArrDispAbsAband
@@ -8193,7 +8324,7 @@ def yATIlUneVMA(listeDeDossards) :
     i = 0
     pasTrouveDeVMA = True
     while i < len(listeDeDossards) and pasTrouveDeVMA :
-        coureur = Coureurs.recuperer(listeDeDossards[i])
+        coureur = root["Coureurs"].recuperer(listeDeDossards[i])
         if coureur.VMA :
             pasTrouveDeVMA = False
         i += 1
@@ -8202,7 +8333,7 @@ def yATIlUneVMA(listeDeDossards) :
 
 def genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAbandon, rangCourse=False) :
     # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
-    coureur = Coureurs.recuperer(dossard)
+    coureur = root["Coureurs"].recuperer(dossard)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
         contenuVitesse = coureur.vitesseFormateeAvecVMA()# + supplVMA
@@ -8262,7 +8393,7 @@ def genereLigneTableauTEXclasseNG(dossard, ArrDispAbsAbandon, rangCourse=False) 
 
 def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     # le deuxième argument sera retourné imcrémenté : il représente le nombre d'Arrivées, Dispensés, Absents, Abandons rencontrés jusqu'alors.
-    coureur = Coureurs.recuperer(dossard)
+    coureur = root["Coureurs"].recuperer(dossard)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
         contenuVitesse = coureur.vitesseFormateeAvecVMAtex()# + supplVMA
@@ -8321,7 +8452,7 @@ def genereLigneTableauTEXclasse(dossard, ArrDispAbsAbandon, rangCourse=False) :
     return ligne, ArrDispAbsAbandon
 
 def genereLigneTableauTEX(dossard) :
-    coureur = Coureurs.recuperer(dossard)
+    coureur = root["Coureurs"].recuperer(dossard)
     if coureur.temps : # si pas de rang, équivalent à temps nul : sur les données initiales, le constructeur n'ajoutait pas la propriété self.temps.
         contenuTemps = coureur.tempsFormate()
 ##        if coureur.VMA and coureur.VMA > coureur.vitesse :
@@ -8392,7 +8523,7 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
 
 
 def genereLigneTableauHTML(dossard) :
-    coureur = Coureurs.recuperer(dossard)
+    coureur = root["Coureurs"].recuperer(dossard)
     if coureur.sexe=="G" :
         masc = True
     else :
@@ -9030,6 +9161,7 @@ def creerCoureur(listePerso, informations) :
             infos[informations[i].lower()] = listePerso[i]
         i += 1
     print("Informations:",infos)
+    doss=""
     nom=""
     prenom=""
     sexe=""
@@ -9195,13 +9327,13 @@ def supprLF(ch) :
 
 # from resultatsDiffusionIdentifiants import * # identifiants pour l'envoi des emails et le dépot sur un serveur SFTP.
 
-def ActualiseAffichageInternet(Groupements, depotInitial = False) :
+def ActualiseAffichageInternet(groupements, depotInitial = False) :
     ''' génère le nouvel affichage non défilant en HTML avec un onglet pour chaque course.
         dépose les pages générées sur un serveur SFTP.'''
     if depotInitial :
         liste = ["www/jquery-3.6.0.js", "www/mystyle.css", "www/mystyleWeb.css", "www/mystyle_mode-sombre.css", "www/favicon.ico" , "www/media/or.webp", "www/media/argent.webp", "www/media/bronze.webp"]
         deposePagesHTMLInternet(liste, remplacer=False)
-    liste = generePagesHTMLInternet(Groupements)
+    liste = generePagesHTMLInternet(groupements)
     deposePagesHTMLInternet(liste)
 
 
@@ -9330,10 +9462,10 @@ def deposePagesHTMLInternet(liste, remplacer=True):
         return False
 
 
-def generePagesHTMLInternet(Groupements) :
+def generePagesHTMLInternet(groupements) :
     '''crée les pages internet en HTML avec un onglet par course.
     Retourne la liste des pages générées.'''
-    listeFichiers = genereAffichageWWW(Groupements)
+    listeFichiers = genereAffichageWWW(groupements)
     # print("liste des pages générés pour internet : ", listeFichiers)
     return listeFichiers
 
@@ -9426,11 +9558,11 @@ if __name__ == '__main__':
 
 
 # def fonctionTemporairePourConnaitreLesEPCAffectesATousLesCoureurs(): 
-#     """Fonction temporaire pour connaître les EPC affectés à tous les coureurs. A supprimer plus tard.
+#     """Fonction temporaire pour connaître les EPC affectés à tous les root["Coureurs"]. A supprimer plus tard.
 #     Envoie dans un fichier texte tous les EPC affectés à tous les dossards (une ligne par dossard)."""
 #     fichier = os.path.join(DOCUMENTS, "EPCaffectes.txt")
 #     with open(fichier, "w") as f:
-#         for coureur in Coureurs.liste() :
+#         for coureur in root["Coureurs"].liste() :
 #             epc =  DossardtoEPC(coureur.dossard)
 #             print("Dossard", formateDossardNG(coureur.dossard), "EPC", epc)
 #             if epc != "" :

@@ -688,7 +688,7 @@ class MonTableau(Frame):
                         if p.match(saisie) :
                             try :
                                 dossard = str(saisie)
-                                if Coureurs.existe(dossard) :
+                                if root["Coureurs"].existe(dossard) :
                                     retour = True
                             except :
                                 print("Le contenu saisi n'est pas numérique.")
@@ -1046,7 +1046,7 @@ class MonTableau(Frame):
         else :
             self.noPremierTempsSansCorrespondance = 0 # si c'est un trou dans le tableau, on repart de zéro pour que les seuls comptabilisés soient ceux manquants à la fin
         doss = str(donnee[self.colonneDossard])
-        c = Coureurs.recuperer(doss)
+        c = root["Coureurs"].recuperer(doss)
         ligneAAjouter = list(donnee)
         ligneAAjouter[0] = self.formateSurNChiffres(ligneAAjouter[0],3)
         if doss == "0":
@@ -1411,11 +1411,18 @@ class ComboboxNbreDossardsCategorie(Combobox):
         # print('root["Coureurs"].seriesDeCouleurSuccessives', root["Coureurs"].seriesDeCouleurSuccessives)
         # print('self.course', self.course, 'self.gpmt', self.gpmt)
         if self.course in root["Coureurs"].seriesDeCouleurSuccessives and self.gpmt in root["Coureurs"].seriesDeCouleurSuccessives[self.course] :
-            self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt][0])
+            self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt])
+        else :
+            # si la course ou le gpmt n'existe pas, on initialise aux valeurs par défaut
+            root["Coureurs"].initialiseseriesDeCouleurSuccessives(self.course, self.gpmt)
+            self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt])
         # on complète la méthode bind d'origine pour mémoriser la valeur sélectionnée dans le dictionnaire des paramètres
         def memoriseValeurBind(event) :
             print("Valeur sélectionnée :", self.get(), "dossards maximum pour la course", self.course, "et le gpmt", self.gpmt)
-            root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
+            # root["Coureurs"] = root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
+            if DEBUG :
+                root["Coureurs"].afficher()
+            print("Ici, on réimpose les nombres fixés par la recontstruction éventuelle. A faire")
         self.bind("<<ComboboxSelected>>", memoriseValeurBind)
         # exécute également memoriseValeurBind lors d'un appui sur Entrée ou lors d'une sortie du combobox
         self.bind("<Return>", memoriseValeurBind)
@@ -1643,7 +1650,8 @@ class EntryCourse(Frame):
             # print("self.groupement.listeDesCourses[0]", self.groupement.listeDesCourses[0])
             lblNbreDossards = Label(self, text="Nombre de dossards dédiés :")
             lblNbreDossards.pack(side=LEFT)
-            self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[110,150,200], course=root["Coureurs"].lettreDUneCategorie(self.groupement.listeDesCourses[0]), gpmt=self.groupement.nomStandard)
+            groupementAPartirDUneCategorie
+            self.comboboxNbreDossards = ComboboxNbreDossardsCategorie(self, picks=[110,150,200], course=root["Coureurs"].lettreDUnGroupement(self.groupement.nomStandard), gpmt=self.groupement.nomStandard)
         self.color_selector.pack(side=LEFT)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
         #self.actualiseEtat()
@@ -1690,7 +1698,7 @@ class EntryGroupements(Frame):
 ##        colonneGroup = Frame(self)
 ##        lblCat = Label(self, text="Catégories")
 ##        lblGroup = Label(self, text="Groupement affecté")
-        if Courses :
+        if root["Courses"] :
             ch = "Affecter à chaque catégorie un numéro de groupement.\nUn groupement permet de faire concourir\ndes coureurs de catégories différentes\ndans une même course."
         else :
             ch = "Veuillez importer des coureurs. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide."
@@ -1721,7 +1729,7 @@ class EntryGroupements(Frame):
                 #self.listeDesEntryGroupement.append(
                 longueur = self.longueur
                 #print(longueur, len(Courses))
-                if longueur < len(Courses) :
+                if longueur < len(root["Courses"]) :
                     longueur += 1
                     #print("on ajoute 1")
                 EntryGroupement(course,noGroupement,longueur, self, self.groupements).pack(side=TOP)
@@ -1738,6 +1746,7 @@ class EntryGroupements(Frame):
 
 class EntryGroupement(Frame):
     def __init__(self, course, numero, numeromax, parent=None, groupements=[]):#, picks=[], side=LEFT, vertical=True, anchor=W):
+        global root
         Frame.__init__(self, parent)
         self.course = course
         self.numero = numero
@@ -1745,9 +1754,9 @@ class EntryGroupement(Frame):
         i = 1
         valeursPossibles = list(range(1,self.max+1))
         ## tentative pour éliminer les valeurs des courses déjà commencées.
-        if self.course in Courses.keys() and not Courses[self.course].depart :
+        if self.course in root["Courses"].keys() and not root["Courses"][self.course].depart :
             for grpment in groupements :
-                if grpment.listeDesCourses and grpment.listeDesCourses[0] in Courses.keys() and Courses[grpment.listeDesCourses[0]].depart :
+                if grpment.listeDesCourses and grpment.listeDesCourses[0] in root["Courses"].keys() and root["Courses"][grpment.listeDesCourses[0]].depart :
                     valeursPossibles.remove(i)
                 i += 1
         valeurs=tuple(valeursPossibles)
@@ -1755,7 +1764,7 @@ class EntryGroupement(Frame):
         self.combobox = Combobox(self, width=5, state="readonly", justify=CENTER, values=valeurs)
         #self.combobox.current(self.numero-1)
         # active ou désactive la combobox en fonction du fait que la course a commencé ou non.
-        if Courses[course].depart :
+        if self.course in root["Courses"].keys() and root["Courses"][course].depart :
             self.combobox.configure(state="disabled")
         # else :
         #     self.combobox.configure(state="normal")
@@ -1765,6 +1774,13 @@ class EntryGroupement(Frame):
             self.numero = int(self.combobox.get())
             #updateDistancesGroupements()
             #actualiserDistanceDesCourses()
+            reconstruireCoureurs()
+            if DEBUG :
+                ch = "Groupements dans l'ordre : "
+                for gpmt in root["Groupements"] :
+                    ch += gpmt.nomStandard + ","
+                print(ch)
+                root["Coureurs"].afficher()
             actualiseToutLAffichage()
         self.combobox.bind("<<ComboboxSelected>>", memoriseValeurBind)
         # on permet la modification du nom tout le temps désormais puisque les noms standards (fixes) sont utilisés en arrière plan.
@@ -1779,7 +1795,75 @@ class EntryGroupement(Frame):
 ##        else :
 ##            self.combobox.configure(state="normal")
 
+def reconstruireCoureurs() :
+    global root
+    if Parametres["plusieursSeriesDeCouleurSuccessives"] :
+        root["Coureurs"].finOptimisation()
+        dictionnaireReconstruit = DictionnaireDeCoureurs()
+        course = "A"
+        indiceDansGroupements = 0
+        # listeDesCoureursElimines = [] # Cette variable n'est pas utilisée et peut être supprimée
+        prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, 0, course = course)
+        rangDansListeDeDestination = 0
+        print("Reconstruction du dictionnaire des coureurs suite à une action sur les groupements (ordre, effectif max,...)")
 
+        # Initialisation du groupement courant pour comparaison
+        current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+
+        for n, coureur in enumerate(root["Coureurs"].listeParGroupementDansLOrdreDeGroupements()) :
+            gpmtDuCoureurExamine = groupementAPartirDUneCategorie(coureur.categorie(Parametres["CategorieDAge"])).nomStandard
+
+            # Logique pour gérer le changement de groupement et/ou les "trous"
+            # if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChanger:
+            #     # On a atteint ou dépassé le rang où le groupement doit changer
+            #     # (ou la taille max pour le groupement actuel est atteinte)
+
+            if gpmtDuCoureurExamine != current_groupement_name:
+                # Le groupement du coureur actuel est différent du groupement attendu,
+                # ce qui indique un changement de groupement.
+                # Remplir avec des coureurs vides si nécessaire avant de passer au nouveau groupement
+                while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+                    dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+                    dictionnaireReconstruit[course].append(Coureur("","",""))
+                    rangDansListeDeDestination += 1
+
+                # On avance à l'indice du prochain groupement
+                indiceDansGroupements += 1
+                # Assurez-vous que l'indice ne dépasse pas la taille de root["Groupements"]
+                if indiceDansGroupements >= len(root["Groupements"]):
+                    # Si on a plus de groupements définis, il faut décider comment gérer les coureurs restants.
+                    # Pour l'instant, ils seront ajoutés sans respecter un groupement prédéfini.
+                    print("Avertissement : Plus de groupements définis. Ajout des coureurs restants sans contrainte de groupement.")
+                    # On pourrait aussi décider de ne plus ajouter de coureurs ou de les marquer comme éliminés
+                    # ici, nous allons simplement les ajouter, mais ils ne seront pas associés à un groupement connu.
+                    pass
+                else:
+                    current_groupement_name = root["Groupements"][indiceDansGroupements].nomStandard
+                    prochainRangAPartirDuquelLeGroupementDoitChanger = dictionnaireReconstruit.ajouteLEffectifDuGroupementDeRang(indiceDansGroupements, prochainRangAPartirDuquelLeGroupementDoitChanger, course = course)
+                    print(f"Passage au groupement : {current_groupement_name}. Prochain rang de changement : {prochainRangAPartirDuquelLeGroupementDoitChanger}")
+            # else: Le groupement n'a pas changé, mais le rang max est atteint.
+            # Cela signifie qu'on a juste besoin d'ajouter le coureur dans le groupement actuel.
+            # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
+            # La logique d'ajout suivante s'en chargera.
+
+            # L'ajout du coureur se fait une seule fois, après la gestion des groupements et des "trous".
+            # c = Coureur(coureur.nom, coureur.prenom, coureur.sexe, formateDossardNG(rangDansListeDeDestination + 1, course=course))
+            coureur.setDossard(formateDossardNG(rangDansListeDeDestination + 1, course=course))
+            dictionnaireReconstruit[course].append(coureur)
+            # dictionnaireReconstruit[course].append(c)
+            dictionnaireReconstruit.evolutionDUnAuxEffectifsTotaux(coureur, evolution=1)
+            if DEBUG :
+                print(coureur.dossard,coureur.nom, coureur.prenom, coureur.categorie(Parametres["CategorieDAge"]), "placé en mosition", rangDansListeDeDestination)
+            rangDansListeDeDestination += 1
+
+        # Après la boucle, il peut rester des "trous" à la fin si le dernier groupement n'est pas rempli
+        while rangDansListeDeDestination < prochainRangAPartirDuquelLeGroupementDoitChanger:
+            dictionnaireReconstruit["CoureursElimines"][course].append(rangDansListeDeDestination)
+            dictionnaireReconstruit[course].append(Coureur("","",""))
+            rangDansListeDeDestination += 1
+        root["Coureurs"].clear()
+        root["Coureurs"] = dictionnaireReconstruit
+        print("FIN DE RECONSTRUIRE COUREURS")
 
 class Combobar(ScrollFrame):
     def __init__(self, parent=None, picks=[], side=LEFT, vertical=True, anchor=W, nombreColonnes = 6):
@@ -2231,7 +2315,7 @@ class departDialog:
 
         self.myEntryBox = Entry(top, justify=CENTER)
         #print(groupement.listeDesCourses[0], Courses[groupement.listeDesCourses[0]].temps )
-        self.myEntryBox.insert(0, Courses[groupement.listeDesCourses[0]].departFormate())
+        self.myEntryBox.insert(0, root["Courses"][groupement.listeDesCourses[0]].departFormate())
         self.myEntryBox.pack()
 
         self.fr = Frame(top)
@@ -2252,7 +2336,7 @@ class departDialog:
 
     def restaure(self):
         self.myEntryBox.delete(0, END)
-        self.myEntryBox.insert(0, Courses[self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
+        self.myEntryBox.insert(0, root["Courses"][self.groupement.listeDesCourses[0]].departFormate(tempsAuto=True))
         regenereAffichageGUI()
         
     def annul(self):
@@ -2473,7 +2557,7 @@ def envoiEmailDeTest() :
     dossard, dossardPrecedent = tableau.getDossardEtPredecesseur()
     if dossard :
         print("Envoi d'un email de test pour le dossard", dossard)
-        coureur = Coureurs.recuperer(dossard)
+        coureur = root["Coureurs"].recuperer(dossard)
         if envoiDiplomeDuCoureurALExpediteurDesEmailsPourTest(coureur) :
             message = "Diplôme de test envoyé à l'adresse "+Parametres["email"]+" pour le dossard "+dossard+"."
             reponse = showinfo("INFORMATION",message)
@@ -2939,16 +3023,16 @@ def onClickE(err):
             timer.update_clock()
     elif err.numero == 421 :
         print("on bascule vers l'interface de modification des absents et dispensés pour corriger la présence de :",\
-            Coureurs.recuperer(err.dossard).nom,Coureurs.recuperer(err.dossard).prenom)
+            root["Coureurs"].recuperer(err.dossard).nom,root["Coureurs"].recuperer(err.dossard).prenom)
         if Parametres['CategorieDAge'] ==2 :
-            saisieAbsDisp(Coureurs.recuperer(err.dossard).etablissement)
+            saisieAbsDisp(root["Coureurs"].recuperer(err.dossard).etablissement)
         elif Parametres['CategorieDAge'] == 1 :
             if Parametres["CoursesManuelles"] :
-                saisieAbsDisp(groupementAPartirDUneCategorie(Coureurs.recuperer(err.dossard).course).nom)
+                saisieAbsDisp(groupementAPartirDUneCategorie(root["Coureurs"].recuperer(err.dossard).course).nom)
             else :
-                saisieAbsDisp(Coureurs.recuperer(err.dossard).course)
+                saisieAbsDisp(root["Coureurs"].recuperer(err.dossard).course)
         else :
-            saisieAbsDisp(Coureurs.recuperer(err.dossard).classe)
+            saisieAbsDisp(root["Coureurs"].recuperer(err.dossard).classe)
     elif err.numero == 431 or err.numero == 211 :
         print("on bascule vers l'interface de modification du coureur dossard",err.dossard,"pour changer sa catégorie.")
         modifManuelleCoureur(err.dossard)
@@ -3321,18 +3405,18 @@ def actualiseTempsAffichageDeparts():
             ## pourquoi cela ? la course doit être créée quand on actualise les coureurs et qu'on les ajoute uniquement
             ### addCourse(nomCourse)
             #print(listCoursesEtChallenges())
-            tps = Courses[nomCourse].dureeFormatee()
+            tps = root["Courses"][nomCourse].dureeFormatee()
             #print("course",nomCourse,tps)
             lblDict[grp][1].configure(text=tps)
     zoneAffichageDeparts.after(1000, actualiseTempsAffichageDeparts)
         
 def annulUnDepart(nomGroupement) :
     global annulDepart
-    if askyesno("ATTENTION","Etes vous sûr de vouloir annuler le départ de la course "+groupementAPartirDeSonNom(nomGroupement, nomStandard=True).nom+" qui est partie à " + Courses[nomGroupement].departFormate(tempsAuto=False) + "?\nCette information sera perdue... Veuillez la noter si vous avez le moindre doute.") :
-        print("On annule le départ de la course",nomGroupement, "dont l'heure était", Courses[nomGroupement].dureeFormatee())
+    if askyesno("ATTENTION","Etes vous sûr de vouloir annuler le départ de la course "+groupementAPartirDeSonNom(nomGroupement, nomStandard=True).nom+" qui est partie à " + root["Courses"][nomGroupement].departFormate(tempsAuto=False) + "?\nCette information sera perdue... Veuillez la noter si vous avez le moindre doute.") :
+        print("On annule le départ de la course",nomGroupement, "dont l'heure était", root["Courses"][nomGroupement].dureeFormatee())
         groupement = groupementAPartirDeSonNom(nomGroupement, nomStandard=True)
         for course in groupement.listeDesCourses :
-            Courses[course].reset()
+            root["Courses"][course].reset()
         annulDepart.delete(groupement.nom)
         rejouerToutesLesActionsMemorisees()
         actualiseToutLAffichage()
@@ -3371,7 +3455,7 @@ def envoiDossardPourTousLesCoureurs(dossardImpose = "") :
     ''' diffuse les dossards non encore envoyés aux coureurs '''
     global tagMessageQuotaDepasseDejaAffiche, envoiAutoDesEMailsDossards
     if not diplomeEmailQuotaDepasse :
-        for c in Coureurs.liste() :
+        for c in root["Coureurs"].liste() :
             # print("Envoi du dossard pour le coureur " + c.nom + " sur email",c.emailEnvoiEffectue)
             if not diplomeEmailQuotaDepasse and mon_thread_Dossards.envoi_en_cours :
                 try :
@@ -3449,7 +3533,7 @@ def envoiDiplomePourTousLesCoureurs(diplomeImpose = "") :
             nomModele = diplomeImpose
         else :
             nomModele = Parametres["diplomeModele"]
-        for c in Coureurs.liste() :
+        for c in root["Coureurs"].liste() :
             if not diplomeEmailQuotaDepasse and mon_thread_Diplomes.envoi_en_cours :
                 try :
                     c.emailEnvoiEffectue # pour compatibilité avec les vieilles sauvegardes où les propriétés n'existaient pas.
@@ -3543,7 +3627,7 @@ def depotFTPResultatsSansMessage(initial=False):
     """Dépose les résultats sur le serveur FTP sans afficher de message de fin
     Exécuté dans un thread"""
     global tagDepotFTPEnCours
-    ActualiseAffichageInternet(Groupements, depotInitial=initial)
+    ActualiseAffichageInternet(root["Groupements"], depotInitial=initial)
     tagDepotFTPEnCours = False
 
 def corrigerLesCasesCocheesPourLAffichageTV() :
@@ -3558,7 +3642,7 @@ def corrigerLesCasesCocheesPourLAffichageTV() :
             # print("Pour", doss, ", on calcule", time.time(), "-", tps.tempsReel, tps.tempsReelFormate(True), "=", time.time() - tps.tempsReel)
             if time.time() - tps.tempsReel < 300 :
                 # print("Le dossard", doss,"a été reçu sur le serveur il y a moins de 300 s. On affiche sa catégorie.")
-                coursesRecemmentCourues.add(Coureurs.recuperer(doss).course)
+                coursesRecemmentCourues.add(root["Coureurs"].recuperer(doss).course)
             else :
                 continuer = False
         i -= 1
@@ -4096,9 +4180,9 @@ def AlimenteErreur462(Erreur462DejaRencontree, erreur462) :
 # pour compatibilité ascendante avec les anciennes sauvegardes
 # ajout d'une méthode pour dénombrer les effectifs pour les diplomes
 try :
-    Coureurs.nombreDeCoureursParSexe
+    root["Coureurs"].nombreDeCoureursParSexe
 except : 
-    Coureurs.initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
+    root["Coureurs"].initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
 
 print("initEffectifs lancé, on arrive dans clock init")
 
@@ -4485,6 +4569,7 @@ def modifManuelleCoureur(dossard=0):
     forgetAllFrames()
     zoneCoureursAjoutModif.setAjout(False)
     GaucheFrameCoureur.pack(side = LEFT,fill=BOTH, expand=1)
+    zoneCoureursAjoutModif.actualiseAffichage() # on actualise l'affichage de la frame GaucheFrameCoureur
     if dossard :
         #print("on modifie la combobox de la frame GaucheFrameCoureur avec la valeur",dossard, "et actualiser.")
         zoneCoureursAjoutModif.afficheCoureur(dossard)
@@ -4613,7 +4698,7 @@ def parametresDesCourses():
 def actualiseEtatBoutonsRadioConfig():
     # on actualise la variable par rapport à la BDD pour que cela soit correct lors des réimports de sauvegarde.
     svRadio.set(str(Parametres["CategorieDAge"]))
-    if Coureurs.nombreDeCoureurs :
+    if root["Coureurs"].nombreDeCoureurs :
         rb1.configure(state='disabled')
         rb2.configure(state='disabled')
         rb3.configure(state='disabled')
@@ -4638,7 +4723,7 @@ affectationDesDistancesFrame = Frame(GroupementsEtDistancesFrame, borderwidth=3)
 affectationDesDistancesFrame.pack(side=LEFT,fill=X)
 GroupementsEtDistancesFrame.pack(side=TOP,fill=X)
 
-GroupementsFrame= EntryGroupements(Groupements,affectationGroupementsFrame)
+GroupementsFrame= EntryGroupements(root["Groupements"],affectationGroupementsFrame)
 
 def updateZoneGroupements():
     global GroupementsFrame
@@ -4646,7 +4731,7 @@ def updateZoneGroupements():
         GroupementsFrame.destroy()
     except :
         pass
-    GroupementsFrame = EntryGroupements(Groupements,affectationGroupementsFrame)
+    GroupementsFrame = EntryGroupements(root["Groupements"],affectationGroupementsFrame)
     affectationGroupementsFrame.pack(side=LEFT,fill=X)
     if not Parametres["CoursesManuelles"] :
         GroupementsFrame.pack(side=TOP)
@@ -4659,17 +4744,17 @@ listeDesEntryGroupements = []
 
 def actualiserDistanceDesCoursesAvecCoursesManuelles(event) :
     global Courses, Groupements
-    print("actualisation des Courses manuelles",Courses)
-    if len(Courses.keys()) == 0 :
+    print("actualisation des Courses manuelles",root["Courses"])
+    if len(root["Courses"].keys()) == 0 :
         addCourse("A")
     # on crée manuellement des Courses ne correspondant à aucune catégorie d'un coureur.
     if event == None : # on vient de nettoyer les courses vides, on impose le nouveau nombre
-        nbreCoursesDesire.configure(values=tuple(range(len(Courses.keys()),21)))
-        nbreCoursesDesire.set(len(Courses.keys()))
+        nbreCoursesDesire.configure(values=tuple(range(len(root["Courses"].keys()),21)))
+        nbreCoursesDesire.set(len(root["Courses"].keys()))
     nbreDeCoursesDesire = int(nbreCoursesDesire.get())
     nbreCoursesDesire.configure(values=tuple(range(nbreDeCoursesDesire,21)))
-    nbreDeCoursesActuel = len(Courses.keys())
-    if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(Courses.keys()) == 0 :
+    nbreDeCoursesActuel = len(root["Courses"].keys())
+    if nbreDeCoursesDesire >  nbreDeCoursesActuel or len(root["Courses"].keys()) == 0 :
         # il manque des courses
         for i in range(nbreDeCoursesActuel+1,nbreDeCoursesDesire+1) :
             addCourse(chr(64+i))
@@ -4737,15 +4822,15 @@ def actionBoutonRecopie() :
 # utilisé uniquement si CoursesManuelles est True. Dans le cas contraire, pas de pack()
 lblNbreCoursesDesire = Label(affectationDesDistancesFrame, text="Combien souhaitez vous gérer de courses au total ?")
 nbreCoursesDesire = Combobox(affectationDesDistancesFrame, width=5, values=tuple(range(1,21)), state='readonly')
-if len(Courses.keys()) == 0 :
+if len(root["Courses"].keys()) == 0 :
     nbreCoursesDesire.set(1)
 else :
-    nbreCoursesDesire.set(len(Courses.keys()))
+    nbreCoursesDesire.set(len(root["Courses"].keys()))
 nbreCoursesDesire.bind("<<ComboboxSelected>>", actualiserDistanceDesCoursesAvecCoursesManuelles)
 
 def nettoieCourseManuellesAction() :
-    global Courses, Groupements
-    Courses, Groupements = nettoieCoursesManuelles()
+    global root, Groupements
+    root["Courses"], Groupements = nettoieCoursesManuelles()
     actualiserDistanceDesCoursesAvecCoursesManuelles(None)
     
 ######### Bouton de recopie à activer quand actionBoutonRecopie sera débuggé
@@ -4798,8 +4883,8 @@ def lancer_impression_couleurs(nomFichierGenere, listeDesDossardsGeneres):
         # print(listeDesDossardsGeneres)
         # timer.premiereExecution = True
         for n in listeDesDossardsGeneres :
-            print("Le coureur",Coureurs.recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
-            Coureurs.recuperer(n).setAImprimer(False)
+            print("Le coureur",root["Coureurs"].recuperer(n).nom," a été imprimé. On supprime sa propriété aImprimer=True.")
+            root["Coureurs"].recuperer(n).setAImprimer(False)
 
 def annuler_couleurs():
     print("Opération annulée.")
@@ -4903,7 +4988,7 @@ def recupererSauvegardeGUI(name_file="") :
             globals().update(dictionnaire)
         #print(locals()["Courses"])
         print("---------------")
-        print("COURSES dans recuperer_sauvegardeGUI =",Courses)
+        print("COURSES dans recuperer_sauvegardeGUI =",root["Courses"])
         #print("global",globals()["Courses"])
         actualiseEntryParams()
         CoureursParClasseUpdate()
@@ -5292,7 +5377,7 @@ class CoureurFrame(Frame) :
             doss = str(self.choixDossardCombo.get())
             # print("dossard:",doss)
             if doss : # la combobox n'est pas vide   
-                coureur = Coureurs.recuperer(doss)
+                coureur = root["Coureurs"].recuperer(doss)
                 # print("licence", coureur.licence)
                 self.nomE.insert(0, coureur.nom)
                 self.prenomE.insert(0, coureur.prenom)
@@ -5300,7 +5385,7 @@ class CoureurFrame(Frame) :
                     self.classeE.insert(0, coureur.naissance)
                 else :
                     self.classeE.insert(0, coureur.classe)
-                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])) + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + "). Course : " + coureur.course + ".")
+                self.lblCat.configure(text="Catégorie : " + str(coureur.categorie(Parametres["CategorieDAge"])) + " (" + str(coureur.categorieFFA(precisionSurLAnnee=True)) + "). Course : " + str(coureur.course) + ".")
                 self.sexeC.set(coureur.sexe)
                 #self.sexeE.insert(0, coureur.sexe)
                 self.emailE.insert(0, coureur.email)
@@ -5367,7 +5452,7 @@ class CoureurFrame(Frame) :
         ### on configure les champs pour ceux qui ne nécessitent aucun changement ultérieur à l'utilisation.
         self.lblCommentaireInfoAddCoureur.pack(side=TOP)
         self.etabC['values'] = tupleEtablissement()
-        if not Coureurs :
+        if not root["Coureurs"] :
             if self.ajoutCoureur :
                 # cas où l'on ajoute manuellement un coureur
                 self.lblCommentaireInfoAddCoureur.configure(text=\
@@ -5391,7 +5476,7 @@ class CoureurFrame(Frame) :
                 self.coureurBoksuivant.configure(text="Valider")
                 # afficher le menu déroulant ici.
                 L = []
-                for c in Coureurs.liste() :
+                for c in root["Coureurs"].liste() :
                     L.append(c.getDossard())
                 self.tupleDesDossards = tuple(L)
                 self.choixDossardCombo['values']=self.tupleDesDossards
@@ -5433,7 +5518,7 @@ class CoureurFrame(Frame) :
             if Parametres["CoursesManuelles"] :
                 self.lblCat.configure(text="Course (en tant que " + resultat +") :", fg='black')
             else :
-                coureur = Coureurs.recuperer(str(self.choixDossardCombo.get()))
+                coureur = root["Coureurs"].recuperer(str(self.choixDossardCombo.get()))
                 self.lblCat.configure(text="Catégorie : " + resultat + " (" + coureur.categorieFFA(precisionSurLAnnee=True) + "). Course : " + coureur.course + ".", fg='black')
             # self.lblCat.configure(text="Catégorie : " + resultat)
             self.actualiseBoutonImpression()
@@ -5468,11 +5553,11 @@ class CoureurFrame(Frame) :
 
     def effacerCoureur(self) :
         doss = self.choixDossardCombo.get()
-        c = Coureurs.recuperer(doss)
+        c = root["Coureurs"].recuperer(doss)
         message = "Voulez vraiment supprimer le coureur " + c.nom + " " + c.prenom + " portant le dossard " + doss + "?"
         reponse = askyesno(title="SUPPRESSION D'UN COUREUR", message = message)
         if reponse :
-            Coureurs.effacer(doss)
+            root["Coureurs"].effacer(doss)
             self.actualiseAffichage()
         
     def okButtonCoureurPuisSaisie(self) :
@@ -5777,7 +5862,7 @@ else :
 
 cbutilisationDesSeriesDeDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
 # cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChcbutilisationDesSeriesDeDossardsDeChronoHBFrameronoHBFrame, text="Impression des dossards avec ChronoHB")
-cbutilisationDesSeriesDeDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesSeriesDeDossardsDeChronoHBFrame, text="Utilisation de séries de dossards de couleurs différentes par catégorie.", variable=cbutilisationDesSeriesDeDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesSeriesDeDossardsDeChronoHB)
+cbutilisationDesSeriesDeDossardsDeChronoHBCheck = Checkbutton(cbutilisationDesSeriesDeDossardsDeChronoHBFrame, text="Utilisation de séries de dossards de couleurs différentes par course. Exemple : les dossards 1 à 100 pour une course, de 101 à 200 pour une autre course...", variable=cbutilisationDesSeriesDeDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesSeriesDeDossardsDeChronoHB)
 
 
 ### choix de génération de documents qui apparaissent pour tous les types de courses.

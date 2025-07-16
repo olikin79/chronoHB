@@ -16,7 +16,7 @@ class Popup(tk.Toplevel):
         Parametres["popupRFID"]=True
 
         self.infos = []
-        self.listeDossardsCHB = Coureurs.listeDossards()
+        self.listeDossardsCHB = root["Coureurs"].listeDossards()
 
         # Créer une grille avec plusieurs lignes et colonnes
         self.grid_rowconfigure(0, weight=0)  # Ligne des boutons
