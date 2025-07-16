@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<title>Résultats chronoHB</title>
+<link rel="stylesheet" type="text/css" href="mystyle.css">
+<style>
+    /* Style pour le point rouge discret */
+    #ErreurMessage {
+        display: none;
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 100px;
+        height: 100px;
+        background-color: red;
+        border-radius: 50%;
+        z-index: 1000;
+    }
+</style>
+</head>
+<body>
+<!-- Point rouge pour signaler une erreur -->
+<div id="ErreurMessage"></div>
+
+<!-- Conteneur principal -->
+<div id="conteneurGlobal" class="fullScreen">
+    <!-- Contenu initial de Affichage-Contenu.html -->
+    <iframe src="Affichage-Contenu.html" style="border: 0; width: 100%; height: 100%;"></iframe>
+</div>
+
+<script src="jquery-3.6.0.js"></script>
+<script>
+function reCharger() {
+    // Tente de charger le contenu dans le conteneur
+    $("#conteneurGlobal").load("Affichage-Contenu.html", function(response, status) {
+        if (status === "error") {
+            // Affiche le point rouge en cas d'erreur
+            document.getElementById('ErreurMessage').style.display = "block";
+            console.log("Échec du chargement de Affichage-Contenu.html");
+        } else {
+            // Cache le point rouge si le chargement réussit
+            document.getElementById('ErreurMessage').style.display = "none";
+        }
+    });
+}
+
+// Vérifie périodiquement le chargement
+function testChargement() {
+    reCharger();
+    setTimeout(testChargement, 2000);
+}
+
+// Démarre le processus de vérification
+testChargement();
+</script>
+</body>
+</html>
