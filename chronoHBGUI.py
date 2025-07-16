@@ -1414,15 +1414,14 @@ class ComboboxNbreDossardsCategorie(Combobox):
             self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt])
         else :
             # si la course ou le gpmt n'existe pas, on initialise aux valeurs par défaut
-            root["Coureurs"].initialiseseriesDeCouleurSuccessives(self.course, self.gpmt)
+            root["Coureurs"].initialiseSeriesDeCouleursSuccessives(self.course, self.gpmt)
             self.set(root["Coureurs"].seriesDeCouleurSuccessives[self.course][self.gpmt])
         # on complète la méthode bind d'origine pour mémoriser la valeur sélectionnée dans le dictionnaire des paramètres
         def memoriseValeurBind(event) :
             print("Valeur sélectionnée :", self.get(), "dossards maximum pour la course", self.course, "et le gpmt", self.gpmt)
-            # root["Coureurs"] = root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
-            if DEBUG :
-                root["Coureurs"].afficher()
-            print("Ici, on réimpose les nombres fixés par la recontstruction éventuelle. A faire")
+            root["Coureurs"].affecteNouveauNombreDeDossardsPourUnGroupement(self.course, self.gpmt, int(self.get()))
+            root["Coureurs"].afficher()
+            print("Ici, on réimpose les nombres dans l'interface, fixés par la recontstruction éventuelle. A faire")
         self.bind("<<ComboboxSelected>>", memoriseValeurBind)
         # exécute également memoriseValeurBind lors d'un appui sur Entrée ou lors d'une sortie du combobox
         self.bind("<Return>", memoriseValeurBind)
@@ -4783,7 +4782,7 @@ def actualiserDistanceDesCourses():
     listeDesEntryGroupements.clear()
     #print("Courses",Courses)
     #print("GRoupements", Groupements)
-    if Groupements :
+    if root["Groupements"] :
         if Parametres["CoursesManuelles"] :
             lblNbreCoursesDesire.pack(side=TOP)
             nbreCoursesDesire.pack(side=TOP)
@@ -4799,7 +4798,7 @@ def actualiserDistanceDesCourses():
         boutonsParametresGroupementsFrame.forget()
         lblNbreCoursesDesire.forget()
         nbreCoursesDesire.forget()
-    for groupement in Groupements :
+    for groupement in root["Groupements"] :
         #print("Création de l'Entry pour la course",cat)
         if groupement.listeDesCourses :
             #print("EntryGroupement:", groupement.nom)
