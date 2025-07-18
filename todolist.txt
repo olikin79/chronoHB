@@ -20,10 +20,6 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
-- Etudier une façon de reconstruire dynamiquement les menus pour permettre de les changer au fur et à mesure de la configuration : 
-  cacher "imprimer les dossards si les dossards ne sont pas gérés par chronoHB, etc...
-- empêcher de modifier les "dossards perdus" après le lancement d'une course. Cela décalerait potentiellement tous les dossards. Catastrophe.
 - (FAIT) remplacer toute référence à Groupements par root["Groupements"], idem pour Coureurs et pour Courses.
 - (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".
@@ -120,6 +116,10 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
+- menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
+- Etudier une façon de reconstruire dynamiquement les menus pour permettre de les changer au fur et à mesure de la configuration : 
+  cacher "imprimer les dossards si les dossards ne sont pas gérés par chronoHB, etc...
+- empêcher de modifier les "dossards perdus" après le lancement d'une course. Cela décalerait potentiellement tous les dossards. Catastrophe.
 - (FAIT) possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
 - Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
 Deux cas : soit on conserve ce résultat car c'est une erreur de catégorie (peu probable avec les dossards de couleurs différentes, 
