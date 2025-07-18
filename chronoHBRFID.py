@@ -34,6 +34,9 @@ class DossardsPerdusFrame(tk.Frame):
 
         self.lettre_selectionnee = tk.StringVar()
         self.current_dossards_displayed = []
+        
+        self.label_info = Label(self, text="Cliquer pour afficher les dossards perdus en rouge. Ceux-ci ne seront plus affectés à aucun coureur.")
+        self.label_info.pack(pady=10)
 
         self.combobox_lettres = ttk.Combobox(self,
                                              textvariable=self.lettre_selectionnee,

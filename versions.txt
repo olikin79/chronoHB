@@ -1,5 +1,7 @@
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
+- checkbox mal placée dans "Paramètres généraux"
+- message d'information dans le menu dossards perdus : "Cliquer pour afficher les dossards perdus en rouge. Ceux-ci ne seront plus affectés à aucun coureur."
 
 Travail du 11/07/25 au 16/07/25 :
 - implémentation des séries de dossards de diverses couleur pour le cross par classe ou UNSS.

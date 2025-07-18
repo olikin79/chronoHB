@@ -117,8 +117,9 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 b. A IMPLEMENTER :
 Avant début septembre :
 - (FAIT) possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
-- Réactualiser l'interface si le popup RFID se ferme, notamment le menu "modifier un coureur" qui ne s'actualise pas en fonction des dossards perdus.
 - Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
+Deux cas : soit on conserve ce résultat car c'est une erreur de catégorie (peu probable avec les dossards de couleurs différentes, 
+soit on l'ignore tout simplement mais il faudrait pouvoir retrouver cette information d'une façon ou d'une autre).
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 
 
@@ -146,6 +147,8 @@ Avant le prochain Trail de RIEUTORT :
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 
 A plus long terme :
+- Réactualiser l'interface si le popup RFID se ferme, notamment le menu "modifier un coureur" qui ne s'actualise pas en fonction des dossards perdus. Actuellement, on impose l'affichage, ce qui n'est pas top.
+Il faudrait juste pouvoir garder l'affichage actuel en l'actualisant (notamment pour celui de modification d'un coureur.)
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
 - checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
