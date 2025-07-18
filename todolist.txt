@@ -1,7 +1,7 @@
 PRIORISATION DU TRAVAIL :
 
 PRIORITE ABSOLUE : fiabiliser le boitier en terme de puissance.
-si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
+si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB-C en 5V 2A.
 
 
 ############# 0. Organisation : 
@@ -21,6 +21,9 @@ a. BUGS :
 
 Avant début Septembre :
 - menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
+- Etudier une façon de reconstruire dynamiquement les menus pour permettre de les changer au fur et à mesure de la configuration : 
+  cacher "imprimer les dossards si les dossards ne sont pas gérés par chronoHB, etc...
+- empêcher de modifier les "dossards perdus" après le lancement d'une course. Cela décalerait potentiellement tous les dossards. Catastrophe.
 - (FAIT) remplacer toute référence à Groupements par root["Groupements"], idem pour Coureurs et pour Courses.
 - (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
 - catégorie absente de l'export tableur des résultats en mode "cross du collège".

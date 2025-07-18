@@ -3047,8 +3047,11 @@ class FrameRecherche(tk.Frame):
         self.search_frame = tk.Frame(self.master) # Ou self si vous voulez la mettre DANS la frame tableau
         self.search_frame.pack(side=tk.LEFT, fill=tk.X, pady=5) # Ajustez le positionnement selon vos besoins
 
+        self.label_expl = tk.Label(self.search_frame, text="Chercher : ")
+        self.label_expl.pack(side=tk.LEFT, padx=0)
+        
         self.search_entry = tk.Entry(self.search_frame, width=12)
-        self.search_entry.pack(side=tk.LEFT, padx=5)
+        self.search_entry.pack(side=tk.LEFT, padx=0)
         self.search_entry.bind("<KeyRelease>", tableau._on_search_change) # Déclenche la recherche à chaque frappe
 
         self.search_results_label = tk.Label(self.search_frame, text="0/0")
