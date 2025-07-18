@@ -5178,7 +5178,7 @@ copytree_update(dossier_www, dossier_web_resultats)
 def lancerPopupRFID() :
     global popup
     # Créer une instance du popup
-    popup = Popup()
+    popup = Popup(affichageSortie_func = tempsDesCoureurs)
     # Afficher le popup (vous pouvez le déclencher à un événement précis)
     # popup.mainloop() 
     # Parametres["popupRFID"]=False

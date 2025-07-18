@@ -14,7 +14,7 @@ class DossardsPerdusFrame(tk.Frame):
         self.Parametres = Parametres
         self.listeLettresDossards = listeLettresDossards_func
         self.listeDossardsRFID = listeDossardsRFID_func
-
+        
         if "dossardsPerdus" not in self.Parametres:
             self.Parametres["dossardsPerdus"] = []
 
@@ -166,8 +166,9 @@ class DossardsPerdusFrame(tk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 class Popup(tk.Toplevel):
-    def __init__(self, master=None):
+    def __init__(self, affichageSortie_func, master=None):
         super().__init__(master)
+        self.affichageSortie = affichageSortie_func
         self.title("Réglages relatifs à la technologie RFID")
         # Maximiser la fenêtre
         self.state('zoomed')
@@ -223,6 +224,7 @@ class Popup(tk.Toplevel):
         self.destroy()
         Parametres["popupRFID"]=False
         root["Coureurs"].reconstruireCoureurs()
+        self.affichageSortie()
         print("On ferme le popup RFID. On a reconstruit la base de coureurs en fonction des dossards perdus déclarés.")
         
     def buildTabs(self):

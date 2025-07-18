@@ -116,19 +116,20 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
-- possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
+- (FAIT) possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
+- Réactualiser l'interface si le popup RFID se ferme, notamment le menu "modifier un coureur" qui ne s'actualise pas en fonction des dossards perdus.
 - Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 
 
 Avant le cross H. Bourrillon :
-- créer des dossards : Collège H. Bourrillon, Logo H.B., Bande couleur et numéro en blanc , nom de la course ?
+- (INUTILE) créer des dossards : Collège H. Bourrillon, Logo H.B., Bande couleur et numéro en blanc , nom de la course ?
 - (FAIT 1/2) Créer un publipostage avec les étiquettes du collège.
-- Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
+- (FAIT) Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
 Modifier le fait que les courses A, B, C sont générés en fonction de ce paramètre.
-- Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
+- (FAIT) Si "PlusieursSeriesDeDossards"==False, ajouter un menu déroulant pour sélectionnner un certain nombre de dossards réservés pour une course donnée.
 Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
-Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
+- (FAIT) Implémenter l'utilisation de ces nombres de dossards réservés pour l'affectation automatique d'un nouveau dossard à un coureur.
 
 
 Avant le trail départemental :
