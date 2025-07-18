@@ -699,7 +699,6 @@ class DictionnaireDeCoureurs(dict) :
         self.initCoureursElimines(force=force)
         if not hasattr(self, 'seriesDeCouleurSuccessives'):
             self.seriesDeCouleurSuccessives = {'A': {}}
-        self.dossardsPerdus = {}
         self.initEffectifs() # initialisation pour les nouvelles bases. Méthode permettant de mettre à niveau les anciennes
         self['A']=[]
         self.finOptimisation()
@@ -927,6 +926,13 @@ class DictionnaireDeCoureurs(dict) :
                 # Il n'y a pas de "trou" à combler ici, juste une continuation de l'ajout.
                 # La logique d'ajout suivante s'en chargera.
                 
+                # cas où le dossard a été perdu et où il faut attribuer l'un des suivants
+                while formateDossardNG(rangDansListeDeDestination + 1, course=course) in Parametres["dossardsPerdus"] :
+                    # on ajoute autant de coureurs vides que nécessaire pour les dossards perdus
+                    self["CoureursElimines"][course].append(rangDansListeDeDestination)
+                    self[course].append(Coureur("","",""))
+                    rangDansListeDeDestination += 1
+                
                 # cas où il manque de la place, on force l'agrandissement du nombre de dossards pour ce groupement pour que cela rentre.
                 if rangDansListeDeDestination >= prochainRangAPartirDuquelLeGroupementDoitChangerInitial :
                     self.seriesDeCouleurSuccessives[course][current_groupement_name] += 1
@@ -1033,13 +1039,13 @@ class DictionnaireDeCoureurs(dict) :
     def ajouter(self, coureur, course="", dossard = ""): # course serait une lettre "A", "B", "C", ...
         retour = ""
         # compatibilité avec les anciennes sauvegardes
+        if "dossardsPerdus" not in Parametres.keys() :
+            Parametres["dossardsPerdus"] = []
         try : 
-            self.dossardsPerdus
             if course :
                 self[course]
         except :
             self.seriesDeCouleurSuccessives = {}
-            self.dossardsPerdus = {}
         self.finOptimisation()
         # ajout dans le premier coureur vide de la course.
         # retourne le dossard affecté
@@ -1105,11 +1111,11 @@ class DictionnaireDeCoureurs(dict) :
             if not groupement : 
                 groupement = categorie
             numeroMinimal, numeroMaximal = self.plageNumerosAutorises(course, groupement)
-            # on récupère le premier indice libre et qui n'est pas dans self.dossardsPerdus et qui est dans la plage autorisée
+            # on récupère le premier indice libre et qui n'est pas dans Parametres["dossardsPerdus"] = [] et qui est dans la plage autorisée
             i = 0
             pasTrouve = True
             while i < len(self["CoureursElimines"][course]) and pasTrouve :
-                if formateDossardNG(self["CoureursElimines"][course][i], course=course) not in self.dossardsPerdus.keys() and \
+                if formateDossardNG(self["CoureursElimines"][course][i], course=course) not in Parametres["dossardsPerdus"] and \
                     numeroMinimal <= self["CoureursElimines"][course][i] :
                         # la liste des coureurs éliminés est maintenue ordonnée. On n'a pas besoin de tester si le dossard est inférieur à numeroMaximal ici.
                         pasTrouve = False 

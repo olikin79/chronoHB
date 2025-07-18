@@ -222,7 +222,9 @@ class Popup(tk.Toplevel):
         popup = None
         self.destroy()
         Parametres["popupRFID"]=False
-
+        root["Coureurs"].reconstruireCoureurs()
+        print("On ferme le popup RFID. On a reconstruit la base de coureurs en fonction des dossards perdus déclarés.")
+        
     def buildTabs(self):
         # Créer les widgets pour chaque onglet
         self.build_frame_Antennes(self.frames[0])
