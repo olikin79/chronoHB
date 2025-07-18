@@ -3,6 +3,7 @@ PRIORISATION DU TRAVAIL :
 PRIORITE ABSOLUE : fiabiliser le boitier en terme de puissance.
 si la puissance fournie n'est pas suffisante, on rate des tags RFID => Alimenter le lecteur RFID sans l'USB en 5V 2A.
 
+
 ############# 0. Organisation : 
 A faire avant début octobre 2025 :
 - commander les 800 dossards pour le cross du collège,
@@ -19,7 +20,6 @@ A faire avant début octobre 2025 :
 a. BUGS :
 
 Avant début Septembre :
-- possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
 - menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
 - (FAIT) remplacer toute référence à Groupements par root["Groupements"], idem pour Coureurs et pour Courses.
 - (CORRIGE) passer d'un menu de configuration à un autre ne marche plus.
@@ -27,8 +27,7 @@ Avant début Septembre :
 - date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
 - (FAIT? Si c'est dans envoiDossardPourUnCoureurSurUnMail(), cela a l'air géré) ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
-- (INUTILE : c'est très bien ainsi) le dépôt FTP ne s'opère que s'il y a un au moins un import.
-A exécuter s'il n'a jamais été exécuté.
+- le dépôt FTP ne s'opère que s'il y a un au moins un import. A exécuter aussi s'il n'a jamais été exécuté afin de pouvoir tester l'existence de la page vide.
 
 
 Avant le cross BOURRILLON :
@@ -117,8 +116,8 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
+- possibilité d'alimenter le paramètre Coureurs.dossardsPerdus (dict) avec une frame dédiée. Ce menu ne s'affiche que si le paramètre dossards non générés par chronoHB est actif.
 - Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
-- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 
 
@@ -146,6 +145,7 @@ Avant le prochain Trail de RIEUTORT :
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
 
 A plus long terme :
+- changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.
 - Effectuer une sauvegarde en cas de manipulation sur la base de données (changement d'année de naissance, etc).
 - checkbox à créer dans les paramètres si cross UNSS : on empêche les poussins quand c'est un cross de collège-lycée. Paramètre créé en conséquence mais non interfacé.
 - courses à étapes implémentées avec RFID uniquement.

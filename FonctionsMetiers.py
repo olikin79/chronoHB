@@ -1109,7 +1109,7 @@ class DictionnaireDeCoureurs(dict) :
             i = 0
             pasTrouve = True
             while i < len(self["CoureursElimines"][course]) and pasTrouve :
-                if self["CoureursElimines"][course][i] not in self.dossardsPerdus.get(course, []) and \
+                if formateDossardNG(self["CoureursElimines"][course][i], course=course) not in self.dossardsPerdus.keys() and \
                     numeroMinimal <= self["CoureursElimines"][course][i] :
                         # la liste des coureurs éliminés est maintenue ordonnée. On n'a pas besoin de tester si le dossard est inférieur à numeroMaximal ici.
                         pasTrouve = False 
@@ -1373,6 +1373,8 @@ class ErreursATraiter():
         # on peut contrôler que l'erreur nouvelle ne corrige pas une erreur précédente selon les cas repérés en conditions réelles
         # Exemple : pas sûr que cela soit utile. A voir
         True
+
+       
 
 ### pour la partie import : les noms des classes doivent comporter deux caractères et ne pas finir par -F ou -G. => les modifier autoritairement sinon.
 def naissanceValide(naissance) :
@@ -3721,6 +3723,26 @@ def IndiceDuPlusPetitNombreNonNul(liste) :
 # ##        #print("Fichier des données locales déjà traité à cette heure")
 # ##        retour = "RAS"
 #     return retour
+
+def listeDossardsRFID(lettre=None):
+    """Retourne la liste des dossards présents dans la base de données des dossards RFID.
+    Si lettre est différent de None, retourne uniquement les dossards dont la lettre est fournie."""
+    if lettre :
+        L = []
+        for d in Parametres['dictDossardsEPC'].keys() :
+            if lettre == d[-1] :
+                L.append(d)
+        return L
+    else :
+        return Parametres['dictDossardsEPC'].keys()
+
+def listeLettresDossards():
+    """Retourne la liste des lettres présentes dans la base RFID"""
+    L = []
+    for d in listeDossardsRFID() :
+        if d[-1] not in L :
+            L.append(d[-1])
+    return L
 
 def EPCtoDossard(epc) :
     try :

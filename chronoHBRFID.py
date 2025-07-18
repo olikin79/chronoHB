@@ -5,6 +5,165 @@ from tkinter import messagebox
 from FonctionsMetiers import *
 from chronoHBGUIclass import * # pour des widgets personnalisés.
 from functools import partial
+import tkinter as tk
+from tkinter import ttk
+
+class DossardsPerdusFrame(tk.Frame):
+    def __init__(self, master, Parametres, listeLettresDossards_func, listeDossardsRFID_func):
+        super().__init__(master)
+        self.Parametres = Parametres
+        self.listeLettresDossards = listeLettresDossards_func
+        self.listeDossardsRFID = listeDossardsRFID_func
+
+        if "dossardsPerdus" not in self.Parametres:
+            self.Parametres["dossardsPerdus"] = []
+
+        # --- Configuration des styles ttk pour les boutons ---
+        # Définir un style par défaut pour les boutons Dossard, basé sur TButton
+        s = ttk.Style()
+        s.configure("Dossard.TButton", font=('Arial', 9))
+        
+        # Définir les styles pour les dossards perdus et non perdus
+        s.configure("DossardPerdu.TButton", foreground="red")
+        s.map("DossardPerdu.TButton", 
+              background=[('active', 'red'), ('!active', 'SystemButtonFace')]) # Garde la couleur de fond native mais assure 'red' au survol
+        
+        s.configure("DossardNonPerdu.TButton", foreground="black")
+        s.map("DossardNonPerdu.TButton", 
+              background=[('active', 'green'), ('!active', 'SystemButtonFace')]) # Garde la couleur de fond native mais assure 'green' au survol
+
+        self.lettre_selectionnee = tk.StringVar()
+        self.current_dossards_displayed = []
+
+        self.combobox_lettres = ttk.Combobox(self,
+                                             textvariable=self.lettre_selectionnee,
+                                             values=["Toutes les lettres"] + self.listeLettresDossards())
+        self.combobox_lettres.pack(pady=10)
+        self.combobox_lettres.set("Toutes les lettres")
+        self.combobox_lettres.bind("<<ComboboxSelected>>", self.on_lettre_selection_change)
+
+        self.canvas = tk.Canvas(self)
+        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.scrollable_frame = tk.Frame(self.canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: self.canvas.configure(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.scrollbar.pack(side="right", fill="y")
+
+        self.buttons_dict = {}
+        self._last_known_width = 0
+
+        self.canvas.bind("<Configure>", self.on_frame_configure)
+
+        self.update_dossards_display()
+        self.after(10, self.on_frame_configure) # Call layout update shortly after init
+
+    def on_lettre_selection_change(self, event=None):
+        self.update_dossards_display()
+
+    def update_dossards_display(self):
+        lettre = self.lettre_selectionnee.get()
+        if lettre == "Toutes les lettres":
+            new_dossards_list = self.listeDossardsRFID()
+        else:
+            new_dossards_list = self.listeDossardsRFID(lettre=lettre)
+
+        if sorted(new_dossards_list) != sorted(self.current_dossards_displayed):
+            self.current_dossards_displayed = new_dossards_list
+            self._recreate_buttons(new_dossards_list)
+        else:
+            # If the list is the same, just update the colors of existing buttons
+            for dossard, button in self.buttons_dict.items():
+                self.update_button_color(button, dossard)
+        
+        self.after(10, self.on_frame_configure)
+
+    def _recreate_buttons(self, dossards_list):
+        for widget in self.scrollable_frame.winfo_children():
+            widget.destroy()
+        self.buttons_dict = {}
+
+        for dossard in dossards_list:
+            # Use ttk.Button with our base style
+            button = ttk.Button(self.scrollable_frame, text=dossard,
+                                command=lambda d=dossard: self.toggle_dossard_perdu(d),
+                                style="Dossard.TButton") # Apply the base font style
+            self.buttons_dict[dossard] = button
+            self.update_button_color(button, dossard) # This will apply "DossardPerdu.TButton" or "DossardNonPerdu.TButton"
+
+    def update_button_color(self, button, dossard):
+        # Apply the appropriate style based on whether the dossard is lost
+        if dossard in self.Parametres["dossardsPerdus"]:
+            button.config(style="DossardPerdu.TButton")
+        else:
+            button.config(style="DossardNonPerdu.TButton")
+
+    def toggle_dossard_perdu(self, dossard):
+        if dossard in self.Parametres["dossardsPerdus"]:
+            self.Parametres["dossardsPerdus"].remove(dossard)
+        else:
+            self.Parametres["dossardsPerdus"].append(dossard)
+        
+        if dossard in self.buttons_dict:
+            self.update_button_color(self.buttons_dict[dossard], dossard)
+        
+        self.canvas.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def on_frame_configure(self, event=None):
+        self.canvas.update_idletasks()
+        self.scrollable_frame.update_idletasks()
+
+        current_width = self.canvas.winfo_width()
+        
+        if current_width == 0 or abs(self._last_known_width - current_width) < 5:
+            return
+        
+        self._last_known_width = current_width
+        self.update_buttons_layout()
+
+    def update_buttons_layout(self):
+        frame_width = self.canvas.winfo_width()
+        if frame_width == 0 or not self.buttons_dict:
+            return
+
+        first_button = next(iter(self.buttons_dict.values()), None)
+        if first_button:
+            first_button.update_idletasks()
+            button_actual_width = first_button.winfo_width()
+        else:
+            button_actual_width = 70
+
+        horizontal_padding_per_button = 2 * 2 # padx of 2 on each side
+        total_button_space = button_actual_width + horizontal_padding_per_button
+
+        num_columns = max(1, frame_width // total_button_space)
+        
+        if num_columns > len(self.buttons_dict) and len(self.buttons_dict) > 0:
+            num_columns = len(self.buttons_dict)
+
+        for col_idx in range(200): 
+             self.scrollable_frame.grid_columnconfigure(col_idx, weight=0, uniform="")
+
+        for i, (dossard, button) in enumerate(self.buttons_dict.items()):
+            row = i // num_columns
+            col = i % num_columns
+            button.grid(row=row, column=col, padx=2, pady=2, sticky="ew")
+
+        for col_idx in range(num_columns):
+            self.scrollable_frame.grid_columnconfigure(col_idx, weight=1, uniform="dossard_group")
+
+        self.canvas.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
 class Popup(tk.Toplevel):
     def __init__(self, master=None):
@@ -28,7 +187,7 @@ class Popup(tk.Toplevel):
 
         self.frames = []
         self.boutons = []
-        for i,textBouton in enumerate(["Antennes", "Affecter des puces aux dossards", "Tester des dossards", "Tester tous les dossards d'un évènement"]) :
+        for i,textBouton in enumerate(["Antennes", "Affecter des puces aux dossards", "Tester des dossards", "Tester tous les dossards d'un évènement","Dossards perdus"]) :
             # Créer les boutons en haut
             self.boutons.append(tk.Button(self, text=textBouton, command=lambda i=i: self.on_button_click(i)))
             self.grid_columnconfigure(i, weight=1)
@@ -70,9 +229,14 @@ class Popup(tk.Toplevel):
         self.build_frame_Affecter(self.frames[1])
         self.build_frame_Tester(self.frames[2])
         self.build_frame_TesterTous(self.frames[3])
+        self.build_frame_DossardsPerdus(self.frames[4])
         for frame in self.frames:
             frame.pack(fill="both", expand=True)
-
+            
+    def build_frame_DossardsPerdus(self, frame) :
+        dossards_perdus_frame = DossardsPerdusFrame(frame, Parametres, listeLettresDossards, listeDossardsRFID)
+        dossards_perdus_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    
     def build_frame_Antennes(self, frame):
         """Ajoute tous les widgets nécessaires à frame pour effectuer les réglages relatifs aux antennes d'une course à choisir dans un optionMenu."""
         # liste des antennes déjà connectées une fois
