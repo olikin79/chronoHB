@@ -27,10 +27,11 @@ Avant début Septembre :
 - date de naissance bizarres dans l'export tableur des données de test : "20/0-/1-18".
 - (PAS REPRODUIT) l'affichage en temps réel sur chrome ne fonctionne pas.
 - (FAIT? Si c'est dans envoiDossardPourUnCoureurSurUnMail(), cela a l'air géré) ResultatsDiffusion.py, ligne 599. Il faut gérer tous les cas : courses manuelles et autres.
-- le dépôt FTP ne s'opère que s'il y a un au moins un import. A exécuter aussi s'il n'a jamais été exécuté afin de pouvoir tester l'existence de la page vide.
 
 
 Avant le cross BOURRILLON :
+- si on ouvre la sauvegarde HB 2024, il y a plein d'erreurs. Si on ferme et qu'on relance, cela disparaît.
+On dirait que les corrections locales n'ont pas été appliquées après restauration de la sauvegarde.
 - (CORRIGE) le clic sur l'heure de départ ne fonctionne plus pour la modifier n'actualise pas l'interface. Un redémarrage ou un recalcul forcé corrige le problème.
 - (BUG PERSISTANT SUR FIREFOX-SAFARI mais pas sur CHROME) l'affichage TV semble défiler très furtivement quand on programme deux courses à l'affichage. Pas de souci quand on n'en affiche qu'une seule.
 - dans le diplome, enlever le total par sexe : cela permet d'envoyer les diplomes au fil de l'eau.
@@ -124,6 +125,7 @@ soit on l'ignore tout simplement mais il faudrait pouvoir retrouver cette inform
 
 
 Avant le cross H. Bourrillon :
+- le dépôt FTP ne s'opère que s'il y a un au moins un import. A exécuter aussi s'il n'a jamais été exécuté afin de pouvoir tester l'existence de la page vide.
 - (INUTILE) créer des dossards : Collège H. Bourrillon, Logo H.B., Bande couleur et numéro en blanc , nom de la course ?
 - (FAIT 1/2) Créer un publipostage avec les étiquettes du collège.
 - (FAIT) Créer un paramètre "plusieurs séries de dossards commençant à 1" oui-non dans les paramètres généraux.
@@ -134,17 +136,17 @@ Ce menu comportera des nombres 100, 200, 300, ... mais sera modifiable.
 
 
 Avant le trail départemental :
-- permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
+- (FAIT) permettre de désactiver un numéro de dossard pour qu'il ne soit plus affecté à un coureur : utile dès la première perte de dossard.
 
 
 Avant le prochain Trail de RIEUTORT :
 - processus de mise à jour testé, permettant de remplacer n'importe quel fichier de chronoHB même si non encore utilisé et non implémenté.
 - ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
 - créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
-- documenter les nouveautés (partie RFID, etc.).
+- documenter les nouveautés (partie RFID, champ de recherche, etc.).
 - (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
-utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses.
+utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses. Elle semble exister dans updateGroupements() et s'appelle nettoieGroupements(). A voir.
 
 A plus long terme :
 - Réactualiser l'interface si le popup RFID se ferme, notamment le menu "modifier un coureur" qui ne s'actualise pas en fonction des dossards perdus. Actuellement, on impose l'affichage, ce qui n'est pas top.

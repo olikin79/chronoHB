@@ -3,6 +3,8 @@ Travail du 18/07/25 :
 - checkbox mal placée dans "Paramètres généraux"
 - message d'information dans le menu dossards perdus : "Cliquer pour afficher les dossards perdus en rouge. Ceux-ci ne seront plus affectés à aucun coureur."
 - Zone de recherche au dessus du tableau treeview pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
+- sur les sorties du serveur SSE, on met le dossard en premier. C'est qui sera utile pour un contrôle visuel.
+
 
 Travail du 11/07/25 au 16/07/25 :
 - implémentation des séries de dossards de diverses couleur pour le cross par classe ou UNSS.

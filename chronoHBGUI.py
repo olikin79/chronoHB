@@ -1140,7 +1140,8 @@ class MonTableau(Frame):
             #### diffusion du message immédiate pour la ligne d'arrivée.
             if ligneAAjouter[9] != "-" :#ligneInitiale > derniereLigneStabilisee :
                 # print("ligneInitiale",ligneInitiale,"derniereLigneStabilisee",derniereLigneStabilisee)
-                message = str(ligneAAjouter[9]) + '(' + ligneAAjouter[8] + ')' + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
+                # message = str(ligneAAjouter[9]) + '(' + ligneAAjouter[8] + ')' + ' - ' + ligneAAjouter[3]+' '+ligneAAjouter[4] + ', dossard ' + ligneAAjouter[5] + ' ( ' + ligneAAjouter[7] + ')'
+                message = ligneAAjouter[5] + " - " +ligneAAjouter[3]+' '+ligneAAjouter[4] + " - " + ligneAAjouter[7] + ' - n°' + str(ligneAAjouter[9]) + ' (catégorie ' + ligneAAjouter[8] + ')'
                 if main_loop :
                     # print("diffusion de ", message, ".")
                     asyncio.run_coroutine_threadsafe(event_queue.put(message), main_loop)
@@ -3158,8 +3159,7 @@ def onClickE(err):
         tableau.corrigeTempsManquants()
     elif err.numero == 401 : # cas où il manque des heures d'arrivées par rapport au nombre de dossards scannés (extrêmement improbable).
         message = "Le dossard " + str(err.dossard) + " apparait plusieurs fois dans le traitement de la ligne d'arrivée.\n\
-Pour retrouver rapidement les multiples passages, vous pouvez repérer les lignes d'erreurs en bleu ou cliquer sur l'en-tête de colonne 'Dossard'\
-afin de trier le tableau.\n\n\
+Pour retrouver rapidement les multiples passages, vous pouvez utiliser le champt de recherche et y saisir " + str(err.dossard) +" ou repérer les lignes d'erreurs en bleu.\n\n\
 Bien réfléchir quelle occurrence supprimer et effectuer celle-ci en sélectionnant \
 la ligne (bleue) en question puis en cliquant sur le menu 'Gérer les dossards arrivés' puis 'Supprimer le dossard sélectionné'."
         showinfo("ERREUR DANS LE TRAITEMENT DES DONNEES" , message)
