@@ -743,7 +743,7 @@ class DictionnaireDeCoureurs(dict) :
         total = 0
         course = coureur.categorie(Parametres["CategorieDAge"])
         # if Parametres["CategorieDAge"] == 0 : # cross du collège
-        if Parametres["CoursesManuelles"] : # courses manuelles activées
+        if Parametres["CoursesManuelles"] : # root["Courses"] manuelles activées
             print("ATTENTION : à implémenter total de la course en mode manuel. Remarque obsolète ?")
             course = coureur.dossard[-1].upper()
             if course in self.keys() :
@@ -959,7 +959,7 @@ class DictionnaireDeCoureurs(dict) :
     #         return dictionnaireReconstruit
     # def reconstruireDictionnaire(self):
     #     self.finOptimisation()
-    #     # l'interface empêchera de mancer cette commande si des courses A et B sont disponibles (Courses manuelles)
+    #     # l'interface empêchera de mancer cette commande si des root["Courses"] A et B sont disponibles (Courses manuelles)
     #     if Parametres["plusieursSeriesDeCouleurSuccessives"] :
     #         dictionnaireReconstruit = DictionnaireDeCoureurs()
     #         course = "A"
@@ -1565,14 +1565,8 @@ class Coureur():#persistent.Persistent):
             else :  ## catégories pour le cross du collège : initiale de la classe + "-" + sexe
                 if len(self.classe) != 0 :
                     self.__private_categorie = self.classe[0] + "-" + self.sexe
-        if not Parametres["CoursesManuelles"] :  ### désormais, les catégories ne sont plus assimilées aux courses systématiquement mais seulement en mode non manuel.
+        if not Parametres["CoursesManuelles"] :  ### désormais, les catégories ne sont plus assimilées aux root["Courses"] systématiquement mais seulement en mode non manuel.
             self.course = self.__private_categorie
-        # if "217" in self.dossard :
-        #     print("catégorie", self.__private_categorie, self.course)
-        # if "277" in self.dossard : 
-        #     anneeNaissance = self.naissance[6:]
-        #     print('Parametres["crossUNSScollegeLycee"]',Parametres["crossUNSScollegeLycee"])
-        #     print("catégorie du dossard 277", self.__private_categorie, self.course, categorieAthletisme(anneeNaissance, precisionSurLAnnee=False), categorieAthletisme(anneeNaissance, precisionSurLAnnee=True))
         return self.__private_categorie
 
     def categorieSansSexe(self) :
@@ -2107,9 +2101,9 @@ class Groupement():
             self.nomStandard = str(nomChoisi)
     def setDistance(self, distance):
         self.distance = float(distance)
-        ### il faut actualiser les distances de toutes les courses du groupement. Sinon, les calculs de vitesse tombent à l'eau.
+        ### il faut actualiser les distances de toutes les root["Courses"] du groupement. Sinon, les calculs de vitesse tombent à l'eau.
         for nomCourse in self.listeDesCourses :
-            Courses[nomCourse].setDistance(distance)
+            root["Courses"][nomCourse].setDistance(distance)
             #print(nomCourse,"se voit affecté la distance", distance)
     def actualiseNom(self) :
         self.nomStandard = ""
@@ -2129,7 +2123,7 @@ class Groupement():
         if not self.manuel :
             self.nom = self.nom + " / " + str(nomCourse)
         self.actualiseNom()
-        # on actualise les propriétés nomGroupement de toutes les courses du groupement (pour éviter des centaines de parcours de listes toutes les 2 secondes)
+        # on actualise les propriétés nomGroupement de toutes les root["Courses"] du groupement (pour éviter des centaines de parcours de listes toutes les 2 secondes)
         self.actualiseProprieteGroupementDesCourses()
 
     def removeCourse(self, nomCourse):
@@ -2326,8 +2320,8 @@ class EquipeClasse():
         # ajout des scores des garçons
         for c in listeCG + listeCF:
             if Parametres["CategorieDAge"] == 0 :
-                # print("enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(",c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement],")=",enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement]))
-                self.score += c.rang - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[Courses[c.course].nomGroupement])
+                # print("enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(",c.rang, dictrangsDSDEN[root["Courses"][c.course].nomGroupement],")=",enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[root["Courses"][c.course].nomGroupement]))
+                self.score += c.rang - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(c.rang, dictrangsDSDEN[root["Courses"][c.course].nomGroupement])
             else:
                 self.score += c.scoreUNSS
         self.ponderation = ponderation
@@ -2809,8 +2803,8 @@ def chargerDonnees() :
         # compatibilité ascendante pour pouvoir importer de vieilles sauvegardes (avant création des groupements).
         # on récupère les noms de toutes les catégories présentes, on regarde si chacune est bien dans un groupement existant. A défaut, on le crée.
         L = []
-        for cat in Courses :
-            L.append(Courses[cat].categorie)
+        for cat in root["Courses"] :
+            L.append(root["Courses"][cat].categorie)
         for cat in L :
             ajouteUnGroupementPourLaCategorieSiBesoin(cat)
     # Groupements=root["Groupements"]
@@ -3811,7 +3805,7 @@ def associe_dossard_epc(dossard, epc, troncature=0, partieCommune=""):
 
 def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=False, pique=0, dernierDossardDeLaPiquePresentDansArriveeDossards={}) :
     ### A priori, UIDPrecedents est inutile car les doublons seront gérés par les instances de ArriveeDossards, ArriveeTemps, etc...
-    ### A supprimer plus tard, quand les courses à étapes seront implémentées définitivement.
+    ### A supprimer plus tard, quand les root["Courses"] à étapes seront implémentées définitivement.
     """ retourne une erreur transmise par une des fonctions mise en oeuvre ici."""
     retour = Erreur(0) # a priori, il n'y a pas d'erreur.
     listeAction = ligne.split(",")
@@ -3827,7 +3821,7 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
             # on utilise l'erreur 462 afin de créer un affichage temporaire dédié.
             coureur = root["Coureurs"].recuperer(dossard)
             groupementAPartirDeSonNom(coureur.course, nomStandard = True)
-            if coureur.course and not Courses[coureur.course].depart :
+            if coureur.course and not root["Courses"][coureur.course].depart :
                 err = Erreur(462, courteDescription="", elementConcerne=dossard, listeDesDossardsConcernes=[dossard], coureurs=[coureur])
                 err.actualiseDescription462()
                 return err
@@ -3943,22 +3937,23 @@ def decodeActionsRecupSmartphone(ligne, local=False, UIDPrecedents = {}, RFID=Fa
     return retour
 
 def selectionnerCoursesEtGroupementsARegenererPourImpression(dossard) :
-    cat = root["Coureurs"].recuperer(dossard).course # les courses ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
+    cat = root["Coureurs"].recuperer(dossard).course # les root["Courses"] ne sont plus identifiées aux catégories : categorie(Parametres["CategorieDAge"])
     # on ajoute un flag pour la catégorie du coureur et son groupement indiquant que celles ci devront être regénérées pour les résultats en pdf.
     try :
-        Courses[cat].setARegenererPourImpression(True)
-        groupementAPartirDeSonNom(Courses[cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
+        root["Courses"][cat].setARegenererPourImpression(True)
+        groupementAPartirDeSonNom(root["Courses"][cat].nomGroupement, nomStandard = True).setARegenererPourImpression(True)
     except :
         print("ERREUR AVEC setARegenererPourImpression")
         try :
-            print("nom groupement de la catégorie", cat, ":", Courses[cat].categorie)
+            print("nom groupement de la catégorie", cat, ":", root["Courses"][cat].categorie)
         except :
             print("Le coureur au dossard",dossard, "n'a pas de course affectée")
-        #print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
-        #print("Courses",Courses)
+        # print("Groupements" ,print(listNomsGroupements(nomStandard = True)))
+        # print("Courses",root["Courses"])
+        # print("Catégorie du coureur examiné", root["Coureurs"].recuperer(dossard).course)
 
 def effacerFichierDonnneesSmartphone() :
-    print("Effacement des données venant des smartphones  effectué")
+    print("Effacement des données venant des smartphones effectué")
     file = donneesSmartphone
     if os.path.exists(file) :
         os.remove(file)
@@ -4053,10 +4048,10 @@ def listCourses():
 ##    if len(Courses)==0:
 ##        #print("There are no Courses.")
 ##        return retour
-    for cat in Courses :
-        #tests Courses[cat].top()
-        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-        retour.append(Courses[cat].categorie)
+    for cat in root["Courses"] :
+        #tests root["Courses"][cat].top()
+        #print(root["Courses"][cat].categorie, root["Courses"][cat].depart, root["Courses"][cat].temps)
+        retour.append(root["Courses"][cat].categorie)
     return retour
     ##transaction.commit()
 
@@ -4173,10 +4168,10 @@ def listChallenges():
         # print("There are Courses.", Courses)
         # print("Coureurs", root["Coureurs"].afficher())
         for cat in root["Courses"] :
-            #tests Courses[cat].top()
-            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
+            #tests root["Courses"][cat].top()
+            #print(root["Courses"][cat].categorie, root["Courses"][cat].depart, root["Courses"][cat].temps)
             listeCourses.append(root["Courses"][cat].categorie)
-        # print("liste des courses examinées", listeCourses)
+        # print("liste des root["Courses"] examinées", listeCourses)
         for cat in listeCourses :
             if Parametres["CategorieDAge"]== 0 :
                 NomDuChallenge = cat[0]
@@ -4201,10 +4196,10 @@ def listChallenges():
 def listCoursesEtChallenges():
     retour = []
     if len(root["Courses"])!=0:
-        for cat in Courses :
-            #tests Courses[cat].top()
-            #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-            retour.append(Courses[cat].categorie)
+        for cat in root["Courses"] :
+            #tests root["Courses"][cat].top()
+            #print(root["Courses"][cat].categorie, root["Courses"][cat].depart, root["Courses"][cat].temps)
+            retour.append(root["Courses"][cat].categorie)
         retour += listChallenges()
         # if not Parametres["CategorieDAge"] :
         #     for cat in retour :
@@ -4219,18 +4214,18 @@ def listCoursesEtChallenges():
 ##    if len(Courses)==0:
 ##        #print("There are no Courses.")
 ##        return retour
-##    for cat in Courses :
-##        #tests Courses[cat].top()
-##        #print(Courses[cat].categorie, Courses[cat].depart, Courses[cat].temps)
-##        if Courses[cat].temps != 0 :
-##            retour.append(Courses[cat].categorie)
+##    for cat in root["Courses"] :
+##        #tests root["Courses"][cat].top()
+##        #print(root["Courses"][cat].categorie, root["Courses"][cat].depart, root["Courses"][cat].temps)
+##        if root["Courses"][cat].temps != 0 :
+##            retour.append(root["Courses"][cat].categorie)
 ##    return retour
 ##
 ##def listCoursesNonCommencees():
 ##    retour = []
-##    for cat in Courses :
-##        if Courses[cat].temps == 0 :
-##            retour.append(Courses[cat].categorie)
+##    for cat in root["Courses"] :
+##        if root["Courses"][cat].temps == 0 :
+##            retour.append(root["Courses"][cat].categorie)
 ##    return retour
 
 def listNomsGroupementsCommences(nomStandard = True):
@@ -4298,7 +4293,7 @@ def listGroupementsCommences():
     for groupement in root["Groupements"] :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps != 0 :
+            if root["Courses"][nomDeLaPremiereCourseDuGroupement].temps != 0 :
                 retour.append(groupement)
     return retour
 
@@ -4307,7 +4302,7 @@ def listGroupementsNonCommences(nomStandard = False):
     for groupement in root["Groupements"] :
         if groupement.listeDesCourses :
             nomDeLaPremiereCourseDuGroupement = groupement.listeDesCourses[0]
-            if Courses[nomDeLaPremiereCourseDuGroupement].temps == 0 :
+            if root["Courses"][nomDeLaPremiereCourseDuGroupement].temps == 0 :
                 retour.append(groupement)
     return retour
 
@@ -4316,21 +4311,21 @@ def topDepart(listeDeGroupements):
     if listeDeGroupements :
         for groupement in listeDeGroupements :
             for cat in groupement.listeDesCourses :
-                Courses[cat].setTemps(temps, tempsAuto=True)
-                print(Courses[cat].categorie, "est lancée :", Courses[cat].depart, ". Heure de départ :", Courses[cat].temps)
+                root["Courses"][cat].setTemps(temps, tempsAuto=True)
+                print(root["Courses"][cat].categorie, "est lancée :", root["Courses"][cat].depart, ". Heure de départ :", root["Courses"][cat].temps)
 
 # pour corriger un départ depuis l'interface
 def fixerDepart(nomGroupement,temps):
     for groupement in root["Groupements"] :
         if groupement.nom == nomGroupement :
             for categorie in groupement.listeDesCourses :
-                Courses[categorie].setTempsHMS(temps)
-                print(Courses[categorie].categorie, "est lancée :", Courses[categorie].depart, ". Heure de départ :", Courses[categorie].temps)
+                root["Courses"][categorie].setTempsHMS(temps)
+                print(root["Courses"][categorie].categorie, "est lancée :", root["Courses"][categorie].depart, ". Heure de départ :", root["Courses"][categorie].temps)
 
 
 def generateListCoureursPourSmartphone() :
     """ on génère désormais un fichier CoureursA.txt, CoureursB.txt, etc... par course pour une recherche rapide à la n-ème ligne des coordonnées du coureur en fonction de son dossard.
-        on ajoute root["Coureurs"].txt qui contient tous les coureurs de toutes les courses pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
+        on ajoute root["Coureurs"].txt qui contient tous les coureurs de toutes les root["Courses"] pour les recherches par nom-prénom-catégorie-classe. Cela permet de n'avoir qu'un fichier à ouvrir pour le script CGI.
     """
     fichierDonneesSmartphoneAvecTousLesCoureurs = "Coureurs.txt"
     fichierDonneesSmartphone = "Coureurs"
@@ -4343,17 +4338,17 @@ def generateListCoureursPourSmartphone() :
                 for coureur in root["Coureurs"][lettre] :
                     try :
                         #print("categorie",coureur.categorie(Parametres["CategorieDAge"]))
-                        #print("description",Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+                        #print("description",root["Courses"][coureur.categorie(Parametres["CategorieDAge"])].description
                         if Parametres["CoursesManuelles"] :
     ##                        print("Nom : " , coureur.nom)
     ##                        print("course :",coureur.course)
-    ##                        print("Description:",Courses[coureur.course].description)
+    ##                        print("Description:",root["Courses"][coureur.course].description)
     ##                        print("Groupements",listNomGroupements())
-    ##                        nomStandard = Courses[coureur.course].description
+    ##                        nomStandard = root["Courses"][coureur.course].description
     ##                        c = groupementAPartirDUneCategorie(nomStandard).nom
-                            c = Courses[coureur.course].description
+                            c = root["Courses"][coureur.course].description
                         else :
-                            c = Courses[coureur.categorie(Parametres["CategorieDAge"])].description
+                            c = root["Courses"][coureur.categorie(Parametres["CategorieDAge"])].description
 
                         result = str(coureur.dossard) + "," + str(coureur.nom) + "," + str(coureur.prenom) +","+ str(coureur.classe) + "," +\
                                 str(coureur.categorie(Parametres["CategorieDAge"])) + "," +\
@@ -4368,7 +4363,7 @@ def generateListCoureursPourSmartphone() :
                                 # "," + "," +str(coureur.commentaireArrivee).replace(",",";") + "," + str(coureur.etablissement)
                         #print("catégorie",coureur.categorie(Parametres["CategorieDAge"]))
                         #print("Courses.keys()", Courses.keys())
-                        #print("course", Courses[coureur.course].description)
+                        #print("course", root["Courses"][coureur.course].description)
                         pass
                         # print("Coureur non ajouté à la liste pour les smartphones", str(coureur.dossard) + "," + str(coureur.nom) + "," + \
                             # str(coureur.prenom) +","+ str(coureur.classe) + "," + str(coureur.categorie(Parametres["CategorieDAge"])) + "," + \
@@ -4543,10 +4538,10 @@ def replaceDansDossardEnFonctionDesParametres(modele, coureur) :
         retour = modele.replace("@classe@",cl).replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
     elif Parametres["CategorieDAge"] == 1 :
-        if Parametres["CoursesManuelles"] : # cas de courses personnalisées : trail Randon
+        if Parametres["CoursesManuelles"] : # cas de root["Courses"] personnalisées : trail Randon
             retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
-        else : # cas de courses par catégorie de la FFA
+        else : # cas de root["Courses"] par catégorie de la FFA
             retour = modele.replace("@classe@","").replace("@categorie@","")\
                        .replace("@groupement@",groupement).replace("@etablissement@","")
     else : # Parametres["CategorieDAge"] == 2 (cross UNSS)
@@ -5128,11 +5123,11 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
             catG = nomFichierPdfDecoupe[1][0] + "-G"
             catF = nomFichierPdfDecoupe[1][0] + "-F"
             if catG in root["Courses"].keys() :
-                aSupprimerG = Courses[catG].aRegenererPourImpression
+                aSupprimerG = root["Courses"][catG].aRegenererPourImpression
             else :
                 aSupprimerG = False
             if catF in root["Courses"].keys() :
-                aSupprimerF = Courses[catF].aRegenererPourImpression
+                aSupprimerF = root["Courses"][catF].aRegenererPourImpression
             else :
                 aSupprimerF = False
             aSupprimer = aSupprimerG or aSupprimerF
@@ -5140,8 +5135,8 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
             aSupprimer = False
         try :
             casOuOnSupprime = (aSupprimer) \
-                          or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
-                          or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Categorie" and root["Courses"][nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+                          or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(root["Courses"][nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
                           or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
         except :
             casOuOnSupprime = True
@@ -5167,8 +5162,8 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
         denomination = "Classe"
     else :
         denomination = "Categorie"
-#     if not CoursesManuelles : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
-#         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
+#     if not CoursesManuelles : # dans le cas de root["Courses"] manuelles, cela n'a pas de sens de faire des moyennes de temps sur des root["Courses"] de longueurs différentes
+#         # on ne fait ces statistiques que pour des root["Courses"] identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
 #         enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
     # création d'un fichier de statistiques par groupements
@@ -5260,7 +5255,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
                 ### le groupement et toutes les catégories incluses n'ont plus à être regénérés sauf modification ultérieure
                 groupementAPartirDeSonNom(classe).setARegenererPourImpression(False)
                 for c in groupementAPartirDeSonNom(classe).listeDesCourses :
-                    Courses[c].setARegenererPourImpression(False)
+                    root["Courses"][c].setARegenererPourImpression(False)
 
     # ajout des lignes pour 
     # fstats += enteteSGpments
@@ -5365,11 +5360,11 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #             catG = nomFichierPdfDecoupe[1][0] + "-G"
 #             catF = nomFichierPdfDecoupe[1][0] + "-F"
 #             if catG in Courses.keys() :
-#                 aSupprimerG = Courses[catG].aRegenererPourImpression
+#                 aSupprimerG = root["Courses"][catG].aRegenererPourImpression
 #             else :
 #                 aSupprimerG = False
 #             if catF in Courses.keys() :
-#                 aSupprimerF = Courses[catF].aRegenererPourImpression
+#                 aSupprimerF = root["Courses"][catF].aRegenererPourImpression
 #             else :
 #                 aSupprimerF = False
 #             aSupprimer = aSupprimerG or aSupprimerF
@@ -5377,8 +5372,8 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #             aSupprimer = False
 #         try :
 #             casOuOnSupprime = (aSupprimer) \
-#                           or (nomFichierPdfDecoupe[0] == "Categorie" and Courses[nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
-#                           or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(Courses[nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
+#                           or (nomFichierPdfDecoupe[0] == "Categorie" and root["Courses"][nomFichierPdfDecoupe[1]].aRegenererPourImpression) \
+#                           or (nomFichierPdfDecoupe[0] == "Course" and groupementAPartirDeSonNom(root["Courses"][nomFichierPdfDecoupe[1]].nomGroupement, nomStandard = True).aRegenererPourImpression) \
 #                           or nomFichierPdfDecoupe[0] == "Challenge" or nomFichierPdfDecoupe[0]=="statistiques"
 #         except :
 #             casOuOnSupprime = True
@@ -5406,8 +5401,8 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #         denomination = "Classe"
 #     else :
 #         denomination = "Categorie"
-#     if not Parametres["CoursesManuelles"] : # dans le cas de courses manuelles, cela n'a pas de sens de faire des moyennes de temps sur des courses de longueurs différentes
-#         # on ne fait ces statistiques que pour des courses identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
+#     if not Parametres["CoursesManuelles"] : # dans le cas de root["Courses"] manuelles, cela n'a pas de sens de faire des moyennes de temps sur des root["Courses"] de longueurs différentes
+#         # on ne fait ces statistiques que pour des root["Courses"] identiques pour une même catégorie (d'âge ou de niveau pour un cross de collège)
 #         enTeteDesStatistiquesParCategories = """\\textbf{Statistiques par @categorie@ :}
 
 # \\begin{center}
@@ -5440,7 +5435,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #                 if ArrDispAbsAbandon[8] :
 #                     if not os.path.exists(dossier_impressions+os.sep+denomination +"_"+nomFichier+ ".pdf") :
 #                         # s'il s'agit d'une impression rapide des résultats, uniquementCoursesEtChallenge=True (pour accélérer, on ne crée pas les fichiers classes)
-#                         # si CoursesManuelles==1 (cas des courses hors établissement et hors cross UNSS), on ne change rien. On compile tout.
+#                         # si CoursesManuelles==1 (cas des root["Courses"] hors établissement et hors cross UNSS), on ne change rien. On compile tout.
 #                         print("coursesmanuelles", Parametres["CoursesManuelles"])
 #                         if not uniquementCoursesEtChallenge or Parametres["CoursesManuelles"] == 1 :
 #                             with open(TEXDIR+ denomination +"_"+nomFichier+ ".tex", 'w',encoding="utf-8") as f :
@@ -5511,7 +5506,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #                     ### la catégorie n'a plus à être regénérée sauf modification
 #                     if denomination != "Classe" :
 #                         try :
-#                             Courses[classe].setARegenererPourImpression(False)
+#                             root["Courses"][classe].setARegenererPourImpression(False)
 #                         except :
 #                             True
 #                         # si la classe a été générée, la catégorie également via les groupements ci-dessous
@@ -5603,7 +5598,7 @@ def generateImpressionsNG(uniquementCoursesEtChallenge = False) :
 #                 ### le groupement et toutes les catégories incluses n'ont plus à être regénérés sauf modification ultérieure
 #                 groupementAPartirDeSonNom(classe).setARegenererPourImpression(False)
 #                 for c in groupementAPartirDeSonNom(classe).listeDesCourses :
-#                     Courses[c].setARegenererPourImpression(False)
+#                     root["Courses"][c].setARegenererPourImpression(False)
 #             #else :
 #             #    ContenuLignesCategories += ligneStats.replace("@classe",classe).replace("@FArr",FArr)\
 #              #            .replace("@GArr",GArr).replace("@FD",FD)\
@@ -5707,7 +5702,7 @@ def groupementAPartirDeSonNom(nomGroupement, nomStandard=True):
 def ancienGroupementAPartirDUneCategorie(categorie):
     """ retourne un objet groupement à partir d'un nom de catégorie
     Non optimisé. Cette version est maintenue pour permettre l'import d'anciennes sauvegardes
-    où les Courses n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
+    où les root["Courses"] n'avaient pas la propriété nomGroupement. Cette fonction, utilisée une seule fois, permet de la construire."""
     ### cette recherche avait du sens avant la création de la propriété nomGroupement de l'object Course. Tenu à jour, cela permet une optimisation
     retour = None
     for groupement in root["Groupements"] :
@@ -5728,13 +5723,13 @@ def nomGroupementAPartirDUneCategorie(categorie, nomStandard = True):
     else :
         return ""
     # try :
-        # retour = Courses[categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
+        # retour = root["Courses"][categorie].nomGroupement ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     # except :
         # try :
-            # retour = Courses[categorie].initNomGroupement(categorie)
+            # retour = root["Courses"][categorie].initNomGroupement(categorie)
         # except:
             # retour = ""
-    # #print("categorie",Courses[categorie].categorie ,retour)
+    # #print("categorie",root["Courses"][categorie].categorie ,retour)
     # return retour
 
 def groupementAPartirDUneCategorie(categorie):
@@ -5752,11 +5747,11 @@ def groupementAPartirDUneCategorie(categorie):
     #print(categorie, "est dans",retour.affichageInfoTerminal())
     try :
         #print("Croupements",Groupements)
-        #print("nomGroupement",Courses[categorie].nomGroupement)
+        #print("nomGroupement",root["Courses"][categorie].nomGroupement)
         retour = root["Groupements"][findIndex(root["Courses"][categorie].nomGroupement, root["Groupements"])] ### compatibilité avec les anciennes sauvegardes sans cette propriété.
     except :
         try :
-            retour = root["Groupements"][findIndex(root["Courses"][categorie].initNomGroupement(categorie), root["Groupements"])]# Courses[categorie].initNomGroupement(categorie)
+            retour = root["Groupements"][findIndex(root["Courses"][categorie].initNomGroupement(categorie), root["Groupements"])]# root["Courses"][categorie].initNomGroupement(categorie)
         except:
             retour = None
             print("ERREUR : groupementAPartirDUneCategorie", categorie, "n'a pas de groupement. Ici, on pourrait ajouter la création du groupement pour cette catégorie mais ce ne serait pas corriger le cause qui est ailleurs.")
@@ -5803,7 +5798,7 @@ def updateGroupements(categorie, placeInitiale, placeFinale):
             print(grp.nom,grp.listeDesCourses)
 
 def supprimeCourseDuGroupementEtNettoieGroupements(course):
-    """ Utilisé uniquement lors des courses manuelles où des courses sont identiques aux groupements. Les courses sont créées manuellement
+    """ Utilisé uniquement lors des root["Courses"] manuelles où des root["Courses"] sont identiques aux groupements. Les root["Courses"] sont créées manuellement
     et peuvent exister sans coureur dedans, ce qui n'arrive jamais sinon."""
     i = 0
     for g in root["Groupements"] :
@@ -5824,7 +5819,7 @@ def supprimeCourseDuGroupementEtNettoieGroupements(course):
 #         elif c.dispense :
 #             Ldisp.append(c)
 #             #print(c.nom, c.prenom, "est dispensé")
-#         elif c.rang == 0 and Courses[c.course].depart : # si la course a été lancé et le coureur n'est pas arrivé.
+#         elif c.rang == 0 and root["Courses"][c.course].depart : # si la course a été lancé et le coureur n'est pas arrivé.
 #             Labandon.append(c)
 #             #print(c.nom, c.prenom, "a abandonné")
 #     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
@@ -5893,7 +5888,7 @@ def absentsDispensesAbandonsNG() :
         elif c.dispense :
             Ldisp.append(c)
             #print(c.nom, c.prenom, "est dispensé")
-        elif c.rang == 0 and Courses[c.course].depart : # si la course a été lancé et le coureur n'est pas arrivé.
+        elif c.rang == 0 and root["Courses"][c.course].depart : # si la course a été lancé et le coureur n'est pas arrivé.
             Labandon.append(c)
             #print(c.nom, c.prenom, "a abandonné")
     print("nbre abs", len(Labs), "  nbre disp",len(Ldisp), "  nbre abandons", len(Labandon))
@@ -6159,8 +6154,8 @@ def generateResultatsChallengeUNSS(nom,listeOrdonneeParScoreDesDossardsDeLaClass
                 categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "MI1", "BE2", "BE1", "PO3", "PO2", "PO1" ]
             else : # sinon, on est en collège, la catégorie limitée est alors les cadets et supérieurs.
                 nbreMaxdUnSexe = 3
-                # En 2024, les collèges, courses Minimes autorisent toutes les catégories d'âges, de MI1 jusqu'à CA1 maximum, avec mixité obligatoire.
-                # En 2024, les collèges, courses Benjamins autorisent toutes les catégories d'âges, jusqu'à B2 maximum, avec mixité obligatoire.
+                # En 2024, les collèges, root["Courses"] Minimes autorisent toutes les catégories d'âges, de MI1 jusqu'à CA1 maximum, avec mixité obligatoire.
+                # En 2024, les collèges, root["Courses"] Benjamins autorisent toutes les catégories d'âges, jusqu'à B2 maximum, avec mixité obligatoire.
                 # Ce dernier critère est automatique puisque les minimes de collège qui ont redoublé ne courent pas avec les benjamins.
                 categoriesLimitees = [ "M10","M9","M8","M7", "M6","M5", "M4","M3" ,"M2", "M1" ,"M0" , "SE" ,"ES", "JU" , "CA2" ]
         i = 0
@@ -6485,7 +6480,7 @@ def genereResultatsCoursesEtClasses(premiereExecution = False) :
     return retour
 
 def estUneCourseOuUnGroupement(nom):
-    if nom in Courses :
+    if nom in root["Courses"] :
         retour = True
     elif groupementAPartirDeSonNom(nom, nomStandard=False) != None :
         retour = True
@@ -6495,7 +6490,7 @@ def estUneCourseOuUnGroupement(nom):
     return retour
 
 def estUneCourse(nom):
-    if nom in Courses :
+    if nom in root["Courses"] :
         retour = True
     else :
         retour = False
@@ -6898,12 +6893,12 @@ def ajoutEstIlValide(nom, prenom, sexe, classe, naissance, etablissement, etabli
              or (Parametres["CategorieDAge"] == 2 and naissanceValide(naissance) and etablissement and etablissementNatureValide))
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
-             # 1 - cas de courses organisées en fonction des catégories de la FFA. La naissance est obligatoire mais plusieurs cas se présentent :
-                    # * si les courses ne sont pas manuelles, on n'a besoin que de la naissance car la course dépend de la catégorie FFA
-                    # * si les courses sont choisies par les coureurs (cas du Trail du Randon), on a deux cas :
+             # 1 - cas de root["Courses"] organisées en fonction des catégories de la FFA. La naissance est obligatoire mais plusieurs cas se présentent :
+                    # * si les root["Courses"] ne sont pas manuelles, on n'a besoin que de la naissance car la course dépend de la catégorie FFA
+                    # * si les root["Courses"] sont choisies par les coureurs (cas du Trail du Randon), on a deux cas :
                     #       - soit on a la naissance et la course (fournie dans le fichier tableur importé)
                     #       - soit on a la naissance et le dossard (34B indique que le coureur courre la course B). On peut donc déduire la course du dossard fourni dans le tableur.
-             # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+             # 2 - cas de root["Courses"] UNSS (organisées en fonction des catégories de la FFA et des établissements)
     return retour
 
 def dossardValide(dossard) :
@@ -7018,7 +7013,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 print("On a mis à jour les caractéristiques du coureur au dossard", dossard)
                 if not Parametres["CoursesManuelles"] :
                     addCourse(root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"])) 
-                    # pour toutes les courses automatiques, on doit actualiser la course si besoin.
+                    # pour toutes les root["Courses"] automatiques, on doit actualiser la course si besoin.
                 print("Coureur actualisé", dossard, nom, prenom, sexe, classe, naissance, etablissement, etablissementNature, absent, dispense,\
                       commentaireArrivee, " (catégorie :", root["Coureurs"].recuperer(dossard).categorie(Parametres["CategorieDAge"]),\
                       "Course manuelle:",course,")")
@@ -7040,7 +7035,7 @@ def addCoureur(nom, prenom, sexe, classe='', naissance="", etablissement = "", e
                 lettre = ""
                 if dossard : 
                     lettre = dossard[-1]
-                # pourquoi avais je commenté la ligne suivante ? Est ce pour le cross du collège ou pour l'UNSS ? Elle est utile en mode courses mnanuelles.
+                # pourquoi avais je commenté la ligne suivante ? Est ce pour le cross du collège ou pour l'UNSS ? Elle est utile en mode root["Courses"] mnanuelles.
                 lettreCourse = addCourse(course, lettreCourse = lettre) # crée la course si besoin et surtout, retourne sa lettre à partir de son nom. #lettreCourseEnModeCoursesManuelles(course)
                 # print("lettreCourse",lettreCourse)
                 # récupération du nom standard de la course
@@ -7152,9 +7147,9 @@ def addCourse(course, lettreCourse="") :
     Comportement :
     en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
     en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
-    Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+    Dans ce cas, les root["Courses"] intermédiaires sont créées avec le nom standard,
     et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
-##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
+##    # si CoursesManuelles, les root["Courses"] portent le nom "A" comme entrée dans Courses.
 ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
     if course :
@@ -7163,7 +7158,7 @@ def addCourse(course, lettreCourse="") :
                 lettreCourse = lettreCourseEnModeCoursesManuelles(course)
                 print("La lettre attribuée manuellement à la course est :",lettreCourse)
             #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
-            if not lettreCourse in Courses :
+            if not lettreCourse in root["Courses"] :
                 print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
                 root["Groupements"].append(Groupement(lettreCourse,[lettreCourse]))
                 root["Groupements"][-1].setNom(course)
@@ -7171,7 +7166,7 @@ def addCourse(course, lettreCourse="") :
                 root["Courses"].update({lettreCourse : c})
             return lettreCourse
         else :
-            # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+            # compatibilité ascendante pour créer les groupements pour des root["Courses"] qui existeraient déjà dans de vieilles bases de données.
             ajouteUnGroupementPourLaCategorieSiBesoin(course)
                 #print("Groupements = ",[i.nom for i in Groupements])
             # création de la course si elle n'existe pas.
@@ -7181,7 +7176,7 @@ def addCourse(course, lettreCourse="") :
                 c = Course(course)
                 root["Courses"].update({course : c})
             return course
-            #print("cat",Courses[course].categorie)
+            #print("cat",root["Courses"][course].categorie)
     else :
         print("ERREUR qui ne devrait pas survenir, la course transmise vaut :", course)
 
@@ -7200,9 +7195,9 @@ def estDansGroupementsEnModeManuel(course):
 #     Comportement :
 #     en mode automatique, crée la course si elle n'existe pas. Crée le groupement du même nom (par défaut)
 #     en mode coursesManuelles, crée la course et le groupement mais peut également imposer la lettre, si fournie.
-#     Dans ce cas, les courses intermédiaires sont créées avec le nom standard,
+#     Dans ce cas, les root["Courses"] intermédiaires sont créées avec le nom standard,
 #     et le nom de la course avec la lettre est actualisé si le nom en cours est standard."""
-# ##    # si CoursesManuelles, les courses portent le nom "A" comme entrée dans Courses.
+# ##    # si CoursesManuelles, les root["Courses"] portent le nom "A" comme entrée dans Courses.
 # ##    # on doit trouver si une course existante c a pour propriété c.nom == categorie
 # ##    # si ce n'est pas le cas, on crée la course et le groupement correspondant à l'identique en affectant le nom personnalisé avec la méthode adhoc
 #     if CoursesManuelles :
@@ -7210,7 +7205,7 @@ def estDansGroupementsEnModeManuel(course):
 #             lettreCourse = lettreCourseEnModeCoursesManuelles(course)
 #             print("La lettre attribuée manuellement à la course est :",lettreCourse)
 #         #print("lettreCourse:",lettreCourse,"Courses => ", Courses.keys())
-#         if not lettreCourse in Courses :
+#         if not lettreCourse in root["Courses"] :
 #             print("Création de la course manuelle", lettreCourse, "avec le nom :" + course + ".")
 #             Groupements.append(Groupement(lettreCourse,[lettreCourse]))
 #             Groupements[-1].setNom(course)
@@ -7218,7 +7213,7 @@ def estDansGroupementsEnModeManuel(course):
 #             Courses.update({lettreCourse : c})
 #         return lettreCourse
 #     else :
-#         # compatibilité ascendante pour créer les groupements pour des courses qui existeraient déjà dans de vieilles bases de données.
+#         # compatibilité ascendante pour créer les groupements pour des root["Courses"] qui existeraient déjà dans de vieilles bases de données.
 #         estPresent = False
 #         for grpment in Groupements :
 #             if course in grpment.listeDesCourses :
@@ -7230,12 +7225,12 @@ def estDansGroupementsEnModeManuel(course):
 #             #print("Groupements = ",[i.nom for i in Groupements])
 #         # création de la course si elle n'existe pas.
 #         #print(course, " est dans ", Courses,"?")
-#         if course not in Courses :
+#         if course not in root["Courses"] :
 #             print("Création de la course", course)
 #             c = Course(course)
 #             Courses.update({course : c})
 #         return course
-#         #print("cat",Courses[course].categorie)
+#         #print("cat",root["Courses"][course].categorie)
 
 def formateDossardNG(doss, course="") :
     if doss :
@@ -7440,8 +7435,8 @@ def calculeTousLesTemps(reinitialise = False):
                 coureurPrevisionnel = Coureur("", "", "", "")
                 arrivee = tps.tempsReel
                 cat = categorieDuDernierDepart()
-                depart = Courses[cat].temps
-                coureurPrevisionnel.setTemps(arrivee- depart, Courses[cat].distance)
+                depart = root["Courses"][cat].temps
+                coureurPrevisionnel.setTemps(arrivee- depart, root["Courses"][cat].distance)
                 alimenteTableauGUI (tableauGUI, coureurPrevisionnel, tps, dossardAffecteAuTps, ligneAjoutee, derniereLigneStabilisee )
             else :
                 ### affichage classique des heures de passage vides sans coureur affecté.
@@ -7483,8 +7478,8 @@ def categorieDuDernierDepart() :
     ''' retourne la catégorie du dernier départ lancé'''
     cat = ""
     tempsMax = 0
-    for nom in Courses :
-        c = Courses[nom]
+    for nom in root["Courses"] :
+        c = root["Courses"][nom]
         if c.depart and c.temps > tempsMax :
             cat = c.categorie
             tempsMax = c.temps
@@ -7602,10 +7597,10 @@ def affecteChronoAUnCoureur(doss, tps, dossardAffecteAuTps, ligneAjoutee, dernie
     cat = coureur.course # categorie(Parametres["CategorieDAge"])
     retour = []
     try :
-        categ = Courses[cat]
+        categ = root["Courses"][cat]
     except:
         categ = ""
-    if categ and Courses[cat].depart :
+    if categ and root["Courses"][cat].depart :
         depart = categ.temps
         if arrivee- depart < 0 :
             coureur.setTemps(0)
@@ -7850,12 +7845,12 @@ def delCourses():
     ##transaction.commit()
     print("Courses et groupements réinitialisés")
 ##    else :
-##        print("Courses commencées : impossible de supprimer les courses en cours.")
+##        print("Courses commencées : impossible de supprimer les root["Courses"] en cours.")
 
 def nettoieCoursesManuelles():
     global Courses, Groupements
-    """ Supprime les courses qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
-    # recherche des courses avec coureurs mises dans L
+    """ Supprime les root["Courses"] qui n'ont aucun coureur inscrit et nettoie les groupements correspondants et réindexe"""
+    # recherche des root["Courses"] avec coureurs mises dans L
     L = []
     for c in root["Coureurs"].liste() :
         if not c.course in L :
@@ -7865,22 +7860,22 @@ def nettoieCoursesManuelles():
     newGroupements = []
     transcription = {} # dictionnaire pour traduire les anciens noms en nouveaux noms de course
     i = 1
-    for nom in Courses :
+    for nom in root["Courses"] :
         if nom in L : # si il y a des coureurs, on la copie
             nouveauNom = chr(64 + i)
             transcription[nom] = nouveauNom # destiné à garder une trace du changement pour la réindexatoin de tous les coureurs qui suit.
-            newCourses[nouveauNom] = Courses[nom]
+            newCourses[nouveauNom] = root["Courses"][nom]
             newCourses[nouveauNom].setNomGroupement(nouveauNom)
             newGroupements.append(groupementAPartirDeSonNom(nom, nomStandard=True))
             newGroupements[-1].setNomStandard(nouveauNom)
             newGroupements[-1].setListeDesCourses([nouveauNom])
             i+=1
-    # réindexation des noms de courses des coureurs
+    # réindexation des noms de root["Courses"] des coureurs
     for c in root["Coureurs"].liste() :
         c.setCourse(transcription[c.course])
     root["Coureurs"].reindexer(transcription)
     # nettoyage avec garbage collector
-    Courses = newCourses
+    root["Courses"] = newCourses
     root["Groupements"] = newGroupements
     # root["Coureurs"].afficher()
     #print(newCourses, newGroupements, Courses, Groupements)
@@ -7960,7 +7955,7 @@ def delCourse(categorie) :
 #     #listCoureurs()
 #     print("Courses")
 #     for cat in listCourses():
-#         c = Courses[cat]
+#         c = root["Courses"][cat]
 #         print(c.label, "(",c.categorie,") :", c.temps, "(", c.distance,"km)")
 #     print("ArriveeDossards")
 #     listArriveeDossards()
@@ -8041,7 +8036,7 @@ def genereHeureDepartHTML(groupement) :
             else :
                 retour = [0,0,0,0,0,0] # le groupement n'a pas commencé.
         else :
-            retour = [0,0,0,0,0,0] # Courses est vide.
+            retour = [0,0,0,0,0,0] # root["Courses"] est vide.
     return retour
 
 
@@ -8082,7 +8077,7 @@ def genereTableauHTML(courseName, chrono = False, avecOuvertureTABLE = True, aff
     if avecOuvertureTABLE :
         tableau = "<table border='1' cellpadding='6' cellspacing='5' id='resultats' style='overflow:hidden;table-layout:fixed;'>"
     tableau += "<tbody>"
-    #titre = "Catégorie " + Courses[courseName].label
+    #titre = "Catégorie " + root["Courses"][courseName].label
     if estChallenge(courseName) :
         if courseName in ResultatsGroupements.keys() : # on sécurise si le challenge est vide.
             # challenge par classe
@@ -8229,7 +8224,7 @@ def creerFichierClasseNG(nom, entete, estGroupement):
     colonneSuppl = ""
     titreSuppl = ""
     tableau = [[["<b> Nom Prénom</b>", 150]]]
-    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les root["Courses"] hors scolaire.
         tableau[0].append(["<b>Sexe</b>", 40])
     tableau[0].append(["<b>Rang</b>", 80])
     tableau[0].append(["<b>Temps</b>", 100])
@@ -8298,7 +8293,7 @@ def creerFichierClasse(nom, entete, estGroupement):
     titre = "{\\Large {} \\hfill \\textbf{@nom@} \\hfill {}}"
     colonneSuppl = ""
     titreSuppl = ""
-    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les courses hors scolaire.
+    if Parametres["CategorieDAge"] == 1 : # on affiche le sexe pour toutes les root["Courses"] hors scolaire.
         colonneSuppl = "p{1.2cm} |"
         titreSuppl = "{} \\hfill \\textbf{Sexe} \\hfill {} &"
     tableau = "\\begin{center}\n\
@@ -8535,7 +8530,7 @@ def listeNPremiersGF(equipe,htmlRetourLigne=False):
         if coureur.rang != coureur.scoreUNSS and Parametres["CategorieDAge"] == 2 :
             retour += str(coureur.rang)+ "/" + str(coureur.nbreArriveesGroupement) + "=>" + coureur.scoreUNSSFormate() + "pts"
         else :
-            retour += str(coureur.rang  - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(coureur.rang, root["dictrangsDSDEN"][Courses[coureur.course].nomGroupement]))
+            retour += str(coureur.rang  - enleverLesRangsDesPersonnelsDSDENQuiPrecedentCeRange(coureur.rang, root["dictrangsDSDEN"][root["Courses"][coureur.course].nomGroupement]))
         #print(coureur.nom, coureur.rang, coureur.scoreUNSS)
         retour += "), "
         i += 1
@@ -8728,8 +8723,8 @@ def traitementDesDonneesAImporter(donneesBrutes, googleSheet=False, nom_feuille_
                  ("établissementtype" in informations or "type" in informations))) :
              # si infos indispensables dans tous les cas
              # 0 - cas du cross du collège. On a besoin uniquement de la classe.
-             # 1 - cas de courses organisées en fonction des catégories de la FFA
-             # 2 - cas de courses UNSS (organisées en fonction des catégories de la FFA et des établissements)
+             # 1 - cas de root["Courses"] organisées en fonction des catégories de la FFA
+             # 2 - cas de root["Courses"] UNSS (organisées en fonction des catégories de la FFA et des établissements)
                 #retour = True
                 print("Les éléments obligatoires de la documentation de chronoHB sont bien présents par rapport à la configuration choisie :", informations)
             else :
@@ -9120,7 +9115,7 @@ def recupCSV(fichierSelectionne=""):
 
 ##def recupCSVSIECLE(fichierSelectionne=""):
 ####    if Parametres["CourseCommencee"] :
-####        message = 'Une ou plusieurs courses ont commencé(es).\nNettoyer toutes les données de courses précédentes avant un import SIECLE.'
+####        message = 'Une ou plusieurs root["Courses"] ont commencé(es).\nNettoyer toutes les données de root["Courses"] précédentes avant un import SIECLE.'
 ####        if __name__=="__main__":
 ####            print(message)
 ####        else :
@@ -9173,7 +9168,7 @@ def recupCSV(fichierSelectionne=""):
 # def setDistances():
 #     for nom in listCourses() :
 #         print("ajout de la distance 1.2 km à", nom)
-#         Courses[nom].setDistance(1.2)
+#         root["Courses"][nom].setDistance(1.2)
 
 def setDistanceToutesCourses(distance):
     for nom in listCourses() :
@@ -9181,7 +9176,7 @@ def setDistanceToutesCourses(distance):
 
 def setDistance(nomCourse, distance):
     print("ajout de la distance " + str(distance) + " km à " + nomCourse)
-    Courses[nomCourse].setDistance(distance)
+    root["Courses"][nomCourse].setDistance(distance)
 
 
 

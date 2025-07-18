@@ -521,6 +521,61 @@ class MonTableau(Frame):
         self.change = False # doit être positionné à True quand un changement manuel est intervenu sur le tableau.
         self.parent = parent
         self.initTreeview()
+    
+    ### ajout des méthodes pour rechercher dans le treeview
+    def _on_search_change(self, event=None):
+        """Déclenche la recherche dans le Treeview à chaque modification du champ de recherche."""
+        search_text = rechercheFrame.search_entry.get().lower()
+        self.search_results = []
+        self.current_search_index = -1
+
+        if not search_text:
+            rechercheFrame.search_results_label.config(text="0/0")
+            rechercheFrame._disable_navigation_buttons()
+            self._clear_treeview_selection()
+            return
+
+        for item_id in self.treeview.get_children():
+            values = [str(v).lower() for v in self.treeview.item(item_id, 'values')]
+            if any(search_text in v for v in values):
+                self.search_results.append(item_id)
+
+        rechercheFrame.search_results_label.config(text=f"0/{len(self.search_results)}")
+
+        if self.search_results:
+            self.current_search_index = 0
+            self._select_current_result()
+            rechercheFrame._enable_navigation_buttons()
+        else:
+            rechercheFrame._disable_navigation_buttons()
+            self._clear_treeview_selection()
+    
+    def _select_current_result(self):
+        """Sélectionne l'élément courant dans les résultats de recherche et le met en vue."""
+        if 0 <= self.current_search_index < len(self.search_results):
+            item_id = self.search_results[self.current_search_index]
+            self.treeview.selection_set(item_id)
+            self.treeview.focus(item_id)
+            self.treeview.see(item_id) # S'assure que l'élément est visible
+            rechercheFrame.search_results_label.config(text=f"{self.current_search_index + 1}/{len(self.search_results)}")
+            
+    def _select_previous_result(self):
+        """Sélectionne le résultat de recherche précédent."""
+        if self.search_results:
+            self.current_search_index = (self.current_search_index - 1) % len(self.search_results)
+            self._select_current_result()
+    
+    def _select_next_result(self):
+        """Sélectionne le résultat de recherche suivant."""
+        if self.search_results:
+            self.current_search_index = (self.current_search_index + 1) % len(self.search_results)
+            self._select_current_result()
+    
+    def _clear_treeview_selection(self):
+        """Désélectionne tous les éléments du Treeview."""
+        self.treeview.selection_remove(self.treeview.selection())
+    
+    ### fin des méthodes de recherche dans le treeview
         
     def initTreeview(self, Reordonner = True) :
         try :
@@ -1060,7 +1115,9 @@ class MonTableau(Frame):
         ligneAAjouter[self.colonneTemps] = donnee[self.colonneTemps].tempsReelFormate(False)
         ### on affiche les lettres des dossards uniquement pour les courses manuelles mais on les conserve en permanence dans le système sous-jacent
         #print("Dossard affecté",ligneAAjouter[self.colonneDossAff])
-        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=Parametres["CoursesManuelles"])
+        ligneAAjouter[self.colonneDossard] = c.getDossard(avecLettre=True) 
+        # on change d'optique pour utiliser efficacement le champ de recherche : la saisie de 23A permet de trouver le dossard 23A sans confondre avec un élève 23ème ni avec le temps 23 s etc... 
+        # c.getDossard(avecLettre=Parametres["CoursesManuelles"]) remplacé
         if ligneAAjouter[self.colonneDossAff] != "-" and not Parametres["CoursesManuelles"] :
             ligneAAjouter[self.colonneDossAff] = ligneAAjouter[self.colonneDossAff][:-1]
 ##        print(ligneAAjouter, self.colonneRang, self.colonneTemps, self.colonneDossard)
@@ -2933,24 +2990,7 @@ envoiAutoDesEMailsCB.pack(side=LEFT)
 
 
 
-defilementFrameHaut.pack(side=TOP)
-defilementFrameBas.pack(side=TOP)
-defilementFrame.pack(side=LEFT)
-heureFrame.pack(side=RIGHT)
 
-def actualiseHeureActuelle():
-    lblHeureActuelle.configure(text="   Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
-    defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
-
-def actualiseIPActuelle():
-    lblIPActuelle.configure(text="Adr. IP : " + extract_ip())
-    # actualisation de l'IP toutes les minutes
-    defilementEtHeureFrame.after(30000, actualiseIPActuelle)
-
-##print(time.localtime())
-##print(time.strftime("%H:%M:%S", time.localtime()))
-actualiseHeureActuelle()
-actualiseIPActuelle()   
 ##Log["text"] = ""#calculeTousLesTemps(True)
 ##Log.pack(side=LEFT,fill=BOTH, expand=1 )
 ##LogFrame.pack(side=LEFT,fill=BOTH, expand=1 )
@@ -2962,6 +3002,7 @@ actualiseIPActuelle()
 ##donneesEditables = DonneesAAfficher.donneesEditables
 ###print(donnees)
 ##largeursColonnes = DonneesAAfficher.largeursColonnes
+
 
 ##for i in range (1,5) :
 ##    donnees.append(["nom " + str(i), "prenom" + str(i), '10.13.71.' +str(i)])
@@ -2987,8 +3028,79 @@ menubar = Menu(rootGUI)
 # create more pulldown menus
 editmenu = Menu(menubar, tearoff=0)
 
+### zone de recherche dans le treeview 
+
+### implémentation de la recherche dans le treeview
 
 
+class FrameRecherche(tk.Frame):
+    def __init__(self, master=None, treeview=None):
+        super().__init__(master)
+        self.treeview = treeview # Assurez-vous que le treeview est passé ou accessible
+        self.search_results = []
+        self.current_search_index = -1
+        self.create_search_widgets()
+
+    def create_search_widgets(self):
+        """Crée et positionne les widgets de recherche."""
+        self.search_frame = tk.Frame(self.master) # Ou self si vous voulez la mettre DANS la frame tableau
+        self.search_frame.pack(side=tk.LEFT, fill=tk.X, pady=5) # Ajustez le positionnement selon vos besoins
+
+        self.search_entry = tk.Entry(self.search_frame, width=12)
+        self.search_entry.pack(side=tk.LEFT, padx=5)
+        self.search_entry.bind("<KeyRelease>", tableau._on_search_change) # Déclenche la recherche à chaque frappe
+
+        self.search_results_label = tk.Label(self.search_frame, text="0/0")
+        self.search_results_label.pack(side=tk.LEFT, padx=5)
+
+        self.prev_button = tk.Button(self.search_frame, text="<", command=tableau._select_previous_result, state=tk.DISABLED)
+        self.prev_button.pack(side=tk.LEFT, padx=2)
+
+        self.next_button = tk.Button(self.search_frame, text=">", command=tableau._select_next_result, state=tk.DISABLED)
+        self.next_button.pack(side=tk.LEFT, padx=2)
+
+        # Cacher les boutons initialement
+        self.prev_button.pack_forget()
+        self.next_button.pack_forget()
+    
+    def _enable_navigation_buttons(self):
+        """Active les boutons de navigation et les rend visibles."""
+        self.prev_button.config(state=tk.NORMAL)
+        self.next_button.config(state=tk.NORMAL)
+        self.prev_button.pack(side=tk.LEFT, padx=2) # Repositionne si ils étaient cachés
+        self.next_button.pack(side=tk.LEFT, padx=2)
+    
+    def _disable_navigation_buttons(self):
+        """Désactive les boutons de navigation et les masque."""
+        self.prev_button.config(state=tk.DISABLED)
+        self.next_button.config(state=tk.DISABLED)
+        self.prev_button.pack_forget() # Cache le bouton
+        self.next_button.pack_forget()
+
+
+rechercheFrame = FrameRecherche(master = defilementEtHeureFrame, treeview=tableau.treeview)
+
+
+defilementFrameHaut.pack(side=TOP)
+defilementFrameBas.pack(side=TOP)
+
+defilementFrame.pack(side=LEFT)
+heureFrame.pack(side=LEFT)
+rechercheFrame.pack(side=LEFT)
+
+def actualiseHeureActuelle():
+    lblHeureActuelle.configure(text="   Heure actuelle : " + time.strftime("%H:%M:%S", time.localtime()))
+    defilementEtHeureFrame.after(1000, actualiseHeureActuelle)
+
+def actualiseIPActuelle():
+    lblIPActuelle.configure(text="Adr. IP : " + extract_ip())
+    # actualisation de l'IP toutes les minutes
+    defilementEtHeureFrame.after(30000, actualiseIPActuelle)
+
+##print(time.localtime())
+##print(time.strftime("%H:%M:%S", time.localtime()))
+actualiseHeureActuelle()
+actualiseIPActuelle()   
 
 ##def messageDErreurInterface(message, SurSmartphone):
 ##    global timer, CorrectionDErreurSmartphone

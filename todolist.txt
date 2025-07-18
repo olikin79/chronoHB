@@ -120,7 +120,7 @@ Avant début septembre :
 - Erreur non encore référencée 462 dans l'interface. A voir comment on pourrait aider à la corriger rapidement : passage d'un coureur sur la ligne alors que sa course n'est pas lancée.
 Deux cas : soit on conserve ce résultat car c'est une erreur de catégorie (peu probable avec les dossards de couleurs différentes, 
 soit on l'ignore tout simplement mais il faudrait pouvoir retrouver cette information d'une façon ou d'une autre).
-- Zone de recherche dans le tableau pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
+- (FAIT) Zone de recherche au dessus du tableau treeview pour retrouver un élément quelconque affiché (et les suivants s'il y en a plusieurs)
 
 
 Avant le cross H. Bourrillon :
