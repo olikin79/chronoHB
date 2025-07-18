@@ -147,7 +147,7 @@ Avant le prochain Trail de RIEUTORT :
 - ajouter le classement par catégorie (pas uniquement pour les 3 premiers).
 - créer une branche de diffusion "stable" et une "devel" pour laquelle un choix serait possible dans le menu "mise à jour".
 - documenter les nouveautés (partie RFID, champ de recherche, etc.).
-- (FAIT 1/2 : ajouter la boite de dialogue pour choisir le fichier) interfacer le choix du fichier json d'API vers google sheet.
+- (FAIT via un paramètre d'EntryParam) interfacer le choix du fichier json d'API vers google sheet.
 - créer une fonction qui nettoie les courses manuelles (en supprimant les courses sans participant puis réindexation des nomStandard), actionnée par un bouton dédié.
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses. Elle semble exister dans updateGroupements() et s'appelle nettoieGroupements(). A voir.
 

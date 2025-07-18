@@ -15,12 +15,13 @@ class CheckButtonParam(Checkbutton):
         setParam(self.param, self.valeurtk.get())
 
 class EntryParam(Frame):
-    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5, fenetreDeSelectionDeFichiers = False):#, picks=[], side=LEFT, vertical=True, anchor=W):
+    def __init__(self, param, intitule, largeur=7, parent=None, nombre=False, password=False, multiLignes=False, hauteur = 5, fenetreDeSelectionDeFichiers = False, fenetreDeSelectionDeDossier = False):#, picks=[], side=LEFT, vertical=True, anchor=W):
         Frame.__init__(self, parent)
         self.param = param
         self.intitule = intitule
         self.largeur = largeur
         self.fenetreDeSelectionDeFichiers = fenetreDeSelectionDeFichiers
+        self.fenetreDeSelectionDeDossier = fenetreDeSelectionDeDossier
         if self.param in Parametres :
             self.valeur = Parametres[self.param]
         else :
@@ -84,6 +85,10 @@ class EntryParam(Frame):
         if self.fenetreDeSelectionDeFichiers :
             self.bouton = Button(self, text="Sélectionner", command=self.ouvertureSelectionFichiers)
             self.bouton.pack(side=LEFT)
+        elif self.fenetreDeSelectionDeDossier :
+            self.bouton = Button(self, text="Sélectionner", command=self.ouvertureSelectionDossier)
+            self.bouton.pack(side=LEFT)
+            
     def actualise(self):
         self.valeur = Parametres[self.param]
         self.entry.delete(0, END)
@@ -107,7 +112,18 @@ class EntryParam(Frame):
         if retour :
             setParam(self.param, retour)
             self.actualise()
-
+    def ouvertureSelectionDossier(self) :
+        # récupérer le chemin vers Mes Documents sous windows ou vers Documents sur mac os ou linux
+        CURRENT_DIRECTORY = DOCUMENTS
+        # CURRENT_DIRECTORY = os.getcwd()
+        options = {
+                    'initialdir': CURRENT_DIRECTORY,
+                    'title': 'Sélectionner un dossier',
+                }
+        retour = askdirectory(**options)
+        if retour :
+            setParam(self.param, retour)
+            self.actualise()
 
 class PasswordEntry(Entry):
     def __init__(self, master=None, **kwargs):

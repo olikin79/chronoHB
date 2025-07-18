@@ -6054,7 +6054,7 @@ cbCMgenererListingQRCodes = Checkbutton(cbListingsFrame, text="Générer un list
 MessageParDefautFrameL = Frame(GaucheFrameParametresCourses)
 MessageParDefautFrame = EntryParam("messageDefaut", "Message vocal par défaut lors du scan du dossard", largeur=50, parent=MessageParDefautFrameL)
 SauvegardeUSBFrameL = Frame(GaucheFrameParametresCourses)
-SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL)
+SauvegardeUSBFrame = EntryParam("cheminSauvegardeUSB", "Sauvegarde régulière vers (clé USB préférable)", largeur=50, parent=SauvegardeUSBFrameL, fenetreDeSelectionDeDossier = True)
 lblCommentaire = Label(GaucheFrameDistanceCourses)
 
 def actualiseWebcamParametre(event) :
