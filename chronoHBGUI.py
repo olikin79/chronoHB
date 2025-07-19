@@ -2815,7 +2815,7 @@ def ActualiseAffichageTV():
     #print("ActualiseAfficheTV",checkBoxBarAffichage.state(), listeDeGroupementsEtChallenge)
     for i, val in enumerate(checkBoxBarAffichage.state()) :
         #print(i, val)
-        if val :
+        if val and i < len(listeDeGroupements):
             listeCochee.append(listeDeGroupements[i])
     i = 0
     for el in listeCochee : # on remplace chaque nom personnalisé par son nom standard

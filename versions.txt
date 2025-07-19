@@ -2,6 +2,7 @@ Travail du 19/07/25 :
 - correctifs chemin vers fichier tableur généré et création d'un dossier diplomes dans %appdata% ou équivalent.
 - correctif ouverture du fichier tableur avec la fonction dédiée : ouvrir_fichier_multiplateforme()
 - L'affichage du paramétrage des dossards n'existe que si les dossards sont gérés par chronoHB
+- sécurisation du code dans ActualiseAffichageTV() dans le cas où on efface toutes les données avec des cases TV cochées.
 
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
