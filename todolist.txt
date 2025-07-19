@@ -116,6 +116,7 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
+- à chaque démarrage, faire un ménage dans sauvegardes_automatiques des fichiers plus anciens que 31 jours.
 - menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
 - Etudier une façon de reconstruire dynamiquement les menus pour permettre de les changer au fur et à mesure de la configuration : 
   cacher "imprimer les dossards si les dossards ne sont pas gérés par chronoHB, etc...
