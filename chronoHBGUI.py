@@ -5846,6 +5846,77 @@ def forgetAutresWidgets():
     FTPidentifiantsFrame.forget()
     EmailParametresFrame.forget()
 
+
+def actualiseCanvasModeleDossards(event):
+    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo
+    fichierChoisi = ModeleDeDossardsCombo.get()
+    Parametres["dossardModele"] = fichierChoisi
+    imageFile = fichierChoisi + ".png"
+    if event == "" :
+        print("Initialisation du choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    else :
+        print("Changement de choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/dossards/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/dossards/cross-HB.png")
+    h = canvas_image.height()
+    w = canvas_image.width()
+    rappH = h // int(ModeleDeDossardsCanvas['height']) + 1
+    rappW = w // int(ModeleDeDossardsCanvas['width']) + 1
+    ModeleDeDossardsCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
+    ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
+    
+def actualiseCanvasModeleDiplome(event):
+    global canvas_image,ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo
+    fichierChoisi = ModeleDeDiplomeCombo.get()
+    Parametres["diplomeModele"] = fichierChoisi
+    imageFile = fichierChoisi + ".png"
+    if event == "" :
+        print("Initialisation du choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    else :
+        print("Changement de choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
+    try :
+        canvas_image = PhotoImage(file = "./modeles/diplomes/"+imageFile)
+    except:
+        canvas_image = PhotoImage(file = "./modeles/diplomes/cross-HB.png")
+    h = canvas_image.height()
+    w = canvas_image.width()
+    rappH = h // int(ModeleDeDiplomeCanvas['height']) + 1
+    rappW = w // int(ModeleDeDiplomeCanvas['width']) + 1
+    ModeleDeDiplomeCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
+    ModeleDeDiplomeCanvas.create_image(0, 0, image = ModeleDeDiplomeCanvas.imgMem, anchor = NW)
+    
+def actualiseMenuDossardsEtDiplomes():
+    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo, ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo, ModeleDeDossardsFrame, ModeleDeDossardsLbl, ModeleDeDiplomeFrame, ModeleDeDiplomeLbl
+    # Détruit tous les widgets enfants de la frame
+    for widget in GaucheFrameParametresDossardsDiplomes.winfo_children():
+        widget.destroy()
+    
+    ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+    ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
+    files = []
+    for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
+        files.append(os.path.basename(el)[:-4])
+    files = tuple(files)
+    ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
+    ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
+    ModeleDeDossardsCombo.set(Parametres["dossardModele"])
+    ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
+    actualiseCanvasModeleDossards("")
+
+    ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+    ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
+    files = []
+    for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
+        files.append(os.path.basename(el)[:-4])
+    files = tuple(files)
+    ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
+    ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
+    ModeleDeDiplomeCombo.set(Parametres["diplomeModele"])
+    ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
+    actualiseCanvasModeleDiplome("")
+    packMenuParametresDossardsDiplomes()
 def packMenuParametresDossardsDiplomes() :
     global ModeleDeDossardsFrame, ModeleDeDossardsLbl, ModeleDeDiplomeFrame, ModeleDeDiplomeLbl
     if Parametres["utilisationDesDossardsDeChronoHB"] :
@@ -5862,6 +5933,8 @@ def packMenuParametresDossardsDiplomes() :
     ModeleDeDiplomeLbl.pack(side=LEFT)
     ModeleDeDiplomeCombo.pack(side=LEFT)
     ModeleDeDiplomeCanvas.pack(side=TOP)
+
+actualiseMenuDossardsEtDiplomes()
 
 
 titresCourseF = Frame(GaucheFrameParametresCourses)
@@ -6063,78 +6136,7 @@ FTPidentifiantsFrame = Frame(FTPFrame)
 FTPloginEntry = EntryParam( "FTPlogin", "Login FTP", largeur=20, parent=FTPidentifiantsFrame)
 FTPmdpEntry = EntryParam( "FTPmdp", "Mot de passe FTP", largeur=20, parent=FTPidentifiantsFrame, password=True)
 
-def actualiseCanvasModeleDossards(event):
-    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo
-    fichierChoisi = ModeleDeDossardsCombo.get()
-    Parametres["dossardModele"] = fichierChoisi
-    imageFile = fichierChoisi + ".png"
-    if event == "" :
-        print("Initialisation du choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    else :
-        print("Changement de choix de dossard", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    try :
-        canvas_image = PhotoImage(file = "./modeles/dossards/"+imageFile)
-    except:
-        canvas_image = PhotoImage(file = "./modeles/dossards/cross-HB.png")
-    h = canvas_image.height()
-    w = canvas_image.width()
-    rappH = h // int(ModeleDeDossardsCanvas['height']) + 1
-    rappW = w // int(ModeleDeDossardsCanvas['width']) + 1
-    ModeleDeDossardsCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
-    ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
-    
-def actualiseCanvasModeleDiplome(event):
-    global canvas_image,ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo
-    fichierChoisi = ModeleDeDiplomeCombo.get()
-    Parametres["diplomeModele"] = fichierChoisi
-    imageFile = fichierChoisi + ".png"
-    if event == "" :
-        print("Initialisation du choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    else :
-        print("Changement de choix de diplome", fichierChoisi, ". Image affichée pour exemple",imageFile)
-    try :
-        canvas_image = PhotoImage(file = "./modeles/diplomes/"+imageFile)
-    except:
-        canvas_image = PhotoImage(file = "./modeles/diplomes/cross-HB.png")
-    h = canvas_image.height()
-    w = canvas_image.width()
-    rappH = h // int(ModeleDeDiplomeCanvas['height']) + 1
-    rappW = w // int(ModeleDeDiplomeCanvas['width']) + 1
-    ModeleDeDiplomeCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
-    ModeleDeDiplomeCanvas.create_image(0, 0, image = ModeleDeDiplomeCanvas.imgMem, anchor = NW)
-    
-def actualiseMenuDossardsEtDiplomes():
-    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo, ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo, ModeleDeDossardsFrame, ModeleDeDossardsLbl, ModeleDeDiplomeFrame, ModeleDeDiplomeLbl
-    # Détruit tous les widgets enfants de la frame
-    for widget in GaucheFrameParametresDossardsDiplomes.winfo_children():
-        widget.destroy()
-    
-    ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
-    ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
-    files = []
-    for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
-        files.append(os.path.basename(el)[:-4])
-    files = tuple(files)
-    ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
-    ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
-    ModeleDeDossardsCombo.set(Parametres["dossardModele"])
-    ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
-    actualiseCanvasModeleDossards("")
 
-    ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
-    ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
-    files = []
-    for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
-        files.append(os.path.basename(el)[:-4])
-    files = tuple(files)
-    ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
-    ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-    ModeleDeDiplomeCombo.set(Parametres["diplomeModele"])
-    ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
-    actualiseCanvasModeleDiplome("")
-    packMenuParametresDossardsDiplomes()
-
-actualiseMenuDossardsEtDiplomes()
 ## tests
 ##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
 ##ModeleDeDossardsCanvas.create_image(0, 0, image = canvas_image, anchor = NW)
