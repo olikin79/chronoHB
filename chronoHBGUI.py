@@ -156,7 +156,7 @@ def start_udp_listener():
             break
         
 # démarrer start_udp_listener dans un thread
-Thread(name="Serveur UDP qui répond au broadcast",target=start_udp_listener, daemon=True).start()
+Thread(name="Serveur UDP qui répond au broadcast pour trouver automatiquement le serveur chronoHB",target=start_udp_listener, daemon=True).start()
 
 generateListCoureursPourSmartphone()
 
@@ -2902,7 +2902,7 @@ def activerDesactiverLaVideo():
         except :
             print("Motion Detection inactif")
             recoderT = threading.Thread(name='Détection de mouvement webcam.', target=enregistrerLaVideo, daemon=True)
-            recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
+            # recoderT.setDaemon(True) # Set as a daemon so it will be killed once the main thread is dead.
             recoderT.start()
     else :
         try :
@@ -3307,7 +3307,6 @@ def rejouerToutesLesActionsMemorisees() :
     # réinitialiser toutes les erreurs en cours
     timer.reinitErreursATraiter()
     print("On retraite tous les fichiers de données, actualise le tableau et les erreurs affichées.")
-
     timer.premiereExecution = True
     timer.traiterDonnees()
     tableau.reinit()
@@ -3673,7 +3672,7 @@ Un message de fin de diffusion apparaîtra quand cette opération sera terminée
             tagEnvoiDiplomeEnCours = True
             # if DEBUG :
             #     print("Début d'envoi de diplômes automatisé...")
-            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal, daemon=True, name="Envoi des dossards en arrière plan.")
+            mon_thread_Diplomes = Thread(target=envoiDiplomesSansMessageFinal, daemon=True, name="Envoi des diplomes en arrière plan.")
             mon_thread_Diplomes.envoi_en_cours = True
             mon_thread_Diplomes.nom_prenom = "initialisation"
             mon_thread_Diplomes.start()
@@ -3974,10 +3973,10 @@ class Clock():
         # maj affichage.
 ##        if tableauGUI : 
 ##            
-        # print("tableauGUI transmis", tableauGUI)
+        print("tableauGUI transmis", tableauGUI)
 ##        else :
 ##            print("pas de maj de tableau GUI")
-        print("Actualisation du tableau GUI dans le thread principal")
+        print("Actualisation du tableau GUI dans le thread principal. premiereExecution=" + str(self.premiereExecution))
         self.root.after(0, lambda: eval(self.MAJfunction + "(tableauGUI, premiereExecution=" + str(self.premiereExecution) + ")"))
         # print("eval(" + str(self.MAJfunction) + "(" + str(tableauGUI))
         # print("premiereExecution=" + str(self.premiereExecution) + ")")
@@ -5072,7 +5071,7 @@ def recupererSauvegardeGUI(name_file="") :
         CoureursParClasseUpdate()
         actualiseToutLAffichage()
         generateListCoureursPourSmartphone()
-        # rejouerToutesLesActionsMemorisees()
+        # rejouerToutesLesActionsMemorisees()        
 
 
 class CustomCGIHTTPRequestHandler(CGIHTTPRequestHandler):
