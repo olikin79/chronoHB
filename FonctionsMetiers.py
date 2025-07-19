@@ -3059,6 +3059,10 @@ def chargerDonnees() :
     if isinstance(root["Coureurs"],list) : # traitement des anciennes sauvegardes afin de convertir la liste Coureurs en un dicitonnaire
         root["Coureurs"] = DictionnaireDeCoureurs(AncienneListeAImporter=root["Coureurs"])
         tagConvertionEnCours = True
+    try :
+        root["Coureurs"].nombreDeCoureursParSexe
+    except : 
+        root["Coureurs"].initEffectifs() # permet d'importer d'anciennes sauvegardes et de générer les diplomes...
     if tagConvertionEnCours :
         ## on convertit une et une seule fois les dossards de ArriveeDossards et de ArriveeTempsAffectes
         i = 0

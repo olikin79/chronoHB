@@ -6,6 +6,7 @@ Travail du 19/07/25 :
 - message d'avertissement dans "paramètres des courses" quand la base est vide.
 - correctif chemin pour génération des diplomes : dossier_diplomes définie.
 - ordre incorrect dans les fonctions qui génèrent le menu "paramètre des courses".
+- compatibilité ascendante avec les anciennes sauvegardes qui n'avaient pas la propriété root["Coureurs"].nombreDeCoureursParSexe
 
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
