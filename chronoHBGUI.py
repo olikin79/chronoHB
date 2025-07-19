@@ -4749,6 +4749,7 @@ def distanceDesCourses():
 def parametrerDossardsDiplomes():
     desactiveAffichageConteneurPrincipal()
     forgetAllFrames()
+    actualiseMenuDossardsEtDiplomes()
     GaucheFrameParametresDossardsDiplomes.pack(side = TOP,fill=X)
     
 def parametresInternet() :
@@ -5846,10 +5847,17 @@ def forgetAutresWidgets():
     EmailParametresFrame.forget()
 
 def packMenuParametresDossardsDiplomes() :
-    ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
-    ModeleDeDossardsLbl.pack(side=LEFT)
-    ModeleDeDossardsCombo.pack(side=LEFT)
-    ModeleDeDossardsCanvas.pack(side=TOP)
+    global ModeleDeDossardsFrame, ModeleDeDossardsLbl, ModeleDeDiplomeFrame, ModeleDeDiplomeLbl
+    if Parametres["utilisationDesDossardsDeChronoHB"] :
+        ModeleDeDossardsFrame.pack(side=TOP,anchor="w")
+        ModeleDeDossardsLbl.pack(side=LEFT)
+        ModeleDeDossardsCombo.pack(side=LEFT)
+        ModeleDeDossardsCanvas.pack(side=TOP)
+    else :
+        ModeleDeDossardsFrame.forget()
+        ModeleDeDossardsLbl.forget()
+        ModeleDeDossardsCombo.forget()
+        ModeleDeDossardsCanvas.forget()
     ModeleDeDiplomeFrame.pack(side=TOP,anchor="w")
     ModeleDeDiplomeLbl.pack(side=LEFT)
     ModeleDeDiplomeCombo.pack(side=LEFT)
@@ -5984,10 +5992,6 @@ if Parametres["utilisationDesDossardsDeChronoHB"]:
 else :
     cbutilisationDesDossardsDeChronoHB.set(False)
 
-# cbutilisationDesDossardsDeChronoHBFrame = Frame(GaucheFrameParametresCourses)
-# cbutilisationDesDossardsDeChronoHBLbl = Label(cbutilisationDesDossardsDeChronoHBFrame, text="Impression des dossards avec ChronoHB")
-
-
 cbListingsFrame = Frame(GaucheFrameParametresCourses)
 cbListingsLbl = Label(cbListingsFrame,text="DOSSARDS : ")
 cbutilisationDesDossardsDeChronoHBCheck = Checkbutton(cbListingsFrame, text="Impression des dossards avec ChronoHB", variable=cbutilisationDesDossardsDeChronoHB, onvalue=1, offvalue=0, command=choixUtilisationDesDossardsDeChronoHB)
@@ -6060,7 +6064,7 @@ FTPloginEntry = EntryParam( "FTPlogin", "Login FTP", largeur=20, parent=FTPident
 FTPmdpEntry = EntryParam( "FTPmdp", "Mot de passe FTP", largeur=20, parent=FTPidentifiantsFrame, password=True)
 
 def actualiseCanvasModeleDossards(event):
-    global canvas_image,ModeleDeDossardsCanvas
+    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo
     fichierChoisi = ModeleDeDossardsCombo.get()
     Parametres["dossardModele"] = fichierChoisi
     imageFile = fichierChoisi + ".png"
@@ -6080,7 +6084,7 @@ def actualiseCanvasModeleDossards(event):
     ModeleDeDossardsCanvas.create_image(0, 0, image = ModeleDeDossardsCanvas.imgMem, anchor = NW)
     
 def actualiseCanvasModeleDiplome(event):
-    global canvas_image,ModeleDeDiplomeCanvas
+    global canvas_image,ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo
     fichierChoisi = ModeleDeDiplomeCombo.get()
     Parametres["diplomeModele"] = fichierChoisi
     imageFile = fichierChoisi + ".png"
@@ -6099,31 +6103,38 @@ def actualiseCanvasModeleDiplome(event):
     ModeleDeDiplomeCanvas.imgMem = canvas_image.subsample(rappW,rappH) ### pour empêcher l'effet du garbage collector
     ModeleDeDiplomeCanvas.create_image(0, 0, image = ModeleDeDiplomeCanvas.imgMem, anchor = NW)
     
+def actualiseMenuDossardsEtDiplomes():
+    global canvas_image,ModeleDeDossardsCanvas, ModeleDeDossardsCombo, ModeleDeDiplomeCanvas, ModeleDeDiplomeCombo, ModeleDeDossardsFrame, ModeleDeDossardsLbl, ModeleDeDiplomeFrame, ModeleDeDiplomeLbl
+    # Détruit tous les widgets enfants de la frame
+    for widget in GaucheFrameParametresDossardsDiplomes.winfo_children():
+        widget.destroy()
+    
+    ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+    ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
+    files = []
+    for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
+        files.append(os.path.basename(el)[:-4])
+    files = tuple(files)
+    ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
+    ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
+    ModeleDeDossardsCombo.set(Parametres["dossardModele"])
+    ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
+    actualiseCanvasModeleDossards("")
 
-ModeleDeDossardsFrame = Frame(GaucheFrameParametresDossardsDiplomes)
-ModeleDeDossardsLbl = Label(ModeleDeDossardsFrame, text="Modèle de dossard choisi : ")
-files = []
-for el in glob.glob('./modeles/dossards/*.tex', recursive = False) :
-    files.append(os.path.basename(el)[:-4])
-files = tuple(files)
-ModeleDeDossardsCombo = Combobox(ModeleDeDossardsFrame, state="readonly", values=files, width=25)
-ModeleDeDossardsCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDossards)
-ModeleDeDossardsCombo.set(Parametres["dossardModele"])
-ModeleDeDossardsCanvas = Canvas(ModeleDeDossardsFrame,width=500,height=300)
-actualiseCanvasModeleDossards("")
+    ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
+    ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
+    files = []
+    for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
+        files.append(os.path.basename(el)[:-4])
+    files = tuple(files)
+    ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
+    ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
+    ModeleDeDiplomeCombo.set(Parametres["diplomeModele"])
+    ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
+    actualiseCanvasModeleDiplome("")
+    packMenuParametresDossardsDiplomes()
 
-ModeleDeDiplomeFrame = Frame(GaucheFrameParametresDossardsDiplomes)
-ModeleDeDiplomeLbl = Label(ModeleDeDiplomeFrame, text="Modèle de diplôme choisi : ")
-files = []
-for el in glob.glob('./modeles/diplomes/*.tex', recursive = False) :
-    files.append(os.path.basename(el)[:-4])
-files = tuple(files)
-ModeleDeDiplomeCombo = Combobox(ModeleDeDiplomeFrame, state="readonly", values=files, width=25)
-ModeleDeDiplomeCombo.bind("<<ComboboxSelected>>", actualiseCanvasModeleDiplome)
-ModeleDeDiplomeCombo.set(Parametres["diplomeModele"])
-ModeleDeDiplomeCanvas = Canvas(ModeleDeDiplomeFrame,width=500,height=300)
-actualiseCanvasModeleDiplome("")
-
+actualiseMenuDossardsEtDiplomes()
 ## tests
 ##canvas_image = PhotoImage(file = "./modeles/dossard-modele-1.png")
 ##ModeleDeDossardsCanvas.create_image(0, 0, image = canvas_image, anchor = NW)
@@ -6144,8 +6155,6 @@ rbGF.pack(side=TOP,anchor="w")
 rbCM1.pack(side=LEFT,anchor="w")
 rbCM2.pack(side=LEFT,anchor="w")
 
-
-packMenuParametresDossardsDiplomes()
 
 
 ##if CoursesManuelles :

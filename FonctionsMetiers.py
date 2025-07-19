@@ -94,10 +94,7 @@ os.makedirs(dossier_videos, exist_ok=True)
 dossier_db = os.path.join(DOCUMENTS, "sauvegardes_automatiques")
 print(f"Le dossier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
 os.makedirs(dossier_videos, exist_ok=True)
-
-
-                    
-                    
+    
 def ouvrir_fichier_multiplateforme(chemin_fichier):
     """
     Ouvre un fichier avec son application par défaut, quel que soit le système d'exploitation.
