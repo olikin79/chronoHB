@@ -1,3 +1,7 @@
+Travail du 19/07/25 :
+- correctifs chemin vers fichier tableur généré et création d'un dossier diplomes dans %appdata% ou équivalent.
+- correctif ouverture du fichier tableur avec la fonction dédiée : ouvrir_fichier_multiplateforme()
+
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
 - checkbox mal placée dans "Paramètres généraux"

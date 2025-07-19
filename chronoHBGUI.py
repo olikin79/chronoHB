@@ -3396,59 +3396,6 @@ au(x) précédent(s) import(s).")
                 #print("reponse", reponse, "nbre erreurs",BilanCreationModifErreur[2])
                 if BilanCreationModifErreur[2] : # AU MOINS UNE ERREUR, on ouvre le journal.
                     ouvrir_fichier_multiplateforme(filePath)
-                    
-                    
-def ouvrir_fichier_multiplateforme(chemin_fichier):
-    """
-    Ouvre un fichier avec son application par défaut, quel que soit le système d'exploitation.
-
-    Args:
-        chemin_fichier (str): Le chemin absolu ou relatif du fichier à ouvrir.
-    """
-    # Vérifie si le fichier existe avant d'essayer de l'ouvrir
-    if not os.path.exists(chemin_fichier):
-        print(f"Erreur : Le fichier '{chemin_fichier}' n'existe pas.")
-        return
-
-    # Détermine le système d'exploitation
-    os_system = platform.system()
-    print(f"Ouverture du fichier '{chemin_fichier}' sur le système d'exploitation : {os_system}")
-    
-    if os_system == 'Windows':
-        try:
-            # Sur Windows, utilise os.startfile pour ouvrir le fichier
-            os.startfile(chemin_fichier)
-            print(f"Fichier '{chemin_fichier}' ouvert sur Windows.")
-        except AttributeError:
-            # Solution de secours si os.startfile n'est pas disponible (cas rare)
-            subprocess.run(['start', '', chemin_fichier], shell=True, check=True)
-            print(f"Fichier '{chemin_fichier}' ouvert sur Windows (via subprocess).")
-        except Exception as e:
-            print(f"Erreur lors de l'ouverture du fichier sur Windows : {e}")
-
-    elif os_system == 'Darwin':  # 'Darwin' est le nom de système pour macOS
-        try:
-            # Sur macOS, utilise la commande 'open'
-            subprocess.run(['open', chemin_fichier], check=True)
-            print(f"Fichier '{chemin_fichier}' ouvert sur macOS.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'ouverture du fichier sur macOS : {e}")
-            print("Assurez-vous que l'application par défaut pour ce type de fichier est configurée.")
-        except FileNotFoundError:
-            print("Erreur : La commande 'open' n'a pas été trouvée. Assurez-vous d'être sur macOS.")
-
-    elif os_system == 'Linux':
-        try:
-            # Sur Linux, utilise 'xdg-open' qui est compatible avec la plupart des environnements de bureau
-            subprocess.run(['xdg-open', chemin_fichier], check=True)
-            print(f"Fichier '{chemin_fichier}' ouvert sur Linux.")
-        except FileNotFoundError:
-            print("Erreur : La commande 'xdg-open' n'a pas été trouvée. Assurez-vous que votre environnement de bureau est configuré.")
-        except subprocess.CalledProcessError as e:
-            print(f"Erreur lors de l'ouverture du fichier sur Linux : {e}")
-
-    else:
-        print(f"Système d'exploitation '{os_system}' non pris en charge pour l'ouverture automatique de fichiers.")
 
 
 #### zone d'affichage des départs : boutons permettant de modifier le départ d'une course.
@@ -4554,10 +4501,8 @@ Vous devez attendre un message de fin de compilation qui s'affichera, ainsi que 
 
 def generateDossardsMessageNG() :
     generateDossardsNG()
-    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier 'dossards' qui s'est ouvert dans l'explorateur (windows).")
-    path = os.getcwd()
-    #print('explorer /select,"' + path + os.sep +  'dossards"')
-    subprocess.Popen(r'explorer /select,"' + path + os.sep +  'dossards' + os.sep + '0-tousLesDossards.pdf"')
+    reponse = showinfo("FIN DE LA COMPILATION","Les dossards ont été générés dans le dossier "+ str(dossier_dossards)+ " qui devrait s'ouvrir sur votre système.")
+    ouvrir_fichier_multiplateforme(os.path.join(dossier_dossards,'0-tousLesDossards.pdf'))
 
 
 def generateResultatsArrierePlan():

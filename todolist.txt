@@ -153,6 +153,7 @@ Avant le prochain Trail de RIEUTORT :
 utiliser delCourse() en vérifiant que celle-ci fait bien le ménage dans les groupements.listeDesCourses. Elle semble exister dans updateGroupements() et s'appelle nettoieGroupements(). A voir.
 
 A plus long terme :
+- ménage dans %appdata% ou équivalent des fichiers temporaires générés anciens : diplomes, etc...
 - Réactualiser l'interface si le popup RFID se ferme, notamment le menu "modifier un coureur" qui ne s'actualise pas en fonction des dossards perdus. Actuellement, on impose l'affichage, ce qui n'est pas top.
 Il faudrait juste pouvoir garder l'affichage actuel en l'actualisant (notamment pour celui de modification d'un coureur.)
 - changer le mode d'attribution des couleurs de dossard en laissant un choix parmi les 16 millions de couleur.

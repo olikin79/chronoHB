@@ -82,6 +82,9 @@ os.makedirs(dossier_qrcodes, exist_ok=True)
 dossier_logs = os.path.join(DONNEES, "logs")
 os.makedirs(dossier_logs, exist_ok=True)
 
+dossier_diplomes = os.path.join(DONNEES, "diplomes")
+os.makedirs(dossier_diplomes, exist_ok=True)
+
 DOCUMENTS = os.path.join(os.path.expanduser("~"), "Documents","chronoHB")
 dossier_resultats = os.path.join(DOCUMENTS, "resultats")
 os.makedirs(dossier_resultats, exist_ok=True)
@@ -91,6 +94,62 @@ os.makedirs(dossier_videos, exist_ok=True)
 dossier_db = os.path.join(DOCUMENTS, "sauvegardes_automatiques")
 print(f"Le dossier contenant les données de la base de données sauvegardées automatiquement est situé ici : {dossier_db}")
 os.makedirs(dossier_videos, exist_ok=True)
+
+
+                    
+                    
+def ouvrir_fichier_multiplateforme(chemin_fichier):
+    """
+    Ouvre un fichier avec son application par défaut, quel que soit le système d'exploitation.
+
+    Args:
+        chemin_fichier (str): Le chemin absolu ou relatif du fichier à ouvrir.
+    """
+    # Vérifie si le fichier existe avant d'essayer de l'ouvrir
+    if not os.path.exists(chemin_fichier):
+        print(f"Erreur : Le fichier '{chemin_fichier}' n'existe pas.")
+        return
+
+    # Détermine le système d'exploitation
+    os_system = platform.system()
+    print(f"Ouverture du fichier '{chemin_fichier}' sur le système d'exploitation : {os_system}")
+    
+    if os_system == 'Windows':
+        try:
+            # Sur Windows, utilise os.startfile pour ouvrir le fichier
+            os.startfile(chemin_fichier)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Windows.")
+        except AttributeError:
+            # Solution de secours si os.startfile n'est pas disponible (cas rare)
+            subprocess.run(['start', '', chemin_fichier], shell=True, check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Windows (via subprocess).")
+        except Exception as e:
+            print(f"Erreur lors de l'ouverture du fichier sur Windows : {e}")
+
+    elif os_system == 'Darwin':  # 'Darwin' est le nom de système pour macOS
+        try:
+            # Sur macOS, utilise la commande 'open'
+            subprocess.run(['open', chemin_fichier], check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur macOS.")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'ouverture du fichier sur macOS : {e}")
+            print("Assurez-vous que l'application par défaut pour ce type de fichier est configurée.")
+        except FileNotFoundError:
+            print("Erreur : La commande 'open' n'a pas été trouvée. Assurez-vous d'être sur macOS.")
+
+    elif os_system == 'Linux':
+        try:
+            # Sur Linux, utilise 'xdg-open' qui est compatible avec la plupart des environnements de bureau
+            subprocess.run(['xdg-open', chemin_fichier], check=True)
+            print(f"Fichier '{chemin_fichier}' ouvert sur Linux.")
+        except FileNotFoundError:
+            print("Erreur : La commande 'xdg-open' n'a pas été trouvée. Assurez-vous que votre environnement de bureau est configuré.")
+        except subprocess.CalledProcessError as e:
+            print(f"Erreur lors de l'ouverture du fichier sur Linux : {e}")
+
+    else:
+        print(f"Système d'exploitation '{os_system}' non pris en charge pour l'ouverture automatique de fichiers.")
+
 
 #### pour la diffusion des résultats sur internet , sur serveur FTP, FTPS.
 from ftplib import FTP
@@ -1263,7 +1322,7 @@ class DictionnaireDeCoureurs(dict) :
             else :
                 print("Impossible d'effacer l'élément", element, "des Coureurs actuels")
     def afficher(self, groupement = None) :
-        print("Liste des effectifs paramétrés", self.seriesDeCouleurSuccessives)
+        # print("Liste des effectifs paramétrés", self.seriesDeCouleurSuccessives)
         print("Liste des clés", self.cles())
         for course in self.cles() :
             print("Course",course, 'self["CoureursElimines"][course]', self["CoureursElimines"][course])
@@ -3184,6 +3243,8 @@ def exportXLSX():
     fichier = os.path.join(dossier_resultats,nomDossierResultats(), '_resultats.xlsx')
     if os.path.exists(fichier) :
         os.remove(fichier)
+    if not os.path.exists(os.path.join(dossier_resultats,nomDossierResultats())) :
+        creer_dossier_si_inexistant(os.path.join(dossier_resultats,nomDossierResultats()))
     workbook = xlsxwriter.Workbook(fichier)
     worksheet = workbook.add_worksheet()
     ### constitution des champs à ajouter et de leurs contenus
@@ -3229,7 +3290,7 @@ def exportXLSX():
     ### ouverture immédiate du tableur avec le logiciel par défaut sur l'ordinateur.
     # path = os.getcwd()
     # fichierAOuvrir = os.path.join(dossier_impressions, '_resultats.xlsx')
-    subprocess.Popen([fichier],shell=True)
+    ouvrir_fichier_multiplateforme(fichier)
     #subprocess.Popen(r'explorer /select,"' + )
 
 
