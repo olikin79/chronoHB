@@ -4873,7 +4873,7 @@ def actualiserDistanceDesCourses():
             boutonNettoyage.pack(side=LEFT)
         boutonRecopie.pack(side=LEFT)
     else:
-        lblInfoDistance.configure(text="")
+        lblInfoDistance.configure(text="Veuillez importer des coureurs. Actuellement, aucune course n'est paramétrée. Cet affichage est donc vide.")
         boutonsParametresGroupementsFrame.forget()
         lblNbreCoursesDesire.forget()
         nbreCoursesDesire.forget()

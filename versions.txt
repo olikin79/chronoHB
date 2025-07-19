@@ -3,6 +3,7 @@ Travail du 19/07/25 :
 - correctif ouverture du fichier tableur avec la fonction dédiée : ouvrir_fichier_multiplateforme()
 - L'affichage du paramétrage des dossards n'existe que si les dossards sont gérés par chronoHB
 - sécurisation du code dans ActualiseAffichageTV() dans le cas où on efface toutes les données avec des cases TV cochées.
+- message d'avertissement dans "paramètres des courses" quand la base est vide.
 
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
@@ -25,7 +26,6 @@ Travail du 11/07/25 :
 - Séparation du menu "paramètres des courses" en deux. Mise à l'écart du "Regroupement de catégories".
 - Sélecteur de couleur sous mac os X opérationnel.
 - Ajout du bleu foncé dans le sélecteur de couleur.
-
 
 Travail du 07/07/25 :
 - le choix courses du collège ou UNSS force le mode CoursesManuelles==False. Cela ne convenait pas.
