@@ -187,7 +187,7 @@ from queue import Queue
 class MonGestionnaireEvenements(FileSystemEventHandler):
     def __init__(self, event_queue):
         self.event_queue = event_queue
-        self.event_queue.put({"type": "initialisation du gestionnaire d'éèvements watchdog", "path": "on force un traitement ."})
+        self.event_queue.put({"type": "initialisation du gestionnaire d'évènements watchdog", "path": "on force un traitement."})
 
     def on_modified(self, event):
         if not event.is_directory:
