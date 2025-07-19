@@ -4,6 +4,7 @@ Travail du 19/07/25 :
 - L'affichage du paramétrage des dossards n'existe que si les dossards sont gérés par chronoHB
 - sécurisation du code dans ActualiseAffichageTV() dans le cas où on efface toutes les données avec des cases TV cochées.
 - message d'avertissement dans "paramètres des courses" quand la base est vide.
+- correctif chemin pour génération des diplomes : dossier_diplomes définie.
 
 Travail du 18/07/25 :
 - Implémentation d'une interface "dossards perdus" dans le menu RFID. Reconstruction automatique de la base de coureurs quand on ferme l'interface RFID.
