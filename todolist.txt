@@ -50,6 +50,7 @@ Une personne inscrite plus loin dans le même fichier se voit attribuer deux num
 
 
 Avant la vente du logiciel :
+- vérifier si l'erreur 10 est bien signalée à l'utilisateur comme c'est prévu.
 - Voir si ce serait pertinent de remplacer la liste root["Coureurs"][course] par un dictionnaire. Ce éviterait de tenir à jour la liste des dossards effacés.
 Par contre, cela imposerait un tri par certaines méthodes. Toutes seraient à reconstruire.
 - possibilité de changer l'ordre des groupements par un drag and drop (voir tmp_reordonnerFrame.py pour un modèle). A améliorer pour permettre de déposer juste à côté.
@@ -116,7 +117,7 @@ Avec des lignes artificielles rajoutées, on va avoir un décalage. Ce bug exist
 
 b. A IMPLEMENTER :
 Avant début septembre :
-- à chaque démarrage, faire un ménage dans sauvegardes_automatiques des fichiers plus anciens que 31 jours.
+- à chaque démarrage, faire un ménage dans sauvegardes_automatiques des fichiers plus anciens que 31 jours. Voir la fonction nettoyerTousLesFichiersGeneres() déjà construite, à compléter.
 - menu "Regrouper des catégories" à n'afficher que dans le cas de "Courses manuelles" == False.
 - Etudier une façon de reconstruire dynamiquement les menus pour permettre de les changer au fur et à mesure de la configuration : 
   cacher "imprimer les dossards si les dossards ne sont pas gérés par chronoHB, etc...
